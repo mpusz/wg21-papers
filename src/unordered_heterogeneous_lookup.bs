@@ -1,0 +1,197 @@
+<pre class='metadata'>
+Title: Heterogeneous lookup for unordered containers
+Shortname: D0XXX
+Revision: 0
+Status: D
+Warning: Not Ready
+Group: WG21
+Audience: LEWG, LWG
+Date: 2017-11-30
+URL: http://wg21.link/D0XXXr0
+Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
+Abstract: This proposal adds heterogenous lookup support to the unordered associative containers in the
+          C++ Standard Library. As a result temporary key object is not used when different (but
+          comparable) type is provided as a key to member function. This also makes unordered and
+          regular associative container interfaces and functionality more compatible with each other.
+
+Repository: mpusz/wg21_papers
+!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/unordered.bs">github.com/mpusz/wg21_papers/blob/master/src/unordered.bs</a>
+Markup Shorthands: markdown on
+Default Highlight: cpp
+</pre>
+
+
+Motivation and Scope {#motivation-and-scope}
+====================
+
+[[N3657]] merged to C++14 IS introduced heterogeneous lookup support for ordered associative containers
+(`std::map`, `std::set`, etc) to the C++ Standard Library. Authors of that document pointed that
+the requirement to construct (either implicitly or explicitly) the object of `key_type` to do the lookup
+may be really expensive.
+
+Unordered containers still lack support for such functionality and users are often hit by that
+performance problem.
+
+Consider such use case:
+
+```cpp
+std::unordered_map<std::string, int> map = /* ... */;
+map.find("abc");
+map.find("def"sv);
+```
+
+In C++17 above code will construct `std::string` temporary and then will compare it with container's
+elements to find the key. There is no implementation-specific reason to prevent lookup by an arbitrary
+key type `T`, as long as `hash(t) == hash(k)` for any key `k` in the map, if `t == k`.
+
+This proposal suggest following code to support above use case:
+
+```cpp
+struct string_hash {
+  using is_transparent = void;                        // I confirm I know what I am doing here
+  using hash_type = std::hash<std::string_view>;      // helper local type
+  size_t operator()(const std::string_view txt) const { return hash_type{}(txt); }
+  size_t operator()(const std::string& txt) const     { return hash_type{}(txt); }
+  size_t operator()(const char* txt) const            { return hash_type{}(txt}; }
+};
+
+std::unordered_map<std::string, int, string_hash, std::equal_to<>> map = /* ... */;
+map.find("abc");
+map.find("def"sv);
+```
+
+
+Prior Work {#prior-work}
+==========
+
+[[N3573]] tried to address that issue. While the motivation described in that paper sounds reasonable
+the proposed solution goes too far and may cause problems. See [[#design-decisions]] for more details.
+
+
+Impact On The Standard {#impact}
+======================
+
+This proposal modifies the unordered associative containers in `<unordered_map>` and `<unordered_set>` by
+overloading the lookup member functions with member function templates.
+
+There are no language changes. 
+
+Almost all existing C++17 code is unaffected because new member functions are disabled from overload
+resolution process unless `Hash` template parameter has `is_transparent` property. That is not the case
+for the code created before that proposal.
+
+
+Design Decisions {#design-decisions}
+================
+
+Heterogeneous hash function object {#design-heterogeneous-hash}
+----------------------------------
+
+[[N3573]] paper suggests adding
+
+```cpp
+namespace std {
+  template<typename T = void>
+  struct hash;
+  
+  template<>
+  struct hash<void> {
+    template<typename T>
+    std::size_t operator()(T&& t) {
+      return std::hash<typename std::decay<T>::type>()(std::forward<T>(t));
+    }
+  };
+}
+```
+
+While this could be useful and compatible with changes introduced for many operations in [[N3421]],
+there is too big chance of two types being equality-comparable but having incompatible hashes.
+
+Following issue was pointed out on the [reflector](https://groups.google.com/a/isocpp.org/d/msg/std-proposals/mRu7rIrDAEw/bYMyojZRaiEJ).
+
+For example, under gcc 4.8.0,
+
+```cpp
+std::hash<long>(-1L) == 18446744073709551615
+std::hash<double>(-1.0) == 11078049357879903929
+```
+
+which makes following code fail
+
+```cpp
+std:unordered_set<double, std::hash<>, std::equal_to<>> s;
+s.insert(-1L);                  // Internally converts -1L to -1.0 and hashes that
+assert(s.find(-1L) != s.end()); // Fails, find calls hash<long>(-1L) and gets the wrong bucket
+```
+
+Note that under C++17 rules this code succeeds, because `find()` also converts its parameter to `double`
+before hashing.
+
+That proposal intentionally **does not suggest** standardizing heterogeneous hash function object
+`template<> std::hash<void>`. Doing that might be tempting but it requires more investigations and
+can be always added with future proposals.
+
+
+Additional parameters in lookup member functions overloads {#design-function-additional-parameters}
+----------------------------------------------------------
+
+[[N3573]] also proposes adding additional parameters to lookup functions so the users may provide
+different hash and equality comparison functor objects for each member function call.
+
+```cpp
+template<typename T, typename Hash = std::hash<>, typename Eq = std::equal_to<>>
+iterator find(T t, Hash h = Hash(), Eq e = Eq());
+template<typename T, typename Hash = std::hash<>, typename Eq = std::equal_to<>>
+const_iterator find(T t, Hash h = Hash(), Eq e = Eq()) const;
+```
+
+That is not consistent with current interface of ordered associative containers and therefore it is
+**not proposed** by that paper. If such functionality is considered useful it can be added in the
+future by other paper both for ordered and unordered associative containers.
+
+
+Lookup member functions template overloads {#design-function-template}
+------------------------------------------
+
+For consistency reasons that paper proposes heterogeneous lookup for unordered associative containers
+should be provided by the same means as it is the case for ordered ones. Containers will only change
+their interface when the equality comparator and hash functions define nested tag type called
+`is_transparent`. 
+
+By providing explicit tag `is_transparent` in the hash functor object, the user explicitly states that
+the intention of that type is to provide coherent and interchangeable hash values for all the types 
+supported by the functor's call operators.
+
+
+Proposed Wording {#wording}
+================
+
+The proposed changes are relative to the working draft of the standard as of [[n4700]].
+
+In **26.5.4.1 [unord.map.overview]** add:
+
+
+
+
+Feature Testing {#feature-testing}
+===============
+
+The `__cpp_lib_unordered_map_heterogenous_lookup` feature test macro should be added.
+
+
+Implementation Experience {#implementation}
+=========================
+
+
+Possible Future Extensions {#future-extensions}
+==========================
+
+[[#design-heterogeneous-hash]] and [[#design-function-additional-parameters]] are not proposed by
+that paper but can be explored and proposed in the future.
+
+
+Acknowledgements {#acknowledgements}
+================
+
+Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting the production
+of this proposal.
