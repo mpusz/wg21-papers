@@ -110,19 +110,19 @@ there is too big chance of two types being equality-comparable but having incomp
 
 Following issue was pointed out in the [[REFLECTOR-1]].
 
-For example, under gcc 4.8.0,
+For example, under gcc 7.2.0,
 
 ```cpp
-std::hash<long>(-1L) == 18446744073709551615
-std::hash<double>(-1.0) == 11078049357879903929
+std::hash<long>{}(-1L) == 18446744073709551615ULL
+std::hash<double>{}(-1.0) == 11078049357879903929ULL
 ```
 
 which makes following code fail
 
 ```cpp
-std:unordered_set<double, std::hash<>, std::equal_to<>> s;
-s.insert(-1L);                  // Internally converts -1L to -1.0 and hashes that
-assert(s.find(-1L) != s.end()); // Fails, find calls hash<long>(-1L) and gets the wrong bucket
+std::unordered_set<double, std::hash<>, std::equal_to<>> s;
+s.insert(-1L);                  // Internally converts -1L to -1.0
+assert(s.find(-1L) != s.end()); // Fails: calls hash<long>(-1L) and gets the wrong bucket
 ```
 
 Note that under C++17 rules this code succeeds, because `find()` also converts its parameter to `double`
@@ -167,11 +167,11 @@ Concerns raised in [[#motivation-performance]] are addressed by that proposal in
 
 ```cpp
 struct string_hash {
-  using is_transparent = void;                        // I confirm I know what I am doing here
+  using is_transparent = void;                        // I confirm I know what I am doing
   using hash_type = std::hash<std::string_view>;      // helper local type
   size_t operator()(const std::string_view txt) const { return hash_type{}(txt); }
   size_t operator()(const std::string& txt) const     { return hash_type{}(txt); }
-  size_t operator()(const char* txt) const            { return hash_type{}(txt}; }
+  size_t operator()(const char* txt) const            { return hash_type{}(txt); }
 };
 
 std::unordered_map<std::string, int, string_hash, std::equal_to<>> map = /* ... */;
