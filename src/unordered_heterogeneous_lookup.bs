@@ -7,7 +7,7 @@ Group: WG21
 Audience: LEWG, LWG
 URL: http://wg21.link/D0XXXr0
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
-Abstract: This proposal adds heterogenous lookup support to the unordered associative containers in the
+Abstract: This proposal adds heterogeneous lookup support to the unordered associative containers in the
           C++ Standard Library. As a result, a temporary key object is not used when different (but
           comparable) type is provided as a key to the member function. This also makes unordered and
           regular associative container interfaces and functionality more compatible with each other.
@@ -355,7 +355,7 @@ template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const 
 Feature Testing {#feature-testing}
 ==================================
 
-The `__cpp_lib_unordered_map_heterogenous_lookup` feature test macro should be added.
+The `__cpp_lib_unordered_map_heterogeneous_lookup` feature test macro should be added.
 
 
 Implementation Experience {#implementation}
