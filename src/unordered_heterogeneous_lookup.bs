@@ -17,7 +17,7 @@ Abstract: This proposal adds heterogeneous lookup support to the unordered assoc
           performance hits:
           ```cpp
           std::unordered_map<std::string, int, string_transparent_hash, std::equal_to<>> map = /* ... */;
-          map.find("This does not create temporary std::string object :-)"sv);
+          map.find("This does not create a temporary std::string object :-)"sv);
           ```
 
 Repository: mpusz/wg21_papers
