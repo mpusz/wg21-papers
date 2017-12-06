@@ -35,11 +35,14 @@ Performance related concerns {#motivation-performance}
 
 Consider such use case:
 
+<div class=example id=example-1>
+
 ```cpp
 std::unordered_map<std::string, int> map = /* ... */;
-map.find("abc");
-map.find("def"sv);
+auto it1 = map.find("abc");
+auto it2 = map.find("def"sv);
 ```
+</div>
 
 In C++17 above code will construct `std::string` temporary and then will compare it with container's
 elements to find the key. There is no implementation-specific reason to prevent lookup by an arbitrary
@@ -51,15 +54,82 @@ Design related concerns {#motivation-design}
 
 Another motivating case is mentioned in [[N3573]]. Consider:
 
+<div class=example id=example-2>
+
 ```cpp
 std::unordered_set<std::unique_ptr<T>> set;
 ```
+</div>
 
-This case not only introduces a dynamic memory allocation related performance hit on lookup but also
+Whilst it's possible to insert `std::unique_ptr<T>` into the set, there are no means to erase or test for
+membership, as that would involve constructing two `std::unique_ptr<T>` to the same resource.
+
+In such a case C++ developer is forced to either:
+1. Weaken the design and not use smart pointers for memory ownership management which may result int
+    stability or security issues.
+2. Provide custom stateful (memory overhead) deleter that only optionally destroys the managed resource as
+    suggested by [[STACKOVERFLOW-1]]:
+
+```cpp
+class opt_out_deleter {
+  bool delete_;
+public:
+  explicit opt_out_deleter(bool do_delete = true) : delete_{do_delete} {}
+  template<typename T>
+  void operator()(T* p) const
+  {
+    if(delete_) delete p;
+  }
+};
+
+template<typename T>
+using set_unique_ptr = std::unique_ptr<T, opt_out_deleter>;
+
+template<typename T>
+set_unique_ptr<T> make_find_ptr(T* raw)
+{
+  return set_unique_ptr<T>{raw, opt_out_deleter{false}};
+}
+
+set_unique_ptr set = /* ... */;
+auto it = set.find(make_find_ptr(raw));
+```
+
+3. Use `std::unordered_map<T*, std::unique_ptr<T>>` instead which again results in memory overhead.
+
+
+The similar code may also have a different side effect. Let's consider:
+
+<div class=example id=example-3>
+
+```cpp
+struct my_data {
+  size_t i;
+  std::array<char, 256> data;
+  explicit my_data(size_t i_) : i{i_}
+  { std::iota(begin(data), end(data), 0); }
+};
+
+struct my_data_equal {
+  bool operator()(const std::unique_ptr<my_data>& l,
+                  const std::unique_ptr<my_data>& r) const
+  { return l->i == r->i; }
+};
+
+struct my_data_hash {
+  size_t operator()(const std::unique_ptr<my_data>& v) const
+  { return std::hash<size_t>{}(v->i); }
+};
+
+using my_set = std::unordered_set<std::unique_ptr<my_data>,
+                                  my_data_hash, my_data_equal>;
+my_set set = /* ... */;
+auto it = set.find(std::make_unique<my_data>(1));
+```
+</div>
+
+This case not only introduces a dynamic memory allocation related performance hit on every lookup but also
 messes up with nicely defined ownership strategy.
-
-Thanks to that proposal user will be able to search for elements using `T*` or `T&` as a key parameter
-to `find()` without obscuring object's ownership.
 
 
 Prior Work {#prior-work}
@@ -156,28 +226,31 @@ Lookup member functions template overloads {#design-function-template}
 
 For consistency reasons that paper proposes heterogeneous lookup for unordered associative containers
 should be provided by the same means as it is the case for ordered ones. Containers will only change
-their interface when the equality comparator and hash functions define nested tag type called
+their interface when **both** the equality comparator and hash functions define nested tag type called
 `is_transparent`. 
     
 By providing explicit tag `is_transparent` in the hash functor object, the user explicitly states that
 the intention of that type is to provide coherent and interchangeable hash values for all the types 
 supported by the functor's call operators.
 
-Concerns raised in [[#motivation-performance]] are addressed by that proposal in the following way:
+Concerns raised in [[#motivation-and-scope]] are addressed by that proposal in the following way:
 
 ```cpp
 struct string_hash {
-  using is_transparent = void;                        // I confirm I know what I am doing
-  using hash_type = std::hash<std::string_view>;      // helper local type
-  size_t operator()(const std::string_view txt) const { return hash_type{}(txt); }
-  size_t operator()(const std::string& txt) const     { return hash_type{}(txt); }
-  size_t operator()(const char* txt) const            { return hash_type{}(txt); }
+  using is_transparent = void;                    // I confirm I know what I am doing
+  using hash_type = std::hash<std::string_view>;  // just a helper local type
+  size_t operator()(std::string_view txt) const   { return hash_type{}(txt); }
+  size_t operator()(const std::string& txt) const { return hash_type{}(txt); }
+  size_t operator()(const char* txt) const        { return hash_type{}(txt); }
 };
 
 std::unordered_map<std::string, int, string_hash, std::equal_to<>> map = /* ... */;
 map.find("abc");
 map.find("def"sv);
 ```
+
+To find more details on how to address all code examples provided in that paper please refer to
+[[#implementation]].
 
 
 Proposed Wording {#wording}
@@ -361,8 +434,14 @@ The `__cpp_lib_unordered_map_heterogeneous_lookup` feature test macro should be 
 Implementation Experience {#implementation}
 ===========================================
 
-Changes related to that proposal were implemented in [GitHub repo](https://github.com/mpusz/unordered_v2)
-against [libc++ 5.0.0](https://libcxx.llvm.org).
+Changes related to that proposal as well as answers to all of the code examples provided in that paper
+are implemented in [GitHub repo](https://github.com/mpusz/unordered_v2) against
+[libc++ 5.0.0](https://libcxx.llvm.org).
+
+Simple performance tests provided there proved more than:
+- 20% performance gain for short text (SSO used in `std::string` temporary) in [EXAMPLE 1](#example-1)
+- 35% performance gain for long text (dynamic memory allocation in `std::string` temporary) in [EXAMPLE 1](#example-1)
+- 85% performance gain in [EXAMPLE 3](#example-3)
 
 
 Possible Future Extensions {#future-extensions}
@@ -383,9 +462,15 @@ membership in the ISO C++ Committee and the production of this proposal.
 {
     "REFLECTOR-1": {
         "authors": [ "Joe Gottman" ],
-        "href": "https://groups.google.com/a/isocpp.org/d/msg/std-proposals/mRu7rIrDAEw/bYMyojZRaiEJ/",
+        "href": "https://groups.google.com/a/isocpp.org/d/msg/std-proposals/mRu7rIrDAEw/bYMyojZRaiEJ",
         "title": "N3573: Why heterogenous extensions to unordered containers will not work",
         "publisher": "ISO C++ Standard - Future Proposals"
+    },
+    "STACKOVERFLOW-1": {
+        "authors": [ "Xeo" ],
+        "href": "https://stackoverflow.com/a/17853770",
+        "title": "Using a std::unordered_set of std::unique_ptr",
+        "publisher": "StackOverflow"
     }
 }
 </pre>
