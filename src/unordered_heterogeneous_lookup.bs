@@ -8,9 +8,17 @@ Audience: LEWG, LWG
 URL: http://wg21.link/D0XXXr0
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This proposal adds heterogeneous lookup support to the unordered associative containers in the
-          C++ Standard Library. As a result, a temporary key object is not used when different (but
-          comparable) type is provided as a key to the member function. This also makes unordered and
-          regular associative container interfaces and functionality more compatible with each other.
+          C++ Standard Library. As a result, a creation of a temporary key object is not needed when
+          different (but compatible) type is provided as a key to the member function. This also makes
+          unordered and regular associative container interfaces and functionality more compatible with
+          each other.
+          
+          With the changes proposed by that paper the following code will work without any additional
+          performance hits:
+          ```cpp
+          std::unordered_map<std::string, int, string_transparent_hash, std::equal_to<>> map = /* ... */;
+          map.find("This does not create temporary std::string object :-)"sv);
+          ```
 
 Repository: mpusz/wg21_papers
 !Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/unordered_heterogeneous_lookup.bs">github.com/mpusz/wg21_papers/blob/master/src/unordered_heterogeneous_lookup.bs</a>
