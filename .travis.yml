@@ -41,6 +41,7 @@ script:
     # Prepare output to deploy
     travis_retry wget https://github.com/mpusz/wg21_papers/archive/gh-pages.zip
     unzip gh-pages.zip
+    rm -rf wg21_papers-gh-pages/deployed\ at*
     shopt -s nullglob
     set -- src/*.html
     if [ "$#" -gt 0 ]; then
