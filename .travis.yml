@@ -41,7 +41,8 @@ script:
     # Prepare output to deploy
     travis_retry wget https://github.com/mpusz/wg21_papers/archive/gh-pages.zip
     unzip gh-pages.zip
-    mv src/*.html wg21_papers-gh-pages/papers
+    files=( src/*.html )
+    (( ${#files[@]} )) && mv "${files[@]}" wg21_papers-gh-pages/papers
 
 deploy:
  provider: pages
