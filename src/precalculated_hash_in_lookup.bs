@@ -44,6 +44,9 @@ Design Decisions {#design-decisions}
 Proposed Wording {#wording}
 ===========================
 
+The proposed changes are relative to the working draft of the standard as of [[!n4700]] and
+to changes proposed in [Heterogeneous lookup for unordered containers](https://mpusz.github.io/wg21_papers/papers/unordered_heterogeneous_lookup.html).
+
 
 In **26.5.4.1 [unord.map.overview]** add:
 
@@ -168,13 +171,12 @@ Implementation Experience {#implementation}
 ===========================================
 
 Changes related to that proposal as well as answers to all of the code examples provided in that paper
-are implemented in [GitHub repo](https://github.com/mpusz/unordered_v2) against
+are partially implemented in [GitHub repo](https://github.com/mpusz/unordered_v2) against
 [libc++ 5.0.0](https://libcxx.llvm.org).
 
-
-Possible Future Extensions {#future-extensions}
-===============================================
-
+Simple performance tests provided there proved nearly:
+- 20% performance gain for short text
+- 50% performance gain for long text
 
 
 Acknowledgements {#acknowledgements}
