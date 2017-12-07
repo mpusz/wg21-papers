@@ -16,7 +16,9 @@ Abstract: This proposal adds heterogeneous lookup support to the unordered assoc
           With the changes proposed by that paper the following code will work without any additional
           performance hits:
           ```cpp
-          std::unordered_map<std::string, int, string_transparent_hash, std::equal_to<>> map = /* ... */;
+          template<typename Key, typename Value>
+          using h_str_umap = std::unordered_map<Key, Value, string_hash, std::equal_to<>>;
+          h_str_umap<std::string, int> map = /* ... */;
           map.find("This does not create a temporary std::string object :-)"sv);
           ```
 
@@ -443,7 +445,7 @@ Implementation Experience {#implementation}
 ===========================================
 
 Changes related to that proposal as well as answers to all of the code examples provided in that paper
-are implemented in [GitHub repo](https://github.com/mpusz/unordered_v2) against
+are partially implemented in [GitHub repo](https://github.com/mpusz/unordered_v2) against
 [libc++ 5.0.0](https://libcxx.llvm.org).
 
 Simple performance tests provided there proved more than:
