@@ -345,8 +345,6 @@ Modify table 91 in section **26.2.7 [unord.req]** as follows:
 
 </blockquote>
 
-Issue: Please help with with above 3x s**???**
-
 Add paragraph 18 in **26.2.7 [unord.req]**:
 
 <blockquote>
