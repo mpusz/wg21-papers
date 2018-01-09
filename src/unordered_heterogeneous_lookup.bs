@@ -13,7 +13,7 @@ Abstract: This proposal adds heterogeneous lookup support to the unordered assoc
           unordered and regular associative container interfaces and functionality more compatible with
           each other.
           
-          With the changes proposed by that paper the following code will work without any additional
+          With the changes proposed by this paper the following code will work without any additional
           performance hits:
           ```cpp
           template<typename Key, typename Value>
@@ -145,7 +145,7 @@ messes up with nicely defined ownership strategy.
 Prior Work {#prior-work}
 ========================
 
-[[N3573]] tried to address that issue. While the motivation described in that paper sounds reasonable
+[[N3573]] tried to address this issue. While the motivation described in that paper sounds reasonable
 the proposed solution goes too far and may cause problems. See [[#design-decisions]] for more details.
 
 
@@ -159,7 +159,7 @@ There are no language changes.
 
 Almost all existing C++17 code is unaffected because new member functions are disabled from overload
 resolution process unless `Hash` template parameter has `is_transparent` property. That is not the case
-for the code created before that proposal.
+for the code created before this proposal.
 
 
 Design Decisions {#design-decisions}
@@ -185,7 +185,7 @@ namespace std {
 }
 ```
 
-While this could be useful and compatible with changes introduced for many operations in [[N3421]],
+While that could be useful and compatible with changes introduced for many operations in [[N3421]],
 there is too big chance of two types being equality-comparable but having incompatible hashes.
 
 Following issue was pointed out in the [[REFLECTOR-1]].
@@ -205,10 +205,10 @@ s.insert(-1L);                  // Internally converts -1L to -1.0
 assert(s.find(-1L) != s.end()); // Fails: calls hash<long>(-1L) and gets the wrong bucket
 ```
 
-Note that under C++17 rules this code succeeds, because `find()` also converts its parameter to `double`
+Note that under C++17 rules that code succeeds, because `find()` also converts its parameter to `double`
 before hashing.
 
-That proposal intentionally **does not suggest** standardizing heterogeneous hash function object
+This proposal intentionally **does not suggest** standardizing heterogeneous hash function object
 `template<> std::hash<void>`. Doing that might be tempting but it requires more investigations and
 can be always added via future proposals.
 
@@ -227,23 +227,23 @@ const_iterator find(T t, Hash h = Hash(), Eq e = Eq()) const;
 ```
 
 That is not consistent with the current interface of ordered associative containers and therefore it
-is **not proposed** by that paper. If such functionality is considered useful it can be added in the
+is **not proposed** by this paper. If such functionality is considered useful it can be added in the
 future by other paper both for ordered and unordered associative containers.
 
 
 Lookup member functions template overloads {#design-function-template}
 ----------------------------------------------------------------------
 
-For consistency reasons that paper proposes heterogeneous lookup for unordered associative containers
+For consistency reasons this paper proposes heterogeneous lookup for unordered associative containers
 should be provided by the same means as it is the case for ordered ones. Containers will only change
 their interface when **both** the equality comparator and hash functions define nested tag type called
 `is_transparent`. 
     
 By providing explicit tag `is_transparent` in the hash functor object, the user explicitly states that
-the intention of that type is to provide coherent and interchangeable hash values for all the types 
+the intention of this type is to provide coherent and interchangeable hash values for all the types 
 supported by the functor's call operators.
 
-Concerns raised in [[#motivation-and-scope]] are addressed by that proposal in the following way:
+Concerns raised in [[#motivation-and-scope]] are addressed by this proposal in the following way:
 
 ```cpp
 struct string_hash {
@@ -259,7 +259,7 @@ map.find("abc");
 map.find("def"sv);
 ```
 
-To find more details on how to address all code examples provided in that paper please refer to
+To find more details on how to address all code examples provided in this paper please refer to
 [[#implementation]].
 
 
@@ -444,7 +444,7 @@ The `__cpp_lib_unordered_map_heterogeneous_lookup` feature test macro should be 
 Implementation Experience {#implementation}
 ===========================================
 
-Changes related to that proposal as well as answers to all of the code examples provided in that paper
+Changes related to this proposal as well as answers to all of the code examples provided in this paper
 are partially implemented in [GitHub repo](https://github.com/mpusz/unordered_v2) against
 [libc++ 5.0.0](https://libcxx.llvm.org).
 
@@ -458,7 +458,7 @@ Possible Future Extensions {#future-extensions}
 ===============================================
 
 [[#design-heterogeneous-hash]] and [[#design-function-additional-parameters]] are not proposed by
-that paper but can be explored and proposed in the future.
+this paper but can be explored and proposed in the future.
 
 
 Acknowledgements {#acknowledgements}
