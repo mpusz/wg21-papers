@@ -18,9 +18,11 @@ I am a member of the **ISO C++ Committee (WG21)** and **WG21 Study Group 14 (SG1
 
 ### Published
 
+- [P0919: Heterogeneous lookup for unordered containers](papers/unordered_heterogeneous_lookup.html)
+
 ### Under Development
 
-- [Heterogeneous lookup for unordered containers](papers/unordered_heterogeneous_lookup.html)
+- [D0920: Precalculated hash values in lookup](papers/precalculated_hash_in_lookup.html)
 
 ## More Papers
 
