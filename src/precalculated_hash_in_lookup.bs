@@ -1,11 +1,11 @@
 <pre class='metadata'>
 Title: Precalculated hash values in lookup
-Shortname: D0XXX
+Shortname: D0920
 Revision: 0
 Status: D
 Group: WG21
 Audience: LEWG, LWG
-URL: http://wg21.link/D0XXXr0
+URL: http://wg21.link/D0920r0
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This proposal adds...
 
