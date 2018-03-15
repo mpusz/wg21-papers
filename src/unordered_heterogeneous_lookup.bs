@@ -589,8 +589,8 @@ this paper but can be explored and proposed in the future.
 Revision History {#revision-history}
 ====================================
 
-r0 ➡ r1 {#r0r1}
----------------
+r0 ➡ r1 [[diff](https://github.com/mpusz/wg21_papers/commit/8296c704573a8fb7f3a1ecc37f9eef9449dbc737)] {#r0r1}
+-------------------------------------------------------------------------------------------------------------
 
 The paper was reviewed by LEWG at the 2018 Jacksonville meeting and resulted with the following straw polls
 - Do we want encourage to do more work in that subject? Unanimous consent.
