@@ -1,11 +1,11 @@
 <pre class='metadata'>
 Title: Heterogeneous lookup for unordered containers
-Shortname: P0919
-Revision: 0
-Status: P
+Shortname: D0919
+Revision: 1
+Status: D
 Group: WG21
 Audience: LEWG, LWG
-URL: http://wg21.link/P0919r0
+URL: http://wg21.link/D0919r1
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This proposal adds heterogeneous lookup support to the unordered associative containers in the
           C++ Standard Library. As a result, a creation of a temporary key object is not needed when
@@ -17,7 +17,7 @@ Abstract: This proposal adds heterogeneous lookup support to the unordered assoc
           performance hits:
           ```cpp
           template<typename Key, typename Value>
-          using h_str_umap = std::unordered_map<Key, Value, string_hash, std::equal_to<>>;
+          using h_str_umap = std::unordered_map<Key, Value, string_hash>;
           h_str_umap<std::string, int> map = /* ... */;
           map.find("This does not create a temporary std::string object :-)"sv);
           ```
@@ -158,7 +158,7 @@ overloading the lookup member functions with member function templates.
 There are no language changes. 
 
 Almost all existing C++17 code is unaffected because new member functions are disabled from overload
-resolution process unless `Hash` template parameter has `is_transparent` property. That is not the case
+resolution process unless `Hash` template parameter has `transparent_key_equal` property. That is not the case
 for the code created before this proposal.
 
 
@@ -235,11 +235,27 @@ Lookup member functions template overloads {#design-function-template}
 ----------------------------------------------------------------------
 
 For consistency reasons this paper proposes heterogeneous lookup for unordered associative containers
-should be provided by the same means as it is the case for ordered ones. Containers will only change
-their interface when **both** the equality comparator and hash functions define nested tag type called
-`is_transparent`. 
+should be provided by the similar means as it is the case for ordered ones. Containers **will only
+change their interface when hash functor will define nested tag type called** `transparent_key_equal`
+that specifies transparent equality comparator type to be used by the container **instead of a type
+provided (or default type) for** `Pred` **template parameter**.
+
+The container **will fail to compile** (with proper diagnostics applied) when:
+- equality comparator type provided by the `hasher::transparent_key_equal` is not transparent (does not
+    provide `is_transparent` tag type)
+- `Pred` container's template argument is neither
+    - the default type of that template parameter (namely `equal_to<Key>`)
+    - the same type as provided by the hasher via `transparent_key_equal` tag
+
+`key_equal` **member type of the container** will specify either:
+- the type provided by the `Pred` template argument of the container (or its default type) in case the
+    heterogeneous lookup is disabled
+- the type provided by the `transparent_key_equal` tag of the hash functor object otherwise
+
+Note: Changing the specification of the default type in container's template parameters would cause
+      the ABI break, therefore, it is not suggested by that proposal.
     
-By providing explicit tag `is_transparent` in the hash functor object, the user explicitly states that
+By providing explicit tag `transparent_key_equal` in the hash functor object, the user explicitly states that
 the intention of this type is to provide coherent and interchangeable hash values for all the types 
 supported by the functor's call operators.
 
@@ -247,16 +263,28 @@ Concerns raised in [[#motivation-and-scope]] are addressed by this proposal in t
 
 ```cpp
 struct string_hash {
-  using is_transparent = void;                    // I confirm I know what I am doing
+  using transparent_key_equal = std::equal_to<>;  // Pred to use
   using hash_type = std::hash<std::string_view>;  // just a helper local type
   size_t operator()(std::string_view txt) const   { return hash_type{}(txt); }
   size_t operator()(const std::string& txt) const { return hash_type{}(txt); }
   size_t operator()(const char* txt) const        { return hash_type{}(txt); }
 };
 
-std::unordered_map<std::string, int, string_hash, std::equal_to<>> map = /* ... */;
+std::unordered_map<std::string, int, string_hash> map = /* ... */;
 map.find("abc");
 map.find("def"sv);
+```
+
+Note that in the above example the 4th template argument (`Pred`) is intentionally skipped and
+will be overwritten with the type provided by the `string_hash::transparent_key_equal`. 
+
+In case the user needs to provide custom `Allocator` type the `Pred` arguments needs to match the type
+provided by `hasher::transparent_key_equal`: 
+
+```cpp
+std::unordered_map<std::string, int, string_hash,
+                   string_hash::transparent_key_equal,
+                   std::allocator<std::pair<const std::string, int>>> map = /* ... */;
 ```
 
 To find more details on how to address all code examples provided in this paper please refer to
@@ -275,8 +303,8 @@ In Table 91: `X` denotes an unordered associative container class, `a` denotes a
 `a2` denotes a value of a type with nodes compatible with type `X` (Table 89), `b` denotes a possibly
 `const` value of type `X`, `a_uniq` denotes a value of type `X` when `X` supports unique keys, `a_eq`
 denotes a value of type `X` when `X` supports equivalent keys,
-<INS>`a_tran` denotes a possibly `const` value of type `X` when the *qualified-ids*
-`X::key_equal::is_transparent` and `X::hasher::is_transparent` are both valid and denote types (17.9.2),</INS>
+<INS>`a_tran` denotes a possibly `const` value of type `X` when the *qualified-id*
+`X::hasher::transparent_key_equal` is valid and denote a type (17.9.2),</INS>
 `i` and `j` denote input iterators that refer to `value_type`, `[i, j)` denotes a valid range, `p` and `q2`
 denote valid constant iterators to `a`, `q` and `q1` denote valid dereferenceable constant iterators
 to `a`, `r` denotes a valid dereferenceable iterator to `a`, `[q1, q2)` denotes a valid range in `a`,
@@ -290,6 +318,7 @@ also the key of an element in `a_tran`,</INS>
 a non-const rvalue of type `X::node_type`.
 </blockquote>
 
+
 Modify table 91 in section **26.2.7 [unord.req]** as follows:
 
 <blockquote>
@@ -300,6 +329,22 @@ Modify table 91 in section **26.2.7 [unord.req]** as follows:
     <th>Return type</th>
     <th>Assertion/note pre-/post-condition</th>
     <th>Complexity</th>
+  </tr>
+  <tr>
+    <td><ins>X::key_equal</ins></td>
+    <td><del>Pred</del>
+        <ins>`Hash::transparent_key_equal` if the *qualified-id* `Hash::transparent_key_equal` is valid
+            and denotes a type (17.9.2); otherwise, `Pred`.</ins></td>
+    <td>Requires:
+        `key_equal` is `CopyConstructible`.
+        `key_equal` shall be a binary predicate that takes two arguments of type `Key`.
+        `key_equal` is an equivalence relation.
+        <ins>`key_equal::is_transparent` is valid and denotes a type (17.9.2) if `Hash::transparent_key_equal`
+        is valid and denotes a type (17.9.2)</ins></td>
+    <td>compile time</td>
+  </tr>
+  <tr>
+    <td colspan="4">...</td>
   </tr>
   <tr>
     <td>`b.find(k)`</td>
@@ -345,35 +390,84 @@ Modify table 91 in section **26.2.7 [unord.req]** as follows:
 
 </blockquote>
 
-Add paragraph 18 in **26.2.7 [unord.req]**:
+Add new paragraphs (18, 19) in **26.2.7 [unord.req]**:
 
 <blockquote>
 <ins>
-The member function templates find, count, and equal_range shall not participate in overload resolution
-unless the *qualified-ids* `Pred::is_transparent` and `Hash::is_transparent` are both valid and denote
-types (17.9.2).
+The program is ill-formed and requires proper diagnostic if the *qualified-id* `Hash::transparent_key_equal`
+is valid and denotes a type (17.9.2) and either *qualified-id* `Hash::transparent_key_equal::is_transparent`
+is not valid or `Pred` is a different type than `equal_to<Key>` or `Hash::transparent_key_equal`.
 </ins>
 </blockquote>
 
-In **26.5.4.1 [unord.map.overview]** add:
+<blockquote>
+<ins>
+The member function templates `find`, `count`, and `equal_range` shall not participate in overload resolution
+unless the *qualified-id* `Hash::transparent_key_equal` is valid and denotes a type (17.9.2).
+</ins>
+</blockquote>
+
+Modify **26.5.4.1 [unord.map.overview]** paragraph 3 as follows:
 
 <blockquote>
 <pre>
-// map operations:
-iterator       find(const key_type& k);
-const_iterator find(const key_type& k) const;
-<ins>template &lt;class K> iterator       find(const K& k);
-template &lt;class K> const_iterator find(const K& k) const;</ins>
-size_type count(const key_type& k) const;
-<ins>template &lt;class K> size_type count(const K& k) const;</ins>
-pair&lt;iterator, iterator>             equal_range(const key_type& k);
-pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
-<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
-template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
+namespace std {
+  template&lt;class Key,
+           class T,
+           class Hash = hash&lt;Key>,
+           class Pred = equal_to&lt;Key>,
+           class Allocator = allocator&lt;pair&lt;const Key, T>>>
+  class unordered_map {
+  public:
+    // types
+    using key_type         = Key;
+    using mapped_type      = T;
+    using value_type       = pair&lt;const Key, T>;
+    using hasher           = Hash;
+    <del>using key_equal        = Pred;</del>
+    <ins>using key_equal        = <i>see Table 91</i>;</ins>
+    using allocator_type   = Allocator;
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+    // map operations:
+    iterator       find(const key_type& k);
+    const_iterator find(const key_type& k) const;
+    <ins>template &lt;class K> iterator       find(const K& k);
+    template &lt;class K> const_iterator find(const K& k) const;</ins>
+    size_type count(const key_type& k) const;
+    <ins>template &lt;class K> size_type count(const K& k) const;</ins>
+    pair&lt;iterator, iterator>             equal_range(const key_type& k);
+    pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
+    <ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
+    template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
 </pre>
 </blockquote>
 
 In **26.5.5.1 [unord.multimap.overview]** add:
+
+<blockquote>
+<pre>
+namespace std {
+  template&lt;class Key,
+           class T,
+           class Hash = hash&lt;Key>,
+           class Pred = equal_to&lt;Key>,
+           class Allocator = allocator&lt;pair&lt;const Key, T>>>
+  class unordered_multimap {
+  public:
+    // types
+    using key_type         = Key;
+    using mapped_type      = T;
+    using value_type       = pair&lt;const Key, T>;
+    using hasher           = Hash;
+    <del>using key_equal        = Pred;</del>
+    <ins>using key_equal        = <i>see Table 91</i>;</ins>
+    using allocator_type   = Allocator;
+</pre>
+</blockquote>
 
 <blockquote>
 <pre>
@@ -395,6 +489,25 @@ In **26.5.6.1 [unord.set.overview]** add:
 
 <blockquote>
 <pre>
+namespace std {
+  template&lt;class Key,
+           class Hash = hash&lt;Key>,
+           class Pred = equal_to&lt;Key>,
+           class Allocator = allocator&lt;pair&lt;const Key, T>>>
+  class unordered_set {
+  public:
+    // types
+    using key_type         = Key;
+    using value_type       = Key;
+    using hasher           = Hash;
+    <del>using key_equal        = Pred;</del>
+    <ins>using key_equal        = <i>see Table 91</i>;</ins>
+    using allocator_type   = Allocator;
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
 // set operations:
 iterator       find(const key_type& k);
 const_iterator find(const key_type& k) const;
@@ -410,6 +523,25 @@ template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const 
 </blockquote>
 
 In **26.5.7.1 [unord.multiset.overview]** add:
+
+<blockquote>
+<pre>
+namespace std {
+  template&lt;class Key,
+           class Hash = hash&lt;Key>,
+           class Pred = equal_to&lt;Key>,
+           class Allocator = allocator&lt;pair&lt;const Key, T>>>
+  class unordered_multiset {
+  public:
+    // types
+    using key_type         = Key;
+    using value_type       = Key;
+    using hasher           = Hash;
+    <del>using key_equal        = Pred;</del>
+    <ins>using key_equal        = <i>see Table 91</i>;</ins>
+    using allocator_type   = Allocator;
+</pre>
+</blockquote>
 
 <blockquote>
 <pre>
@@ -452,6 +584,27 @@ Possible Future Extensions {#future-extensions}
 
 [[#design-heterogeneous-hash]] and [[#design-function-additional-parameters]] are not proposed by
 this paper but can be explored and proposed in the future.
+
+
+Revision History {#revision-history}
+====================================
+
+r0 ➡ r1 {#r0r1}
+---------------
+
+The paper was reviewed by LEWG at the 2018 Jacksonville meeting and resulted with the following straw polls
+- Do we want encourage to do more work in that subject? Unanimous consent.
+- Put the comparator in the hash (and forbid specifying it as an explicit 4th template parameter).
+
+<pre>
+| SF | F | N | A | SA |
+| 6  | 8 | 2 | 0 | 2  |
+</pre>
+
+*r1* changes the way the transparent equality comparator is provided to the class template.
+Instead of depending on the user to do the right thing in providing both hasher and comparator that
+are transitive and compatible with each other, now the design forces hasher to provide compatible
+comparator.
 
 
 Acknowledgements {#acknowledgements}
