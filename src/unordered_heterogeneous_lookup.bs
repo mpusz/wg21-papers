@@ -1,11 +1,11 @@
 <pre class='metadata'>
 Title: Heterogeneous lookup for unordered containers
-Shortname: D0919
+Shortname: P0919
 Revision: 1
-Status: D
+Status: P
 Group: WG21
-Audience: LEWG, LWG
-URL: http://wg21.link/D0919r1
+Audience: LWG
+URL: http://wg21.link/P0919r1
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This proposal adds heterogeneous lookup support to the unordered associative containers in the
           C++ Standard Library. As a result, a creation of a temporary key object is not needed when
