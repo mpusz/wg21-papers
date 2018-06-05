@@ -626,7 +626,7 @@ Instead of depending on the user to do the right thing in providing both hasher 
 are transitive and compatible with each other, now the design forces hasher to provide compatible
 comparator.
 
-r1 ➡ r2 [[diff](https://github.com/mpusz/wg21_papers/commit/8296c704573a8fb7f3a1ecc37f9eef9449dbc737)] {#r0r2}
+r1 ➡ r2 [[diff](https://github.com/mpusz/wg21_papers/commit/b08f5a6c6ab4385a8e3aac4473bafcd0906b3d94)] {#r0r2}
 -------------------------------------------------------------------------------------------------------------
 
 - `contains()` support added
