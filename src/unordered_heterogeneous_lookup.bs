@@ -1,11 +1,11 @@
 <pre class='metadata'>
 Title: Heterogeneous lookup for unordered containers
-Shortname: P0919
-Revision: 1
-Status: P
+Shortname: D0919
+Revision: 2
+Status: D
 Group: WG21
 Audience: LWG
-URL: http://wg21.link/P0919r1
+URL: http://wg21.link/D0919r2
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This proposal adds heterogeneous lookup support to the unordered associative containers in the
           C++ Standard Library. As a result, a creation of a temporary key object is not needed when
@@ -380,11 +380,23 @@ Modify table 91 in section **26.2.7 [unord.req]** as follows:
     <td>Average case O(`b.count(k)`), worst case O(`b.size()`).</td>
   </tr>
   <tr>
-    <td><ins>`a_tran.equal_range(k)`</ins></td>
+    <td><ins>`a_tran.equal_range(ke)`</ins></td>
     <td><ins>`pair<iterator, iterator>`; `pair<const_iterator, const_iterator>` for const `a_tran`.</ins></td>
     <td><ins>Returns a range containing all elements with keys `k` such that `eq(k, ke)` is `true`. Returns
         `make_pair(a_tran.end(), a_tran.end())` if no such elements exist.</ins></td>
     <td><ins>Average case O(`a_tran.count(k)`), worst case O(`a_tran.size()`).</ins></td>
+  </tr>
+  <tr>
+    <td>`b.contains(k)`</td>
+    <td>bool</td>
+    <td>equivalent to b.find(k) != b.end()</td>
+    <td>Average case O(1), worst case O(`b.size()`)</td>
+  </tr>
+  <tr>
+    <td><ins>`a_tran.contains(ke)`</ins></td>
+    <td><ins>bool</ins></td>
+    <td><ins>equivalent to a_tran.find(ke) != a_tran.end()</ins></td>
+    <td><ins>Average case O(1), worst case O(`a_tran.size()`)</ins></td>
   </tr>
 </table>
 
@@ -402,8 +414,8 @@ is not valid or `Pred` is a different type than `equal_to<Key>` or `Hash::transp
 
 <blockquote>
 <ins>
-The member function templates `find`, `count`, and `equal_range` shall not participate in overload resolution
-unless the *qualified-id* `Hash::transparent_key_equal` is valid and denotes a type (17.9.2).
+The member function templates `find`, `count`,`equal_range`, and `contains` shall not participate in overload
+resolution unless the *qualified-id* `Hash::transparent_key_equal` is valid and denotes a type (17.9.2).
 </ins>
 </blockquote>
 
@@ -443,6 +455,8 @@ namespace std {
     pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
     <ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
     template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
+    bool contains(const key_type& k) const;
+    <ins>template &lt;class K> bool contains(const K& k) const;</ins>
 </pre>
 </blockquote>
 
@@ -482,6 +496,8 @@ pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
 <ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
+bool contains(const key_type& k) const;
+<ins>template &lt;class K> bool contains(const K& k) const;</ins>
 </pre>
 </blockquote>
 
@@ -519,6 +535,8 @@ pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
 <ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
+bool contains(const key_type& k) const;
+<ins>template &lt;class K> bool contains(const K& k) const;</ins>
 </pre>
 </blockquote>
 
@@ -556,6 +574,8 @@ pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
 <ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
+bool contains(const key_type& k) const;
+<ins>template &lt;class K> bool contains(const K& k) const;</ins>
 </pre>
 </blockquote>
 
@@ -605,6 +625,11 @@ The paper was reviewed by LEWG at the 2018 Jacksonville meeting and resulted wit
 Instead of depending on the user to do the right thing in providing both hasher and comparator that
 are transitive and compatible with each other, now the design forces hasher to provide compatible
 comparator.
+
+r1 ➡ r2 [[diff](https://github.com/mpusz/wg21_papers/commit/8296c704573a8fb7f3a1ecc37f9eef9449dbc737)] {#r0r2}
+-------------------------------------------------------------------------------------------------------------
+
+- `contains()` support added
 
 
 Acknowledgements {#acknowledgements}
