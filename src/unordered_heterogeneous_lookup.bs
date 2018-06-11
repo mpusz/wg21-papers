@@ -1,11 +1,11 @@
 <pre class='metadata'>
 Title: Heterogeneous lookup for unordered containers
-Shortname: D0919
+Shortname: P0919
 Revision: 2
-Status: D
+Status: P
 Group: WG21
 Audience: LWG
-URL: http://wg21.link/D0919r2
+URL: http://wg21.link/P0919r2
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This proposal adds heterogeneous lookup support to the unordered associative containers in the
           C++ Standard Library. As a result, a creation of a temporary key object is not needed when
@@ -629,7 +629,7 @@ comparator.
 r1 ➡ r2 [[diff](https://github.com/mpusz/wg21_papers/commit/b08f5a6c6ab4385a8e3aac4473bafcd0906b3d94)] {#r0r2}
 -------------------------------------------------------------------------------------------------------------
 
-- `contains()` support added
+- Added support for `contains()` member functions introduced by [[!P0458r2]]
 
 
 Acknowledgements {#acknowledgements}
@@ -654,6 +654,12 @@ membership in the ISO C++ Committee and the production of this proposal.
         "href": "https://stackoverflow.com/a/17853770",
         "title": "Using a std::unordered_set of std::unique_ptr",
         "publisher": "StackOverflow"
+    },
+    "P0458r2": {
+        "authors": [ "Mikhail Maltsev" ],
+        "href": "https://wg21.link/p0458r2",
+        "title": "Checking for Existence of an Element in Associative Containers",
+        "publisher": "WG21"
     }
 }
 </pre>
