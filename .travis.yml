@@ -40,10 +40,10 @@ script:
   - |
     # Prepare output to deploy
     mkdir -p github.io/papers
-    travis_retry wget https://github.com/mpusz/wg21_papers/archive/gh-pages.zip
+    travis_retry wget https://github.com/mpusz/wg21-papers/archive/gh-pages.zip
     unzip gh-pages.zip
     shopt -s nullglob
-    set -- wg21_papers-gh-pages/papers/*.html
+    set -- wg21-papers-gh-pages/papers/*.html
     if [ "$#" -gt 0 ]; then
       mv "$@" github.io/papers
     fi
