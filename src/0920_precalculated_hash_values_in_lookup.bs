@@ -10,7 +10,7 @@ Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, 
 Abstract: This proposal extends the interface of unordered containers with the member function overloads that
     have one additional argument taking a precalculated hash value for the value being queried. 
 Repository: mpusz/wg21_papers
-!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/0920_precalculated_hash_in_lookup.bs">github.com/mpusz/wg21_papers/blob/master/src/0920_precalculated_hash_in_lookup.bs</a>
+!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/0920_precalculated_hash_values_in_lookup.bs">github.com/mpusz/wg21_papers/blob/master/src/0920_precalculated_hash_values_in_lookup.bs</a>
 Markup Shorthands: markdown on
 </pre>
 
