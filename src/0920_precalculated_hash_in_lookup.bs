@@ -1,11 +1,11 @@
 <pre class='metadata'>
 Title: Precalculated hash values in lookup
-Shortname: D0920
+Shortname: P0920
 Revision: 0
-Status: D
+Status: P
 Group: WG21
 Audience: LEWG, LWG
-URL: http://wg21.link/D0920r0
+URL: http://wg21.link/P0920r0
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This proposal extends the interface of unordered containers with the member function overloads that
     have one additional argument taking a precalculated hash value for the value being queried. 
