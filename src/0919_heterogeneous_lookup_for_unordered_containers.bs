@@ -23,7 +23,7 @@ Abstract: This proposal adds heterogeneous lookup support to the unordered assoc
           ```
 
 Repository: mpusz/wg21_papers
-!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/0919_unordered_heterogeneous_lookup.bs">github.com/mpusz/wg21_papers/blob/master/src/0919_unordered_heterogeneous_lookup.bs</a>
+!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/0919_heterogeneous_lookup_for_unordered_containers.bs">github.com/mpusz/wg21_papers/blob/master/src/0919_heterogeneous_lookup_for_unordered_containers.bs</a>
 Markup Shorthands: markdown on
 </pre>
 

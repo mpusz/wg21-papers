@@ -24,7 +24,7 @@ that activity.
 
 ### Published
 
-- [P0919: Heterogeneous lookup for unordered containers](papers/0919_unordered_heterogeneous_lookup.html)
+- [P0919: Heterogeneous lookup for unordered containers](papers/0919_heterogeneous_lookup_for_unordered_containers.html)
 - [P0920: Precalculated hash values in lookup](papers/0920_precalculated_hash_in_lookup.html)
 
 ### Under Development
