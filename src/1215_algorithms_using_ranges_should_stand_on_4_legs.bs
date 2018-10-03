@@ -1,0 +1,48 @@
+<pre class='metadata'>
+Title: Algorithms using ranges should stand on 4 legs
+Shortname: D1215
+Revision: 0
+Status: D
+Group: WG21
+Audience: LEWG, LWG
+URL: https://mpusz.github.io/wg21-papers/papers/1215_algorithms_using_ranges_should_stand_on_4_legs.html
+Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
+Abstract: TBD 
+Repository: mpusz/wg21_papers
+!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/1215_algorithms_using_ranges_should_stand_on_4_legs.bs">github.com/mpusz/wg21_papers/blob/master/src/1215_algorithms_using_ranges_should_stand_on_4_legs.bs</a>
+Markup Shorthands: markdown on
+</pre>
+
+
+Motivation and Scope {#motivation-and-scope}
+============================================
+
+
+Prior Work {#prior-work}
+========================
+
+
+Impact On The Standard {#impact}
+================================
+
+Considered Alternatives {#alternatives}
+====================================
+
+
+Proposed Wording {#wording}
+===========================
+
+
+Feature Testing {#feature-testing}
+==================================
+
+
+Implementation Experience {#implementation}
+===========================================
+
+
+Acknowledgements {#acknowledgements}
+====================================
+
+Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting my
+membership in the ISO C++ Committee and the production of this proposal.
