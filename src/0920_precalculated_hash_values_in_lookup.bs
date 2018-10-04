@@ -68,10 +68,10 @@ Similar behavior can be obtained with usage of a stateful hash object that intro
 template<typename Key, typename Hash>
 struct hash_cache {
   std::pair<Key, std::size_t> cache;
-  size_t operator()(const Key& k) const
+  std::size_t operator()(const Key& k) const
   {
     if(k != cache.first)
-      cache = std::make_pair(k, Hash()(k));
+      cache = std::pair(k, Hash()(k));
     return cache.second;
   }
 };
@@ -85,13 +85,13 @@ template<typename Key, typename Hash>
 struct hash_cache {
   mutable std::mutex m;
   std::pair<Key, std::size_t> cache;
-  size_t operator()(const Key& k) const
+  std::size_t operator()(const Key& k) const
   {
     std::size_t val{};
     {
       std::scoped_lock lock(m);
       if (k != cache.first)
-        cache = std::make_pair(k, Hash()(k));
+        cache = std::pair(k, Hash()(k));
       val = cache.second;
     }
     return val;
@@ -105,9 +105,9 @@ Another problem with that solution happens in the case of the heterogeneous look
 struct string_hash {
   using transparent_key_equal = std::equal_to<>;
   std::pair<???, ???> cache;
-  size_t operator()(std::string_view txt) const;
-  size_t operator()(const std::string& txt) const;
-  size_t operator()(const char* txt) const;
+  std::size_t operator()(std::string_view txt) const;
+  std::size_t operator()(const std::string& txt) const;
+  std::size_t operator()(const char* txt) const;
 };
 ```
 
@@ -263,28 +263,28 @@ In **21.5.4.1 [unord.map.overview]** add:
 // map operations:
 iterator       find(const key_type& k);
 const_iterator find(const key_type& k) const;
-<ins>iterator       find(const key_type& k, std::size_t hash);
-const_iterator find(const key_type& k, std::size_t hash) const;</ins>
+<ins>iterator       find(const key_type& k, size_t hash);
+const_iterator find(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> iterator       find(const K& k);
 template &lt;class K> const_iterator find(const K& k) const;
-<ins>template &lt;class K> iterator       find(const K& k, std::size_t hash);
-template &lt;class K> const_iterator find(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> iterator       find(const K& k, size_t hash);
+template &lt;class K> const_iterator find(const K& k, size_t hash) const;</ins>
 size_type count(const key_type& k) const;
-<ins>size_type count(const key_type& k, std::size_t hash) const;</ins>
+<ins>size_type count(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> size_type count(const K& k) const;
-<ins>template &lt;class K> size_type count(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> size_type count(const K& k, size_t hash) const;</ins>
 bool contains(const key_type& k) const;
-<ins>bool contains(const key_type& k, std::size_t hash) const;</ins>
+<ins>bool contains(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> bool contains(const K& k) const;
-<ins>template &lt;class K> bool contains(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> bool contains(const K& k, size_t hash) const;</ins>
 pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
-<ins>pair&lt;iterator, iterator>             equal_range(const key_type& k, std::size_t hash);
-pair&lt;const_iterator, const_iterator> equal_range(const key_type& k, std::size_t hash) const;</ins>
+<ins>pair&lt;iterator, iterator>             equal_range(const key_type& k, size_t hash);
+pair&lt;const_iterator, const_iterator> equal_range(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;
-<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k, std::size_t hash);
-template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k, size_t hash);
+template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k, size_t hash) const;</ins>
 </pre>
 </blockquote>
 
@@ -295,28 +295,28 @@ In **21.5.5.1 [unord.multimap.overview]** add:
 // map operations:
 iterator       find(const key_type& k);
 const_iterator find(const key_type& k) const;
-<ins>iterator       find(const key_type& k, std::size_t hash);
-const_iterator find(const key_type& k, std::size_t hash) const;</ins>
+<ins>iterator       find(const key_type& k, size_t hash);
+const_iterator find(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> iterator       find(const K& k);
 template &lt;class K> const_iterator find(const K& k) const;
-<ins>template &lt;class K> iterator       find(const K& k, std::size_t hash);
-template &lt;class K> const_iterator find(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> iterator       find(const K& k, size_t hash);
+template &lt;class K> const_iterator find(const K& k, size_t hash) const;</ins>
 size_type count(const key_type& k) const;
-<ins>size_type count(const key_type& k, std::size_t hash) const;</ins>
+<ins>size_type count(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> size_type count(const K& k) const;
-<ins>template &lt;class K> size_type count(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> size_type count(const K& k, size_t hash) const;</ins>
 bool contains(const key_type& k) const;
-<ins>bool contains(const key_type& k, std::size_t hash) const;</ins>
+<ins>bool contains(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> bool contains(const K& k) const;
-<ins>template &lt;class K> bool contains(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> bool contains(const K& k, size_t hash) const;</ins>
 pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
-<ins>pair&lt;iterator, iterator>             equal_range(const key_type& k, std::size_t hash);
-pair&lt;const_iterator, const_iterator> equal_range(const key_type& k, std::size_t hash) const;</ins>
+<ins>pair&lt;iterator, iterator>             equal_range(const key_type& k, size_t hash);
+pair&lt;const_iterator, const_iterator> equal_range(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;
-<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k, std::size_t hash);
-template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k, size_t hash);
+template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k, size_t hash) const;</ins>
 </pre>
 </blockquote>
 
@@ -327,28 +327,28 @@ In **21.5.6.1 [unord.set.overview]** add:
 // set operations:
 iterator       find(const key_type& k);
 const_iterator find(const key_type& k) const;
-<ins>iterator       find(const key_type& k, std::size_t hash);
-const_iterator find(const key_type& k, std::size_t hash) const;</ins>
+<ins>iterator       find(const key_type& k, size_t hash);
+const_iterator find(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> iterator       find(const K& k);
 template &lt;class K> const_iterator find(const K& k) const;
-<ins>template &lt;class K> iterator       find(const K& k, std::size_t hash);
-template &lt;class K> const_iterator find(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> iterator       find(const K& k, size_t hash);
+template &lt;class K> const_iterator find(const K& k, size_t hash) const;</ins>
 size_type count(const key_type& k) const;
-<ins>size_type count(const key_type& k, std::size_t hash) const;</ins>
+<ins>size_type count(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> size_type count(const K& k) const;
-<ins>template &lt;class K> size_type count(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> size_type count(const K& k, size_t hash) const;</ins>
 bool contains(const key_type& k) const;
-<ins>bool contains(const key_type& k, std::size_t hash) const;</ins>
+<ins>bool contains(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> bool contains(const K& k) const;
-<ins>template &lt;class K> bool contains(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> bool contains(const K& k, size_t hash) const;</ins>
 pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
-<ins>pair&lt;iterator, iterator>             equal_range(const key_type& k, std::size_t hash);
-pair&lt;const_iterator, const_iterator> equal_range(const key_type& k, std::size_t hash) const;</ins>
+<ins>pair&lt;iterator, iterator>             equal_range(const key_type& k, size_t hash);
+pair&lt;const_iterator, const_iterator> equal_range(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;
-<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k, std::size_t hash);
-template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k, size_t hash);
+template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k, size_t hash) const;</ins>
 </pre>
 </blockquote>
 
@@ -359,28 +359,28 @@ In **21.5.7.1 [unord.multiset.overview]** add:
 // set operations:
 iterator       find(const key_type& k);
 const_iterator find(const key_type& k) const;
-<ins>iterator       find(const key_type& k, std::size_t hash);
-const_iterator find(const key_type& k, std::size_t hash) const;</ins>
+<ins>iterator       find(const key_type& k, size_t hash);
+const_iterator find(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> iterator       find(const K& k);
 template &lt;class K> const_iterator find(const K& k) const;
-<ins>template &lt;class K> iterator       find(const K& k, std::size_t hash);
-template &lt;class K> const_iterator find(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> iterator       find(const K& k, size_t hash);
+template &lt;class K> const_iterator find(const K& k, size_t hash) const;</ins>
 size_type count(const key_type& k) const;
-<ins>size_type count(const key_type& k, std::size_t hash) const;</ins>
+<ins>size_type count(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> size_type count(const K& k) const;
-<ins>template &lt;class K> size_type count(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> size_type count(const K& k, size_t hash) const;</ins>
 bool contains(const key_type& k) const;
-<ins>bool contains(const key_type& k, std::size_t hash) const;</ins>
+<ins>bool contains(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> bool contains(const K& k) const;
-<ins>template &lt;class K> bool contains(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> bool contains(const K& k, size_t hash) const;</ins>
 pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
-<ins>pair&lt;iterator, iterator>             equal_range(const key_type& k, std::size_t hash);
-pair&lt;const_iterator, const_iterator> equal_range(const key_type& k, std::size_t hash) const;</ins>
+<ins>pair&lt;iterator, iterator>             equal_range(const key_type& k, size_t hash);
+pair&lt;const_iterator, const_iterator> equal_range(const key_type& k, size_t hash) const;</ins>
 template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;
-<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k, std::size_t hash);
-template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k, std::size_t hash) const;</ins>
+<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k, size_t hash);
+template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k, size_t hash) const;</ins>
 </pre>
 </blockquote>
 
