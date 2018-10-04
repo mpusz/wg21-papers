@@ -104,7 +104,7 @@ Another problem with that solution happens in the case of the heterogeneous look
 ```cpp
 struct string_hash {
   using transparent_key_equal = std::equal_to<>;
-  std::pair<???, ???> cache;
+  std::pair<???, std::size_t> cache;
   std::size_t operator()(std::string_view txt) const;
   std::size_t operator()(const std::string& txt) const;
   std::size_t operator()(const char* txt) const;
