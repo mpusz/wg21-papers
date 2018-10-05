@@ -393,6 +393,15 @@ template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const 
 </pre>
 </blockquote>
 
+Add a new paragraph (20) in **21.2.7 [unord.req]**:
+
+<blockquote>
+<ins>
+Precalculated `hash` value provided as a second argument to lookup member functions (`find`, `count`, `contains`,
+`equal_range`) shall be calculated using the `hasher` type of the container; no diagnostic required. 
+</ins>
+</blockquote>
+
 
 Feature Testing {#feature-testing}
 ==================================
