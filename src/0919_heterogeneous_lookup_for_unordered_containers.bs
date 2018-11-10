@@ -1,11 +1,11 @@
 <pre class='metadata'>
 Title: Heterogeneous lookup for unordered containers
 Shortname: P0919
-Revision: 2
+Revision: 3
 Status: P
 Group: WG21
 Audience: LWG
-URL: http://wg21.link/P0919r2
+URL: http://wg21.link/P0919r3
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This proposal adds heterogeneous lookup support to the unordered associative containers in the
           C++ Standard Library. As a result, a creation of a temporary key object is not needed when
@@ -294,32 +294,40 @@ To find more details on how to address all code examples provided in this paper 
 Proposed Wording {#wording}
 ===========================
 
-The proposed changes are relative to the working draft of the standard as of [[!n4700]].
+The proposed changes are relative to the working draft of the standard as of [[!n4762]].
 
-Modify **26.2.7 [unord.req]** paragraph 11 as follows:
+Modify **21.2.7 [unord.req]** paragraph 5 as follows:
+
+<blockquote>
+Two values `k1` and `k2` <del>of type Key</del> are considered equivalent if the container’s key equality predicate 
+<ins>`pred(k1, k2)` is valid and </ins> returns `true` when passed those values. If `k1` and `k2` are equivalent, the
+container’s hash function shall return the same value for both. ...
+</blockquote>
+
+Modify **21.2.7 [unord.req]** paragraph 11 as follows:
 
 <blockquote>
 In Table 91: `X` denotes an unordered associative container class, `a` denotes a value of type `X`,
 `a2` denotes a value of a type with nodes compatible with type `X` (Table 89), `b` denotes a possibly
 `const` value of type `X`, `a_uniq` denotes a value of type `X` when `X` supports unique keys, `a_eq`
 denotes a value of type `X` when `X` supports equivalent keys,
-<INS>`a_tran` denotes a possibly `const` value of type `X` when the *qualified-id*
-`X::hasher::transparent_key_equal` is valid and denote a type (17.9.2),</INS>
+<ins>`a_tran` denotes a possibly `const` value of type `X` when the *qualified-id*
+`X::hasher::transparent_key_equal` is valid and denotes a type (12.9.2),</ins>
 `i` and `j` denote input iterators that refer to `value_type`, `[i, j)` denotes a valid range, `p` and `q2`
 denote valid constant iterators to `a`, `q` and `q1` denote valid dereferenceable constant iterators
 to `a`, `r` denotes a valid dereferenceable iterator to `a`, `[q1, q2)` denotes a valid range in `a`,
 `il` denotes a value of type `initializer_list<value_type>`, `t` denotes a value of type `X::value_type`,
-`k` denotes a value of type `key_type`, 
-<INS>`ke` is a value such that (1) `eq(r, ke) == eq(ke, r)` with `r` the key value of `e` and `e` in `a_tran`,
-(2) `hf(r) == hf(ke)` if `eq(r, ke)` is `true`, and (3) `eq(r, ke) && eq(r, r') == eq(r', ke)` where `r'` is
-also the key of an element in `a_tran`,</INS>
-`hf` denotes a possibly `const` value of type `hasher`, `eq` denotes a possibly `const` value of type
-`key_equal`, `n` denotes a value of type `size_type`, `z` denotes a value of type `float`, and `nh` denotes
+`k` denotes a value of type `key_type`, `hf` denotes a possibly `const` value of type `hasher`, `eq` denotes
+a possibly `const` value of type `key_equal`,  
+<ins>`ke` is a value such that (1) `eq(r1, ke) == eq(ke, r1)` with `r1` the key value of `e` and `e` in `a_tran`,
+(2) `hf(r1) == hf(ke)` if `eq(r1, ke)` is `true`, and (3) `(eq(r1, ke) && eq(r1, r2)) == eq(r2, ke)` where `r2` is
+the key of an element in `a_tran`,</ins>
+`n` denotes a value of type `size_type`, `z` denotes a value of type `float`, and `nh` denotes
 a non-const rvalue of type `X::node_type`.
 </blockquote>
 
 
-Modify table 91 in section **26.2.7 [unord.req]** as follows:
+Modify table 72 in section **21.2.7 [unord.req]** as follows:
 
 <blockquote>
 
@@ -333,14 +341,12 @@ Modify table 91 in section **26.2.7 [unord.req]** as follows:
   <tr>
     <td><ins>X::key_equal</ins></td>
     <td><del>Pred</del>
-        <ins>`Hash::transparent_key_equal` if the *qualified-id* `Hash::transparent_key_equal` is valid
-            and denotes a type (17.9.2); otherwise, `Pred`.</ins></td>
+        <ins>`Hash::transparent_key_equal` if such a *qualified-id* is valid and denotes a type (12.9.2);
+        otherwise, `Pred`.</ins></td>
     <td>Requires:
         `key_equal` is `CopyConstructible`.
         `key_equal` shall be a binary predicate that takes two arguments of type `Key`.
-        `key_equal` is an equivalence relation.
-        <ins>`key_equal::is_transparent` is valid and denotes a type (17.9.2) if `Hash::transparent_key_equal`
-        is valid and denotes a type (17.9.2)</ins></td>
+        `key_equal` is an equivalence relation.</td>
     <td>compile time</td>
   </tr>
   <tr>
@@ -356,8 +362,8 @@ Modify table 91 in section **26.2.7 [unord.req]** as follows:
   <tr>
     <td><ins>`a_tran.find(ke)`</ins></td>
     <td><ins>`iterator`; `const_iterator` for const `a_tran`.</ins></td>
-    <td><ins>Returns an iterator pointing to an element with key `r` such that `eq(r, ke)`,
-    or `a_tran.end()` if no such element exists.</ins></td>
+    <td><ins>Returns an iterator pointing to an element with key equivalent to `ke`, or `a_tran.end()` if no such
+    element exists.</ins></td>
     <td><ins>Average case O(1), worst case O(`a_tran.size()`).</ins></td>
   </tr>
   <tr>
@@ -369,8 +375,20 @@ Modify table 91 in section **26.2.7 [unord.req]** as follows:
   <tr>
     <td><ins>`a_tran.count(ke)`</ins></td>
     <td><ins>`size_type`</ins></td>
-    <td><ins>Returns the number of elements with key `r` such that `eq(r, ke)`.</ins></td>
+    <td><ins>Returns the number of elements with key equivalent to `ke`.</ins></td>
     <td><ins>Average case O(`a_tran.count(ke)`), worst case O(`a_tran.size()`).</ins></td>
+  </tr>
+  <tr>
+    <td>`b.contains(k)`</td>
+    <td>bool</td>
+    <td>Equivalent to `b.find(k) != b.end()`</td>
+    <td>Average case O(1), worst case O(`b.size()`)</td>
+  </tr>
+  <tr>
+    <td><ins>`a_tran.contains(ke)`</ins></td>
+    <td><ins>bool</ins></td>
+    <td><ins>Equivalent to `a_tran.find(ke) != a_tran.end()`</ins></td>
+    <td><ins>Average case O(1), worst case O(`a_tran.size()`)</ins></td>
   </tr>
   <tr>
     <td>`b.equal_range(k)`</td>
@@ -382,44 +400,33 @@ Modify table 91 in section **26.2.7 [unord.req]** as follows:
   <tr>
     <td><ins>`a_tran.equal_range(ke)`</ins></td>
     <td><ins>`pair<iterator, iterator>`; `pair<const_iterator, const_iterator>` for const `a_tran`.</ins></td>
-    <td><ins>Returns a range containing all elements with keys `k` such that `eq(k, ke)` is `true`. Returns
+    <td><ins>Returns a range containing all elements with keys equivalent to `ke`. Returns
         `make_pair(a_tran.end(), a_tran.end())` if no such elements exist.</ins></td>
-    <td><ins>Average case O(`a_tran.count(k)`), worst case O(`a_tran.size()`).</ins></td>
-  </tr>
-  <tr>
-    <td>`b.contains(k)`</td>
-    <td>bool</td>
-    <td>equivalent to b.find(k) != b.end()</td>
-    <td>Average case O(1), worst case O(`b.size()`)</td>
-  </tr>
-  <tr>
-    <td><ins>`a_tran.contains(ke)`</ins></td>
-    <td><ins>bool</ins></td>
-    <td><ins>equivalent to a_tran.find(ke) != a_tran.end()</ins></td>
-    <td><ins>Average case O(1), worst case O(`a_tran.size()`)</ins></td>
+    <td><ins>Average case O(`a_tran.count(ke)`), worst case O(`a_tran.size()`).</ins></td>
   </tr>
 </table>
 
 </blockquote>
 
-Add new paragraphs (18, 19) in **26.2.7 [unord.req]**:
+Add new paragraphs (18, 19) in **21.2.7 [unord.req]**:
 
 <blockquote>
 <ins>
-The program is ill-formed and requires proper diagnostic if the *qualified-id* `Hash::transparent_key_equal`
-is valid and denotes a type (17.9.2) and either *qualified-id* `Hash::transparent_key_equal::is_transparent`
-is not valid or `Pred` is a different type than `equal_to<Key>` or `Hash::transparent_key_equal`.
+If the *qualified-id* `Hash::transparent_key_equal` is valid and denotes a type (12.9.2), then the program is ill-formed 
+if either:
+    - *qualified-id* `Hash::transparent_key_equal::is_transparent` is not valid or does not denote a type, or
+    - `Pred` is a different type than `equal_to<Key>` or `Hash::transparent_key_equal`.
 </ins>
 </blockquote>
 
 <blockquote>
 <ins>
 The member function templates `find`, `count`,`equal_range`, and `contains` shall not participate in overload
-resolution unless the *qualified-id* `Hash::transparent_key_equal` is valid and denotes a type (17.9.2).
+resolution unless the *qualified-id* `Hash::transparent_key_equal` is valid and denotes a type (12.9.2).
 </ins>
 </blockquote>
 
-Modify **26.5.4.1 [unord.map.overview]** paragraph 3 as follows:
+Modify **21.5.4.1 [unord.map.overview]** paragraph 3 as follows:
 
 <blockquote>
 <pre>
@@ -437,7 +444,7 @@ namespace std {
     using value_type       = pair&lt;const Key, T>;
     using hasher           = Hash;
     <del>using key_equal        = Pred;</del>
-    <ins>using key_equal        = <i>see Table 91</i>;</ins>
+    <ins>using key_equal        = <i>see [unord.req]</i>;</ins>
     using allocator_type   = Allocator;
 </pre>
 </blockquote>
@@ -451,16 +458,16 @@ namespace std {
     template &lt;class K> const_iterator find(const K& k) const;</ins>
     size_type count(const key_type& k) const;
     <ins>template &lt;class K> size_type count(const K& k) const;</ins>
+    bool contains(const key_type& k) const;
+    <ins>template &lt;class K> bool contains(const K& k) const;</ins>
     pair&lt;iterator, iterator>             equal_range(const key_type& k);
     pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
     <ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
     template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
-    bool contains(const key_type& k) const;
-    <ins>template &lt;class K> bool contains(const K& k) const;</ins>
 </pre>
 </blockquote>
 
-In **26.5.5.1 [unord.multimap.overview]** add:
+In **21.5.5.1 [unord.multimap.overview]** add:
 
 <blockquote>
 <pre>
@@ -478,7 +485,7 @@ namespace std {
     using value_type       = pair&lt;const Key, T>;
     using hasher           = Hash;
     <del>using key_equal        = Pred;</del>
-    <ins>using key_equal        = <i>see Table 91</i>;</ins>
+    <ins>using key_equal        = <i>see [unord.req]</i>;</ins>
     using allocator_type   = Allocator;
 </pre>
 </blockquote>
@@ -492,16 +499,16 @@ const_iterator find(const key_type& k) const;
 template &lt;class K> const_iterator find(const K& k) const;</ins>
 size_type count(const key_type& k) const;
 <ins>template &lt;class K> size_type count(const K& k) const;</ins>
+bool contains(const key_type& k) const;
+<ins>template &lt;class K> bool contains(const K& k) const;</ins>
 pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
 <ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
-bool contains(const key_type& k) const;
-<ins>template &lt;class K> bool contains(const K& k) const;</ins>
 </pre>
 </blockquote>
 
-In **26.5.6.1 [unord.set.overview]** add:
+In **21.5.6.1 [unord.set.overview]** add:
 
 <blockquote>
 <pre>
@@ -517,7 +524,7 @@ namespace std {
     using value_type       = Key;
     using hasher           = Hash;
     <del>using key_equal        = Pred;</del>
-    <ins>using key_equal        = <i>see Table 91</i>;</ins>
+    <ins>using key_equal        = <i>see [unord.req]</i>;</ins>
     using allocator_type   = Allocator;
 </pre>
 </blockquote>
@@ -531,16 +538,16 @@ const_iterator find(const key_type& k) const;
 template &lt;class K> const_iterator find(const K& k) const;</ins>
 size_type count(const key_type& k) const;
 <ins>template &lt;class K> size_type count(const K& k) const;</ins>
+bool contains(const key_type& k) const;
+<ins>template &lt;class K> bool contains(const K& k) const;</ins>
 pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
 <ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
-bool contains(const key_type& k) const;
-<ins>template &lt;class K> bool contains(const K& k) const;</ins>
 </pre>
 </blockquote>
 
-In **26.5.7.1 [unord.multiset.overview]** add:
+In **21.5.7.1 [unord.multiset.overview]** add:
 
 <blockquote>
 <pre>
@@ -556,7 +563,7 @@ namespace std {
     using value_type       = Key;
     using hasher           = Hash;
     <del>using key_equal        = Pred;</del>
-    <ins>using key_equal        = <i>see Table 91</i>;</ins>
+    <ins>using key_equal        = <i>see [unord.req]</i>;</ins>
     using allocator_type   = Allocator;
 </pre>
 </blockquote>
@@ -570,12 +577,12 @@ const_iterator find(const key_type& k) const;
 template &lt;class K> const_iterator find(const K& k) const;</ins>
 size_type count(const key_type& k) const;
 <ins>template &lt;class K> size_type count(const K& k) const;</ins>
+bool contains(const key_type& k) const;
+<ins>template &lt;class K> bool contains(const K& k) const;</ins>
 pair&lt;iterator, iterator>             equal_range(const key_type& k);
 pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
 <ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
 template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
-bool contains(const key_type& k) const;
-<ins>template &lt;class K> bool contains(const K& k) const;</ins>
 </pre>
 </blockquote>
 
@@ -583,8 +590,28 @@ bool contains(const key_type& k) const;
 Feature Testing {#feature-testing}
 ==================================
 
-The `__cpp_lib_unordered_map_heterogeneous_lookup` feature test macro should be added.
+Add the following row to a **Table 35** in **16.3.1 [support.limits.general]** paragraph 3:  
 
+<table>
+  <tr>
+    <th>Macro name</th>
+    <th>Value</th>
+    <th>Header(s)</th>
+  </tr>
+  <tr>
+    <td colspan="3">...</td>
+  </tr>
+  <tr>
+    <td>__cpp_lib_generic_associative_lookup</td>
+    <td>201304L</td>
+    <td>&lt;map&gt; &lt;set&gt;</td>
+  </tr>
+  <tr>
+    <td><ins>__cpp_lib_generic_unordered_lookup</ins></td>
+    <td></td>
+    <td><ins>&lt;unordered_map&gt; &lt;unordered_set&gt;</ins></td>
+  </tr>
+</table>
 
 Implementation Experience {#implementation}
 ===========================================
@@ -609,6 +636,18 @@ this paper but can be explored and proposed in the future.
 Revision History {#revision-history}
 ====================================
 
+r2 ➡ r3 {#r0r3}
+-------------------------------------------------------------------------------------------------------------
+
+- Rebased to [[!n4762]]
+- Wording updated according to the LWG feedback
+- Feature test macro name changed
+
+r1 ➡ r2 [[diff](https://github.com/mpusz/wg21_papers/commit/b08f5a6c6ab4385a8e3aac4473bafcd0906b3d94)] {#r0r2}
+-------------------------------------------------------------------------------------------------------------
+
+- Added support for `contains()` member functions introduced by [[!P0458r2]]
+
 r0 ➡ r1 [[diff](https://github.com/mpusz/wg21_papers/commit/8296c704573a8fb7f3a1ecc37f9eef9449dbc737)] {#r0r1}
 -------------------------------------------------------------------------------------------------------------
 
@@ -625,12 +664,6 @@ The paper was reviewed by LEWG at the 2018 Jacksonville meeting and resulted wit
 Instead of depending on the user to do the right thing in providing both hasher and comparator that
 are transitive and compatible with each other, now the design forces hasher to provide compatible
 comparator.
-
-r1 ➡ r2 [[diff](https://github.com/mpusz/wg21_papers/commit/b08f5a6c6ab4385a8e3aac4473bafcd0906b3d94)] {#r0r2}
--------------------------------------------------------------------------------------------------------------
-
-- Added support for `contains()` member functions introduced by [[!P0458r2]]
-
 
 Acknowledgements {#acknowledgements}
 ====================================
