@@ -636,7 +636,7 @@ this paper but can be explored and proposed in the future.
 Revision History {#revision-history}
 ====================================
 
-r2 ➡ r3 {#r0r3}
+r2 ➡ r3 [[diff](https://github.com/mpusz/wg21-papers/commit/69181bbfb95858c26c675aeee25070c56039659b)] {#r0r3}
 -------------------------------------------------------------------------------------------------------------
 
 - Rebased to [[!n4762]]
