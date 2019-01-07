@@ -108,7 +108,7 @@ struct hash_cache_sync {
 
 Such synchronization nearly negates all benefits of having a cache. 
 
-Another problem with that solution happens in the case of the heterogeneous lookup introduced by [[p0919r3]]:
+Another problem with that solution happens in the case of the heterogeneous lookup introduced by [[!p0919r3]]:
 
 ```cpp
 struct string_hash {
