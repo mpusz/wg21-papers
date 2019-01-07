@@ -327,7 +327,7 @@ r0 ➡ r1 [[diff](https://github.com/mpusz/wg21-papers/commit/8a1ba0ea256efaf2ac
 
 - Rebased to [[!n4791]]
 - Simplified wording by aggregating rows in a table (where possible) and providing overview wording once
-  for all the containers
+    for all the containers
 - Feature test macro name changed
 
 Acknowledgements {#acknowledgements}
