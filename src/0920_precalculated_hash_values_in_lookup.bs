@@ -322,7 +322,7 @@ Simple performance tests provided there proved nearly:
 Revision History {#revision-history}
 ====================================
 
-r0 ➡ r1 {#r0r1}
+r0 ➡ r1 [[diff](https://github.com/mpusz/wg21-papers/commit/8a1ba0ea256efaf2ac65c3e136b60b0c8dea7d96)] {#r0r1}
 -------------------------------------------------------------------------------------------------------------
 
 - Rebased to [[!n4791]]
