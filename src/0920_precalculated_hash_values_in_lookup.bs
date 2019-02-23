@@ -348,7 +348,7 @@ Simple performance tests provided there proved nearly:
 Revision History {#revision-history}
 ====================================
 
-r1 ➡ r2 {#r1r2}
+r1 ➡ r2 [[diff](https://github.com/mpusz/wg21-papers/commit/c2b056b9ce238eea28c25a4ae2bddbbe468ecefa)] {#r1r2}
 -------------------------------------------------------------------------------------------------------------
 
 - Table 70 updated according to [[!p0788r3]]
