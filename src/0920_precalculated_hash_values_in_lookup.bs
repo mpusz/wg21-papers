@@ -1,11 +1,11 @@
 <pre class='metadata'>
 Title: Precalculated hash values in lookup
 Shortname: P0920
-Revision: 1
+Revision: 2
 Status: P
 Group: WG21
 Audience: LWG
-URL: http://wg21.link/P0920r1
+URL: http://wg21.link/P0920r2
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, https://www.train-it.eu
 Abstract: This proposal extends the interface of unordered containers with the member function overloads that
     have one additional argument taking a precalculated hash value for the value being queried. 
@@ -135,9 +135,9 @@ Modify **21.2.7 [unord.req]** paragraph 11 as follows:
 Add new paragraph 11.23 in **21.2.7 [unord.req]**:
 
 <blockquote>
-<INS>
-    - `hk` and `hke` denote precalculated hash values with `hf` for `k` and `ke`, respectively,
-</INS>
+<ins>
+    - `hk` and `hke` denote values of type `size_t`,
+</ins>
 </blockquote>
 
 Modify table 70 in section **21.2.7 [unord.req]** as follows:
@@ -152,94 +152,120 @@ Modify table 70 in section **21.2.7 [unord.req]** as follows:
     <th>Complexity</th>
   </tr>
   <tr>
-    <td>`b.find(k)`<br/>
-      <ins>`b.find(k, hk)`</ins>
-    </td>
+    <td>`b.find(k)`</td>
     <td>`iterator`; `const_iterator` for const `b`.</td>
-    <td>Returns an iterator pointing to an element with key equivalent to `k`, or `b.end()` 
+    <td><i>Returns:</i> an iterator pointing to an element with key equivalent to `k`, or `b.end()` 
         if no such element exists.</td>
     <td>Average case O(1), worst case O(`b.size()`).</td>
   </tr>
   <tr>
-    <td>`a_tran.find(ke)`<br/>
-      <ins>`a_tran.find(ke, hke)`</ins>
-    </td>
+    <td><ins>`b.find(k, hk)`</ins></td>
+    <td><ins>`iterator`; `const_iterator` for const `b`.</ins></td>
+    <td><ins><i>Expects:</i> `b.hash_function()(k)` equals `hk`,<br/>
+        <i>Returns:</i> an iterator pointing to an element with key equivalent to `k`, or `b.end()` 
+        if no such element exists.</ins></td>
+    <td><ins>Average case O(1), worst case O(`b.size()`).</ins></td>
+  </tr>
+  <tr>
+    <td>`a_tran.find(ke)`</td>
     <td>`iterator`; `const_iterator` for const `a_tran`.</td>
-    <td>Returns an iterator pointing to an element with key equivalent to `ke`, or `a_tran.end()` if no such
+    <td><i>Returns:</i> an iterator pointing to an element with key equivalent to `ke`, or `a_tran.end()` if no such
     element exists.</td>
     <td>Average case O(1), worst case O(`a_tran.size()`).</td>
   </tr>
   <tr>
-    <td>`b.count(k)`<br/>
-      <ins>`b.count(k, hk)`</ins>
-    </td>
+    <td><ins>`a_tran.find(ke, hke)`</ins></td>
+    <td><ins>`iterator`; `const_iterator` for const `a_tran`.</ins></td>
+    <td><ins><i>Expects:</i> `a_tran.hash_function()(ke)` equals `hke`,<br/>
+        <i>Returns:</i> an iterator pointing to an element with key equivalent to `ke`, or `a_tran.end()` if no such
+        element exists.</ins></td>
+    <td><ins>Average case O(1), worst case O(`a_tran.size()`).</ins></td>
+  </tr>
+  <tr>
+    <td>`b.count(k)`<br/></td>
     <td>`size_type`</td>
-    <td>Returns the number of elements with key equivalent to `k`.</td>
+    <td><i>Returns:</i> the number of elements with key equivalent to `k`.</td>
     <td>Average case O(`b.count(k)`), worst case O(`b.size()`).</td>
   </tr>
   <tr>
-    <td>`a_tran.count(ke)`<br/>
-      <ins>`a_tran.count(ke, hke)`</ins>
-    </td>
+    <td><ins>`b.count(k, hk)`</ins></td>
     <td>`size_type`</td>
-    <td>Returns the number of elements with key equivalent to `ke`.</td>
+    <td><ins><i>Expects:</i> `b.hash_function()(k)` equals `hk`,<br/>
+        <i>Returns:</i> the number of elements with key equivalent to `k`.</ins></td>
+    <td><ins>Average case O(`b.count(k)`), worst case O(`b.size()`).</ins></td>
+  </tr>
+  <tr>
+    <td>`a_tran.count(ke)`</td>
+    <td>`size_type`</td>
+    <td><i>Returns:</i> the number of elements with key equivalent to `ke`.</td>
     <td>Average case O(`a_tran.count(ke)`), worst case O(`a_tran.size()`).</td>
+  </tr>
+  <tr>
+    <td><ins>`a_tran.count(ke, hke)`</ins></td>
+    <td>`size_type`</td>
+    <td><ins><i>Expects:</i> `a_tran.hash_function()(ke)` equals `hke`,<br/>
+        <i>Returns:</i> the number of elements with key equivalent to `ke`.</ins></td>
+    <td><ins>Average case O(`a_tran.count(ke)`), worst case O(`a_tran.size()`).</ins></td>
   </tr>
   <tr>
     <td>`b.contains(k)`</td>
     <td>bool</td>
-    <td>Equivalent to `b.find(k) != b.end()`</td>
+    <td><ins><i>Effects:</i></ins> Equivalent to `b.find(k) != b.end()`</td>
     <td>Average case O(1), worst case O(`b.size()`)</td>
   </tr>
   <tr>
     <td><ins>`b.contains(k, hk)`</ins></td>
     <td><ins>bool</ins></td>
-    <td><ins>Equivalent to `b.find(k, hk) != b.end()`</ins></td>
+    <td><ins><i>Expects:</i> `b.hash_function()(k)` equals `hk`,<br/>
+        <i>Effects:</i> Equivalent to `b.find(k, hk) != b.end()`</ins></td>
     <td><ins>Average case O(1), worst case O(`b.size()`)</ins></td>
   </tr>
   <tr>
     <td>`a_tran.contains(ke)`</td>
     <td>bool</td>
-    <td>Equivalent to `a_tran.find(ke) != a_tran.end()`</td>
+    <td><ins><i>Effects:</i></ins> Equivalent to `a_tran.find(ke) != a_tran.end()`</td>
     <td>Average case O(1), worst case O(`a_tran.size()`)</td>
   </tr>
   <tr>
     <td><ins>`a_tran.contains(ke, hke)`</ins></td>
     <td><ins>bool</ins></td>
-    <td><ins>Equivalent to `a_tran.find(ke, hke) != a_tran.end()`</ins></td>
+    <td><ins><i>Expects:</i> `a_tran.hash_function()(ke)` equals `hke`,<br/>
+        <i>Effects:</i> Equivalent to `a_tran.find(ke, hke) != a_tran.end()`</ins></td>
     <td><ins>Average case O(1), worst case O(`a_tran.size()`)</ins></td>
   </tr>
   <tr>
-    <td>`b.equal_range(k)`<br/>
-      <ins>`b.equal_range(k, hk)`</ins>
-    </td>
+    <td>`b.equal_range(k)`</td>
     <td>`pair<iterator, iterator>`; `pair<const_iterator, const_iterator>` for const `b`.</td>
-    <td>Returns a range containing all elements with keys equivalent to `k`. Returns
+    <td><i>Returns:</i> a range containing all elements with keys equivalent to `k`. Returns
         `make_pair(b.end(), b.end())` if no such elements exist.</td>
     <td>Average case O(`b.count(k)`), worst case O(`b.size()`).</td>
   </tr>
   <tr>
-    <td>`a_tran.equal_range(ke)`<br/>
-      <ins>`a_tran.equal_range(ke, hke)`</ins>
-    </td>
+    <td><ins>`b.equal_range(k, hk)`</ins></td>
+    <td><ins>`pair<iterator, iterator>`; `pair<const_iterator, const_iterator>` for const `b`.</ins></td>
+    <td><ins><i>Expects:</i> `b.hash_function()(k)` equals `hk`,<br/>
+        <i>Returns:</i> a range containing all elements with keys equivalent to `k`. Returns
+        `make_pair(b.end(), b.end())` if no such elements exist.</ins></td>
+    <td><ins>Average case O(`b.count(k)`), worst case O(`b.size()`).</ins></td>
+  </tr>
+  <tr>
+    <td>`a_tran.equal_range(ke)`</td>
     <td>`pair<iterator, iterator>`; `pair<const_iterator, const_iterator>` for const `a_tran`.</td>
-    <td>Returns a range containing all elements with keys equivalent to `ke`. Returns
+    <td><i>Returns:</i> a range containing all elements with keys equivalent to `ke`. Returns
         `make_pair(a_tran.end(), a_tran.end())` if no such elements exist.</td>
     <td>Average case O(`a_tran.count(ke)`), worst case O(`a_tran.size()`).</td>
+  </tr>
+  <tr>
+    <td><ins>`a_tran.equal_range(ke, hke)`</ins></td>
+    <td><ins>`pair<iterator, iterator>`; `pair<const_iterator, const_iterator>` for const `a_tran`.</ins></td>
+    <td><ins><i>Expects:</i> `a_tran.hash_function()(ke)` equals `hke`,<br/>
+        <i>Returns:</i> a range containing all elements with keys equivalent to `ke`. Returns
+        `make_pair(a_tran.end(), a_tran.end())` if no such elements exist.</ins></td>
+    <td><ins>Average case O(`a_tran.count(ke)`), worst case O(`a_tran.size()`).</ins></td>
   </tr>
 </table>
 
 </blockquote>
-
-Add a new paragraph (19) in **21.2.7 [unord.req]**:
-
-<blockquote>
-<ins>
-Precalculated `hash` value provided as a second argument to lookup member functions (`find`, `count`, `contains`,
-`equal_range`) shall be calculated using the `hasher` type of the container; no diagnostic required. 
-</ins>
-</blockquote>
-
 
 Add the following changes to:
   - **21.5.4.1 [unord.map.overview]**
@@ -321,6 +347,12 @@ Simple performance tests provided there proved nearly:
 
 Revision History {#revision-history}
 ====================================
+
+r1 ➡ r2 {#r1r2}
+-------------------------------------------------------------------------------------------------------------
+
+- Table 70 updated according to [[!p0788r3]]
+
 
 r0 ➡ r1 [[diff](https://github.com/mpusz/wg21-papers/commit/8a1ba0ea256efaf2ac65c3e136b60b0c8dea7d96)] {#r0r1}
 -------------------------------------------------------------------------------------------------------------
