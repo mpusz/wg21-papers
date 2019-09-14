@@ -35,7 +35,7 @@ install:
 script:
   - |
     # Run Bikeshed
-    git diff --name-only $TRAVIS_COMMIT_RANGE | grep .bs$ | xargs -n1 -t -r bikeshed spec
+    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | grep .bs$ | xargs -n1 -t -r bikeshed spec
 
   - |
     # Prepare output to deploy
