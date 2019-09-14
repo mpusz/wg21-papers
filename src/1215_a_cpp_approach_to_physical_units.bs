@@ -1,0 +1,477 @@
+<pre class='metadata'>
+Title: A C++ Approach to Physical Units
+Shortname: D1215
+Revision: 0
+Status: D
+Group: WG21
+Audience: SG6, LEWG
+URL: https://mpusz.github.io/wg21-papers/papers/1215_a_cpp_approach_to_physical_units.html
+Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
+Abstract: TBD 
+Repository: mpusz/wg21_papers
+!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/1215_a_cpp_approach_to_physical_units.bs">github.com/mpusz/wg21_papers/blob/master/src/1215_a_cpp_approach_to_physical_units.bs</a>
+Markup Shorthands: markdown on
+</pre>
+
+
+Introduction {#introduction}
+============================
+
+Overview {#overview}
+--------------------
+
+The human history knows many expensive failures and accidents caused by mistakes in calculations involving
+different physical units. The most famous example in the software engineering domain is the Mars CLimate Orbiter
+that in 1999 failed to entered Mars orbit and crashed while entering its atmosphere
+[[MARS_ORBITER]]. That is not the only example here. People tend to confuse
+units quite often. We see similar errors occurring in various domains through the years:
+- On 12 october, 1492 Christopher Columbus unintentionally discovered America because during his travel preparations
+    he mixed Arabic mile with a Roman mile witch led to wrong estimation of equator and his expected travel distance
+    [[COLUMBUS]]
+- Air Canada Flight 143 run out of fuel on July 23, 1983, at an altitude of 41,000 feet (12,000 m),
+    midway through the flight because the fuel had been calculated in pounds instead of kilograms by the ground crew
+    [[GIMLI_GLIDER]]
+- On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to the miscommunication between pilots about desired
+    flight altitude [[FLIGHT_6316]]
+- In February 2001 Zoo crew built an enclosure for Clarence the Tortoise with a weight of 250 pounds instead of 250kg
+    [[CLARENCE]]
+- In December 2003, one of the cars at Tokyo Disneyland’s Space Mountain attraction suddenly derailed due to a broken
+    axle caused by the confusion after upgrading the specification from imperial to metric units [[DISNEY]]
+- An American company sold a shipment of wild rice to a Japanese customer, quoting a price of 39¢ a pound, but the
+    customer thought the quote was for 39¢ a kilogram [[WILD_RICE]]
+- A whole set of medication dose errors...
+
+Lack of strong types {#lack-of-strong-types}
+--------------------------------------------
+
+It turns out that in C++ software most of our calculations in this domain is handled with fundamental types like
+`double`. Code like below is a typical example here:
+
+```cpp
+double GlidePolar::MacCreadyAltitude(double emcready, 
+                                     double Distance, 
+                                     const double Bearing, 
+                                     const double WindSpeed, 
+                                     const double WindBearing, 
+                                     double *BestCruiseTrack,
+                                     double *VMacCready, 
+                                     const bool isFinalGlide,
+                                     double *TimeToGo,
+                                     const double AltitudeAboveTarget,
+                                     const double cruise_efficiency,
+                                     const double TaskAltDiff);
+```
+
+Even though this example comes from an Open Source project, expensive revenue-generating production source code
+often does not differ too much. We lack strong typedefs feature in the core language and without it we are often
+too lazy to handcraft a new class type for each use case.
+
+Proliferation of magic numbers {#magic-numbers}
+-----------------------------------------------
+
+There is a lot of constants and conversion factors involved in dimensional analysis. Source code handling
+responsible for doing such computations is often trashed with magic numbers:
+
+```cpp
+// Air Density(kg/m3) from relative humidity(%),
+// temperature(°C) and absolute pressure(Pa)
+double AirDensity(double hr, double temp, double abs_press)
+{
+  return (1/(287.06*(temp+273.15))) *
+         (abs_press - 230.617 * hr * exp((17.5043*temp)/(241.2+temp)));
+}
+```
+
+
+Motivation and Scope {#motivation-and-scope}
+============================================
+
+
+
+Prior Work {#prior-work}
+========================
+
+There are a few dimensional analysis libraries available on the market today. Some of them are more successful
+than others but none of them is a widely accepted standard in the C++ code base (both Open Source as well as
+production code). Major user complaints here are:
+- bad user experience caused by high bar of entry level, hard to understand and analyse compile-time errors,
+    poor debug experience
+- unnecessary intermediate conversions resulting in a runtime overhead and loss of precision
+- not supporting some of the user's scenarios (i.e. `eV`, fractional powers)
+- problems with usage of an external library from an untrusted source for production purposes
+
+Boost.Units {#boost.units}
+--------------------------
+
+Boost.Units [[BOOST.UNITS]] is probably the most widely adopted library in this domain.
+
+
+cppnow17-units {#cppnow17-units}
+--------------------------------
+
+Steven Watanabe, coauthor of the previous library, started the work on the modernized version of the library
+based on the results of LiaW on C++Now 2017 [[CPPNOW17-UNITS]]
+
+
+PhysUnits-CT-Cpp11 {#PhysUnits-CT-Cpp11}
+----------------------------------------
+
+[[PHYSUNITS-CT-CPP11]]
+
+Nic Holthaus units {#nic-units}
+-------------------------------
+
+Another interesting library comes from Nic Holthaus [[NIC_UNITS]]. In this library a dimension is
+hardcoded in a `base_unit` class template.
+
+```cpp
+namespace units {
+
+template<class Meter = detail::meter_ratio<0>,
+         class Kilogram = std::ratio<0>,
+         class Second = std::ratio<0>,
+         class Radian = std::ratio<0>,
+         class Ampere = std::ratio<0>,
+         class Kelvin = std::ratio<0>,
+         class Mole = std::ratio<0>,
+         class Candela = std::ratio<0>,
+         class Byte = std::ratio<0>>
+struct base_unit;
+
+}
+```
+
+Unit are expressed as instantiations of `unit` class template.
+
+```cpp
+namespace units {
+
+template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
+struct unit;
+
+}
+```
+
+Interesting to notice here are:
+- `PiExponent` - an exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a radians to degrees conversion)
+- `Translation` - a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a farenheit to celsius conversion)
+
+```cpp
+namespace units {
+
+template<class Units, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
+class unit_t : public NonLinearScale<T> { ... };
+
+}
+```
+
+Interesting to notice here is that beside typical SI dimensions there are also `Radian` and `Byte`.
+
+This library also presents totally different approach than the previous cases. There are no dimension
+or quantity types. Every unit is an instantiation of `unit` class template with ratio and a specific
+`base_unit` responsible for unit "category". Each "dimension" of unit is defined in its own namespace.
+To form a quantity there is additional 
+
+```cpp
+namespace units {
+
+namespace category {
+
+typedef base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>, std::ratio<0>, std::ratio<-1>> voltage_unit;
+
+}
+
+
+namespace voltage {
+
+typedef unit<std::ratio<1>, units::category::voltage_unit> volts;
+typedef volts volt;
+typedef unit_t<volt> volt_t;
+
+}
+
+}
+```
+
+To form a value
+
+```cpp
+#include <units.h>
+
+using namespace units::literals;
+
+units::voltage::volt_t v = 230_V;
+```
+
+Bryan St. Amour units {#bryan-units}
+------------------------------------
+
+[[BRYAN_UNITS]]
+
+`std::chrono::duration` {#chrono::duration}
+-------------------------------------------
+
+
+Comparison {#comparison} 
+------------------------
+
+<table>
+  <tr>
+    <th>Feature</th><th>mp-units</th><th>Boost.Units</th><th>cppnow17-units</th><th>PhysUnits-CT-Cpp11</th><th>nholthaus</th><th>bstamour</th>
+  </tr>
+  <tr>
+    <td>SI</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td>
+  </tr>
+  <tr>
+    <td>Customary system</td><td>yes</td><td>yes</td><td></td><td></td><td>yes</td><td></td>
+  </tr>
+  <tr>
+    <td>Other systems</td><td>???</td><td>yes</td><td></td><td></td><td>yes (`bytes`, `radians`)</td><td></td>
+  </tr>
+  <tr>
+    <td>C++ version</td><td>C++20</td><td>C++98 + `constexpr`</td><td></td><td></td><td>C++14</td><td></td>
+  </tr>
+  <tr>
+    <td>Base dimension id</td><td>string</td><td>integer</td><td></td><td></td><td>index on template parameter list</td><td></td>
+  </tr>
+  <tr>
+    <td>Dimension</td><td>type (`length`)</td><td>type (`length_dimension`)</td><td></td><td></td><td>none</td><td></td>
+  </tr>
+  <tr>
+    <td>Dimension representation</td><td>type list</td><td>type list</td><td></td><td></td><td>Class template arguments</td><td></td>
+  </tr>
+  <tr>
+    <td>Fractional exponents</td><td>TBD</td><td>yes</td><td></td><td></td><td>yes</td><td></td>
+  </tr>
+  <tr>
+    <td>Type traits for dimensions</td><td>no</td><td>yes</td><td></td><td></td><td>yes</td><td></td>
+  </tr>
+  <tr>
+    <td>Unit</td><td>type (`metre`)</td><td>type + constant (`si::length` + `si::meter`)</td><td></td><td></td><td>type (`length::meter_t`)</td><td></td>
+  </tr>
+  <tr>
+    <td>UDLs</td><td>yes</td><td>no</td><td></td><td></td><td>yes</td><td></td>
+  </tr>
+  <tr>
+    <td>Predefined scaled unit types</td><td>some</td><td>no</td><td></td><td></td><td>all</td><td></td>
+  </tr>
+  <tr>
+    <td>Scaled units</td><td>type + UDL (`kilometre` + `km`)</td><td>user's type + multiply with constant (`make_scaled_unit<>` + `si::kilo * si::meter`)</td><td></td><td></td><td>type + UDL (`length::kilometer_t` + `_km`)</td><td></td>
+  </tr>
+  <tr>
+    <td>Meter vs metre</td><td>metre</td><td>both</td><td></td><td></td><td>meter</td><td></td>
+  </tr>
+  <tr>
+    <td>Singular vs plural</td><td>singular (`metre`)</td><td>both (`meter` + `meters`)</td><td></td><td></td><td>both (`length::meter_t` + `length::meters_t`)</td><td></td>
+  </tr>
+  <tr>
+    <td>Quantity</td><td>type (`quantity<metre> q(2);`)</td><td>type (`quantity<si::length> q(2 * si::meter);`)</td><td></td><td></td><td>value of unit (`length::meter_t d(220);`)</td><td></td>
+  </tr>
+  <tr>
+    <td>Literal instance</td><td>UDL (`123m`)</td><td>Number * static constant (`123 * si::meters`)</td><td></td><td></td><td>UDL (`123_m`)</td><td></td>
+  </tr>
+  <tr>
+    <td>Variable instance</td><td>constructor (`quantity<metre>(v)`)</td><td>Variable * static constant (`d * si::meters`)</td><td></td><td></td><td>constructor (`length::meter_t(v)`)</td><td></td>
+  </tr>
+  <tr>
+    <td>Any representation</td><td>yes</td><td>yes</td><td></td><td>no (macro to set the default type)</td><td>no (macro to set the default type)</td><td></td>
+  </tr>
+  <tr>
+    <td>Quantity template arguments type deduction</td><td>yes</td><td>yes</td><td></td><td></td><td>no</td><td></td>
+  </tr>
+  <tr>
+    <td>System support</td><td>no</td><td>yes</td><td></td><td></td><td>no</td><td></td>
+  </tr>
+  <tr>
+    <td>C++ Concepts</td><td>yes</td><td>no</td><td>no</td><td>no</td><td>no</td><td>no</td>
+  </tr>
+  <tr>
+    <td>Types downcasting</td><td>yes</td><td>no</td><td>no</td><td>no</td><td>no</td><td>no</td>
+  </tr>
+  <tr>
+    <td>Implicit unit conversions</td><td>same dimension non-truncating only</td><td>no</td><td></td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td>Explicit unit conversions</td><td>`quantity_cast`</td><td>`quantity_cast`</td><td></td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td>Temperature support</td><td>Kelvins only + conversion functions</td><td>Kelvins only + dedicated systems</td><td></td><td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td>String output</td><td>TBD</td><td>yes</td><td></td><td></td><td>yes</td><td></td>
+  </tr>
+  <tr>
+    <td>String input</td><td>no</td><td>no</td><td></td><td></td><td>no</td><td></td>
+  </tr>
+  <tr>
+    <td>Macros in the user interface</td><td>no</td><td>yes</td><td></td><td></td><td>yes</td><td></td>
+  </tr>
+  <tr>
+    <td>Non-linear scale support</td><td>no</td><td>no</td><td></td><td></td><td>yes</td><td></td>
+  </tr>
+  <tr>
+    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+  </tr>
+</table>
+
+
+Design principles {#design-principles}
+=================
+
+Be consistent
+
+
+Limiting intermediate conversions {#limiting-intermediate-value-conversions}
+============================================================================
+
+
+Quantity template arguments type deduction {#arguments-type-deduction}
+----------------------------------------------------------------------
+
+
+Quantity return types {#return-types}
+-------------------------------------
+
+
+Improving user experience {#user-experience}
+============================================
+
+
+Types downcasting {#downcasting}
+--------------------------------
+
+
+
+
+
+UDL vs multiply syntax {#udl-vs-multiply}
+=========================================
+
+
+
+Compile-time User Experience
+============================
+
+integral_constant base_dimension
+velocity.h:34:16: note: within `template<class T> concept std::units::Velocity<T>
+           [with T = std::units::quantity<std::units::unit<std::units::dimension<std::units::exp<std::units::base_dim_length, 1>, std::units::exp<std::units::base_dim_time, 1>>, std::units::ratio<3600000, 1>>, double>]`
+
+NTTP base_dimension
+velocity.h:34:16: note: within `template<class T> concept std::units::Velocity<T>
+           [with T = std::units::quantity<std::units::unit<std::units::dimension<std::units::exp<std::units::base_dimension<6>{"length"}, 1>, std::units::exp<std::units::base_dimension<4>{"time"}, 1>>, std::units::ratio<3600000, 1>>, double>]`
+
+const base_dimension&
+velocity.h:34:16: note: within `template<class T> concept std::units::Velocity<T>
+           [with T = std::units::quantity<std::units::unit<std::units::dimension<std::units::exp<std::units::base_dim_length, 1>, std::units::exp<std::units::base_dim_time, 1>>, std::units::ratio<3600000, 1>>, double>]`
+
+const base_dimension& + NTTP ratio
+velocity.h:34:16: note: within `template<class T> concept std::units::Velocity<T>
+           [with T = std::units::quantity<std::units::unit<std::units::dimension<std::units::exp<std::units::base_dim_length, 1>, std::units::exp<std::units::base_dim_time, 1>>, std::units::ratio{3600000, 1}>, double>]`
+
+
+
+Multiply/alternative syntax
+===========================
+
+Relative vs absolute quantity
+=============================
+
+What should be a `Rep` of integral UDLs
+=======================================
+
+
+Impact On The Standard {#impact}
+================================
+
+Considered Alternatives {#alternatives}
+====================================
+
+
+
+
+Proposed Wording {#wording}
+===========================
+
+
+Feature Testing {#feature-testing}
+==================================
+
+
+
+Implementation Experience {#implementation}
+===========================================
+
+
+Acknowledgements {#acknowledgements}
+====================================
+
+Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting my
+membership in the ISO C++ Committee and the production of this proposal.
+
+<pre class=biblio>
+{
+    "MARS_ORBITER": {
+        "href": "https://en.wikipedia.org/wiki/Mars_Climate_Orbiter",
+        "title": "Mars Climate Orbiter",
+        "publisher": "Wikipedia"
+    },
+    "COLUMBUS": {
+        "href": "https://en.wikipedia.org/wiki/Christopher_Columbus",
+        "title": "Christopher Columbus",
+        "publisher": "Wikipedia"
+    },
+    "GIMLI_GLIDER": {
+        "href": "https://en.wikipedia.org/wiki/Gimli_Glider",
+        "title": "Gimli Glider",
+        "publisher": "Wikipedia"
+    },
+    "CLARENCE": {
+        "authors": [ "Steve Chawkins" ],
+        "href": "https://www.latimes.com/archives/la-xpm-2001-feb-09-me-23253-story.html",
+        "title": "Mismeasure for Measure",
+        "publisher": "Los Angeles Times"
+    },
+    "DISNEY": {
+        "href": "https://web.archive.org/web/20040209033827/http://www.olc.co.jp/news/20040121_01en.html",
+        "title": "Cause of the Space Mountain Incident Determined at Tokyo Disneyland Park",
+        "publisher": "Oriental Land Co., Ltd."
+    },
+    "FLIGHT_6316": {
+        "href": "https://ntsb.gov/news/press-releases/Pages/Korean_Air_Flight_6316_MD-11_Shanghai_China_-_April_15_1999.aspx",
+        "title": "Korean Air Flight 6316 MD-11, Shanghai, China - April 15, 1999",
+        "publisher": "National Transportation Safety Board"
+    },
+    "WILD_RICE": {
+        "href": "https://www.bizjournals.com/eastbay/stories/2001/07/09/focus3.html",
+        "title": "Manufacturers, exporters think metric",
+        "publisher": "San Francisco Business Times"
+    },
+    "BOOST.UNITS": {
+        "authors": [ "Steven Watanabe", "Matthias C. Schabel" ],
+        "href": "https://www.boost.org/doc/libs/1_70_0/doc/html/boost_units.html",
+        "title": "Boost.Units",
+        "publisher": "Boost"
+    },
+    "CPPNOW17-UNITS": {
+        "authors": [ "Steven Watanabe" ],
+        "href": "https://github.com/swatanabe/cppnow17-units",
+        "title": "cppnow17-units"
+    },
+    "PHYSUNITS-CT-CPP11": {
+        "authors": [ "Martin Moene" ],
+        "href": "https://github.com/martinmoene/PhysUnits-CT-Cpp11",
+        "title": "PhysUnits-CT-Cpp11"
+    },
+    "NIC_UNITS": {
+        "authors": [ "Nic Holthaus" ],
+        "href": "https://github.com/nholthaus/units",
+        "title": "units"
+    },
+    "BRYAN_UNITS": {
+        "authors": [ "Bryan St. Amour" ],
+        "href": "https://github.com/bstamour/units",
+        "title": "units"
+    }
+
+}
+</pre>

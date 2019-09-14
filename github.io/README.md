@@ -29,7 +29,7 @@ that activity.
 
 ### Under Development
 
-- [P1215: Algorithms using ranges should stand on 4 legs](papers/1215_algorithms_using_ranges_should_stand_on_4_legs.html)
+- [P1215: A C++ Approach to Physical Units](papers/1215_a_cpp_approach_to_physical_units.html)
 
 ## More Papers
 
