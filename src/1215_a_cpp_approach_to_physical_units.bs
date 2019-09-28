@@ -87,24 +87,109 @@ double AirDensity(double hr, double temp, double abs_press)
 Motivation and Scope {#motivation-and-scope}
 ============================================
 
+Motivation {#motivation}
+------------------------
+
+There is a huge demand for a high quality physical units library in the industry and scientific environments.
+Code that we write for fun and living should be correct, safe and easy to write. Although there are many such
+libraries available on the market none of them is a widely accepted production standard. We could just provide
+a yet another 3rd party library covering this topic but it is probably not the best idea.
+
+First of all, software that could benefit from such a library is not a niche on the market. If it was the
+case, probably its needs could be fulfilled with a 3rd party highly-specialized and narrow-use library.
+Contrary, broad range of production project deal with units conversions and dimensional analysis. Right now
+having no other good and easy to access alternatives results in proliferation of plain `double` type usage
+to express physical quantities. Space, aviation, automotive, embedded, scientific, computer science and many
+other domains could benefit from strong types and conversions provided by such a library. 
+
+Secondly, yet another library will not solve the issue for many customers. Many corporations are not allowed
+to use 3rd party libraries in the production code. Also important point here is cooperation of different
+products from multiple vendors that use physical quantities as vocabulary types in their interfaces.
+From the author's experience gathered while working with multiple corporations all over the world, there
+is really a huge difference between the adoption of a mature 3rd party library and the usage of features 
+released as a part of the C++ Standard Library. If it wasn't the case all products would use Boost.Units
+already. A motivating example here can be `std::chrono` released as a part of C++11. Right now no one asks
+questions how to represent timestamps and how to handle their conversions in the code. `std::chrono` is the
+the ultimate answer. So let's try to get `std::units` in the C++ Standard Library too.
+
+The aim of this paper is to standardize a physical units library that enables operations on various dimensions
+and units:
+
+```cpp
+// simple numeric operations
+static_assert(10km / 2 == 5km);
+
+// unit conversions
+static_assert(1h == 3600s);
+static_assert(1km + 1m == 1001m);
+
+// dimension conversions
+static_assert(1km / 1s == 1000mps);
+static_assert(2kmph * 2h == 4km);
+static_assert(2km / 2kmph == 1h);
+
+static_assert(1000 / 1s == 1kHz);
+
+static_assert(10km / 5km == 2);
+```
+
+Scope {#scope}
+--------------
+
+Although there is a public demand for an generic units library that could handle any units and dimensions,
+author suggests scoping the Committee efforts only on the physical and possibly computer science
+(i.e. `bit`, `bitrate`) units first. The library should be designed in a way to allow easy extensions so
+everyone interested might add his own base and derived dimensions if needed (i.e. `coffee/milk/water/sugar` system).
+After releasing the first version of the library and observing how it is being used we can consider
+standardizing additional dimensions in the following C++ releases.
+
+
+Terms and definitions {#terms-and_definitions}
+==============================================
+
+Following Boost.Units
+
+<dfn>Base dimension</dfn>
+  - measurable entity of interest
+  - essentially a tag type and provide no dimensional analysis functionality by itself
+  - i.e. length `[L]`, mass `[M]`, time `[T]`, etc.
+
+<dfn>Dimension</dfn>
+  - a collection of zero or more base dimensions
+  - each potentially raised to a different rational power
+  - i.e. length = `[L]`<sup>`1`</sup>, area = `[L]`<sup>`2`</sup>, velocity = `[L]`<sup>`1`</sup>`/[T]`<sup>`1`</sup>, etc.
+
+<dfn>Base unit</dfn>
+  - a specific measure of a dimension
+  - conversions are defined using base units
+  - i.e. `[L]` -> `m` (meter)
+
+<dfn>Unit</dfn>
+  - a set of base units raised to rational exponents
+  - i.e. `m`<sup>`1`</sup>, `kg`<sup>`1`</sup>, `m`<sup>`1`</sup>`/s`<sup>`2`</sup>, etc.
+
+<dfn>System</dfn>
+  - a collection of base units representing all the measurable entities of interest for a specific problem
+
+<dfn>Quantity</dfn>
+  - a concrete amount of a unit
+  - i.e. `10 meters`
+
 
 
 Prior Work {#prior-work}
 ========================
 
-There are a few dimensional analysis libraries available on the market today. Some of them are more successful
+There are many dimensional analysis libraries available on the market today. Some of them are more successful
 than others but none of them is a widely accepted standard in the C++ code base (both Open Source as well as
-production code). Major user complaints here are:
-- bad user experience caused by high bar of entry level, hard to understand and analyse compile-time errors,
-    poor debug experience
-- unnecessary intermediate conversions resulting in a runtime overhead and loss of precision
-- not supporting some of the user's scenarios (i.e. `eV`, fractional powers)
-- problems with usage of an external library from an untrusted source for production purposes
+production code). Next sections of this chapter will describe the most interesting parts of selected libraries. The last section
+provides extensive comparison of their main features.
 
 Boost.Units {#boost.units}
 --------------------------
 
-Boost.Units [[BOOST.UNITS]] is probably the most widely adopted library in this domain.
+Boost.Units [[BOOST.UNITS]] is probably the most widely adopted library in this domain. It was first released
+in Boost 
 
 
 cppnow17-units {#cppnow17-units}
@@ -209,6 +294,19 @@ Bryan St. Amour units {#bryan-units}
 
 [[BRYAN_UNITS]]
 
+
+benri {#benri}
+--------------
+
+[[BENRI]]
+
+
+Michael Ford units {#mikeford3-units}
+--------------
+
+[[MIKEFORD3_UNITS]]
+
+
 `std::chrono::duration` {#chrono::duration}
 -------------------------------------------
 
@@ -242,7 +340,7 @@ Comparison {#comparison}
     <td>Dimension representation</td><td>type list</td><td>type list</td><td></td><td></td><td>Class template arguments</td><td></td>
   </tr>
   <tr>
-    <td>Fractional exponents</td><td>TBD</td><td>yes</td><td></td><td></td><td>yes</td><td></td>
+    <td>Fractional exponents</td><td>yes</td><td>yes</td><td></td><td></td><td>yes</td><td></td>
   </tr>
   <tr>
     <td>Type traits for dimensions</td><td>no</td><td>yes</td><td></td><td></td><td>yes</td><td></td>
@@ -316,91 +414,686 @@ Comparison {#comparison}
 </table>
 
 
-Design principles {#design-principles}
-=================
 
-Be consistent
+Fundamental concerns with current solutions {#concerns}
+=======================================================
+
+Feedback from the users gathered so far signals the following major user complaints:
+- bad user experience caused by hard to understand and analyse compile-time errors and poor
+    debugging experience
+- too high entry bar (i.e. Boost.Units is claimed to require expertise in both C++ and dimensional analysis)
+- unnecessary intermediate conversions to [=base units=] resulting in a runtime overhead and loss of precision
+- poor support for really large or small ratios (i.e. `eV`)
+- safety and security connected problems with the usage of an external 3rd party library for production purposes
+- impossibility or really hard extensibility of the library with new [=base dimensions=]
+
+
+Design principles {#design-principles}
+======================================
+
+(Enumerate basic design principles)
+
+1. Safety and performance
+    - strong types
+    - compile-time safety
+    - constexpr all the things
+2. The best possible user experience
+    - compiler errors
+    - debugging
+3. No macros in the user interface
+4. Easy extensibility
+5. No external dependencies
+6. Possibility to be standardized as a freestanding part of the C++ Standard Library
+
+(other ideas)
+
+- Be consistent
+
+
+Improving user experience {#user-experience}
+============================================
+
+Type aliasing issues {#type-aliasing-issues}
+--------------------------------------------
+
+Type aliases benefit developers but not end users. As a result users end up with huge error messages.
+
+Code developer works with the following syntax:
+
+```cpp
+constexpr bu::quantity<bu::si::velocity> avg_speed(bu::quantity<bu::si::length> d, bu::quantity<bu::si::time> t)
+{ return d * t; }
+```
+
+If the error happens in such a code user sees the following error for gcc-8:
+
+```
+error: could not convert ‘boost::units::operator*(const boost::units::quantity<Unit1, X>&,
+const boost::units::quantity<Unit2, Y>&) [with Unit1 = boost::units::unit<boost::units::list<boost::units::dim
+<boost::units::length_base_dimension, boost::units::static_rational<1> >, boost::units::dimensionless_type>,
+boost::units::homogeneous_system<boost::units::list<boost::units::si::meter_base_unit, 
+boost::units::list<boost::units::scaled_base_unit<boost::units::cgs::gram_base_unit, boost::units::scale<10,
+boost::units::static_rational<3> > >, boost::units::list<boost::units::si::second_base_unit,
+boost::units::list<boost::units::si::ampere_base_unit, boost::units::list<boost::units::si::kelvin_base_unit,
+boost::units::list<boost::units::si::mole_base_unit, boost::units::list<boost::units::si::candela_base_unit,
+boost::units::list<boost::units::angle::radian_base_unit, boost::units::list<boost::units::angle::steradian_base_unit,
+boost::units::dimensionless_type> > > > > > > > > > >; Unit2 = boost::units::unit<boost::units::list<boost::units::dim
+<boost::units::time_base_dimension, boost::units::static_rational<1> >, boost::units::dimensionless_type>, 
+boost::units::homogeneous_system<boost::units::list<boost::units::si::meter_base_unit, 
+boost::units::list<boost::units::scaled_base_unit<boost::units::cgs::gram_base_unit, boost::units::scale<10,
+boost::units::static_rational<3> > >, boost::units::list<boost::units::si::second_base_unit, boost::units::list
+<boost::units::si::ampere_base_unit, boost::units::list<boost::units::si::kelvin_base_unit, boost::units::list
+<boost::units::si::mole_base_unit, boost::units::list<boost::units::si::candela_base_unit, boost::units::list
+<boost::units::angle::radian_base_unit, boost::units::list<boost::units::angle::steradian_base_unit,
+boost::units::dimensionless_type> > > > > > > > > > >; X = double; Y = double; typename
+boost::units::multiply_typeof_helper<boost::units::quantity<Unit1, X>, boost::units::quantity<Unit2, Y> >::type =
+boost::units::quantity<boost::units::unit<boost::units::list<boost::units::dim<boost::units::length_base_dimension,
+boost::units::static_rational<1> >, boost::units::list<boost::units::dim<boost::units::time_base_dimension,
+boost::units::static_rational<1> >, boost::units::dimensionless_type> >, boost::units::homogeneous_system
+<boost::units::list<boost::units::si::meter_base_unit, boost::units::list<boost::units::scaled_base_unit
+<boost::units::cgs::gram_base_unit, boost::units::scale<10, boost::units::static_rational<3> > >,
+boost::units::list<boost::units::si::second_base_unit, boost::units::list<boost::units::si::ampere_base_unit,
+boost::units::list<boost::units::si::kelvin_base_unit, boost::units::list<boost::units::si::mole_base_unit,
+boost::units::list<boost::units::si::candela_base_unit, boost::units::list<boost::units::angle::radian_base_unit,
+boost::units::list<boost::units::angle::steradian_base_unit, boost::units::dimensionless_type> > > > > > > > > >,
+void>, double>](t)’ from ‘quantity<unit<list<[...],list<dim<[...],static_rational<1>>,[...]>>,[...],[...]>,[...]>’
+to ‘quantity<unit<list<[...],list<dim<[...],static_rational<-1>>,[...]>>,[...],[...]>,[...]>’
+     return d * t;
+            ~~^~~
+```
+
+and this is only the very first line of the compilation error log. The same error for clang-7 looks as follows:
+
+```
+error: no viable conversion from returned value of type 'quantity<unit<list<[...], list<dim<[...],
+static_rational<1, [...]>>, [...]>>, [...]>, [...]>' to function return type 'quantity<unit<list<[...], list<dim<[...],
+static_rational<-1, [...]>>, [...]>>, [...]>, [...]>'
+    return d * t;
+           ^~~~~
+```
+
+which despite being shorter does not help much too.
+
+Omnipresent type aliasing does not affect only compilation errors but also debugging. Here is how a breakpoint
+for above function looks like in the gdb debugger:
+
+```
+Breakpoint 1, avg_speed<boost::units::heterogeneous_system<boost::units::heterogeneous_system_impl
+<boost::units::list<boost::units::heterogeneous_system_dim<boost::units::si::meter_base_unit, boost::units::static_rational<1> >, 
+boost::units::dimensionless_type>, boost::units::list<boost::units::dim<boost::units::length_base_dimension, 
+boost::units::static_rational<1> >, boost::units::dimensionless_type>, boost::units::list<boost::units::scale_list_dim
+<boost::units::scale<10, boost::units::static_rational<3> > >, boost::units::dimensionless_type> > >, 
+boost::units::heterogeneous_system<boost::units::heterogeneous_system_impl<boost::units::list
+<boost::units::heterogeneous_system_dim<boost::units::scaled_base_unit<boost::units::si::second_base_unit, 
+boost::units::scale<60, boost::units::static_rational<2> > >, boost::units::static_rational<1> >, 
+boost::units::dimensionless_type>, boost::units::list<boost::units::dim<boost::units::time_base_dimension, 
+boost::units::static_rational<1> >, boost::units::dimensionless_type>, boost::units::dimensionless_type> > > (d=..., t=...) at 
+velocity_2.cpp:39
+39        return d / t;
+```
+
+Downcasting facility {#downcasting}
+-----------------------------------
+
+In order to provide much shorter error messages the author of the paper with the help of Richard Smith
+implemented a downcast facility in [[MP-UNITS]]. It allowed to convert the following error log from:
+
+```
+[with T = units::quantity<units::unit<units::dimension<units::exp<units::base_dim_time, 1> >, std::ratio<1> >, long long int>]
+```
+
+to
+
+```
+[with T = units::quantity<units::second, long long int>]
+```
+
+Downcasting facility provides a type substitution mechanism. It connects a specific primary template
+class specialization with a strong type assigned to it by the user. A simplified mental model of the
+facility may be represented as:
+
+```cpp
+struct metre : unit<dimension<exp<base_dim_length, 1>>, std::ratio<1, 1, 0>>; 
+```
+
+In the above example `metre` is a downcasting target (child class) and a specific `unit` class 
+template specialization is a downcasting source (base class). The downcasting facility provides
+1 to 1 tpe substitution mechanism. Only one child class can be created for a specific base class
+template instantiation.
+
+Downcasting facility is provided through 2 dedicated types, a concept, and a few helper template aliases.
+
+```cpp
+template<typename BaseType>
+struct downcast_base {
+  using base_type = BaseType;
+  friend auto downcast_guide(downcast_base);
+};
+```
+
+`units::downcast_base` is a class that implements CRTP idiom, marks the base of downcasting
+facility with a `base_type` member type, and provides a declaration of downcasting ADL friendly
+(Hidden Friend) entry point member function `downcast_guide` that here does not return any specific
+type. This non-member function is going to be defined in a child class template `downcast_helper`
+and will return a target type of the downcasting operation.
+
+```cpp
+template<typename T>
+concept Downcastable =
+    requires {
+      typename T::base_type;
+    } &&
+    std::derived_from<T, downcast_base<typename T::base_type>>;
+```
+
+`units::Downcastable` is a concepts that verifies if a type implements and can be used in a downcasting
+facility.
+
+```cpp
+template<typename Target, Downcastable T>
+struct downcast_helper : T {
+  friend auto downcast_guide(typename downcast_helper::downcast_base) { return Target(); }
+};
+```
+
+`units::downcast_helper` is another CRTP class template that provides the implementation of a
+non-member friend function of the `downcast_base` class template which defines the target
+type of downcasting operation. It is used in the following way to define `dimension` and
+`unit` types in the library:
+
+```cpp
+template<typename Child, Exponent... Es>
+struct derived_dimension : downcast_helper<Child, detail::make_dimension_t<Es...>> {};
+```
+
+```cpp
+template<typename Child, Dimension D>
+struct derived_unit<Child, D, R> : downcast_helper<Child, unit<D, ratio<1>>> {};
+```
+
+With such CRTP types the only thing the user has to do to register a new type to a downcasting
+facility is to publicly derive from one of those CRTP types and provide its new child type as
+the first template parameter of the CRTP type.
+
+```cpp
+struct metre : derived_unit<metre, length> {};
+```
+
+Above types are used to define base and target of a downcasting operation. To perform the actual
+downcasting operation a dedicated template alias is provided:
+
+```cpp
+template<Downcastable T>
+using downcast_target = decltype(detail::downcast_target_impl<T>());
+```
+
+`units::downcast_target` is used to obtain the target type of the downcasting operation registered
+for a given specialization in a base type.
+
+For example to determine a downcasted type of a quantity multiply operation the following can be done: 
+
+```cpp
+using dim = dimension_multiply_t<typename U1::dimension, typename U2::dimension>;
+using common_rep = decltype(lhs.count() * rhs.count());
+using ret = quantity<downcast_target<unit<dim, ratio_multiply<typename U1::ratio, typename U2::ratio>>>, common_rep>;
+```
+
+`detail::downcast_target_impl` checks if downcasting target is registered for the specific base class.
+If yes, it returns the registered type. Otherwise, it works like a regular identity type returning
+a provided base class. 
+
+```cpp
+namespace detail {
+
+  template<typename T>
+  concept has_downcast = requires {
+    downcast_guide(std::declval<downcast_base<T>>());
+  };
+
+  template<typename T>
+  constexpr auto downcast_target_impl()
+  {
+    if constexpr(has_downcast<T>)
+      return decltype(downcast_guide(std::declval<downcast_base<T>>()))();
+    else
+      return T();
+  }
+
+}
+```
+
+
+Template instantiation issues {#template-instantiation-issues}
+--------------------------------------------------------------
+
+Errors inside implementation details caused by invalid instantiations.
+
+
+Concepts {#concepts}
+--------------------
+
+Error messages before instantiating a template rather than a compilation error deeply nested in the class implementation.
+
+```
+example.cpp: In instantiation of ‘constexpr units::Velocity avg_speed(D, T)
+    [with D = units::quantity<units::kilometre>; T = units::quantity<units::hour>]’:
+example.cpp:49:49:   required from here
+example.cpp:34:14: error: placeholder constraints not satisfied
+    34 |   return d * t;
+       |              ^
+include/units/dimensions/velocity.h:34:16: note: within ‘template<class T> concept units::Velocity<T>
+    [with T = units::quantity<units::unit<units::dimension<units::exp<units::base_dim_length, 1, 1>,
+                units::exp<units::base_dim_time, 1, 1> >, units::ratio<3600000, 1> >, double>]’
+    34 |   concept Velocity = Quantity<T> && std::same_as<typename T::dimension, velocity>;
+       |           ^~~~~~~~
+include/stl2/detail/concepts/core.hpp:37:15: note: within ‘template<class T, class U> concept std::same_as<T, U>
+    [with T = units::dimension<units::exp<units::base_dim_length, 1, 1>, units::exp<units::base_dim_time, 1, 1> >;
+          U = units::velocity]’
+    37 |  META_CONCEPT same_as = meta::Same<T, U> && meta::Same<U, T>;
+       |               ^~~~~~~
+include/meta/meta_fwd.hpp:224:18: note: within ‘template<class T, class U> concept meta::Same<T, U>
+    [with T = units::dimension<units::exp<units::base_dim_length, 1, 1>, units::exp<units::base_dim_time, 1, 1> >;
+          U = units::velocity]’
+   224 |     META_CONCEPT Same =
+       |                  ^~~~
+include/meta/meta_fwd.hpp:224:18: note: ‘meta::detail::barrier’ evaluated to false
+include/meta/meta_fwd.hpp:224:18: note: within ‘template<class T, class U> concept meta::Same<T, U>
+    [with T = units::velocity;
+          U = units::dimension<units::exp<units::base_dim_length, 1, 1>, units::exp<units::base_dim_time, 1, 1> >]’
+include/meta/meta_fwd.hpp:224:18: note: ‘meta::detail::barrier’ evaluated to false
+```
+
+
+Easy to use and hard to abuse {#easy-to-use-hard-to-abuse}
+==========================================================
+
+- Consistency with `std::chrono` behavior
+- Clear responsibility of each type (base_dimension -> exp -> dimension -> unit -> quantity)
+- Easy to extend with custom dimensions or units
+- Easy to understand error messages thanks to downcast facility and concepts usage
+- No isolated abstraction for [=systems=] that would complicate implementation and reasoning
 
 
 Limiting intermediate conversions {#limiting-intermediate-value-conversions}
 ============================================================================
 
 
-Quantity template arguments type deduction {#arguments-type-deduction}
-----------------------------------------------------------------------
+Template arguments type deduction {#arguments-type-deduction}
+-------------------------------------------------------------
+
+```cpp
+template<typename U1, typename Rep1, typename U2, typename Rep2>
+constexpr auto avg_speed(units::length<U1, Rep1> d, units::time<U2, Rep2> t)
+{
+  return d / t;
+}
+```
+
+[Please note that support for above syntax was removed from [[MP-UNITS]] after the feedback from Cologne ISO meeting]
+
+Concepts for function arguments {#concepts-for-arguments}
+---------------------------------------------------------
+
+```cpp
+constexpr auto avg_speed(units::Length auto d, units::Time auto t)
+{
+  return d / t;
+}
+```
+
+Concepts for return types {#concepts-for-return-types}
+------------------------------------------------------
+
+```cpp
+constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
+{
+  return d / t;
+}
+```
+
+Concept `auto` for intermediate results {#concept-auto-for-intermediate-results}
+--------------------------------------------------------------------------------
+
+```cpp
+const units::Velocity auto speed = avg_speed(220.km, 2.h);
+```
 
 
-Quantity return types {#return-types}
--------------------------------------
+Extensibility {#extensibility}
+==============================
+
+Base dimensions
 
 
-Improving user experience {#user-experience}
-============================================
-
-
-Types downcasting {#downcasting}
---------------------------------
-
-
-
-
+Design decisions {#design-decisions}
+====================================
 
 UDL vs multiply syntax {#udl-vs-multiply}
-=========================================
+-----------------------------------------
+
+User convenience for implementing derived units
+Problems with downcasting
 
 
+Mixed syntax {#mixed}
+---------------------
 
-Compile-time User Experience
-============================
+```cpp
+constexpr auto d1 = 1000 * meter(1);
+constexpr auto d2 = meter(1000);
+constexpr auto d3 = kilo * meter(1);
+constexpr auto d4 = 1k*m;
+constexpr auto d5 = (k*m)(1);
 
-integral_constant base_dimension
-velocity.h:34:16: note: within `template<class T> concept std::units::Velocity<T>
-           [with T = std::units::quantity<std::units::unit<std::units::dimension<std::units::exp<std::units::base_dim_length, 1>, std::units::exp<std::units::base_dim_time, 1>>, std::units::ratio<3600000, 1>>, double>]`
+constexpr auto v1 = quantity<meter/second>(10);
+constexpr auto v2 = quantity<m/s>(10);
+constexpr auto v3 = meter(10)/second(1);
+constexpr auto v4 = meter(10)/second();
+constexpr auto v5 = meter(10)/second;
+constexpr auto v6 = m(10)/s;
+constexpr auto v7 = (m/s)(10);
+constexpr auto v8 = 10m/s;
+```
 
-NTTP base_dimension
-velocity.h:34:16: note: within `template<class T> concept std::units::Velocity<T>
-           [with T = std::units::quantity<std::units::unit<std::units::dimension<std::units::exp<std::units::base_dimension<6>{"length"}, 1>, std::units::exp<std::units::base_dimension<4>{"time"}, 1>>, std::units::ratio<3600000, 1>>, double>]`
+NTTP usage {#nttp-usage}
+------------------------
 
-const base_dimension&
-velocity.h:34:16: note: within `template<class T> concept std::units::Velocity<T>
-           [with T = std::units::quantity<std::units::unit<std::units::dimension<std::units::exp<std::units::base_dim_length, 1>, std::units::exp<std::units::base_dim_time, 1>>, std::units::ratio<3600000, 1>>, double>]`
+There are a few points in the physical units domain design that could benefit from Non-Type
+Template Parameters usage. One of the most obvious cases here is `ratio`. A classical
+implementation of such a class template looks like this:
 
-const base_dimension& + NTTP ratio
-velocity.h:34:16: note: within `template<class T> concept std::units::Velocity<T>
-           [with T = std::units::quantity<std::units::unit<std::units::dimension<std::units::exp<std::units::base_dim_length, 1>, std::units::exp<std::units::base_dim_time, 1>>, std::units::ratio{3600000, 1}>, double>]`
+```cpp
+template<intmax_t Num, intmax_t Den = 1>
+struct ratio {
+  static constexpr intmax_t num = Num * static_sign<Den>::value / static_gcd<Num, Den>::value;
+  static constexpr intmax_t den = static_abs<Den>::value / static_gcd<Num, Den>::value;
+  using type = ratio<num, den>;
+};
+```
+
+and it requires a few utility types defines to do operations on such types:
+
+```cpp
+namespace detail {
+  template<typename R1, typename R2>
+  struct ratio_multiply_impl {
+  private:
+    static constexpr intmax_t gcd1 = static_gcd<R1::num, R2::den>::value;
+    static constexpr intmax_t gcd2 = static_gcd<R2::num, R1::den>::value;
+  public:
+    using type = ratio<safe_multiply<(R1::num / gcd1), (R2::num / gcd2)>::value,
+                       safe_multiply<(R1::den / gcd2), (R2::den / gcd1)>::value>;
+    static constexpr intmax_t num = type::num;
+    static constexpr intmax_t den = type::den;
+  };
+}
+template<typename R1, typename R2>
+using ratio_multiply = detail::ratio_multiply_impl<R1, R2>::type;
+```
+
+Usage examples of such an approach looks as follows:
+
+```cpp
+struct yard : derived_unit<yard, length, ratio<9'144, 10'000>> {};
+struct foot : derived_unit<foot, length, ratio_multiply<ratio<1, 3>, yard::ratio>> {};
+struct inch : derived_unit<inch, length, ratio_multiply<ratio<1, 12>, foot::ratio>> {};
+struct mile : derived_unit<mile, length, ratio_multiply<ratio<1'760>, yard::ratio>> {};
+```
+
+With NTTP the implementation and usage of ratio is much easier:
+
+```cpp
+struct ratio {
+  std::intmax_t num;
+  std::intmax_t den;
+
+  explicit constexpr ratio(std::intmax_t n, std::intmax_t d = 1) :
+    num(n * (d < 0 ? -1 : 1) / std::gcd(n, d)),
+    den(abs(d) / std::gcd(n, d))
+  {
+  }
+
+  [[nodiscard]] constexpr bool operator==(const ratio&) = default;
+
+  [[nodiscard]] friend constexpr ratio operator*(const ratio& lhs, const ratio& rhs)
+  {
+    const std::intmax_t gcd1 = std::gcd(lhs.num, rhs.den);
+    const std::intmax_t gcd2 = std::gcd(rhs.num, lhs.den);
+    return ratio(safe_multiply(lhs.num / gcd1, rhs.num / gcd2),
+                 safe_multiply(lhs.den / gcd2, rhs.den / gcd1));
+  }
+
+  [[nodiscard]] friend consteval ratio operator*(std::intmax_t n, const ratio& rhs)
+  {
+    return ratio(n) * rhs;
+  }
+
+  [[nodiscard]] friend consteval ratio operator*(const ratio& lhs, std::intmax_t n)
+  {
+    return lhs * ratio(n);
+  }
+};
+```
+
+```cpp
+// US customary units
+struct yard : derived_unit<yard, length, ratio(9'144, 10'000)> {};
+struct foot : derived_unit<foot, length, yard::ratio / 3> {};
+struct inch : derived_unit<inch, length, foot::ratio / 12> {};
+struct mile : derived_unit<mile, length, 1'760 * yard::ratio> {};
+```
 
 
+Relative vs absolute quantity {#relative-vs-absolute}
+-----------------------------------------------------
 
-Multiply/alternative syntax
-===========================
+One of the most important aspects of the physical units library is to understand what is the [=quantity=]?
+An absolute or a relative value? For most dimensions only relative values have sense. For example:
+- Where is absolute 123 meters?
+- If I am sitting in a moving train is my velocity == 0?
+- Is my velocity == 0 when the train stops?
 
-Relative vs absolute quantity
-=============================
+However, for some dimensions like temperature absolute values are really needed. For example how much is
+`0℃ + 0℃`? Is it `0℃` or `0℃` or `273.15℃`? Yes, the repeated value of `0℃` is not an error here ;-)
+Actually all of the answers are right:
+- two absolute temperatures
 
-What should be a `Rep` of integral UDLs
-=======================================
+    ```
+    0℃ + 0℃ = 273.15K + 273.15K = 546.30K = 273.15℃
+    ```
+
+- an absolute temperature and a temperature change
+
+    ```
+    0℃ + 0℃ = 273.15K + 0K = 273.15K = 0℃
+    ```
+
+- two temperature changes
+
+    ```
+    0℃ + 0℃ = 0K + 0K = 0K = 0℃
+    ```
+
+As proven above it is a complex and a pretty hard problem. Average usage of the library will probably not
+be able to distinguish between different kinds of quantities. This is why it was decided that only relative
+quantity values will be modeled by the library. Moreover, providing support for only relative quantities
+of other temperature units than Kelvin will probably still be misused byt the users. This is why it was
+decided to support only Kelvins as built-in temperature units and provide verbose non=member utility
+functions for conversions between different kind of temperature values and their units. 
+
+
+Open questions {#open-questions}
+================================
+
+Should we support [=systems=] as a separate type {#systems-support}
+---------------------------------------------------------------
+
+US Customary System has the same dimensions and most of the units as SI with the differences scoped
+mostly only in length and mass units and derived dimensions using those. It is much simpler to use
+the common definitions of such dimensions and just provide units dedicated to such system together
+with SI (i.e. meters and miles).
+
+Even systems that seems to be totally isolated from typical SI uses cases like `coffee/milk/water/sugar`
+system at some point will probably need time, volume and other SI dimensions too.
+
+Boost.Units uses [=systems=] mostly to provide a capability of having a different [=base unit=] for a dimension
+to limit intermediate conversions while passing quantities as vocabulary types in the interfaces.
+Usage of templates constrained with concepts for generic algorithms and concrete types for domain
+specific need addresses this area easily.
+
+(Example of a generic interface i.e. avg_speed with miles)
+
+(Example of a domain specific interface i.e. eV)
+
+
+Compatibility with `std::chrono::duration` {#duration-compatibility}
+--------------------------------------------------------------------
+
+
+Should we provide integral UDLs {#integral-udl}
+-----------------------------------------------
+
+- Yes, as is (always both integral and floating-point for all units)
+- Yes, but with floating Rep
+- Yes, but only for specific units like `bit`, `byte`, etc. where floating-point types doo not have much sense (no floating point UDLs)
+- No, just use floating-point for UDLs for all (no integral UDLs)
+
+
+Should we provide `seconds<int>` or stay with `quantity<second, int>`? {#seconds-int}
+-------------------------------------------------------------------------------------
+
+
+Should we provide support for dimensionless quantities? {#dimensionless-quantities}
+-----------------------------------------------------------------------------------
+
 
 
 Impact On The Standard {#impact}
 ================================
 
-Considered Alternatives {#alternatives}
-====================================
-
-
-
-
-Proposed Wording {#wording}
-===========================
-
-
-Feature Testing {#feature-testing}
-==================================
-
 
 
 Implementation Experience {#implementation}
 ===========================================
+
+Author of this document implemented `mp-units` [[MP-UNITS]] library where he tested different ideas and 
+proved implementability of the features described in the paper. The library framework consists of a few
+concepts: [=quantities=], [=units=], [=dimensions=] and their exponents. From the user's point of view
+the most important is a [=quantity=].
+
+[=Quantity=] is a concrete amount of a unit for a specified dimension with a specific representation:
+
+```cpp
+units::quantity<units::kilometre, double> d1(123);
+auto d2 = 123km;    // units::quantity<units::kilometre, std::int64_t>
+```
+
+There are C++ concepts provided for each such quantity type:
+
+```cpp
+template<typename T>
+concept Length = QuantityOf<T, length>;
+```
+
+With that we can easily write a function template like this:
+
+```cpp
+constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
+{
+  return d / t;
+}
+```
+
+and use it in the following ways:
+
+```cpp
+const units::quantity<units::kilometre> d(220);
+const units::quantity<units::hour> t(2);
+const units::Velocity auto kmph = units::quantity_cast<units::kilometre_per_hour>(avg_speed(d, t));
+std::cout << kmph.count() << " km/h\n";
+
+const units::Velocity auto speed = avg_speed(140.mi, 2.h);
+assert(speed.count() == 70);
+std::cout << units::quantity_cast<units::mile_per_hour>(speed).count() << " mph\n";
+```
+
+which guarantees that no intermediate conversions are being made and the output binary is as
+effective as implemented with `double`s.
+
+Additionally, thanks to extensive usage of the C++ concepts and the downcasting facility the library
+provides great user experience. The error log for type aliases usage would looks like:
+
+```
+[with D = units::quantity<units::unit<units::dimension<units::exp<units::base_dim_length, 1, 1>,
+                units::exp<units::base_dim_time, 1, -1> >, units::ratio<5, 18> >, double>]
+```
+
+but thanks to downcast facility the actual error is:
+
+```
+[with D = units::quantity<units::kilometre_per_hour, double>]
+```
+
+The breakpoint in the debugger also looks really good:
+
+```
+Breakpoint 1, avg_speed<units::quantity<units::kilometre, double>,
+                        units::quantity<units::hour, double> >
+(d=..., t=...) at velocity.cpp:31
+31      return d / t;
+```
+
+The library is also really easy to extend with custom units, derived or even base dimensions. For example if the
+user wants to provide a custom `digital information` base dimension and its units here are the steps to follow:
+
+```cpp
+#include <units/quantity.h>
+
+// custom base dimension
+struct base_dim_digital_information { static constexpr const char* value = "digital information"; };
+
+// custom derived dimension and its concept
+struct digital_information : units::derived_dimension<digital_information, units::exp<base_dim_digital_information, 1>> {};
+
+template<typename T>
+concept DigitalInformation = units::QuantityOf<T, digital_information>;
+
+// custom units and their units
+struct bit : units::derived_unit<bit, digital_information> {};
+struct byte : units::derived_unit<byte, digital_information, units::ratio<8>> {};
+
+inline namespace literals {
+  constexpr auto operator""_b(unsigned long long l) { return units::quantity<bit, std::int64_t>(l); }
+  constexpr auto operator""_b(long double l) { return units::quantity<bit, long double>(l); }
+
+  constexpr auto operator""_B(unsigned long long l) { return units::quantity<byte, std::int64_t>(l); }
+  constexpr auto operator""_B(long double l) { return units::quantity<byte, long double>(l); }
+}
+
+// unit tests
+static_assert(1_B == 8_b);
+```
+
+Polls {#polls}
+==============
+
+1. Do we want a physical units library in the C++ standard?
+2. Do we want to have support for digital information dimensions in the initial version of the library?
+3. Do we prefer UDL, multiply, or mixed syntax for units?
+4. Do we like concept-based approach to prevent truncation?
+5. Do we like downcasting facility or do we want to wait for other solutions (strong types in the
+    language, better compiler errors, ...)?
+6. Do we prefer NTTP usage for `ratio` and `exp`?
+7. Do we want to require explicit casts between different units of the same dimension or do we
+    allow `chrono`-like implicit conversions (floating-point representation and non-truncating
+    integer conversions)?
+8. Do we agree with Kelvins only support for temperature and verbose conversion functions for other
+    units and absolute temperatures?
+9. Which option of UDLs do we prefer ([[#integral-udl]])?
+10. Should we provide `seconds<int>` or stay with `quantity<second, int>`?
+11. Should we provide support for dimensionless quantities?
+12. `meter` vs `metre`? ;-)
+13. Do we want to introduce a dedicated system type?
 
 
 Acknowledgements {#acknowledgements}
@@ -447,6 +1140,11 @@ membership in the ISO C++ Committee and the production of this proposal.
         "title": "Manufacturers, exporters think metric",
         "publisher": "San Francisco Business Times"
     },
+    "MP-UNITS": {
+        "authors": [ "Mateusz Pusz" ],
+        "href": "https://github.com/mpusz/units",
+        "title": "mp-units"
+    },
     "BOOST.UNITS": {
         "authors": [ "Steven Watanabe", "Matthias C. Schabel" ],
         "href": "https://www.boost.org/doc/libs/1_70_0/doc/html/boost_units.html",
@@ -471,6 +1169,16 @@ membership in the ISO C++ Committee and the production of this proposal.
     "BRYAN_UNITS": {
         "authors": [ "Bryan St. Amour" ],
         "href": "https://github.com/bstamour/units",
+        "title": "units"
+    },
+    "BENRI": {
+        "authors": [ "Jan Sende" ],
+        "href": "https://github.com/jansende/benri",
+        "title": "benri"
+    },
+    "MIKEFORD3_UNITS": {
+        "authors": [ "Michael Ford" ],
+        "href": "https://github.com/mikeford3/units",
         "title": "units"
     }
 
