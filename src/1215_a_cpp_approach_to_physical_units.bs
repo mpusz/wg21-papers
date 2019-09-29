@@ -708,11 +708,11 @@ include/meta/meta_fwd.hpp:224:18: note: ‘meta::detail::barrier’ evaluated to
 Easy to use and hard to abuse {#easy-to-use-hard-to-abuse}
 ==========================================================
 
-- Consistency with `std::chrono` behavior
-- Clear responsibility of each type (base_dimension -> exp -> dimension -> unit -> quantity)
-- Easy to extend with custom dimensions or units
-- Easy to understand error messages thanks to downcast facility and concepts usage
-- No isolated abstraction for [=systems=] that would complicate implementation and reasoning
+- Consistency with `std::chrono` behavior.
+- Clear responsibility of each type (base_dimension -> exp -> dimension -> unit -> quantity).
+- Easy to extend with custom dimensions or units.
+- Easy to understand error messages thanks to downcast facility and concepts.
+- No isolated abstraction for [=systems=] that would complicate implementation and reasoning.
 
 
 Limiting intermediate conversions {#limiting-intermediate-value-conversions}
