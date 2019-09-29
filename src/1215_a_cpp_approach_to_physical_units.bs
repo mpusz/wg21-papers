@@ -571,8 +571,8 @@ struct downcast_base {
 };
 ```
 
-`units::downcast_base` is a class that implements CRTP idiom, marks the base of downcasting
-facility with a `base_type` member type, and provides a declaration of downcasting ADL friendly
+`units::downcast_base` is a class that implements the CRTP idiom, marks the base of downcasting
+facility with a `base_type` member type, and provides a declaration of the downcasting ADL friendly
 (Hidden Friend) entry point member function `downcast_guide`. An important design goal is that
 this function does not return any specific type in its declaration. This non-member function
 is going to be defined in a child class template `downcast_helper` and will return a target
