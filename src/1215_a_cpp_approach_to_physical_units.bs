@@ -1093,7 +1093,7 @@ Polls {#polls}
 9. Which option of UDLs do we prefer ([[#integral-udl]])?
 10. Should we provide `seconds<int>` or stay with `quantity<second, int>`?
 11. Should we provide support for dimensionless quantities?
-12. `meter` vs `metre`? ;-)
+12. Should American spelling be provided? (`meter` vs `metre`, `ton` vs `tonne`, ...)
 13. Do we want to introduce a dedicated system type?
 
 
