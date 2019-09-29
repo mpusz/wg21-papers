@@ -22,24 +22,24 @@ Overview {#overview}
 --------------------
 
 The human history knows many expensive failures and accidents caused by mistakes in calculations involving
-different physical units. The most famous example in the software engineering domain is the Mars CLimate Orbiter
+different physical units. The most famous example in the software engineering domain is the Mars Climate Orbiter
 that in 1999 failed to entered Mars orbit and crashed while entering its atmosphere
 [[MARS_ORBITER]]. That is not the only example here. People tend to confuse
 units quite often. We see similar errors occurring in various domains through the years:
 - On 12 october, 1492 Christopher Columbus unintentionally discovered America because during his travel preparations
     he mixed Arabic mile with a Roman mile witch led to wrong estimation of equator and his expected travel distance
     [[COLUMBUS]]
-- Air Canada Flight 143 run out of fuel on July 23, 1983, at an altitude of 41,000 feet (12,000 m),
+- Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41 000 feet (12 000 metre),
     midway through the flight because the fuel had been calculated in pounds instead of kilograms by the ground crew
     [[GIMLI_GLIDER]]
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to the miscommunication between pilots about desired
     flight altitude [[FLIGHT_6316]]
-- In February 2001 Zoo crew built an enclosure for Clarence the Tortoise with a weight of 250 pounds instead of 250kg
+- In February 2001 Zoo crew built an enclosure for Clarence the Tortoise with a weight of 250 pounds instead of 250 kilogram
     [[CLARENCE]]
 - In December 2003, one of the cars at Tokyo Disneyland’s Space Mountain attraction suddenly derailed due to a broken
     axle caused by the confusion after upgrading the specification from imperial to metric units [[DISNEY]]
-- An American company sold a shipment of wild rice to a Japanese customer, quoting a price of 39¢ a pound, but the
-    customer thought the quote was for 39¢ a kilogram [[WILD_RICE]]
+- An American company sold a shipment of wild rice to a Japanese customer, quoting a price of 39 cent per pound, but the
+    customer thought the quote was for 39 cent per kilogram [[WILD_RICE]]
 - A whole set of medication dose errors...
 
 Lack of strong types {#lack-of-strong-types}
@@ -107,10 +107,10 @@ to use 3rd party libraries in the production code. Also important point here is 
 products from multiple vendors that use physical quantities as vocabulary types in their interfaces.
 From the author's experience gathered while working with multiple corporations all over the world, there
 is really a huge difference between the adoption of a mature 3rd party library and the usage of features 
-released as a part of the C++ Standard Library. If it wasn't the case all products would use Boost.Units
+released as a part of the C++ Standard Library. If it were not the case all products would use Boost.Units
 already. A motivating example here can be `std::chrono` released as a part of C++11. Right now no one asks
 questions how to represent timestamps and how to handle their conversions in the code. `std::chrono` is the
-the ultimate answer. So let's try to get `std::units` in the C++ Standard Library too.
+the ultimate answer. So let us try to get `std::units` in the C++ Standard Library too.
 
 The aim of this paper is to standardize a physical units library that enables operations on various dimensions
 and units:
@@ -136,11 +136,11 @@ static_assert(10km / 5km == 2);
 Scope {#scope}
 --------------
 
-Although there is a public demand for an generic units library that could handle any units and dimensions,
+Although there is public demand for a generic units library that could handle any units and dimensions,
 author suggests scoping the Committee efforts only on the physical and possibly computer science
 (i.e. `bit`, `bitrate`) units first. The library should be designed in a way to allow easy extensions so
 everyone interested might add his own base and derived dimensions if needed (i.e. `coffee/milk/water/sugar` system).
-After releasing the first version of the library and observing how it is being used we can consider
+After releasing the first version of the library and observing how it is used we can consider
 standardizing additional dimensions in the following C++ releases.
 
 
@@ -240,7 +240,7 @@ struct unit;
 
 Interesting to notice here are:
 - `PiExponent` - an exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a radians to degrees conversion)
-- `Translation` - a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a farenheit to celsius conversion)
+- `Translation` - a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a Fahrenheit to Celsius conversion)
 
 ```cpp
 namespace units {
@@ -418,14 +418,14 @@ Comparison {#comparison}
 Fundamental concerns with current solutions {#concerns}
 =======================================================
 
-Feedback from the users gathered so far signals the following major user complaints:
-- bad user experience caused by hard to understand and analyse compile-time errors and poor
-    debugging experience
-- too high entry bar (i.e. Boost.Units is claimed to require expertise in both C++ and dimensional analysis)
-- unnecessary intermediate conversions to [=base units=] resulting in a runtime overhead and loss of precision
-- poor support for really large or small ratios (i.e. `eV`)
-- safety and security connected problems with the usage of an external 3rd party library for production purposes
-- impossibility or really hard extensibility of the library with new [=base dimensions=]
+Feedback from the users gathered so far signals the following major complaints:
+- Bad user experience caused by hard to understand and analyse compile-time errors and poor
+    debugging experience.
+- Too high entry bar. (Boost.Units is claimed to require expertise in both C++ and dimensional analysis.)
+- Unnecessary intermediate conversions to [=base units=] resulting in a runtime overhead and loss of precision.
+- Poor support for really large or small ratios. (i.e. `eV`)
+- Safety and security connected problems with the usage of an external 3rd party library for production purposes.
+- Impossibility or really hard extensibility of the library with new [=base dimensions=].
 
 
 Design principles {#design-principles}
@@ -502,7 +502,7 @@ to ‘quantity<unit<list<[...],list<dim<[...],static_rational<-1>>,[...]>>,[...]
             ~~^~~
 ```
 
-and this is only the very first line of the compilation error log. The same error for clang-7 looks as follows:
+This is only the very first line of the compilation error log. The same error for clang-7 looks as follows:
 
 ```
 error: no viable conversion from returned value of type 'quantity<unit<list<[...], list<dim<[...],
@@ -512,7 +512,7 @@ static_rational<-1, [...]>>, [...]>>, [...]>, [...]>'
            ^~~~~
 ```
 
-which despite being shorter does not help much too.
+Despite being shorter, this message too does not help much in finding the actual error.
 
 Omnipresent type aliasing does not affect only compilation errors but also debugging. Here is how a breakpoint
 for above function looks like in the gdb debugger:
@@ -542,14 +542,14 @@ implemented a downcast facility in [[MP-UNITS]]. It allowed to convert the follo
 [with T = units::quantity<units::unit<units::dimension<units::exp<units::base_dim_time, 1> >, std::ratio<1> >, long long int>]
 ```
 
-to
+Into:
 
 ```
 [with T = units::quantity<units::second, long long int>]
 ```
 
 Downcasting facility provides a type substitution mechanism. It connects a specific primary template
-class specialization with a strong type assigned to it by the user. A simplified mental model of the
+class specialization with a strong type assigned by the user. A simplified mental model of the
 facility may be represented as:
 
 ```cpp
@@ -558,10 +558,10 @@ struct metre : unit<dimension<exp<base_dim_length, 1>>, std::ratio<1, 1, 0>>;
 
 In the above example `metre` is a downcasting target (child class) and a specific `unit` class 
 template specialization is a downcasting source (base class). The downcasting facility provides
-1 to 1 tpe substitution mechanism. Only one child class can be created for a specific base class
+one to one type substitution mechanism. Only one child class can be created for a specific base class
 template instantiation.
 
-Downcasting facility is provided through 2 dedicated types, a concept, and a few helper template aliases.
+Downcasting facility is provided through two dedicated types, a concept, and a few helper template aliases.
 
 ```cpp
 template<typename BaseType>
@@ -571,11 +571,12 @@ struct downcast_base {
 };
 ```
 
-`units::downcast_base` is a class that implements CRTP idiom, marks the base of downcasting
-facility with a `base_type` member type, and provides a declaration of downcasting ADL friendly
-(Hidden Friend) entry point member function `downcast_guide` that here does not return any specific
-type. This non-member function is going to be defined in a child class template `downcast_helper`
-and will return a target type of the downcasting operation.
+`units::downcast_base` is a class that implements the CRTP idiom, marks the base of downcasting
+facility with a `base_type` member type, and provides a declaration of the downcasting ADL friendly
+(Hidden Friend) entry point member function `downcast_guide`. An important design goal is that
+this function does not return any specific type in its declaration. This non-member function
+is going to be defined in a child class template `downcast_helper` and will return a target
+type of the downcasting operation there.
 
 ```cpp
 template<typename T>
@@ -598,7 +599,7 @@ struct downcast_helper : T {
 
 `units::downcast_helper` is another CRTP class template that provides the implementation of a
 non-member friend function of the `downcast_base` class template which defines the target
-type of downcasting operation. It is used in the following way to define `dimension` and
+type of a downcasting operation. It is used in the following way to define `dimension` and
 `unit` types in the library:
 
 ```cpp
@@ -611,7 +612,7 @@ template<typename Child, Dimension D>
 struct derived_unit<Child, D, R> : downcast_helper<Child, unit<D, ratio<1>>> {};
 ```
 
-With such CRTP types the only thing the user has to do to register a new type to a downcasting
+With such CRTP types, the only thing the user has to do to register a new type for the downcasting
 facility is to publicly derive from one of those CRTP types and provide its new child type as
 the first template parameter of the CRTP type.
 
@@ -638,8 +639,8 @@ using common_rep = decltype(lhs.count() * rhs.count());
 using ret = quantity<downcast_target<unit<dim, ratio_multiply<typename U1::ratio, typename U2::ratio>>>, common_rep>;
 ```
 
-`detail::downcast_target_impl` checks if downcasting target is registered for the specific base class.
-If yes, it returns the registered type. Otherwise, it works like a regular identity type returning
+`detail::downcast_target_impl` checks if a downcasting target is registered for the specific base class.
+If yes it returns the registered type, otherwise it works like a regular identity type returning
 a provided base class. 
 
 ```cpp
@@ -707,11 +708,11 @@ include/meta/meta_fwd.hpp:224:18: note: ‘meta::detail::barrier’ evaluated to
 Easy to use and hard to abuse {#easy-to-use-hard-to-abuse}
 ==========================================================
 
-- Consistency with `std::chrono` behavior
-- Clear responsibility of each type (base_dimension -> exp -> dimension -> unit -> quantity)
-- Easy to extend with custom dimensions or units
-- Easy to understand error messages thanks to downcast facility and concepts usage
-- No isolated abstraction for [=systems=] that would complicate implementation and reasoning
+- Consistency with `std::chrono` behavior.
+- Clear responsibility of each type (base_dimension -> exp -> dimension -> unit -> quantity).
+- Easy to extend with custom dimensions or units.
+- Easy to understand error messages thanks to downcast facility and concepts.
+- No isolated abstraction for [=systems=] that would complicate implementation and reasoning.
 
 
 Limiting intermediate conversions {#limiting-intermediate-value-conversions}
@@ -811,7 +812,7 @@ struct ratio {
 };
 ```
 
-and it requires a few utility types defines to do operations on such types:
+In addition, it provides a few utilities to do operations on such types:
 
 ```cpp
 namespace detail {
@@ -840,7 +841,7 @@ struct inch : derived_unit<inch, length, ratio_multiply<ratio<1, 12>, foot::rati
 struct mile : derived_unit<mile, length, ratio_multiply<ratio<1'760>, yard::ratio>> {};
 ```
 
-With NTTP the implementation and usage of ratio is much easier:
+With NTTP the implementation and usage of `ratio` is much easier:
 
 ```cpp
 struct ratio {
@@ -887,38 +888,38 @@ struct mile : derived_unit<mile, length, 1'760 * yard::ratio> {};
 Relative vs absolute quantity {#relative-vs-absolute}
 -----------------------------------------------------
 
-One of the most important aspects of the physical units library is to understand what is the [=quantity=]?
-An absolute or a relative value? For most dimensions only relative values have sense. For example:
+One of the most important aspects of the physical units library is to understand what is a [=quantity=]?
+A absolute or a relative value? For most dimensions only relative values have sense. For example:
 - Where is absolute 123 meters?
 - If I am sitting in a moving train is my velocity == 0?
 - Is my velocity == 0 when the train stops?
 
 However, for some dimensions like temperature absolute values are really needed. For example how much is
-`0℃ + 0℃`? Is it `0℃` or `0℃` or `273.15℃`? Yes, the repeated value of `0℃` is not an error here ;-)
+`0 ℃ + 0 ℃`? Is it `0 ℃` or `0 ℃` or `273.15 ℃`? Yes, the repeated value of `0 ℃` is not an error here ;-)
 Actually all of the answers are right:
-- two absolute temperatures
+- Two (absolute) temperatures:
 
     ```
-    0℃ + 0℃ = 273.15K + 273.15K = 546.30K = 273.15℃
+    0 ℃ + 0 ℃ = 273.15 K + 273.15 K = 546.30 K = 273.15 ℃
     ```
 
-- an absolute temperature and a temperature change
+- A (absolute) temperature and a (relative) temperature interval:
 
     ```
-    0℃ + 0℃ = 273.15K + 0K = 273.15K = 0℃
+    0 ℃ + 0 ℃ = 273.15 K + 0 K = 273.15 K = 0 ℃
     ```
 
-- two temperature changes
+- Two (relative) temperature intervals:
 
     ```
-    0℃ + 0℃ = 0K + 0K = 0K = 0℃
+    0 ℃ + 0 ℃ = 0 K + 0 K = 0 K = 0 ℃
     ```
 
 As proven above it is a complex and a pretty hard problem. Average usage of the library will probably not
 be able to distinguish between different kinds of quantities. This is why it was decided that only relative
 quantity values will be modeled by the library. Moreover, providing support for only relative quantities
-of other temperature units than Kelvin will probably still be misused byt the users. This is why it was
-decided to support only Kelvins as built-in temperature units and provide verbose non=member utility
+of other temperature units than Kelvin will probably still be misused by the users. This is why it was
+decided to support only Kelvins as built-in temperature units and provide verbose non-member utility
 functions for conversions between different kind of temperature values and their units. 
 
 
@@ -953,10 +954,10 @@ Compatibility with `std::chrono::duration` {#duration-compatibility}
 Should we provide integral UDLs {#integral-udl}
 -----------------------------------------------
 
-- Yes, as is (always both integral and floating-point for all units)
-- Yes, but with floating Rep
-- Yes, but only for specific units like `bit`, `byte`, etc. where floating-point types doo not have much sense (no floating point UDLs)
-- No, just use floating-point for UDLs for all (no integral UDLs)
+- Yes, as is (always both integral and floating-point for all units).
+- Yes, but with floating `Rep`.
+- Yes, but only for specific units like `bit`, `byte`, etc. where floating-point types doo not have much sense (no floating point UDLs).
+- No, just use floating-point UDLs for all (no integral UDLs).
 
 
 Should we provide `seconds<int>` or stay with `quantity<second, int>`? {#seconds-int}
@@ -968,7 +969,7 @@ Should we provide support for dimensionless quantities? {#dimensionless-quantiti
 
 
 
-Impact On The Standard {#impact}
+Impact on the Standard {#impact}
 ================================
 
 
@@ -995,7 +996,7 @@ template<typename T>
 concept Length = QuantityOf<T, length>;
 ```
 
-With that we can easily write a function template like this:
+With these concepts we can easily write a function template:
 
 ```cpp
 constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
@@ -1004,7 +1005,7 @@ constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto 
 }
 ```
 
-and use it in the following ways:
+This template function can be used in the following way:
 
 ```cpp
 const units::quantity<units::kilometre> d(220);
@@ -1017,24 +1018,24 @@ assert(speed.count() == 70);
 std::cout << units::quantity_cast<units::mile_per_hour>(speed).count() << " mph\n";
 ```
 
-which guarantees that no intermediate conversions are being made and the output binary is as
-effective as implemented with `double`s.
+This guarantees that no intermediate conversions are being made and the output binary is as
+effective as implementing the function with `double`s.
 
-Additionally, thanks to extensive usage of the C++ concepts and the downcasting facility the library
-provides great user experience. The error log for type aliases usage would looks like:
+Additionally, thanks to extensive usage of the C++ concepts and the downcasting facility, the library
+provides great user experience. The error message for type aliases would look like:
 
 ```
 [with D = units::quantity<units::unit<units::dimension<units::exp<units::base_dim_length, 1, 1>,
                 units::exp<units::base_dim_time, 1, -1> >, units::ratio<5, 18> >, double>]
 ```
 
-but thanks to downcast facility the actual error is:
+Yet, thanks to downcast facility the actual error message is:
 
 ```
 [with D = units::quantity<units::kilometre_per_hour, double>]
 ```
 
-The breakpoint in the debugger also looks really good:
+The breakpoint in the debugger became readable as well:
 
 ```
 Breakpoint 1, avg_speed<units::quantity<units::kilometre, double>,
@@ -1043,8 +1044,8 @@ Breakpoint 1, avg_speed<units::quantity<units::kilometre, double>,
 31      return d / t;
 ```
 
-The library is also really easy to extend with custom units, derived or even base dimensions. For example if the
-user wants to provide a custom `digital information` base dimension and its units here are the steps to follow:
+Moreover, it is really easy to extend the library with custom units, derived units, and base dimensions. For example, if the
+user wants to provide a custom `digital information` base dimension and new units based on it, only minimal code is required:
 
 ```cpp
 #include <units/quantity.h>
@@ -1092,7 +1093,7 @@ Polls {#polls}
 9. Which option of UDLs do we prefer ([[#integral-udl]])?
 10. Should we provide `seconds<int>` or stay with `quantity<second, int>`?
 11. Should we provide support for dimensionless quantities?
-12. `meter` vs `metre`? ;-)
+12. Should American spelling be provided? (`meter` vs `metre`, `ton` vs `tonne`, ...)
 13. Do we want to introduce a dedicated system type?
 
 
