@@ -954,10 +954,10 @@ Compatibility with `std::chrono::duration` {#duration-compatibility}
 Should we provide integral UDLs {#integral-udl}
 -----------------------------------------------
 
-- Yes, as is (always both integral and floating-point for all units)
-- Yes, but with floating Rep
-- Yes, but only for specific units like `bit`, `byte`, etc. where floating-point types doo not have much sense (no floating point UDLs)
-- No, just use floating-point for UDLs for all (no integral UDLs)
+- Yes, as is (always both integral and floating-point for all units).
+- Yes, but with floating `Rep`.
+- Yes, but only for specific units like `bit`, `byte`, etc. where floating-point types doo not have much sense (no floating point UDLs).
+- No, just use floating-point UDLs for all (no integral UDLs).
 
 
 Should we provide `seconds<int>` or stay with `quantity<second, int>`? {#seconds-int}
