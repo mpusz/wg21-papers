@@ -888,8 +888,8 @@ struct mile : derived_unit<mile, length, 1'760 * yard::ratio> {};
 Relative vs absolute quantity {#relative-vs-absolute}
 -----------------------------------------------------
 
-One of the most important aspects of the physical units library is to understand what is the [=quantity=]?
-An absolute or a relative value? For most dimensions only relative values have sense. For example:
+One of the most important aspects of the physical units library is to understand what is a [=quantity=]?
+A absolute or a relative value? For most dimensions only relative values have sense. For example:
 - Where is absolute 123 meters?
 - If I am sitting in a moving train is my velocity == 0?
 - Is my velocity == 0 when the train stops?
@@ -897,19 +897,19 @@ An absolute or a relative value? For most dimensions only relative values have s
 However, for some dimensions like temperature absolute values are really needed. For example how much is
 `0 ℃ + 0 ℃`? Is it `0 ℃` or `0 ℃` or `273.15 ℃`? Yes, the repeated value of `0 ℃` is not an error here ;-)
 Actually all of the answers are right:
-- two absolute temperatures
+- Two (absolute) temperatures:
 
     ```
     0 ℃ + 0 ℃ = 273.15 K + 273.15 K = 546.30 K = 273.15 ℃
     ```
 
-- an absolute temperature and a temperature change
+- A (absolute) temperature and a (relative) temperature interval:
 
     ```
     0 ℃ + 0 ℃ = 273.15 K + 0 K = 273.15 K = 0 ℃
     ```
 
-- two temperature changes
+- Two (relative) temperature intervals:
 
     ```
     0 ℃ + 0 ℃ = 0 K + 0 K = 0 K = 0 ℃
@@ -918,8 +918,8 @@ Actually all of the answers are right:
 As proven above it is a complex and a pretty hard problem. Average usage of the library will probably not
 be able to distinguish between different kinds of quantities. This is why it was decided that only relative
 quantity values will be modeled by the library. Moreover, providing support for only relative quantities
-of other temperature units than Kelvin will probably still be misused byt the users. This is why it was
-decided to support only Kelvins as built-in temperature units and provide verbose non=member utility
+of other temperature units than Kelvin will probably still be misused by the users. This is why it was
+decided to support only Kelvins as built-in temperature units and provide verbose non-member utility
 functions for conversions between different kind of temperature values and their units. 
 
 
