@@ -502,7 +502,7 @@ to ‘quantity<unit<list<[...],list<dim<[...],static_rational<-1>>,[...]>>,[...]
             ~~^~~
 ```
 
-and this is only the very first line of the compilation error log. The same error for clang-7 looks as follows:
+This is only the very first line of the compilation error log. The same error for clang-7 looks as follows:
 
 ```
 error: no viable conversion from returned value of type 'quantity<unit<list<[...], list<dim<[...],
@@ -512,7 +512,7 @@ static_rational<-1, [...]>>, [...]>>, [...]>, [...]>'
            ^~~~~
 ```
 
-which despite being shorter does not help much too.
+Despite being shorter, this message too does not help much in finding the actual error.
 
 Omnipresent type aliasing does not affect only compilation errors but also debugging. Here is how a breakpoint
 for above function looks like in the gdb debugger:
