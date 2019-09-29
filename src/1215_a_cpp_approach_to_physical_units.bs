@@ -542,7 +542,7 @@ implemented a downcast facility in [[MP-UNITS]]. It allowed to convert the follo
 [with T = units::quantity<units::unit<units::dimension<units::exp<units::base_dim_time, 1> >, std::ratio<1> >, long long int>]
 ```
 
-to
+Into:
 
 ```
 [with T = units::quantity<units::second, long long int>]
