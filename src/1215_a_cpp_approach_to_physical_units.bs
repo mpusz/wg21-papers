@@ -969,7 +969,7 @@ Should we provide support for dimensionless quantities? {#dimensionless-quantiti
 
 
 
-Impact On The Standard {#impact}
+Impact on the Standard {#impact}
 ================================
 
 
