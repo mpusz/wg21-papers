@@ -418,14 +418,14 @@ Comparison {#comparison}
 Fundamental concerns with current solutions {#concerns}
 =======================================================
 
-Feedback from the users gathered so far signals the following major user complaints:
-- bad user experience caused by hard to understand and analyse compile-time errors and poor
-    debugging experience
-- too high entry bar (i.e. Boost.Units is claimed to require expertise in both C++ and dimensional analysis)
-- unnecessary intermediate conversions to [=base units=] resulting in a runtime overhead and loss of precision
-- poor support for really large or small ratios (i.e. `eV`)
-- safety and security connected problems with the usage of an external 3rd party library for production purposes
-- impossibility or really hard extensibility of the library with new [=base dimensions=]
+Feedback from the users gathered so far signals the following major complaints:
+- Bad user experience caused by hard to understand and analyse compile-time errors and poor
+    debugging experience.
+- Too high entry bar. (Boost.Units is claimed to require expertise in both C++ and dimensional analysis.)
+- Unnecessary intermediate conversions to [=base units=] resulting in a runtime overhead and loss of precision.
+- Poor support for really large or small ratios. (i.e. `eV`)
+- Safety and security connected problems with the usage of an external 3rd party library for production purposes.
+- Impossibility or really hard extensibility of the library with new [=base dimensions=].
 
 
 Design principles {#design-principles}
