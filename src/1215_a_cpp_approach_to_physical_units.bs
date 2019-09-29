@@ -29,7 +29,7 @@ units quite often. We see similar errors occurring in various domains through th
 - On 12 october, 1492 Christopher Columbus unintentionally discovered America because during his travel preparations
     he mixed Arabic mile with a Roman mile witch led to wrong estimation of equator and his expected travel distance
     [[COLUMBUS]]
-- Air Canada Flight 143 run out of fuel on July 23, 1983, at an altitude of 41,000 feet (12,000 m),
+- Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41,000 feet (12,000 m),
     midway through the flight because the fuel had been calculated in pounds instead of kilograms by the ground crew
     [[GIMLI_GLIDER]]
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to the miscommunication between pilots about desired
