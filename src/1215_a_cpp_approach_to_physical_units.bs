@@ -29,17 +29,17 @@ units quite often. We see similar errors occurring in various domains through th
 - On 12 october, 1492 Christopher Columbus unintentionally discovered America because during his travel preparations
     he mixed Arabic mile with a Roman mile witch led to wrong estimation of equator and his expected travel distance
     [[COLUMBUS]]
-- Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41,000 feet (12,000 m),
+- Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41 000 feet (12 000 metre),
     midway through the flight because the fuel had been calculated in pounds instead of kilograms by the ground crew
     [[GIMLI_GLIDER]]
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to the miscommunication between pilots about desired
     flight altitude [[FLIGHT_6316]]
-- In February 2001 Zoo crew built an enclosure for Clarence the Tortoise with a weight of 250 pounds instead of 250kg
+- In February 2001 Zoo crew built an enclosure for Clarence the Tortoise with a weight of 250 pounds instead of 250 kilogram
     [[CLARENCE]]
 - In December 2003, one of the cars at Tokyo Disneyland’s Space Mountain attraction suddenly derailed due to a broken
     axle caused by the confusion after upgrading the specification from imperial to metric units [[DISNEY]]
-- An American company sold a shipment of wild rice to a Japanese customer, quoting a price of 39¢ a pound, but the
-    customer thought the quote was for 39¢ a kilogram [[WILD_RICE]]
+- An American company sold a shipment of wild rice to a Japanese customer, quoting a price of 39 cent per pound, but the
+    customer thought the quote was for 39 cent per kilogram [[WILD_RICE]]
 - A whole set of medication dose errors...
 
 Lack of strong types {#lack-of-strong-types}
@@ -894,24 +894,24 @@ An absolute or a relative value? For most dimensions only relative values have s
 - Is my velocity == 0 when the train stops?
 
 However, for some dimensions like temperature absolute values are really needed. For example how much is
-`0℃ + 0℃`? Is it `0℃` or `0℃` or `273.15℃`? Yes, the repeated value of `0℃` is not an error here ;-)
+`0 ℃ + 0 ℃`? Is it `0 ℃` or `0 ℃` or `273.15 ℃`? Yes, the repeated value of `0 ℃` is not an error here ;-)
 Actually all of the answers are right:
 - two absolute temperatures
 
     ```
-    0℃ + 0℃ = 273.15K + 273.15K = 546.30K = 273.15℃
+    0 ℃ + 0 ℃ = 273.15 K + 273.15 K = 546.30 K = 273.15 ℃
     ```
 
 - an absolute temperature and a temperature change
 
     ```
-    0℃ + 0℃ = 273.15K + 0K = 273.15K = 0℃
+    0 ℃ + 0 ℃ = 273.15 K + 0 K = 273.15 K = 0 ℃
     ```
 
 - two temperature changes
 
     ```
-    0℃ + 0℃ = 0K + 0K = 0K = 0℃
+    0 ℃ + 0 ℃ = 0 K + 0 K = 0 K = 0 ℃
     ```
 
 As proven above it is a complex and a pretty hard problem. Average usage of the library will probably not
