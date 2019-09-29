@@ -549,7 +549,7 @@ Into:
 ```
 
 Downcasting facility provides a type substitution mechanism. It connects a specific primary template
-class specialization with a strong type assigned to it by the user. A simplified mental model of the
+class specialization with a strong type assigned by the user. A simplified mental model of the
 facility may be represented as:
 
 ```cpp
@@ -573,9 +573,10 @@ struct downcast_base {
 
 `units::downcast_base` is a class that implements CRTP idiom, marks the base of downcasting
 facility with a `base_type` member type, and provides a declaration of downcasting ADL friendly
-(Hidden Friend) entry point member function `downcast_guide` that here does not return any specific
-type. This non-member function is going to be defined in a child class template `downcast_helper`
-and will return a target type of the downcasting operation.
+(Hidden Friend) entry point member function `downcast_guide`. An important design goal is that
+this function does not return any specific type in its declaration. This non-member function
+is going to be defined in a child class template `downcast_helper` and will return a target
+type of the downcasting operation there.
 
 ```cpp
 template<typename T>
