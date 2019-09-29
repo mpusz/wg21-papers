@@ -996,7 +996,7 @@ template<typename T>
 concept Length = QuantityOf<T, length>;
 ```
 
-With that we can easily write a function template like this:
+With these concepts we can easily write a function template:
 
 ```cpp
 constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
@@ -1005,7 +1005,7 @@ constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto 
 }
 ```
 
-and use it in the following ways:
+This template function can be used in the following way:
 
 ```cpp
 const units::quantity<units::kilometre> d(220);
@@ -1018,24 +1018,24 @@ assert(speed.count() == 70);
 std::cout << units::quantity_cast<units::mile_per_hour>(speed).count() << " mph\n";
 ```
 
-which guarantees that no intermediate conversions are being made and the output binary is as
-effective as implemented with `double`s.
+This guarantees that no intermediate conversions are being made and the output binary is as
+effective as implementing the function with `double`s.
 
-Additionally, thanks to extensive usage of the C++ concepts and the downcasting facility the library
-provides great user experience. The error log for type aliases usage would looks like:
+Additionally, thanks to extensive usage of the C++ concepts and the downcasting facility, the library
+provides great user experience. The error message for type aliases would look like:
 
 ```
 [with D = units::quantity<units::unit<units::dimension<units::exp<units::base_dim_length, 1, 1>,
                 units::exp<units::base_dim_time, 1, -1> >, units::ratio<5, 18> >, double>]
 ```
 
-but thanks to downcast facility the actual error is:
+Yet, thanks to downcast facility the actual error message is:
 
 ```
 [with D = units::quantity<units::kilometre_per_hour, double>]
 ```
 
-The breakpoint in the debugger also looks really good:
+The breakpoint in the debugger became readable as well:
 
 ```
 Breakpoint 1, avg_speed<units::quantity<units::kilometre, double>,
@@ -1044,8 +1044,8 @@ Breakpoint 1, avg_speed<units::quantity<units::kilometre, double>,
 31      return d / t;
 ```
 
-The library is also really easy to extend with custom units, derived or even base dimensions. For example if the
-user wants to provide a custom `digital information` base dimension and its units here are the steps to follow:
+Moreover, it is really easy to extend the library with custom units, derived units, and base dimensions. For example, if the
+user wants to provide a custom `digital information` base dimension and new units based on it, only minimal code is required:
 
 ```cpp
 #include <units/quantity.h>
