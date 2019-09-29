@@ -240,7 +240,7 @@ struct unit;
 
 Interesting to notice here are:
 - `PiExponent` - an exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a radians to degrees conversion)
-- `Translation` - a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a farenheit to celsius conversion)
+- `Translation` - a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a Fahrenheit to Celsius conversion)
 
 ```cpp
 namespace units {
