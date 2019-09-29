@@ -136,11 +136,11 @@ static_assert(10km / 5km == 2);
 Scope {#scope}
 --------------
 
-Although there is a public demand for an generic units library that could handle any units and dimensions,
+Although there is public demand for a generic units library that could handle any units and dimensions,
 author suggests scoping the Committee efforts only on the physical and possibly computer science
 (i.e. `bit`, `bitrate`) units first. The library should be designed in a way to allow easy extensions so
 everyone interested might add his own base and derived dimensions if needed (i.e. `coffee/milk/water/sugar` system).
-After releasing the first version of the library and observing how it is being used we can consider
+After releasing the first version of the library and observing how it is used we can consider
 standardizing additional dimensions in the following C++ releases.
 
 
