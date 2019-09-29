@@ -812,7 +812,7 @@ struct ratio {
 };
 ```
 
-and it requires a few utility types defines to do operations on such types:
+In addition, it provides a few utilities to do operations on such types:
 
 ```cpp
 namespace detail {
@@ -841,7 +841,7 @@ struct inch : derived_unit<inch, length, ratio_multiply<ratio<1, 12>, foot::rati
 struct mile : derived_unit<mile, length, ratio_multiply<ratio<1'760>, yard::ratio>> {};
 ```
 
-With NTTP the implementation and usage of ratio is much easier:
+With NTTP the implementation and usage of `ratio` is much easier:
 
 ```cpp
 struct ratio {
