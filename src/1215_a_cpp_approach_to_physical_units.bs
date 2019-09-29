@@ -558,10 +558,10 @@ struct metre : unit<dimension<exp<base_dim_length, 1>>, std::ratio<1, 1, 0>>;
 
 In the above example `metre` is a downcasting target (child class) and a specific `unit` class 
 template specialization is a downcasting source (base class). The downcasting facility provides
-1 to 1 type substitution mechanism. Only one child class can be created for a specific base class
+one to one type substitution mechanism. Only one child class can be created for a specific base class
 template instantiation.
 
-Downcasting facility is provided through 2 dedicated types, a concept, and a few helper template aliases.
+Downcasting facility is provided through two dedicated types, a concept, and a few helper template aliases.
 
 ```cpp
 template<typename BaseType>
