@@ -22,7 +22,7 @@ Overview {#overview}
 --------------------
 
 The human history knows many expensive failures and accidents caused by mistakes in calculations involving
-different physical units. The most famous example in the software engineering domain is the Mars CLimate Orbiter
+different physical units. The most famous example in the software engineering domain is the Mars Climate Orbiter
 that in 1999 failed to entered Mars orbit and crashed while entering its atmosphere
 [[MARS_ORBITER]]. That is not the only example here. People tend to confuse
 units quite often. We see similar errors occurring in various domains through the years:
