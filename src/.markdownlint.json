@@ -1,6 +1,7 @@
 {
     "extends": "../.markdownlint.json",
     "MD003": { "style": "setext" },
+    "MD007": { "indent": 4 },
     "MD013": { "line_length": 90, "code_block_line_length": 97 },
     "MD033": { "allowed_elements": [ "pre", "table", "th", "tr", "td", "blockquote", "del", "ins", "dfn", "sup" ] }
 }
