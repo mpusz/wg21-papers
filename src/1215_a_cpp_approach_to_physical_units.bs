@@ -1147,6 +1147,9 @@ Acknowledgements {#acknowledgements}
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting my
 membership in the ISO C++ Committee and the production of this proposal.
 
+I would also like to thank Jan Sende for his contributions to the `mp-units` library and
+this document.
+
 <pre class=biblio>
 {
     "MARS_ORBITER": {
