@@ -7,7 +7,13 @@ Group: WG21
 Audience: SG6, LEWG
 URL: https://mpusz.github.io/wg21-papers/papers/1215_a_cpp_approach_to_physical_units.html
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
-Abstract: TBD
+Abstract: This document starts the discussion about the Physical Units support for the
+          C++ Standard Library. The reader will find here the rationale for such a library.
+          After that comes the review and comparison of current solutions on the market
+          followed by the analysis of the problems related to their usage and user
+          experience. The rest of the document describes solutions and techniques that
+          can be used to mitigate those issues. All of them were implemented and tested
+          by the author in the mp-units library.
 Repository: mpusz/wg21_papers
 !Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/1215_a_cpp_approach_to_physical_units.bs">github.com/mpusz/wg21_papers/blob/master/src/1215_a_cpp_approach_to_physical_units.bs</a>
 Markup Shorthands: markdown on
@@ -21,13 +27,13 @@ Overview {#overview}
 --------------------
 
 Human history knows many expensive failures and accidents caused by mistakes in
-calculations involving different physical units. The most famous example in the software
-engineering domain is the Mars Climate Orbiter that in 1999 failed to enter Mars orbit
-and crashed while entering its atmosphere [[MARS_ORBITER]]. That is not the only example
-here. People tend to confuse units quite often. We see similar errors occurring in various
-domains over the years:
+calculations involving different physical units. The most famous and probably the most
+expensive example in the software engineering domain is the Mars Climate Orbiter that in
+1999 failed to enter Mars orbit and crashed while entering its atmosphere [[MARS_ORBITER]].
+That is not the only example here. People tend to confuse units quite often. We see similar
+errors occurring in various domains over the years:
 - On October 12, 1492, Christopher Columbus unintentionally discovered America because
-    during his travel preparations he mixed Arabic mile with a Roman mile witch led to
+    during his travel preparations he mixed Arabic mile with a Roman mile which led to
     the wrong estimation of the equator and his expected travel distance [[COLUMBUS]]
 - Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41 000 feet
     (12 000 metres), midway through the flight because the fuel had been calculated in
@@ -36,9 +42,9 @@ domains over the years:
     between pilots about desired flight altitude [[FLIGHT_6316]]
 - In February 2001 Zoo crew built an enclosure for Clarence the Tortoise with a weight of
     250 pounds instead of 250 kilograms [[CLARENCE]]
-- In December 2003, one of the cars at Tokyo Disneyland’s Space Mountain attraction
-    suddenly derailed due to a broken axle caused by the confusion after upgrading the
-    specification from imperial to metric units [[DISNEY]]
+- In December 2003, one of the roller coaster's cars at Tokyo Disneyland’s Space Mountain
+    attraction suddenly derailed due to a broken axle caused by the confusion after
+    upgrading the specification from imperial to metric units [[DISNEY]]
 - An American company sold a shipment of wild rice to a Japanese customer, quoting a price
     of 39 cents per pound, but the customer thought the quote was for 39 cents per kilogram
     [[WILD_RICE]]
@@ -47,8 +53,9 @@ domains over the years:
 Lack of strong types {#lack-of-strong-types}
 --------------------------------------------
 
-It turns out that in C++ software most of our calculations in this domain are handled with
-fundamental types like `double`. Code like below is a typical example here:
+It turns out that in the C++ software most of our calculations in the physical units domain
+are handled with fundamental types like `double`. Code like below is a typical example
+here:
 
 ```cpp
 double GlidePolar::MacCreadyAltitude(double emcready,
@@ -73,8 +80,8 @@ use case.
 The proliferation of magic numbers {#magic-numbers}
 -----------------------------------------------
 
-There are a lot of constants and conversion factors involved in dimensional analysis. Source
-code handling responsible for doing such computations is often trashed with magic numbers:
+There are a lot of constants and conversion factors involved in the dimensional analysis.
+Source code responsible for such computations is often trashed with magic numbers
 
 ```cpp
 // Air Density(kg/m3) from relative humidity(%),
@@ -95,9 +102,9 @@ Motivation {#motivation}
 
 There is a huge demand for high-quality physical units library in the industry and
 scientific environments. The code that we write for fun and living should be correct, safe,
-and easy to write. Although there are many such libraries available on the market, none of
-them is a widely accepted production standard. We could just provide a yet another 3rd party
-library covering this topic, but it is probably not the best idea.
+and easy to write. Although there are multiple such libraries available on the market, none
+of them is a widely accepted production standard. We could just provide a yet another 3rd
+party library covering this topic, but it is probably not the best idea.
 
 First of all, software that could benefit from such a library is not a niche in the market.
 If it was the case, probably its needs could be fulfilled with a 3rd party highly-specialized
@@ -143,47 +150,181 @@ static_assert(10km / 5km == 2);
 Scope {#scope}
 --------------
 
-Although there is public demand for a generic units library that could handle any units and
+Although there is a public demand for a generic units library that could handle any units and
 dimensions, the author suggests scoping the Committee efforts only on the physical and possibly
-computer science (i.e. `bit`, `bitrate`) units first. The library should be designed in a
-way to allow easy extensions so everyone interested might add his base and derived dimensions
-if needed (i.e. `coffee/milk/water/sugar` system). After releasing the first version of the
-library and observing how it is used, we can consider standardizing additional dimensions in
-the following C++ releases.
+computer science (i.e. `bit`, `bitrate`) units first. The library should be designed with
+easy extensibility in mind so anyone needing a new base or derived dimensions
+(i.e. `coffee/milk/water/sugar` system) could achieve this with a few lines of the C++ code
+(not preprocessor macros). After releasing the first version of the library and observing
+how it is used, we can consider standardizing additional dimensions in the following C++
+releases.
 
 
 Terms and definitions {#terms-and_definitions}
 ==============================================
 
-Following Boost.Units
+ISO 80000-1:2009(E) definitions {#iso-definitions}
+--------------------------------------------------
 
-<dfn>Base dimension</dfn>
-- a measurable entity of interest
-- essentially a tag type and provide no dimensional analysis functionality by itself
-- i.e. length `[L]`, mass `[M]`, time `[T]`, etc.
+ISO 80000-1:2009(E) Quantities and units - Part 1: General
+[[!ISO_80000-1]] defines among others the following terms:
 
-<dfn>Dimension</dfn>
-- a collection of zero or more base dimensions
-- each potentially raised to a different rational power
-- i.e. length = `[L]`<sup>`1`</sup>, area = `[L]`<sup>`2`</sup>,
-    velocity = `[L]`<sup>`1`</sup>`/[T]`<sup>`1`</sup>, etc.
+<dfn>quantity</dfn>
 
-<dfn>Base unit</dfn>
-- a specific measure of a dimension
-- conversions are defined using base units
-- i.e. `[L]` -> `m` (meter)
+- Property of a phenomenon, body, or substance, where the property has a magnitude that can
+    be expressed by means of a number and a reference.
+- A reference can be a measurement unit, a measurement procedure, a reference material, or
+    a combination of such.
+- A quantity as defined here is a scalar. However, a vector or a tensor, the components of
+    which are quantities, is also considered to be a quantity.
+- The concept ’quantity’ may be generically divided into, e.g. ‘physical quantity’,
+    ‘chemical quantity’, and ‘biological quantity’, or ‘base quantity’ and ‘derived quantity’.
 
-<dfn>Unit</dfn>
-- a set of base units raised to rational exponents
-- i.e. `m`<sup>`1`</sup>, `kg`<sup>`1`</sup>, `m`<sup>`1`</sup>`/s`<sup>`2`</sup>, etc.
+<dfn lt="kind of quantity|kind">kind of quantity, kind</dfn>
 
-<dfn>System</dfn>
-- a collection of base units representing all the measurable entities of interest for a
-    specific problem
+- Aspect common to mutually comparable [=quantities=].
+- The division of the concept ‘quantity’ into several kinds is to some extent arbitrary
+    - i.e. the quantities diameter, circumference, and wavelength are generally considered
+        to be [=quantities=] of the same kind, namely, of the kind of quantity called length.)
+- [=Quantities=] of the same kind within a given [=system of quantities=] have the same quantity
+    [=dimension=]. However, [=quantities=] of the same [=dimension=] are not necessarily of
+    the same kind.
 
-<dfn>Quantity</dfn>
-- a concrete amount of a unit
-- i.e. `10 meters`
+<dfn lt="system of quantities|system">system of quantities, system</dfn>
+
+- Set of [=quantities=] together with a set of non-contradictory equations relating those
+    [=quantities=].
+
+<dfn>base quantity</dfn>
+
+- [=Quantity=] in a conventionally chosen subset of a given [=system of quantities=], where
+    no [=quantity=] in the subset can be expressed in terms of the other [=quantities=]
+    within that subset.
+- Base quantities are referred to as being mutually independent since a base quantity
+    cannot be expressed as a product of powers of the other base quantities.
+
+<dfn>derived quantity</dfn>
+
+- [=Quantity=], in a [=system of quantities=], defined in terms of the base quantities of
+    that system
+
+<dfn lt="International System of Quantities|ISQ">International System of Quantities (ISQ)</dfn>
+
+- [=System of quantities=] based on the seven [=base quantities=]: length, mass, time,
+    electric current, thermodynamic temperature, amount of substance, and luminous intensity.
+- The International System of Units (SI) is based on the ISQ.
+
+<dfn lt="dimension of a quantity|quantity dimension|dimension">dimension of a quantity,
+quantity dimension, dimension</dfn>
+
+- Expression of the dependence of a [=quantity=] on the [=base quantities=] of
+    a [=system of quantities=] as a product of powers of factors corresponding to the [=base
+    quantities=], omitting any numerical factors.
+- A power of a factor is the factor raised to an exponent. Each factor is the dimension of
+    a [=base quantity=].
+- In deriving the dimension of a quantity, no account is taken of its scalar, vector, or
+    tensor character.
+- In a given [=system of quantities=]:
+    - [=quantities=] of the same [=kind=] have the same quantity dimension,
+    - [=quantities=] of different quantity dimensions are always of different [=kinds=],
+    - [=quantities=] having the same quantity dimension are not necessarily of the same [=kind=].
+
+<dfn lt="quantity of dimension one|quantities of dimension one|dimensionless quantity">
+quantity of dimension one, dimensionless quantity</dfn>
+
+- [=Quantity=] for which all the exponents of the factors corresponding to the
+    [=base quantities=] in its [=quantity dimension=] are zero.
+- The term “dimensionless quantity” is commonly used and is kept here for historical reasons.
+    It stems from the fact that all exponents are zero in the symbolic representation of
+    the [=dimension=] for such [=quantities=]. The term “quantity of dimension one” reflects
+    the convention in which the symbolic representation of the [=dimension=] for such
+    [=quantities=] is the symbol 1. This [=dimension=] is not a number, but the neutral
+    element for multiplication of [=dimensions=].
+- The measurement [=units=] and values of [=quantities=] of dimension one are numbers, but
+    such [=quantities=] convey more information than a number.
+- Some [=quantities=] of dimension one are defined as the ratios of two [=quantities=] of
+    the same kind. The coherent [=derived unit=] is the number one, symbol 1.
+
+<dfn lt="unit of measurement|measurement unit|unit">unit of measurement, measurement unit,
+unit</dfn>
+
+- Real scalar [=quantity=], defined and adopted by convention, with which any other
+    [=quantity=] of the same [=kind=] can be compared to express the ratio of the second
+    quantity to the first one as a number.
+- Measurement units are designated by conventionally assigned names and symbols.
+- Measurement units of [=quantities=] of the same [=quantity dimension=] may be designated
+    by the same name and symbol even when the [=quantities=] are not of the same [=kind=].
+    For example, joule per kelvin and J/K are respectively the name and symbol of both a
+    measurement unit of heat capacity and a measurement unit of entropy, which are generally
+    not considered to be [=quantities=] of the same [=kind=]. However, in some cases special
+    measurement unit names are restricted to be used with [=quantities=] of specific kind
+    only. For example, the measurement unit ‘second to the power minus one’ (1/s) is called
+    hertz (Hz) when used for frequencies and becquerel (Bq) when used for activities of
+    radionuclides. As another example, the joule (J) is used as a unit of energy, but never
+    as a unit of moment of force, i.e. the newton metre (N · m).
+- Measurement units of [=quantities of dimension one=] are numbers. In some cases, these
+    measurement units are given special names, e.g. radian, steradian, and decibel, or are
+    expressed by quotients such as millimole per mole equal to 10<sup>−3</sup> and microgram
+    per kilogram equal to 10<sup>−9</sup>.
+
+<dfn>base unit</dfn>
+
+- Measurement unit that is adopted by convention for a [=base quantity=]
+- In each coherent [=system of units=], there is only one base unit for each [=base quantity=].
+- A base unit may also serve for a [=derived quantity=] of the same [=quantity dimension=].
+
+<dfn>derived unit</dfn>
+
+- Measurement unit for a [=derived quantity=]
+
+<dfn export>coherent derived unit</dfn>
+
+- Derived [=unit=] that, for a given [=system of quantities=] and for a chosen set of
+    [=base units=], is a product of powers of [=base units=] with no other proportionality
+    factor than one.
+- A power of a [=base unit=] is the [=base unit=] raised to an exponent.
+- Coherence can be determined only with respect to a particular [=system of quantities=]
+    and a given set of [=base units=].
+    - i.e. if the metre and the second are base units, the metre per second is the coherent
+        derived unit of velocity.
+
+<dfn>system of units</dfn>
+
+- Set of [=base units=] and [=derived units=], together with their multiples and submultiples,
+    defined in accordance with given rules, for a given [=system of quantities=].
+
+<dfn lt="off-system measurement unit|off-system unit">off-system measurement unit,
+off-system unit</dfn>
+
+- [=Measurement unit=] that does not belong to a given [=system of units=].
+    - i.e. the electronvolt (≈ 1,602 18 × 10–19 J) is an off-system measurement unit of energy
+        with respect to the SI or day, hour, minute are off-system measurement units of time
+        with respect to the SI.
+
+<dfn lt="International System of Units|SI">International System of Units (SI)</dfn>
+
+- [=System of units=], based on the [=International System of Quantities=], their names and
+    symbols, including a series of prefixes and their names and symbols, together with rules
+    for their use, adopted by the General Conference on Weights and Measures (CGPM)
+
+<dfn>multiple of a unit</dfn>
+
+- [=Measurement unit=] obtained by multiplying a given [=measurement unit=] by an integer
+    greater than one.
+- [=SI=] prefixes refer strictly to powers of 10, and should not be used for powers of 2.
+    - i.e. 1 kbit should not be used to represent 1024 bits (2<sup>10</sup> bits),
+        which is a kibibit (1 Kibit).
+
+<dfn export>submultiple of a unit</dfn>
+
+- [=Measurement unit=] obtained by dividing a given [=measurement unit=] by an integer
+    greater than one.
+
+<dfn lt="quantity value|value of a quantity|value">quantity value, value of a quantity,
+value</dfn>
+
+- Number and reference together expressing magnitude of a [=quantity=].
+- A quantity value can be presented in more than one way.
 
 
 Prior Work {#prior-work}
@@ -195,12 +336,16 @@ codebase (both Open Source as well as production code). The next sections of thi
 will describe the most interesting parts of selected libraries. The last section provides
 an extensive comparison of their main features.
 
+{This chapter is incomplete and will be filled in D1215R1 that should be available as a draft
+on the LEWG Wiki before Belfast meeting}
+
 Boost.Units {#boost.units}
 --------------------------
 
 Boost.Units [[BOOST.UNITS]] is probably the most widely adopted library in this domain.
-It was first released in Boost.
+It was first released in Boost 1.36.0 that was released in 2008.
 
+{TBD}
 
 cppnow17-units {#cppnow17-units}
 --------------------------------
@@ -208,11 +353,14 @@ cppnow17-units {#cppnow17-units}
 Steven Watanabe, the coauthor of the previous library, started the work on the modernized
 version of the library based on the results of LiaW on C++Now 2017 [[CPPNOW17-UNITS]]
 
+{TBD}
 
 PhysUnits-CT-Cpp11 {#PhysUnits-CT-Cpp11}
 ----------------------------------------
 
 [[PHYSUNITS-CT-CPP11]]
+
+{TBD}
 
 Nic Holthaus units {#nic-units}
 -------------------------------
@@ -306,25 +454,31 @@ Bryan St. Amour units {#bryan-units}
 
 [[BRYAN_UNITS]]
 
+{TBD}
 
 benri {#benri}
 --------------
 
 [[BENRI]]
 
+{TBD}
 
 Michael Ford units {#mikeford3-units}
---------------
+-------------------------------------
 
 [[MIKEFORD3_UNITS]]
 
+{TBD}
 
 `std::chrono::duration` {#chrono::duration}
 -------------------------------------------
 
+{TBD}
 
 Comparison {#comparison}
 ------------------------
+
+{TBD}
 
 <!-- markdownlint-disable line-length -->
 <table>
@@ -431,17 +585,18 @@ Comparison {#comparison}
 Fundamental concerns with current solutions {#concerns}
 =======================================================
 
-Feedback from the users gathered so far signals the following significant complaints:
+Feedback from the users gathered so far signals the following significant complaints regarding
+the libraries described in [[#prior-work]]:
 - Bad user experience caused by hard to understand and analyze compile-time errors and poor
     debugging experience.
-- Too high entry bar. (Boost.Units is claimed to require expertise in both C++ and
-    dimensional analysis.)
-- Unnecessary intermediate conversions to [=base units=] resulting in a runtime overhead
-    and loss of precision.
-- Poor support for really large or small ratios. (i.e. `eV`)
+- Too high entry bar (e.g. Boost.Units is claimed to require expertise in both C++ and
+    dimensional analysis.).
+- Unnecessary intermediate [=quantity value=] conversions to [=base units=] resulting in a
+    runtime overhead and loss of precision.
+- Poor support for really large or small ratios (i.e. `eV`).
 - Safety and security connected problems with the usage of an external 3rd party library
     for production purposes.
-- Impossibility or hard extensibility of the library with new [=base dimensions=].
+- Impossibility or hard extensibility of the library with new base dimensions.
 
 
 Design principles {#design-principles}
@@ -748,9 +903,8 @@ Easy to use and hard to abuse {#easy-to-use-hard-to-abuse}
 - No isolated abstraction for [=systems=] that would complicate implementation and reasoning.
 
 
-Limiting intermediate conversions {#limiting-intermediate-value-conversions}
-============================================================================
-
+Limiting intermediate quantity value conversions {#limiting-intermediate-value-conversions}
+===========================================================================================
 
 Template arguments type deduction {#arguments-type-deduction}
 -------------------------------------------------------------
@@ -797,7 +951,18 @@ const units::Velocity auto speed = avg_speed(220.km, 2.h);
 Extensibility {#extensibility}
 ==============================
 
-Base dimensions
+The units library should be designed in a way that allows users to easily extend it with
+their own units, derived, or even base, dimensions. The C++ Standard Library will most probably
+decide to ship with a support for "just" physical units with possible extension to digital
+information dimensions and their units. This shouldn't limit the users to the library engine
+to address their needs in their domains.
+
+Here are the most important points that have to be addressed by such an engine:
+- allows extending the library with new units, derived, and base dimensions,
+- provides the same user experience for user-defined entities as for built-in ones,
+- no preprocessor macros in the user's interface,
+- extensions created by two independent vendors should not collide with each other if they
+    address separate domains.
 
 
 Design decisions {#design-decisions}
@@ -1122,23 +1287,24 @@ Polls {#polls}
 ==============
 
 1. Do we want a physical units library in the C++ standard?
-2. Do we want to have support for digital information dimensions in the initial version of
-    the library?
-3. Do we prefer UDL, multiply, or mixed syntax for units?
-4. Do we like the concept-based approach to prevent truncation?
-5. Do we like a downcasting facility or do we want to wait for other solutions (strong types
+2. Should we provide the support for some [=off-system units=] (i.e. eV)?
+3. Do we want to have support for digital information [=dimensions=] and its
+    [=multiple of a unit|prefixes=] in the initial version of the library?
+4. Do we prefer UDL, multiply, or mixed syntax for units?
+5. Do we like the concept-based approach to prevent truncation?
+6. Do we like a downcasting facility or do we want to wait for other solutions (strong types
     in the language, better compiler errors, ...)?
-6. Do we prefer NTTP usage for `ratio` and `exp`?
-7. Do we want to require explicit casts between different units of the same dimension, or
+7. Do we prefer NTTP usage for `ratio` and `exp`?
+8. Do we want to require explicit casts between different units of the same dimension, or
     do we allow `chrono`-like implicit conversions (floating-point representation and
     non-truncating integer conversions)?
-8. Do we agree with Kelvins only support for temperature and verbose conversion functions
-    for other units and absolute temperatures?
-9. Which option of UDLs do we prefer ([[#integral-udl]])?
-10. Should we provide `seconds<int>` or stay with `quantity<second, int>`?
-11. Should we provide support for dimensionless quantities?
-12. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)
-13. Do we want to introduce a dedicated system type?
+9. Do we agree with Kelvins only support for temperature and verbose conversion functions
+    for other [=units=] and absolute temperatures?
+10. Which option of UDLs do we prefer ([[#integral-udl]])?
+11. Should we provide `seconds<int>` or stay with `quantity<second, int>`?
+12. Should we provide support for dimensionless quantities?
+13. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)
+14. Do we want to introduce a dedicated system type?
 
 
 Acknowledgments {#acknowledgements}
@@ -1152,6 +1318,11 @@ this document.
 
 <pre class=biblio>
 {
+    "ISO_80000-1": {
+        "href": "https://www.iso.org/standard/30669.html",
+        "title": "Quantities and units - Part 1: General",
+        "publisher": "ISO"
+    },
     "MARS_ORBITER": {
         "href": "https://en.wikipedia.org/wiki/Mars_Climate_Orbiter",
         "title": "Mars Climate Orbiter",
