@@ -30,18 +30,18 @@ domains through the years:
     during his travel preparations he mixed Arabic mile with a Roman mile witch led to
     wrong estimation of equator and his expected travel distance [[COLUMBUS]]
 - Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41 000 feet
-  (12 000 metre), midway through the flight because the fuel had been calculated in
-  pounds instead of kilograms by the ground crew [[GIMLI_GLIDER]]
+    (12 000 metre), midway through the flight because the fuel had been calculated in
+    pounds instead of kilograms by the ground crew [[GIMLI_GLIDER]]
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to the miscommunication
-  between pilots about desired flight altitude [[FLIGHT_6316]]
+    between pilots about desired flight altitude [[FLIGHT_6316]]
 - In February 2001 Zoo crew built an enclosure for Clarence the Tortoise with a weight of
-  250 pounds instead of 250 kilogram [[CLARENCE]]
+    250 pounds instead of 250 kilogram [[CLARENCE]]
 - In December 2003, one of the cars at Tokyo Disneyland’s Space Mountain attraction
-  suddenly derailed due to a broken axle caused by the confusion after upgrading the
-  specification from imperial to metric units [[DISNEY]]
+    suddenly derailed due to a broken axle caused by the confusion after upgrading the
+    specification from imperial to metric units [[DISNEY]]
 - An American company sold a shipment of wild rice to a Japanese customer, quoting a price
-  of 39 cent per pound, but the customer thought the quote was for 39 cent per kilogram
-  [[WILD_RICE]]
+    of 39 cent per pound, but the customer thought the quote was for 39 cent per kilogram
+    [[WILD_RICE]]
 - A whole set of medication dose errors...
 
 Lack of strong types {#lack-of-strong-types}
@@ -166,7 +166,7 @@ Following Boost.Units
 - a collection of zero or more base dimensions
 - each potentially raised to a different rational power
 - i.e. length = `[L]`<sup>`1`</sup>, area = `[L]`<sup>`2`</sup>,
-  velocity = `[L]`<sup>`1`</sup>`/[T]`<sup>`1`</sup>, etc.
+    velocity = `[L]`<sup>`1`</sup>`/[T]`<sup>`1`</sup>, etc.
 
 <dfn>Base unit</dfn>
 - a specific measure of a dimension
@@ -179,7 +179,7 @@ Following Boost.Units
 
 <dfn>System</dfn>
 - a collection of base units representing all the measurable entities of interest for a
-  specific problem
+    specific problem
 
 <dfn>Quantity</dfn>
 - a concrete amount of a unit
