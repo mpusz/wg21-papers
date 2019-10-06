@@ -958,12 +958,12 @@ using kilometer_base_unit = bu::make_scaled_unit<bu::si::length,
                                                  bu::scale<10, bu::static_rational<3>>>::type;
 using length_kilometer = kilometer_base_unit::unit_type;
 using time_hour = bu::metric::hour_base_unit::unit_type;
-using kilometers_per_hour = bu::divide_typeof_helper<length_kilometer, time_hour>::type;
+using velocity_kilometers_per_hour = bu::divide_typeof_helper<length_kilometer, time_hour>::type;
 BOOST_UNITS_STATIC_CONSTANT(hours, time_hour);
 
 const auto v = avg_speed(bu::quantity<bu::si::length>(220 * bu::si::kilo * bu::si::meters),
                          bu::quantity<bu::si::time>(2 * hours));
-const bu::quantity<kilometers_per_hour> kmph(v);
+const bu::quantity<velocity_kilometers_per_hour> kmph(v);
 std::cout << kmph.value() << " km/h\n";
 ```
 
@@ -1064,7 +1064,8 @@ that it cannot be expressed with `std::ratio`, which is implemented in terms of
 `std::intmax_t`.
 
 This is why it is really hard to express units like electronvolt (eV) where
-1eV = 1.602176634×10<sup>−19</sup> J or dalton where 1 Da = 1.660539040(20)×10<sup>−27</sup> kg.
+1eV = 1.602176634×10<sup>−19</sup> J or dalton where
+1 Da = 1.660539040(20)×10<sup>−27</sup> kg.
 Although a custom [=system of quantities=] could be a solution, it would be a sort of
 workaround here.
 
@@ -1147,35 +1148,137 @@ for C++:
 6. Possibility to be standardized as a freestanding part of the C++ Standard Library
 
 
-Design decisions {#design-decisions}
-====================================
+Open questions {#open-questions}
+================================
 
-UDL vs multiply syntax {#udl-vs-multiply}
------------------------------------------
+How to represent SI prefixes and derived units? {#prefixes-and-units}
+---------------------------------------------------------------------
 
-User convenience for implementing derived units
-Problems with downcasting
+There are at least 3 ways to represent derived units:
+1. Provide a new strong type and an UDL for each unit
+2. Define the type only for a [=coherent derived unit=] and use multiplier syntax to obtain
+    more [=derived units=]
+3. Mixed system using strong types, NTTPs, and variable templates
 
-
-Mixed syntax {#mixed}
----------------------
+Starting with the first case. Each [=derived unit=] gets its own type and an UDL. With such
+an approach we can easily write:
 
 ```cpp
-constexpr auto d1 = 1000 * meter(1);
-constexpr auto d2 = meter(1000);
-constexpr auto d3 = kilo * meter(1);
-constexpr auto d4 = 1k*m;
-constexpr auto d5 = (k*m)(1);
+using units::literals;
 
-constexpr auto v1 = quantity<meter/second>(10);
-constexpr auto v2 = quantity<m/s>(10);
-constexpr auto v3 = meter(10)/second(1);
-constexpr auto v4 = meter(10)/second();
-constexpr auto v5 = meter(10)/second;
-constexpr auto v6 = m(10)/s;
-constexpr auto v7 = (m/s)(10);
-constexpr auto v8 = 10m/s;
+const auto d1 = 123km;
+const auto d2 = units::quantity<units::kilometre>(123);
+
+const auto v1 = 123kmph;
+const auto v2 = units::quantity<units::kilometre_per_hour>(123);
 ```
+
+The good parts here are:
+- clear, strong types for each defined unit
+- support for such a unit by the downcasting facility
+- existence of an UDL
+
+The drawbacks of such a solution are:
+- as library framework will probably not predefine all possible variations of [=base units=]
+    and their [=multiple of a unit|prefixes=] (i.e gigametre_per_second) the user will have
+    to define every such a unit before the first use
+- the same as above applies to UDLs
+- only one unit spelling form (`meter` vs. `meters` vs. `metre` vs. `metres`) supported
+- naming of some units can become clunky (i.e. `sq_volt_per_hertz`)
+
+The second case assumes that each dimension will get only a predefined
+[=coherent derived unit=] and the rest of the [=derived units=] will be either created with
+a multiplier syntax or defined by the user:
+
+```cpp
+namespace bu = boost::units;
+
+const auto d1 = 123k * bu::si::meters;  // no an actual Boost.Units syntax
+const auto d2 = 123 * bu::si::kilo * bu::si::meters;
+
+using kilometer_base_unit = bu::make_scaled_unit<bu::si::length,
+                                                 bu::scale<10, bu::static_rational<3>>>::type;
+using length_kilometer = kilometer_base_unit::unit_type;
+using time_hour = bu::metric::hour_base_unit::unit_type;
+using velocity_kilometers_per_hour = bu::divide_typeof_helper<length_kilometer, time_hour>::type;
+BOOST_UNITS_STATIC_CONSTANT(kilometers_per_hour, velocity_kilometers_per_hour);
+
+// const auto v1 = ???
+const auto v2 = 123 * kilometers_per_hour;
+```
+
+The good parts here are:
+- multiple possible spellings of unit names
+- easy to use existing [=coherent derived units=] with all SI prefixes
+
+The drawbacks of such a solution are:
+- verbose UDLs
+- no support by the downcasting facility
+- user has to make a significant effort to create new [=derived units=] that are not easily
+    constructible with SI prefixes (i.e. kilometre)
+
+The third approach is using a mix of several language features including strong types,
+Non Type Template Parameters (NTTP), and UDLs. With such an approach we can end up with a
+variety of syntaxes. Please note that the long list below is only to list all of
+the possibilities in this design space and we do not propose anything like this for now.
+We can easily forbid any or all of the following syntaxes:
+
+```cpp
+inline constexpr auto kilometre = kilo*metre;
+inline constexpr auto km = kilometre;
+
+namespace literals {
+  constexpr auto operator ""km(unsigned long long l) { return quantity<kilometre, std::int64_t>(l); }
+  constexpr auto operator ""km(long double l) { return quantity<kilometre, long double>(l); }
+}
+
+const auto d1  = quantity<kilo*metre>(123);
+const auto d2  = quantity<kilometre>(123);
+const auto d3  = quantity<k*metre>(123);
+const auto d4  = quantity<k*m>(123);
+const auto d5  = quantity<km>(123);
+const auto d6  = kilo(123)*metre;
+const auto d7  = kilometre(123);
+const auto d8  = kilo*metre(123);
+const auto d9  = kilometre(123);
+const auto d10 = 1000*metre(123);
+const auto d11 = metre(123'000);
+const auto d12 = 123k*m;
+const auto d13 = 123km;
+const auto d14 = k*123m;
+const auto d15 = 123kilo*metres;
+const auto d16 = (km)(123);
+
+const auto v1  = quantity<kilo*metre/hour>(123);
+const auto v2  = quantity<kilometre/hour>(123);
+const auto v3  = quantity<k*m/h>(123);
+const auto v4  = quantity<km/h>(123);
+const auto v5  = kilo * metre(123) / hour(1);
+const auto v6  = kilo * metre(123) / hour();
+const auto v7  = kilometre(123) / hour;
+const auto v8  = k*m(123)/h;
+const auto v9  = km(123)/h;
+const auto v10 = (km/h)(123);
+const auto v11 = 123km/h;
+```
+
+All of the above variables for length and velocity are of the same type and contain the same
+value.
+
+The good parts here are:
+- library has to implement only base named units
+- natural syntax of spelling units (i.e. 123km/h or quantity<kilometre/hour>(123))
+- user is able to easily construct any possible variation of base units without any additional
+  library support
+- multiple possible spellings of unit names
+
+The drawbacks of such a solution are:
+- "there is more than one way to do it" problem
+- the code written by the developer will not be similar to the types printed in the compilation
+    error logs
+- no support for such a unit by the downcasting facility (units here are values so a different
+    substitution mechanism would have to be implemented)
+
 
 NTTP usage {#nttp-usage}
 ------------------------
@@ -1305,9 +1408,6 @@ Kelvin will probably still be misused by the users. This is why it was decided t
 only Kelvins as built-in temperature units and provide verbose non-member utility
 functions for conversions between different kinds  of temperature values and their units.
 
-
-Open questions {#open-questions}
-================================
 
 Should we support [=systems=] as a separate type {#systems-support}
 ---------------------------------------------------------------
