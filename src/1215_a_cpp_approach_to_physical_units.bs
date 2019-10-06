@@ -886,7 +886,7 @@ constexpr auto avg_speed(Length d, Time t)
 }
 ```
 
-This is clearly not the most user-friendly way to write everyday code. Imagine what would
+Clearly this is not the most user-friendly way to write code every day. Imagine what would
 happen with the above sample if we had to provide longer and more complex, possibly
 multiline calculations. That is why we believe that C++20 concepts are the way to go.
 
