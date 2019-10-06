@@ -1137,19 +1137,18 @@ Extensibility {#extensibility}
 ==============================
 
 The units library should be designed in a way that allows users to easily extend it with
-their own units, derived, or even base, dimensions. The C++ Standard Library will most probably
+their own units, derived, or even base dimensions. The C++ Standard Library will most likely
 decide to ship with a support for "just" physical units with possible extension to digital
-information dimensions and their units. This shouldn't limit the users to the library engine
-to address their needs in their domains.
+information dimensions and their units. This should not limit users to the units and quantities provided by library engine, but address all their needs in their specific domains.
 
-Here are the most important points that have to be addressed by such an engine in order to
-provide good extensibility:
-- allows extending the library with new [=units=], [=derived quantity|derived=], and
-    [=base quantities=],
-- provides the same user experience for user-defined entities as for built-in ones,
-- no preprocessor macros in the user's interface,
-- extensions created by two independent vendors should not collide with each other as long
-    as the address separate domains.
+The most important points that have to be provided by such C++ Standard library engine in
+order to provide good extensibility are:
+- The library has to be extendible with new [=units=], [=derived quantity|derived=], and
+    [=base quantities=], interacting with the existing ones.
+- The user-defined entities have to provide the same user experience as built-in ones.
+- Extension shall be possible without preprocessor macros in the user interface.
+- Extensions to the C++ Standard library engine created by two independent vendors shall not 
+    collide with each other as long as they address separate domains.
 
 
 Easy to use and hard to abuse {#easy-to-use-hard-to-abuse}
