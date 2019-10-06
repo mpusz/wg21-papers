@@ -1175,6 +1175,7 @@ Most of those issues can be solved during the design time. We should strive to p
 5. No dedicated abstraction for [=systems=] that would complicate implementation and reasoning
     about the library engine and functionality (at least until future users will not provide
     solid requirements and use cases for such an entity).
+6. A basic set of prefixes, units, quantities, constants, and concepts.
 
 
 Design principles {#design-principles}
