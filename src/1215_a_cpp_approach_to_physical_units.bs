@@ -838,8 +838,7 @@ using ret = quantity<downcast_target<unit<dim, ratio>>, common_rep>;
 ```
 
 `detail::downcast_target_impl` checks if a downcasting target is registered for the specific
-base class. If yes, it returns the registered type. Otherwise, it works like a regular identity
-type returning a provided base class.
+base class. If registered, `detail::downcast_target_impl` returns the registered type, otherwise it returns the provided base class.
 
 ```cpp
 namespace detail {
