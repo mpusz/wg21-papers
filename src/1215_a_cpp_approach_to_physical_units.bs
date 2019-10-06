@@ -126,8 +126,8 @@ asks questions on how to represent timestamps and how to handle their conversion
 `std::chrono` is the ultimate answer. So let us try to get `std::units` in the C++
 Standard Library too.
 
-Goal {#goal}
---------------------------------------------
+The Goal {#goal}
+----------------
 
 The aim of this paper is to standardize a physical units library that enables operations on
 various dimensions and units:
@@ -150,39 +150,25 @@ static_assert(1000 / 1s == 1kHz);
 static_assert(10km / 5km == 2);
 ```
 
-We intent to provide users with cleaner interfaces by expressing the usage of variables by
-their type, and not in comments or documentation:
+We intent to provide users with cleaner interfaces by using strong types and concepts in
+the interfaces rather than fundamental types with a meaning described in comments or documentation:
 
 ```cpp
-std::units::quantity<> GlidePolar::MacCreadyAltitude(
-    std::units::quantity<> emcready,
-    std::units::quantity<> Distance,
-    const std::units::quantity<> Bearing,
-    const std::units::quantity<> WindSpeed,
-    const std::units::quantity<> WindBearing,
-    std::units::quantity<> *BestCruiseTrack,
-    std::units::quantity<> *VMacCready,
-    const bool isFinalGlide,
-    std::units::quantity<> *TimeToGo,
-    const std::units::quantity<> AltitudeAboveTarget,
-    const std::units::quantity<> cruise_efficiency,
-    const std::units::quantity<> TaskAltDiff);
+constexpr std::units::Velocity auto avg_speed(std::units::Length auto d, std::units::Time auto t)
+{
+  return d / t;
+}
 ```
 
 We further aim to provide unit conversion facilities and constants for users to rely on,
 instead of magic numbers:
 
 ```cpp
-// Air Density(kg/m3) from relative humidity(%),
-// temperature(°C) and absolute pressure(Pa)
-std::units::quantity<std::units::kilogram_per_cubic_metre> AirDensity(
-    double hr,
-    std::units::quantity<std::units::degree_celsius> temp,
-    std::units::quantity<std::units::pascal> abs_press)
-{
-  return (1/(287.06*(std::unit::quantity_cast<std::unit::degree_kelvin>(temp)))) *
-         (abs_press - 230.617 * hr * exp((17.5043*temp)/(241.2+temp)));
-}
+using namespace std::units_literals;
+
+const std::units::Velocity auto speed = avg_speed(220.km, 2.h);
+std::cout << "Average speed: "
+          << std::units::quantity_cast<std::units::kilometre_per_hour>(speed) << '\n';
 ```
 
 Scope {#scope}
@@ -649,6 +635,7 @@ Design principles {#design-principles}
     - strong types
     - compile-time safety
     - constexpr all the things
+    - as fast or even faster than when working with fundamental types
 2. The best possible user experience
     - compiler errors
     - debugging
