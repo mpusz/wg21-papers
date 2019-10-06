@@ -631,7 +631,7 @@ Type aliasing issues {#type-aliasing-issues}
 Type aliases benefit developers but not end-users. As a result, users end up with colossal
 error messages.
 
-Taking Boost.Untis as an example the code developer works with the following syntax:
+Taking Boost.Units as an example the code developer works with the following syntax:
 
 ```cpp
 namespace bu = boost::units;
