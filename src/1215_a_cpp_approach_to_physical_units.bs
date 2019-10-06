@@ -1112,13 +1112,12 @@ Some of the [=derived units=] have really [=multiple of a unit|big=] or
 that it cannot be expressed with `std::ratio`, which is implemented in terms of
 `std::intmax_t`.
 
-This is why it is really hard to express units like electronvolt (eV) where
-1eV = 1.602176634×10<sup>−19</sup> J or dalton where 1 Da = 1.660539040(20)×10<sup>−27</sup> kg.
-Although a custom [=system of quantities=] could be a solution, it would be a sort of
-workaround here.
+This makes it really hard to express units like electronvolt (eV) where
+1eV = 1.602176634×10<sup>−19</sup> J or Dalton where 1 Da = 1.660539040(20)×10<sup>−27</sup> kg.
+Although a custom [=system of quantities=] could be a solution, it would only be a workaround
+as it cannot provide seamless conversion between all possible units.
 
-We need a better, flexible solution. One of the possiblities might be to redefine ratio with
-a one additional parameter:
+A better, more flexible solution is needed. One of the possiblities might be to redefine ratio with one additional parameter:
 
 ```cpp
 template<std::intmax_t Num, std::intmax_t Den = 1, std::intmax_t Exp = 0>
@@ -1126,9 +1125,13 @@ template<std::intmax_t Num, std::intmax_t Den = 1, std::intmax_t Exp = 0>
 struct new_ratio;
 ```
 
-With such an approach we will be able to easily address all of the ratios with a required
-precision.
+With such an approach it will be possible to easily address any occuring ratio with a required
+precision. For example, the conversion rate between one electronvolt and one Joule could be
+expressed as:
 
+```cpp
+new_ratio<1602176634, 1000000000, -19>
+```
 
 Extensibility {#extensibility}
 ==============================
