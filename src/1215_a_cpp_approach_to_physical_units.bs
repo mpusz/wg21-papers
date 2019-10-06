@@ -1198,6 +1198,9 @@ for C++ are:
 4. Easy extensibility.
 5. No external dependencies.
 6. Possibility to be standardized as a freestanding part of the C++ Standard Library.
+7. Batteries included:
+    - provide basic prefixes, units, quantities, constants, and concepts
+    - non-experts should easily be able to achieve simple calculations
 
 
 Design decisions {#design-decisions}
