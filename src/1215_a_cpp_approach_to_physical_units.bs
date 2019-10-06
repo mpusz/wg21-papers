@@ -1016,7 +1016,7 @@ of `220km/2h` as `110km/h` without conversion and only convert `110km/h` to `68.
 Template arguments type deduction {#arguments-type-deduction}
 -------------------------------------------------------------
 
-The above problem can somehow be solved by the function template argument deduction:
+Above problem can be solved using function template argument deduction:
 
 ```cpp
 template<typename LengthSystem, typename Rep1, typename TimeSystem, typename Rep2>
@@ -1027,8 +1027,12 @@ constexpr auto avg_speed(bu::quantity<bu::unit<bu::length_dimension, LengthSyste
 }
 ```
 
-which allows us to form a template function taking required dimensions for its parameters.
-Constraining the return value is a bigger problem, though. We can do something like this:
+This allows us to put requirements on the parameter dimensions without limiting the units
+allowed. Therefore no conversion before the function call is necessary, reducing conversion
+overhead and precision loss.
+
+Yet, constraining the return value is a bigger problem. In C++17 it is possible to achieve a
+constrained return value, but the syntax is not very pretty:
 
 ```cpp
 template<typename LengthSystem, typename Rep1, typename TimeSystem, typename Rep2>
@@ -1042,21 +1046,22 @@ avg_speed(bu::quantity<bu::unit<bu::length_dimension, LengthSystem>, Rep1> d,
 }
 ```
 
-However, this requires from the user to manually reimplement dimensional analysis logic
-in the template metaprogramming land which is not a solution here.
+What is more, the user has to manually reimplement dimensional analysis logic in template
+metaprogramming land, not actually using the units library which should provide such a
+functionality.
 
-Worth noting is that with some libraries, we cannot address even the first step for
+It is worth noting, that for some libraries we cannot even address the first step for the
 function template arguments. In the case of [[NIC_UNITS]] [=derived units=] are implemented
 in terms of [=base units=]:
 
 ```cpp
-using meter_t = units::unit_t<units::unit<std::ratio<1>, units::category::length_unit>>;
+using meter_t     = units::unit_t<units::unit<std::ratio<1>, units::category::length_unit>>;
 using kilometer_t = units::unit_t<units::unit<std::ratio<1000, 1>, meter_t>,
                                   std::ratio<0, 1>,
                                   std::ratio<0, 1>>>;
 ```
 
-which makes it impossible to know upfront where `units::category::length_unit` will exist
+This makes it impossible to know upfront where `units::category::length_unit` will exist
 in a class template instantiation.
 
 Generic programming with concepts {#generic-programming-with-concepts}
