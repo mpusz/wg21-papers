@@ -827,7 +827,7 @@ using downcast_target = decltype(detail::downcast_target_impl<T>());
 `units::downcast_target` is used to obtain the target type of the downcasting operation
 registered for a given instantiation in a base type.
 
-For example, to determine a downcasted type of a quantity multiply operation, the following
+For example, to determine a downcasted type of a quantity multiplication, the following
 can be done:
 
 ```cpp
