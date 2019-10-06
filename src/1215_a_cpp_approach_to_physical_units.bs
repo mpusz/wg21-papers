@@ -864,13 +864,14 @@ namespace detail {
 Template instantiation issues {#template-instantiation-issues}
 --------------------------------------------------------------
 
-C++ is known for its massive error logs caused by the compilation errors deep down in the
-stack of the internal implementation of function template instantiations. This is caused by
-the fact that in the vast majority of cases, function templates just take a `typename T` as
-a function template parameter, which does not place any constraints on the actual type.
-Placing such constraints with C++17 is possible thanks to SFINAE and helpers like
-`std::enable_if` or `std::void_t`, but we all know that it is not really user-friendly.
-Let's consider the following example:
+C++ is known for massive error logs caused by compilation errors deep down in the stack of
+function template instantiations of an implementation. In the vast majority of cases, this
+is caused by function templates just taking a `typename T` as their parameter, not placing
+any constratints on the actual type. In C++17 placing such constraints is possible thanks
+to SFINAE and helpers like `std::enable_if` or `std::void_t`. However, these are known to be
+not really user-friendly.
+
+Consider the following example:
 
 ```cpp
 template<typename Length, typename Time,
