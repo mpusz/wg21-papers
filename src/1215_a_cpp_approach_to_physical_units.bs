@@ -1132,34 +1132,49 @@ provide good extensibility:
 Easy to use and hard to abuse {#easy-to-use-hard-to-abuse}
 ==========================================================
 
-- Consistency with `std::chrono` behavior.
-- Clear responsibility of each type (base_dimension -> exp -> dimension -> unit -> quantity).
-- Easy to extend with custom dimensions or units.
-- Easy to understand error messages thanks to downcast facility and concepts.
-- No isolated abstraction for [=systems=] that would complicate implementation and reasoning.
+A lot users complain about the complexity of existing solutions. For example to start with
+Boost.Units users have to:
+- include a lot of specific header files,
+- define a lot of types by themselves (see [[#limiting-intermediate-value-conversions]]),
+- fight with compilation errors (see [[#user-experience]]) and debugging,
+- define custom [=systems=] to workaround intermediate conversions issues (see
+    [[#generic-programming-with-concepts]] and [[#ratio-on-steroids]])
+- learn lots of library specific behaviors and their side effects (i.e. lack of implicit
+    conversions between units even when it is provable in compile time that such a
+    translation is non-truncating like km -> m),
+
+Most of those issues can be solved during the design time. We should strive to provide:
+1. Behavior similar to `std::chrono` as it proved to be a good design and the user base already
+    got used to that.
+2. Clear responsibility of each type (base_dimension -> exp -> dimension -> unit -> quantity).
+3. Easy to extend with custom dimensions or units.
+4. Easy to understand error messages and good debugging experience thanks to downcast
+    facility and concepts.
+5. No dedicated abstraction for [=systems=] that would complicate implementation and reasoning
+    about the library engine and functionality (at least until future users will not provide
+    solid requirements and use cases for such an entity).
 
 
 Design principles {#design-principles}
 ======================================
 
-(Enumerate basic design principles)
-
+Here are the basic design principles that should be used to implement a physical units library
+for C++:
 1. Safety and performance
     - strong types
-    - compile-time safety
+    - only safe implicit conversions should be allowed
+    - compile-time safety and verification wherever possible
     - constexpr all the things
     - as fast or even faster than when working with fundamental types
 2. The best possible user experience
-    - compiler errors
-    - debugging
+    - interfaces embraced with clear concepts and contracts
+    - user friendly compiler errors
+    - good debugging experience
 3. No macros in the user interface
 4. Easy extensibility
 5. No external dependencies
 6. Possibility to be standardized as a freestanding part of the C++ Standard Library
 
-(other ideas)
-
-- Be consistent
 
 Design decisions {#design-decisions}
 ====================================
