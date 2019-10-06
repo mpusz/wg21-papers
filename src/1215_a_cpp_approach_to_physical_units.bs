@@ -1228,8 +1228,8 @@ inline constexpr auto kilometre = kilo*metre;
 inline constexpr auto km = kilometre;
 
 namespace literals {
-  constexpr auto operator ""km(unsigned long long l) { return quantity<kilometre, std::int64_t>(l); }
-  constexpr auto operator ""km(long double l) { return quantity<kilometre, long double>(l); }
+  constexpr auto operator ""km(unsigned long long l) { return quantity<km, std::int64_t>(l); }
+  constexpr auto operator ""km(long double l) { return quantity<km, long double>(l); }
 }
 
 const auto d1  = quantity<kilo*metre>(123);
@@ -1262,8 +1262,8 @@ const auto v10 = (km/h)(123);
 const auto v11 = 123km/h;
 ```
 
-All of the above variables for length and velocity are of the same type and contain the same
-value.
+All of the above variables for length and velocity are respectively of the same type and
+contain the same value.
 
 The good parts here are:
 - library has to implement only base named units
@@ -1276,8 +1276,7 @@ The drawbacks of such a solution are:
 - "there is more than one way to do it" problem
 - the code written by the developer will not be similar to the types printed in the compilation
     error logs
-- no support for such a unit by the downcasting facility (units here are values so a different
-    substitution mechanism would have to be implemented)
+- no support for such a unit by the downcasting facility (units are values instead of types)
 
 
 NTTP usage {#nttp-usage}
