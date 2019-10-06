@@ -628,10 +628,10 @@ Improving user experience {#user-experience}
 Type aliasing issues {#type-aliasing-issues}
 --------------------------------------------
 
-Type aliases benefit developers but not end-users. As a result, users end up with colossal
+Type aliases benefit developers but not end-users. As a result users end up with colossal
 error messages.
 
-Taking Boost.Units as an example the code developer works with the following syntax:
+Taking Boost.Units as an example, the code developer works with the following syntax:
 
 ```cpp
 namespace bu = boost::units;
@@ -641,8 +641,8 @@ constexpr bu::quantity<bu::si::velocity> avg_speed(bu::quantity<bu::si::length> 
 { return d * t; }
 ```
 
-Above calcaulation contains a simple error as a velocity [=derived quantity=] cannot be
-created from multiplication of legth and time [=base quantities=]. If such an error happens
+Above calculation contains a simple error as a velocity [=derived quantity=] cannot be
+created from multiplication of length and time [=base quantities=]. If such an error happens
 in the source code, user will need to analyze the following error for gcc-8:
 
 <!-- markdownlint-disable line-length -->
