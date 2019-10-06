@@ -1181,22 +1181,23 @@ Most of those issues can be solved during the design time. We should strive to p
 Design principles {#design-principles}
 ======================================
 
-Here are the basic design principles that should be used to implement a physical units library
-for C++:
-1. Safety and performance
+The basic design principles that should be used to implement a physical units library
+for C++ are:
+1. Safety and performance:
     - strong types
     - only safe implicit conversions should be allowed
-    - compile-time safety and verification wherever possible
+    - compile-time safety and verification wherever possible (break at compile time, not at
+        runtime)
     - constexpr all the things
-    - as fast or even faster than when working with fundamental types
-2. The best possible user experience
+    - as fast or even faster than working with fundamental types
+2. The best possible user experience:
     - interfaces embraced with clear concepts and contracts
     - user friendly compiler errors
     - good debugging experience
-3. No macros in the user interface
-4. Easy extensibility
-5. No external dependencies
-6. Possibility to be standardized as a freestanding part of the C++ Standard Library
+3. No macros in the user interface.
+4. Easy extensibility.
+5. No external dependencies.
+6. Possibility to be standardized as a freestanding part of the C++ Standard Library.
 
 
 Design decisions {#design-decisions}
