@@ -181,10 +181,9 @@ easy extensibility in mind so anyone needing a new base or derived dimensions
 (i.e. `coffee/milk/water/sugar` system) could achieve this with a few lines of the C++ code
 (not preprocessor macros).
 
-The examples above are thus meant as goal to strive for, but should not necessarily be
-standardized immediately. After releasing a first, restricted version of the library and
-observing how it is used we can consider standardizing additional dimensions, units, and
-constants in the following C++ releases.
+After releasing a first, restricted version of the library and observing how it is used we
+can consider standardizing additional dimensions, units, and constants in the following
+C++ releases.
 
 
 Terms and definitions {#terms-and_definitions}
