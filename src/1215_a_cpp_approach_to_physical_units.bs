@@ -221,21 +221,27 @@ ISO 80000-1:2009(E) Quantities and units - Part 1: General
     which are quantities, is also considered to be a quantity.
 - The concept ’quantity’ may be generically divided into, e.g. ‘physical quantity’,
     ‘chemical quantity’, and ‘biological quantity’, or ‘base quantity’ and ‘derived quantity’.
+- Examples of quantities are: mass, length, density, magnetic field strength, etc.
 
 <dfn lt="kind of quantity|kind">kind of quantity, kind</dfn>
 
 - Aspect common to mutually comparable [=quantities=].
-- The division of the concept ‘quantity’ into several kinds is to some extent arbitrary
-    - i.e. the quantities diameter, circumference, and wavelength are generally considered
-        to be [=quantities=] of the same kind, namely, of the kind of quantity called length.)
+- The division of the concept ‘quantity’ into several kinds is to some extent arbitrary. For 
+  example, the quantities diameter, circumference, and wavelength are generally considered
+    to be [=quantities=] of the same kind, namely, length.
 - [=Quantities=] of the same kind within a given [=system of quantities=] have the same quantity
     [=dimension=]. However, [=quantities=] of the same [=dimension=] are not necessarily of
-    the same kind.
+    the same kind. For example, the absorbed dose and the dose equivalent have the same
+    dimension. However, the former measures the absolute amount of radiation one receives
+    wherase the latter is a weighted measurement taking into account the kind of radiation on 
+    was exposed to.
 
 <dfn lt="system of quantities|system">system of quantities, system</dfn>
 
 - Set of [=quantities=] together with a set of non-contradictory equations relating those
     [=quantities=].
+- Examples of systems of quantities are: the International System of Quantities, the Imperial
+    System, etc.
 
 <dfn>base quantity</dfn>
 
@@ -248,7 +254,7 @@ ISO 80000-1:2009(E) Quantities and units - Part 1: General
 <dfn>derived quantity</dfn>
 
 - [=Quantity=], in a [=system of quantities=], defined in terms of the base quantities of
-    that system
+    that system.
 
 <dfn lt="International System of Quantities|ISQ">International System of Quantities (ISQ)</dfn>
 
@@ -311,13 +317,16 @@ unit</dfn>
 
 <dfn>base unit</dfn>
 
-- Measurement unit that is adopted by convention for a [=base quantity=]
+- Measurement unit that is adopted by convention for a [=base quantity=].
 - In each coherent [=system of units=], there is only one base unit for each [=base quantity=].
 - A base unit may also serve for a [=derived quantity=] of the same [=quantity dimension=].
+- For example, the ISQ has the base units of: metre, kilogram, second, Ampere, Kelvin, mole,
+    and candela.
 
 <dfn>derived unit</dfn>
 
-- Measurement unit for a [=derived quantity=]
+- Measurement unit for a [=derived quantity=].
+- For example, in the ISQ Newton, Pascal, and katal are derived units.
 
 <dfn>coherent derived unit</dfn>
 
@@ -326,9 +335,8 @@ unit</dfn>
     factor than one.
 - A power of a [=base unit=] is the [=base unit=] raised to an exponent.
 - Coherence can be determined only with respect to a particular [=system of quantities=]
-    and a given set of [=base units=].
-    - i.e. if the metre and the second are base units, the metre per second is the coherent
-        derived unit of velocity.
+    and a given set of [=base units=]. That is, if the metre and the second are base units,
+    the metre per second is the coherent derived unit of velocity.
 
 <dfn>system of units</dfn>
 
@@ -338,10 +346,10 @@ unit</dfn>
 <dfn lt="off-system measurement unit|off-system unit">off-system measurement unit,
 off-system unit</dfn>
 
-- [=Measurement unit=] that does not belong to a given [=system of units=].
-    - i.e. the electronvolt (≈ 1,602 18 × 10–19 J) is an off-system measurement unit of energy
-        with respect to the SI or day, hour, minute are off-system measurement units of time
-        with respect to the SI.
+- [=Measurement unit=] that does not belong to a given [=system of units=]. For example, the
+    electronvolt (≈ 1,602 18 × 10–19 J) is an off-system measurement unit of energy with respect
+    to the SI or day, hour, minute are off-system measurement units of time with respect to the
+    SI.
 
 <dfn lt="International System of Units|SI">International System of Units (SI)</dfn>
 
@@ -353,9 +361,9 @@ off-system unit</dfn>
 
 - [=Measurement unit=] obtained by multiplying a given [=measurement unit=] by an integer
     greater than one.
-- [=SI=] prefixes refer strictly to powers of 10, and should not be used for powers of 2.
-    - i.e. 1 kbit should not be used to represent 1024 bits (2<sup>10</sup> bits),
-        which is a kibibit (1 Kibit).
+- [=SI=] prefixes refer strictly to powers of 10, and should not be used for powers of 2. That
+    is, 1 kbit should not be used to represent 1024 bits (2<sup>10</sup> bits), which is a 
+    kibibit (1 Kibit).
 
 <dfn>submultiple of a unit</dfn>
 
