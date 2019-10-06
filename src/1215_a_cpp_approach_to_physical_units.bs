@@ -956,7 +956,7 @@ include/meta/meta_fwd.hpp:224:18: note: ‘meta::detail::barrier’ evaluated to
 ```
 <!-- markdownlint-enable line-length -->
 
-This error was created by gcc with experimental Concepts TS support. We can expect that
+This error was created by gcc with the experimental Concepts TS support. We can expect that
 the QoI of error logs will improve even more with time. What is important here is that the
 user gets the exact information of what was wrong with the provided type and why it did not
 meet the required constraints.
@@ -965,22 +965,93 @@ meet the required constraints.
 Limiting intermediate quantity value conversions {#limiting-intermediate-value-conversions}
 ===========================================================================================
 
-Template arguments type deduction {#arguments-type-deduction}
--------------------------------------------------------------
+Many of the physical units libraries on the market decide to quietly convert different
+[=units=] to the one fixed, [=coherent derived unit=] of the [=dimension=]. For example,
+the following code:
 
 ```cpp
-template<typename U1, typename Rep1, typename U2, typename Rep2>
-constexpr auto avg_speed(units::length<U1, Rep1> d, units::time<U2, Rep2> t)
+namespace bu = boost::units;
+
+constexpr bu::quantity<bu::si::velocity> avg_speed(bu::quantity<bu::si::length> d,
+                                                   bu::quantity<bu::si::time> t)
 {
   return d / t;
 }
 ```
 
-[Please note that support for above syntax was removed from [[MP-UNITS]] after the feedback
-from Cologne ISO meeting]
+always converts incoming `d` length and `t` time arguments to the [=base units=] of their
+[=dimensions=]. So if the user intends to write the code like this one:
+
+```cpp
+using kilometer_base_unit = bu::make_scaled_unit<bu::si::length,
+                                                 bu::scale<10, bu::static_rational<3>>>::type;
+using length_kilometer = kilometer_base_unit::unit_type;
+using time_hour = bu::metric::hour_base_unit::unit_type;
+using kilometers_per_hour = bu::divide_typeof_helper<length_kilometer, time_hour>::type;
+BOOST_UNITS_STATIC_CONSTANT(hours, time_hour);
+
+const auto v = avg_speed(bu::quantity<bu::si::length>(220 * bu::si::kilo * bu::si::meters),
+                         bu::quantity<bu::si::time>(2 * hours));
+const bu::quantity<kilometers_per_hour> kmph(v);
+std::cout << kmph.value() << " km/h\n";
+```
+
+all the values provided as arguments are first converted to SI [=base units=] before the
+function executes. After the function returns its result, it is converted back to the
+same units as provided by the user for the input arguments. It is an unnecessary coast
+in runtime, but also it might be the source of precision loss.
+
+Template arguments type deduction {#arguments-type-deduction}
+-------------------------------------------------------------
+
+The above problem can somehow be solved by function template argument deduction:
+
+```cpp
+template<typename LengthSystem, typename Rep1, typename TimeSystem, typename Rep2>
+constexpr auto avg_speed(bu::quantity<bu::unit<bu::length_dimension, LengthSystem>, Rep1> d,
+                         bu::quantity<bu::unit<bu::time_dimension, TimeSystem>, Rep2> t)
+{
+  return d / t;
+}
+```
+
+which allows us to form a template function taking required dimensions for its parameters.
+Constraining the return value is a bigger problem, though. We can do something like this:
+
+```cpp
+template<typename LengthSystem, typename Rep1, typename TimeSystem, typename Rep2>
+constexpr bu::quantity<typename bu::divide_typeof_helper<
+                                          bu::unit<bu::length_dimension, LengthSystem>,
+                                          bu::unit<bu::time_dimension, TimeSystem>>::type>
+avg_speed(bu::quantity<bu::unit<bu::length_dimension, LengthSystem>, Rep1> d,
+          bu::quantity<bu::unit<bu::time_dimension, TimeSystem>, Rep2> t)
+{
+  return d / t;
+}
+```
+
+However, this requires from the user to manually reimplement dimensional analysis logic
+in the template metaprogramming land which is not a solution here.
+
+Worth noting is that with some libraries, we cannot address even the first step for
+function template arguments. In the case of [[NIC_UNITS]] [=derived units=] are implemented
+in terms of [=base units=]:
+
+```cpp
+using meter_t = units::unit_t<units::unit<std::ratio<1>, units::category::length_unit>>;
+using kilometer_t = units::unit_t<units::unit<std::ratio<1000, 1>, meter_t>,
+                                  std::ratio<0, 1>,
+                                  std::ratio<0, 1>>>;
+```
+
+which makes it impossible to know upfront where `units::category::length_unit` will exist
+in a class template instantiation.
 
 Concepts for function arguments {#concepts-for-arguments}
 ---------------------------------------------------------
+
+The answer to such problems is again C++20 Concepts.
+
 
 ```cpp
 constexpr auto avg_speed(units::Length auto d, units::Time auto t)
