@@ -1154,8 +1154,8 @@ order to provide good extensibility are:
 Easy to use and hard to abuse {#easy-to-use-hard-to-abuse}
 ==========================================================
 
-A lot users complain about the complexity of existing solutions. For example to start with
-Boost.Units users have to:
+Users complain about the complexity of existing solutions. For example, Boost.Units users
+have to:
 - include a lot of specific header files,
 - define a lot of types by themselves (see [[#limiting-intermediate-value-conversions]]),
 - fight with compilation errors (see [[#user-experience]]) and debugging,
@@ -1169,8 +1169,8 @@ Most of those issues can be solved during the design time. We should strive to p
 1. Behavior similar to `std::chrono` as it proved to be a good design and the user base already
     got used to that.
 2. Clear responsibility of each type (base_dimension -> exp -> dimension -> unit -> quantity).
-3. Easy to extend with custom dimensions or units.
-4. Easy to understand error messages and good debugging experience thanks to downcast
+3. Ease to extend with custom dimensions or units.
+4. Ease to understand error messages and a good debugging experience thanks to downcast
     facility and concepts.
 5. No dedicated abstraction for [=systems=] that would complicate implementation and reasoning
     about the library engine and functionality (at least until future users will not provide
