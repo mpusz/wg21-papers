@@ -962,8 +962,7 @@ Limiting intermediate quantity value conversions {#limiting-intermediate-value-c
 ===========================================================================================
 
 Many of the physical units libraries on the market decide to quietly convert different
-[=units=] to the one fixed, [=coherent derived unit=] of the [=dimension=]. For example,
-the following code:
+[=units=] to the one fixed, [=coherent derived unit=] of the [=dimension=]. For example:
 
 ```cpp
 namespace bu = boost::units;
@@ -975,14 +974,14 @@ constexpr bu::quantity<bu::si::velocity> avg_speed(bu::quantity<bu::si::length> 
 }
 ```
 
-always converts incoming `d` length and `t` time arguments to the [=base units=] of their
-[=dimensions=]. So if the user intends to write the code like this one:
+The code always (implicitly) converts incoming `d` length and `t` time arguments to the
+[=base units=] of their [=dimensions=]. So if the user intends to write the code like:
 
 ```cpp
 using kilometer_base_unit = bu::make_scaled_unit<bu::si::length,
                                                  bu::scale<10, bu::static_rational<3>>>::type;
-using length_kilometer = kilometer_base_unit::unit_type;
-using time_hour = bu::metric::hour_base_unit::unit_type;
+using length_kilometer    = kilometer_base_unit::unit_type;
+using time_hour           = bu::metric::hour_base_unit::unit_type;
 using kilometers_per_hour = bu::divide_typeof_helper<length_kilometer, time_hour>::type;
 BOOST_UNITS_STATIC_CONSTANT(hours, time_hour);
 
@@ -992,10 +991,27 @@ const bu::quantity<kilometers_per_hour> kmph(v);
 std::cout << kmph.value() << " km/h\n";
 ```
 
-all the values provided as arguments are first converted to SI [=base units=] before the
-function executes. After the function returns its result, it is converted back to the
-same units as provided by the user for the input arguments. It is an unnecessary coast
-in runtime, but also it might be the source of precision loss.
+All the values provided as arguments are first converted to SI [=base units=] before the
+function executes. After the function returns, the result is converted back to the same units as provided by the user for the input arguments. These conversions can significantly slow down
+the execution of a function, and lead to an increased loss of precision.
+
+For our example, three conversions have to be made. One to convert the length from `220km` to `220000m`, one to convert the time from `2h` to `7200s`, and one to convert the result back from
+`30.5555...m/s` to `110km/s`. Yet, when considering the units, no conversion actually has to be
+made. Simply dividing `220` by `2` would suffice.
+
+Even for the case where the result is desired in another unit, the implementation loses on
+performance and precision:
+
+```cpp
+const auto v = avg_speed(bu::quantity<bu::si::length>(220 * bu::si::kilo * bu::si::meters),
+                         bu::quantity<bu::si::time>(2 * hours));
+const bu::quantity<miles_per_hour> mph(v);
+std::cout << mph.value() << " mi/h\n";
+```
+
+Still three conversions are performed, whereas an optimal implementation would store the result
+of `220km/2h` as `110km/h` without conversion and only convert `110km/h` to `68.35mi/h`.
+
 
 Template arguments type deduction {#arguments-type-deduction}
 -------------------------------------------------------------
