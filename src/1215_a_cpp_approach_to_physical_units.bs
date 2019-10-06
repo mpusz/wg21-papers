@@ -895,7 +895,7 @@ radically simplify the boiler plate involved and are thus the way to go.
 Better errors with C++20 concepts {#better-errors-with-concepts}
 ----------------------------------------------------------------
 
-With concepts the same code can look like:
+With C++20 concepts above example is simplified to:
 
 ```cpp
 template<units::Length L, units::Time T>
@@ -905,7 +905,7 @@ constexpr units::Velocity auto avg_speed(L d, T t)
 }
 ```
 
-or even with the usage of generic function it can be implemented as:
+Using generic functions, it can even be implemented, without the template syntax, as:
 
 ```cpp
 constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
@@ -914,12 +914,12 @@ constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto 
 }
 ```
 
-Thanks to this, we get not only much stronger interfaces with their compile-time contracts
-clearly expressed by concepts right in the function template signature but also much better
-error logs. The latter is caused by the fact that the concept constraints validation is
-being done early in the function instantiation process.
+Thanks to C++20 concepts we not only get much stronger interfaces with their compile-time contracts clearly expressed by concepts in the function template signature, but also much
+better error logs. Concept constraint validation being done early in the function instantiation
+process catches errors early and not deep in the instantiation stack, significantly improving
+the readability of the actual errors.
 
-As a result, we can end up with the error like:
+For example, gcc with experimental Concepts TS support generates the following message:
 
 <!-- markdownlint-disable line-length -->
 ```text
@@ -952,10 +952,10 @@ include/meta/meta_fwd.hpp:224:18: note: ‘meta::detail::barrier’ evaluated to
 ```
 <!-- markdownlint-enable line-length -->
 
-This error was created by gcc with the experimental Concepts TS support. We can expect that
-the QoI of error logs will improve even more with time. What is important here is that the
-user gets the exact information of what was wrong with the provided type and why it did not
-meet the required constraints.
+While still being a little verbose, this is a big improvement to the page-long instantation
+lists shown above. The user gets the exact information of what was wrong with the provided
+type, why it did not meet the required constraints, and where the error occured. With concept
+suppport still being experimental, we expect error message to improve even more in the future.
 
 
 Limiting intermediate quantity value conversions {#limiting-intermediate-value-conversions}
