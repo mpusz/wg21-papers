@@ -1269,7 +1269,7 @@ The good parts here are:
 - library has to implement only base named units
 - natural syntax of spelling units (i.e. 123km/h or quantity<kilometre/hour>(123))
 - user is able to easily construct any possible variation of base units without any additional
-  library support
+    library support
 - multiple possible spellings of unit names
 
 The drawbacks of such a solution are:
