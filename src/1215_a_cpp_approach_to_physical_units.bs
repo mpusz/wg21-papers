@@ -192,7 +192,7 @@ Scope {#scope}
 
 Although there is a public demand for a generic units library that could handle any units and
 dimensions, the author suggests scoping the Committee efforts only on the physical and possibly
-computer science (i.e. `bit`, `bitrate`) units first. The library should be designed with
+computer science (i.e. `bit`, `byte`, `bitrate`) units first. The library should be designed with
 easy extensibility in mind so anyone needing a new base or derived dimensions
 (i.e. `coffee/milk/water/sugar` system) could achieve this with a few lines of the C++ code
 (not preprocessor macros).
