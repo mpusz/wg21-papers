@@ -870,14 +870,60 @@ namespace detail {
 Template instantiation issues {#template-instantiation-issues}
 --------------------------------------------------------------
 
-Errors inside implementation details caused by invalid instantiations.
+C++ is known for its massive error logs caused by the compilation errors deep down in the
+stack of the internal implementation of function template instantiations. This is caused by
+the fact that in the vast majority of cases, function templates just take a `typename T` as
+a function template parameter, which does not place any constraints on the actual type.
+Placing such constraints with C++17 is possible thanks to SFINAE and helpers like
+`std::enable_if` or `std::void_t`, but we all know that it is not really user-friendly.
+Let's consider the following example:
+
+```cpp
+template<typename Length, typename Time,
+         typename = std::enable_if_t<units::traits::is_length_unit<Length>::value &&
+                                     units::traits::is_time_unit<Time>::value>>
+constexpr auto avg_speed(Length d, Time t)
+  -> std::enable_if_t<units::traits::is_velocity_unit<decltype(d / t)>::value>, decltype(d / t)>
+{
+  const auto v = d / t;
+  static_assert(units::traits::is_velocity_unit<decltype(v)>::value);
+  return v;
+}
+```
+
+This is clearly not the most user-friendly way to write everyday code. Imagine what would
+happen with the above sample if we had to provide longer and more complex, possibly
+multiline calculations. That is why we believe that C++20 Concepts are the way to go.
 
 
 Concepts {#concepts}
 --------------------
 
-???Error messages before instantiating a template rather than a compilation error deeply nested
-in the class implementation.??? (Reword)
+With concepts the same code can look like:
+
+```cpp
+template<units::Length L, units::Time T>
+constexpr units::Velocity auto avg_speed(L d, T t)
+{
+  return d / t;
+}
+```
+
+or even with the usage of generic function it can be implemented as:
+
+```cpp
+constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
+{
+  return d / t;
+}
+```
+
+Thanks to this, we get not only much stronger interfaces with their compile-time contracts
+clearly expressed by concepts right in the function template signature but also much better
+error logs. The latter is caused by the fact that the concept constraints validation is
+being done early in the function instantiation process.
+
+As a result, we can end up with the error like:
 
 <!-- markdownlint-disable line-length -->
 ```text
@@ -909,6 +955,11 @@ include/meta/meta_fwd.hpp:224:18: note: within ‘template<class T, class U> con
 include/meta/meta_fwd.hpp:224:18: note: ‘meta::detail::barrier’ evaluated to false
 ```
 <!-- markdownlint-enable line-length -->
+
+This error was created by gcc with experimental Concepts TS support. We can expect that
+the QoI of error logs will improve even more with time. What is important here is that the
+user gets the exact information of what was wrong with the provided type and why it did not
+meet the required constraints.
 
 
 Limiting intermediate quantity value conversions {#limiting-intermediate-value-conversions}
