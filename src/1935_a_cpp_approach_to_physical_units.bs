@@ -1,11 +1,11 @@
 <pre class='metadata'>
 Title: A C++ Approach to Physical Units
-Shortname: D1215
+Shortname: D1935
 Revision: 0
 Status: D
 Group: WG21
 Audience: SG6, LEWG
-URL: https://mpusz.github.io/wg21-papers/papers/1215_a_cpp_approach_to_physical_units.html
+URL: https://mpusz.github.io/wg21-papers/papers/1935_a_cpp_approach_to_physical_units.html
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This document starts the discussion about the Physical Units support for the
           C++ Standard Library. The reader will find here the rationale for such a library.
@@ -16,10 +16,10 @@ Abstract: This document starts the discussion about the Physical Units support f
           by the author in the mp-units library.
 
           {Please note that the chapter [[#prior-work]] is still incomplete and will be
-          filled in D1215R1 that should be available as a draft on the LEWG Wiki before
+          filled in D1935R1 that should be available as a draft on the LEWG Wiki before
           Belfast meeting }
 Repository: mpusz/wg21_papers
-!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/1215_a_cpp_approach_to_physical_units.bs">github.com/mpusz/wg21_papers/blob/master/src/1215_a_cpp_approach_to_physical_units.bs</a>
+!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/1935_a_cpp_approach_to_physical_units.bs">github.com/mpusz/wg21_papers/blob/master/src/1935_a_cpp_approach_to_physical_units.bs</a>
 Markup Shorthands: markdown on
 </pre>
 
@@ -376,7 +376,7 @@ codebase (both for Open Source as well as production code). The next sections of
 will describe the most interesting parts of selected libraries. The last section provides
 an extensive comparison of their main features.
 
-{This chapter is incomplete and will be filled in D1215R1 that should be available as a draft
+{This chapter is incomplete and will be filled in D1935R1 that should be available as a draft
 on the LEWG Wiki before Belfast meeting}
 
 Boost.Units {#boost.units}
