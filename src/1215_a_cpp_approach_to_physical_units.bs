@@ -227,7 +227,7 @@ ISO 80000-1:2009(E) Quantities and units - Part 1: General
 
 - Aspect common to mutually comparable [=quantities=].
 - The division of the concept ‘quantity’ into several kinds is to some extent arbitrary. For 
-  example, the quantities diameter, circumference, and wavelength are generally considered
+    example, the quantities diameter, circumference, and wavelength are generally considered
     to be [=quantities=] of the same kind, namely, length.
 - [=Quantities=] of the same kind within a given [=system of quantities=] have the same quantity
     [=dimension=]. However, [=quantities=] of the same [=dimension=] are not necessarily of
