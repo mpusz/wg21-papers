@@ -14,6 +14,10 @@ Abstract: This document starts the discussion about the Physical Units support f
           experience. The rest of the document describes solutions and techniques that
           can be used to mitigate those issues. All of them were implemented and tested
           by the author in the mp-units library.
+
+          {Please note that the chapter [[#prior-work]] is still incomplete and will be
+          filled in D1215R1 that should be available as a draft on the LEWG Wiki before
+          Belfast meeting }
 Repository: mpusz/wg21_papers
 !Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/1215_a_cpp_approach_to_physical_units.bs">github.com/mpusz/wg21_papers/blob/master/src/1215_a_cpp_approach_to_physical_units.bs</a>
 Markup Shorthands: markdown on
@@ -270,6 +274,7 @@ quantity of dimension one, dimensionless quantity</dfn>
     such [=quantities=] convey more information than a number.
 - Some [=quantities=] of dimension one are defined as the ratios of two [=quantities=] of
     the same kind. The [=coherent derived unit=] is the number one, symbol 1.
+- Numbers of entities are quantities of dimension one.
 
 <dfn lt="unit of measurement|measurement unit|unit">unit of measurement, measurement unit,
 unit</dfn>
@@ -1158,7 +1163,7 @@ There are at least 3 ways to represent derived units:
 1. Provide a new strong type and an UDL for each unit
 2. Define the type only for a [=coherent derived unit=] and use multiplier syntax to obtain
     more [=derived units=]
-3. Mixed system using strong types, NTTPs, and variable templates
+3. Mixed approach using strong types, NTTPs, and variable templates
 
 Starting with the first case. Each [=derived unit=] gets its own type and an UDL. With such
 an approach we can easily write:
@@ -1367,18 +1372,21 @@ struct inch : derived_unit<inch, length, foot::ratio / 12> {};
 struct mile : derived_unit<mile, length, 1'760 * yard::ratio> {};
 ```
 
+Also, please see the mixed approach described in [[#prefixes-and-units]] which opens the door
+to new natural syntax of spelling [=units=].
+
 
 Relative vs absolute quantity {#relative-vs-absolute}
 -----------------------------------------------------
 
 One of the most critical aspects of the physical units library is to understand what a
-[=quantity=] is? An absolute or relative value? For most dimensions only relative values
+[=quantity=] is? An absolute or relative value? For most [=dimensions=] only relative values
 have sense. For example:
 - Where are absolute 123 meters?
 - If I am sitting in a moving train, is my velocity == 0?
 - Is my velocity == 0 when the train stops?
 
-However, for some dimensions like temperature, absolute values are really needed. For
+However, for some [=base quantities=] like temperature, absolute values are really needed. For
 example, how much is `0 ℃ + 0 ℃`? Is it `0 ℃` or `0 ℃` or `273.15 ℃`? Yes, the repeated
 value of `0 ℃` is not an error here ;-) Actually, all of the answers are right:
 - Two (absolute) temperatures:
@@ -1403,57 +1411,276 @@ As proven above, it is a complex and a pretty hard problem. The average user of 
 will probably not be able to distinguish between different kinds of quantities. This is
 why it was decided that only relative quantity values will be modeled by the library.
 Moreover, providing support for only relative quantities of other temperature units than
-Kelvin will probably still be misused by the users. This is why it was decided to support
+Kelvin will probably still be misused by the users. This is why we suggest to support
 only Kelvins as built-in temperature units and provide verbose non-member utility
 functions for conversions between different kinds  of temperature values and their units.
 
 
-Should we support [=systems=] as a separate type {#systems-support}
----------------------------------------------------------------
-
-US Customary System has the same dimensions and most of the units as SI with the differences
-scoped mostly only in length and mass units and derived dimensions using those. It is much
-simpler to use the common definitions of such dimensions and just provide units dedicated to
-such a system together with SI (i.e. meters and miles).
-
-Even systems that seem to be totally isolated from typical SI uses cases like
-`coffee/milk/water/sugar` system at some point will probably need time, volume, and other SI
-dimensions too.
-
-Boost.Units uses [=systems=] mostly to provide the capability of having a different
-[=base unit=] for a dimension to limit intermediate conversions while passing quantities
-as vocabulary types in the interfaces. Usage of templates constrained with concepts for
-generic algorithms and concrete types for domain-specific need addresses this area easily.
-
-(Example of a generic interface i.e. avg_speed with miles)
-
-(Example of a domain-specific interface i.e. eV)
-
-
-Compatibility with `std::chrono::duration` {#duration-compatibility}
+Should we support [=systems=] as a separate type? {#systems-support}
 --------------------------------------------------------------------
 
+US Customary System has the same [=dimensions=] and most of the units as the [=SI=] with
+the differences scoped mostly only in length and mass [=units=] and [=derived quantities=]
+using those. From the implementation and standardization point of view it is much simpler
+to use the common definitions of such physical dimensions and just provide [=units=] dedicated
+to such a [=system=] next to the [=SI=] ones (i.e. meters and miles).
 
-Should we provide integral UDLs {#integral-udl}
------------------------------------------------
+Even [=systems=] that seem to be totally isolated from typical [=SI=] uses cases like
+`coffee/milk/water/sugar` system at some point will probably need time, volume, and other
+[=SI=] dimensions too.
 
-- Yes, as is (always both integral and floating-point for all units).
-- Yes, but with floating `Rep`.
-- Yes, but only for specific units like a `bit`, `byte`, etc. where floating-point types do
-    not have much sense (no floating-point UDLs).
-- No, just use floating-point UDLs for all (no integral UDLs).
+Boost.Units uses [=systems=] mostly to provide the capability of having a different
+[=base unit=] for a [=dimension=] to limit intermediate conversions while passing quantities
+as vocabulary types in the interfaces. Usage of templates functions constrained with concepts
+for generic algorithms and concrete types for domain-specific needs addresses this area easily.
+For more information on this subject please refer to
+[[#limiting-intermediate-value-conversions]].
+
+Important point to note here is that adding direct [=systems=] support in the library type
+system might negatively affect user experience. Most of the verbose compilation errors
+presented in [[#type-aliasing-issues]] are caused by a dedicated systems support in
+Boost.Units.
+
+
+Interoperability with `std::chrono::duration` {#duration-interoperability}
+--------------------------------------------------------------------------
+
+One of the most challenging problems to solve in the physical units library will be
+the interoperability with `std::chrono::duration`. `std::chrono` is an excellent library
+and has a wide adoption in the industry right now. However it has also some issues that
+make its design not suitable for a general purpose units library framework:
+1. It addresses only one of many [=dimensions=], namely time. There is no possibility to extend
+    it with other [=dimensions=] support.
+2. `quantity` class template needs a few more member functions to provide support for
+    conversions between different [=dimensions=].
+3. SG6 members raised an issue with `std::chrono::duration` returning
+    `std::common_type_t<Rep1, Rep2>` from most of the arithmetic operators. This does note
+    play well with custom representation types that return different type in case of
+    multiplication and different in case of division operation.
+4. `std::ratio` is not able to handle large prefixes required by some units (more
+    information in [[#ratio-on-steroids]]).
+
+Because of the above issues we cannot just use `std::chrono::duration` design as it is right
+now and use it for physical units implementation or even as a representation of only time
+[=dimension=]. There are however, a few possibilities here to provide interoperability between
+the types:
+1. One of the solutions could be making a `std::chrono::duration` an alias or a child class
+    of `std::units::quantity` class template (assuming that we will not use NTTP ratios
+    as described in [[#nttp-usage]]). This would be probably the best solution from
+    the API point of view but unfortunately it will cause an ABI break.
+2. Provide a partial specialization for a time [=dimension=] to have additional
+    conversion operations to/from `std::chrono::duration` built-in into the class template
+    itself for a time [=dimension=]. However, this solution would be hard to maintain and
+    keep synchronized with the `std::units::quantity` class template.
+3. Provide non-member function to convert and compare between those two types.
+4. Just ignore `std::chrono::duration` and do not provide any conversion utilities in the
+    standard library.
+
+From all options above we propose the first one if we decide that C++23 will be an ABI breaking
+release. In such a case we could update `std::ratio` type as described in
+[[#ratio-on-steroids]]. Otherwise, we would probably go with the option #3.
+
+
+Should we provide integral UDLs? {#integral-udl}
+------------------------------------------------
+
+User Defined Literals support is really handy for the end-users. However, it sometimes might
+cause more confusion than benefits. For example defining both UDL versions for a velocity:
+
+```cpp
+inline namespace literals {
+
+  constexpr auto operator""kmph(unsigned long long l)
+  { return quantity<kilometre_per_hour, std::int64_t>(l); }
+
+  constexpr auto operator""kmph(long double l)
+  { return quantity<kilometre_per_hour, long double>(l); }
+
+}
+```
+
+and a function template defined as:
+
+```cpp
+constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
+{
+  return d / t;
+}
+```
+
+might cause the following code to not compile:
+
+```cpp
+const units::Velocity auto speed = avg_speed(220km, 2h);
+```
+
+while the following one compiles fine:
+
+```cpp
+const units::Velocity auto speed = avg_speed(220.km, 2h);
+```
+
+Above is caused by the constraints copied from `std::chrono::duration` and put on the
+conversion constructors requiring the denominator of `ratio` to be 1 in case of the integral
+representation type.
+
+Based on the above we could agree to provide an UDL for floating point literals only or make
+the integral one return a quantity with `long double` as a representation type. However,
+if we consider a [=base quantity=] like a digital information, what does it mean to have
+a fraction of bit? This probably not the only one isolated example when actually only integral
+UDLs have sense.
+
+Summarizing above we have the following options to choose from as an answer to
+"Should we provide integral UDLs?":
+1. Yes, as is (always both integral and floating-point for all units). And leave it up to the
+    user to use them correctly.
+2. Yes, but integral literals get floating-point `Rep`.
+3. Yes, but only for specific units like a `bit`, `byte`, etc. where floating-point types do
+    not have much sense (no floating-point UDLs in such case).
+4. No, just use floating-point UDLs for all (no integral UDLs at all in the library).
+
+
+`quantity<dim_length, metre>` or `quantity<metre>`? {#dimension-in-quantity}
+----------------------------------------------------------------------------
+
+The initial version of the mp-units library provided the following `quantity` class template
+definition:
+
+```cpp
+template<Dimension D, Unit U, Scalar Rep>
+  requires std::same_as<D, typename U::dimension>
+class quantity;
+```
+
+This allowed the following helper aliases:
+
+```cpp
+template<Unit U = meter, Scalar Rep = double>
+using length = quantity<dimension_length, U, Rep>;
+```
+
+With such a framework and CTAD usage user could write the following:
+
+```cpp
+units::length d(3);                // 3 meters
+units::length<units::mile> d3(3);  // 3 miles
+```
+
+or
+
+```cpp
+units::velocity speed = avg_speed(220.km, 2.h);
+```
+
+or
+
+```cpp
+template<typename U, typename Rep>
+void foo(units::length<U, Rep> dist);
+```
+
+to constrain the type to a length dimension.
+
+The downside of such a design was that the dimension was provided twice in every `quantity`
+class template instantiation which was affecting user experience by longer types in error logs
+or during debugging:
+
+```cpp
+error: conversion from ‘quantity<units::dimension<units::exp<units::base_dim_length, 1>,
+units::exp<units::base_dim_time, 1> >, units::unit<units::dimension<units::exp<
+units::base_dim_length, 1>, units::exp<units::base_dim_time, 1> >, std::ratio<3600000, 1> >,
+[...]>’ to non-scalar type ‘quantity<units::dimension_velocity, units::kilometer_per_hour,
+[...]>’ requested
+```
+
+During evening session in Cologne the author received a feedback from SG6 members that such
+a duplication should be removed. Right now the design looks as follows:
+
+```cpp
+template<Unit U, Scalar Rep>
+class quantity;
+```
+
+With this there is no possibility to provide a helper alias for a length [=dimension=] and
+above examples have to be implemented in terms of concepts:
+
+```cpp
+units::quantity<units::metre> d(3);  // 3 meters
+units::quantity<units::mile> d3(3);  // 3 miles
+```
+
+or
+
+```cpp
+units::Velocity auto speed = avg_speed(220.km, 2.h);
+```
+
+or
+
+```cpp
+template<units::Length Quantity>
+void foo(Quantity dist);
+```
+
+The good part here is that the error logs are more readable with such an approach:
+
+```cpp
+error: conversion from ‘quantity<units::unit<units::dimension<units::exp<units::base_dim_length,
+1>, units::exp<units::base_dim_time, 1> >, std::ratio<3600000, 1> >, [...]>’ to non-scalar type
+‘quantity<units::kilometer_per_hour, [...]>’ requested
+```
+
+Both cases provide the similar functionality so it is a matter of taste here on which of the
+syntaxes the Committee will choose to continue with.
 
 
 Should we provide `seconds<int>` or stay with `quantity<second, int>`? {#seconds-int}
 -------------------------------------------------------------------------------------
 
+Some of the users complain that writing `quantity<second>(123)` is too verbose and they would
+prefer a helper alias that would allow them to write `seconds(123)`. This however, starts to
+generate a few issues:
+- `second` represent a [=unit=]
+- `seconds` represents a [=quantity=]
+- plural form reserved for quantities might not be easy to achieve or easy to distinguish for
+    some [=units=] like `sq_volt_per_hertz`.
 
-Should we provide support for dimensionless quantities? {#dimensionless-quantities}
------------------------------------------------------------------------------------
+We can consider renaming `second` to `unit_second` and provide `seconds` as an alias to the
+`quantity` class template. However, this will probably set in stone usage of aliases as no
+one will be willing to write a verbose code like `quantity<unit_second>(123)`. This is why
+we are looking for a concrete guideline on which of the options the Committee prefers.
+
+Author preference is to stay with the current design and leave it up to the users to create
+any helper aliases for their domains and use cases if they choose so (i.e. `s(123)`).
+
+
+Should we provide support for [=dimensionless quantities=]? {#dimensionless-quantities}
+---------------------------------------------------------------------------------------
+
+Some [=quantities of dimension one=] are defined as the ratios of two [=quantities of
+the same kind=]. The [=coherent derived unit=] is the number one, symbol 1. For example:
+plane angle, solid angle, refractive index, relative permeability, mass fraction,
+friction factor, Mach number, etc.
+
+Numbers of entities are also [=quantities of dimension one=]. For example: number of
+turns in a coil, number of molecules in a given sample, degeneracy of the energy levels
+of a quantum system.
+
+Should the library treat such entities as regular scalars or should some strong typing
+mechanism be provided to support those?
 
 
 Impact on the Standard {#impact}
 ================================
+
+The library would be mostly a pure addition to the C++ Standard Library with the following
+potential exceptions:
+1. It is unclear how to provide interoperability with the `std::chrono::duration`
+    (more information in [[#duration-interoperability]]).
+2. `std::units::ratio` will most probably need to be a different type with the similar
+    semantics to `std::ratio` (more information in [[#ratio-on-steroids]]). However, if we
+    decide C++23 to be an ABI breaking release we could update `std::ratio` with an additional
+    template parameter.
 
 
 Implementation Experience {#implementation}
@@ -1554,10 +1781,7 @@ struct byte : derived_unit<byte, digital_information, ratio<8>> {};
 
 inline namespace literals {
   constexpr auto operator""_b(unsigned long long l) { return quantity<bit, std::int64_t>(l); }
-  constexpr auto operator""_b(long double l) { return quantity<bit, long double>(l); }
-
   constexpr auto operator""_B(unsigned long long l) { return quantity<byte, std::int64_t>(l); }
-  constexpr auto operator""_B(long double l) { return quantity<byte, long double>(l); }
 }
 
 // unit tests
@@ -1582,8 +1806,9 @@ Polls {#polls}
 9. Do we agree with Kelvins only support for temperature and verbose conversion functions
     for other [=units=] and absolute temperatures?
 10. Which option of UDLs do we prefer ([[#integral-udl]])?
-11. Should we provide `seconds<int>` or stay with `quantity<second, int>`?
-12. Should we provide support for dimensionless quantities?
+11. Should we provide `seconds<int>` or stay with `quantity<second, int>`
+    ([[#seconds-int]])?
+12. Should we provide support for dimensionless quantities ([[#dimensionless-quantities]])?
 13. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)
 14. Do we want to introduce a dedicated system type?
 
