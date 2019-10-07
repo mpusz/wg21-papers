@@ -171,22 +171,6 @@ std::cout << "Average speed: "
           << std::units::quantity_cast<std::units::kilometre_per_hour>(speed) << '\n';
 ```
 
-Errors in variable dimensions shall be made clear at compile time, rather than having a chance
-to fail at runtime. For example:
-
-```cpp
-constexpr std::units::percent lightspeed_limit(std::units::Length auto d, std::units::Time auto t)
-{
-    return avg_speed(t, d) / std::units::constants::speed_of_light; 
-}
-```
-Should fail to compile with:
-```text
-example.cpp: in function 'constexpr std::units::Velocity auto avg_speed(std::units::Length auto d, std::units::Time auto t)'
-example.cpp: error: t is not a Length.
-example.cpp: error: d is not a Time.
-```
-
 Scope {#scope}
 --------------
 
@@ -226,15 +210,16 @@ ISO 80000-1:2009(E) Quantities and units - Part 1: General
 <dfn lt="kind of quantity|kind">kind of quantity, kind</dfn>
 
 - Aspect common to mutually comparable [=quantities=].
-- The division of the concept ‘quantity’ into several kinds is to some extent arbitrary. For 
-    example, the quantities diameter, circumference, and wavelength are generally considered
-    to be [=quantities=] of the same kind, namely, length.
+- The division of the concept ‘quantity’ into several kinds is to some extent arbitrary
+    - i.e. the quantities diameter, circumference, and wavelength are generally considered
+        to be [=quantities=] of the same kind, namely, of the kind of quantity called length.)
 - [=Quantities=] of the same kind within a given [=system of quantities=] have the same quantity
     [=dimension=]. However, [=quantities=] of the same [=dimension=] are not necessarily of
-    the same kind. For example, the absorbed dose and the dose equivalent have the same
-    dimension. However, the former measures the absolute amount of radiation one receives
-    wherase the latter is a weighted measurement taking into account the kind of radiation on 
-    was exposed to.
+    the same kind.        
+    - For example, the absorbed dose and the dose equivalent have the same
+        dimension. However, the former measures the absolute amount of radiation one receives
+        wherase the latter is a weighted measurement taking into account the kind of radiation on 
+        was exposed to.
 
 <dfn lt="system of quantities|system">system of quantities, system</dfn>
 
@@ -1671,7 +1656,6 @@ Polls {#polls}
       be handled? (Separate namespaces?)
 18. Should constants be provided? If yes, how should updates to the constants be handled?
       (Separate namespaces?)
-19. Should the quantity representation be limited to built-in types?
 
 
 Acknowledgments {#acknowledgements}
