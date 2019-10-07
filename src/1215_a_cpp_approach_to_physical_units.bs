@@ -155,7 +155,7 @@ static_assert(10km / 5km == 2);
 ```
 
 We intent to provide users with cleaner interfaces by using strong types and concepts in
-the interfaces rather than fundamental types with a meaning described in comments or documentation:
+the interfaces rather than fundamental types with meaning described in comments or documentation:
 
 ```cpp
 constexpr std::units::Velocity auto avg_speed(std::units::Length auto d, std::units::Time auto t)
@@ -180,7 +180,7 @@ Scope {#scope}
 
 Although there is a public demand for a generic units library that could handle any units and
 dimensions, the author suggests scoping the Committee efforts only on the physical and possibly
-computer science (i.e. `bit`, `bitrate`) units first. The library should be designed with
+computer science (i.e. `bit`, `byte`, `bitrate`) units first. The library should be designed with
 easy extensibility in mind so anyone needing a new base or derived dimensions
 (i.e. `coffee/milk/water/sugar` system) could achieve this with a few lines of the C++ code
 (not preprocessor macros).
@@ -209,6 +209,7 @@ ISO 80000-1:2009(E) Quantities and units - Part 1: General
     which are quantities, is also considered to be a quantity.
 - The concept ’quantity’ may be generically divided into, e.g. ‘physical quantity’,
     ‘chemical quantity’, and ‘biological quantity’, or ‘base quantity’ and ‘derived quantity’.
+- Examples of quantities are: mass, length, density, magnetic field strength, etc.
 
 <dfn lt="kind of quantity|kind">kind of quantity, kind</dfn>
 
@@ -218,12 +219,18 @@ ISO 80000-1:2009(E) Quantities and units - Part 1: General
         to be [=quantities=] of the same kind, namely, of the kind of quantity called length.)
 - [=Quantities=] of the same kind within a given [=system of quantities=] have the same quantity
     [=dimension=]. However, [=quantities=] of the same [=dimension=] are not necessarily of
-    the same kind.
+    the same kind.        
+    - For example, the absorbed dose and the dose equivalent have the same
+        dimension. However, the former measures the absolute amount of radiation one receives
+        wherase the latter is a weighted measurement taking into account the kind of radiation on 
+        was exposed to.
 
 <dfn lt="system of quantities|system">system of quantities, system</dfn>
 
 - Set of [=quantities=] together with a set of non-contradictory equations relating those
     [=quantities=].
+- Examples of systems of quantities are: the International System of Quantities, the Imperial
+    System, etc.
 
 <dfn>base quantity</dfn>
 
@@ -236,7 +243,7 @@ ISO 80000-1:2009(E) Quantities and units - Part 1: General
 <dfn>derived quantity</dfn>
 
 - [=Quantity=], in a [=system of quantities=], defined in terms of the base quantities of
-    that system
+    that system.
 
 <dfn lt="International System of Quantities|ISQ">International System of Quantities (ISQ)</dfn>
 
@@ -300,13 +307,16 @@ unit</dfn>
 
 <dfn>base unit</dfn>
 
-- Measurement unit that is adopted by convention for a [=base quantity=]
+- Measurement unit that is adopted by convention for a [=base quantity=].
 - In each coherent [=system of units=], there is only one base unit for each [=base quantity=].
 - A base unit may also serve for a [=derived quantity=] of the same [=quantity dimension=].
+- For example, the ISQ has the base units of: metre, kilogram, second, Ampere, Kelvin, mole,
+    and candela.
 
 <dfn>derived unit</dfn>
 
-- Measurement unit for a [=derived quantity=]
+- Measurement unit for a [=derived quantity=].
+- For example, in the ISQ Newton, Pascal, and katal are derived units.
 
 <dfn>coherent derived unit</dfn>
 
@@ -315,9 +325,8 @@ unit</dfn>
     factor than one.
 - A power of a [=base unit=] is the [=base unit=] raised to an exponent.
 - Coherence can be determined only with respect to a particular [=system of quantities=]
-    and a given set of [=base units=].
-    - i.e. if the metre and the second are base units, the metre per second is the coherent
-        derived unit of velocity.
+    and a given set of [=base units=]. That is, if the metre and the second are base units,
+    the metre per second is the coherent derived unit of velocity.
 
 <dfn>system of units</dfn>
 
@@ -327,10 +336,10 @@ unit</dfn>
 <dfn lt="off-system measurement unit|off-system unit">off-system measurement unit,
 off-system unit</dfn>
 
-- [=Measurement unit=] that does not belong to a given [=system of units=].
-    - i.e. the electronvolt (≈ 1,602 18 × 10–19 J) is an off-system measurement unit of energy
-        with respect to the SI or day, hour, minute are off-system measurement units of time
-        with respect to the SI.
+- [=Measurement unit=] that does not belong to a given [=system of units=]. For example, the
+    electronvolt (≈ 1,602 18 × 10–19 J) is an off-system measurement unit of energy with respect
+    to the SI or day, hour, minute are off-system measurement units of time with respect to the
+    SI.
 
 <dfn lt="International System of Units|SI">International System of Units (SI)</dfn>
 
@@ -342,9 +351,9 @@ off-system unit</dfn>
 
 - [=Measurement unit=] obtained by multiplying a given [=measurement unit=] by an integer
     greater than one.
-- [=SI=] prefixes refer strictly to powers of 10, and should not be used for powers of 2.
-    - i.e. 1 kbit should not be used to represent 1024 bits (2<sup>10</sup> bits),
-        which is a kibibit (1 Kibit).
+- [=SI=] prefixes refer strictly to powers of 10, and should not be used for powers of 2. That
+    is, 1 kbit should not be used to represent 1024 bits (2<sup>10</sup> bits), which is a 
+    kibibit (1 Kibit).
 
 <dfn>submultiple of a unit</dfn>
 
@@ -515,9 +524,9 @@ Comparison {#comparison}
 <table>
   <tr><th>Feature                                   <th>mp-units                           <th>Boost.Units                                                                         <th>cppnow17-units<th>PhysUnits-CT-Cpp11>
   <tr><td>SI                                        <td>yes                                <td>yes                                                                                 <td>yes           <td>yes
-  <tr><td>Customary system                          <td>yes                                <td>yes                                                                                 <td>              <td>
-  <tr><td>Other systems                             <td>???                                <td>yes                                                                                 <td>              <td>
-  <tr><td>C++ version                               <td>C++20                              <td>C++98 + `constexpr`                                                                 <td>              <td>
+  <tr><td>Customary system                          <td>yes                                <td>yes                                                                                 <td>              <td>some
+  <tr><td>Other systems                             <td>???                                <td>yes                                                                                 <td>              <td>some
+  <tr><td>C++ version                               <td>C++20                              <td>C++98 + `constexpr`                                                                 <td>              <td>C++11
   <tr><td>Base dimension id                         <td>string                             <td>integer                                                                             <td>              <td>
   <tr><td>Dimension                                 <td>type (`length`)                    <td>type (`length_dimension`)                                                           <td>              <td>
   <tr><td>Dimension representation                  <td>type list                          <td>type list                                                                           <td>              <td>
@@ -525,6 +534,7 @@ Comparison {#comparison}
   <tr><td>Type traits for dimensions                <td>no                                 <td>yes                                                                                 <td>              <td>
   <tr><td>Unit                                      <td>type (`metre`)                     <td>type + constant (`si::length` + `si::meter`)                                        <td>              <td>
   <tr><td>UDLs                                      <td>yes                                <td>no                                                                                  <td>              <td>
+  <tr><td>Composable UDLs                           <td>no (`kilometre`)                   <td>no                                                                                  <td>              <td>
   <tr><td>Predefined scaled unit types              <td>some                               <td>no                                                                                  <td>              <td>
   <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>user's type + multiply with constant (`make_scaled_unit<>` + `si::kilo * si::meter`)<td>              <td>
   <tr><td>Meter vs metre                            <td>metre                              <td>both                                                                                <td>              <td>
@@ -544,42 +554,63 @@ Comparison {#comparison}
   <tr><td>String input                              <td>no                                 <td>no                                                                                  <td>              <td>
   <tr><td>Macros in the user interface              <td>no                                 <td>yes                                                                                 <td>              <td>
   <tr><td>Non-linear scale support                  <td>no                                 <td>no                                                                                  <td>              <td>
+  <tr><td>`<cmath>` support                         <td>no                                 <td>yes                                                                                 <td>              <td>no
+  <tr><td>`<chrono>` support                        <td>no                                 <td>no                                                                                  <td>              <td>no
+  <tr><td>Affine types                              <td>no                                 <td>yes (`TBD`, `TBD`)                                                                  <td>              <td>no
+  <tr><td>Prefix representation                     <td>                                   <td>                                                                                    <td>              <td>
+  <tr><td>Physical/Mathematical constants           <td>no                                 <td>yes                                                                                 <td>              <td>limited
+  <tr><td>Dimensionless quantity                    <td>no                                 <td>                                                                                    <td>              <td>
+  <tr><td>Arbitrary conversions                     <td>                                   <td>yes                                                                                 <td>              <td>yes
+  <tr><td>User defined dimensions                   <td>yes                                <td>yes                                                                                 <td>              <td>no
+  <tr><td>User defined units                        <td>yes                                <td>                                                                                    <td>              <td>
+  <tr><td>User defined prefixes                     <td>yes                                <td>yes                                                                                 <td>              <td>xes
 </table>
 
 <br>
 
 <table>
-  <tr><th>Feature                                   <th>mp-units                           <th>nholthaus                                    <th>bstamour<th>benri<th>mford units
-  <tr><td>SI                                        <td>yes                                <td>yes                                          <td>yes     <td>     <td>
-  <tr><td>Customary system                          <td>yes                                <td>yes                                          <td>        <td>     <td>
-  <tr><td>Other systems                             <td>???                                <td>yes (`bytes`, `radians`)                     <td>        <td>     <td>
-  <tr><td>C++ version                               <td>C++20                              <td>C++14                                        <td>        <td>     <td>
-  <tr><td>Base dimension id                         <td>string                             <td>index on template parameter list             <td>        <td>     <td>
-  <tr><td>Dimension                                 <td>type (`length`)                    <td>none                                         <td>        <td>     <td>
-  <tr><td>Dimension representation                  <td>type list                          <td>Class template arguments                     <td>        <td>     <td>
-  <tr><td>Fractional exponents                      <td>yes                                <td>yes                                          <td>        <td>     <td>
-  <tr><td>Type traits for dimensions                <td>no                                 <td>yes                                          <td>        <td>     <td>
-  <tr><td>Unit                                      <td>type (`metre`)                     <td>type (`length::meter_t`)                     <td>        <td>     <td>
-  <tr><td>UDLs                                      <td>yes                                <td>yes                                          <td>        <td>     <td>
-  <tr><td>Predefined scaled unit types              <td>some                               <td>all                                          <td>        <td>     <td>
-  <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>type + UDL (`length::kilometer_t` + `_km`)   <td>        <td>     <td>
-  <tr><td>Meter vs metre                            <td>metre                              <td>meter                                        <td>        <td>     <td>
-  <tr><td>Singular vs plural                        <td>singular (`metre`)                 <td>both (`length::meter_t` + `length::meters_t`)<td>        <td>     <td>
-  <tr><td>Quantity                                  <td>type (`quantity<metre> q(2);`)     <td>value of unit (`length::meter_t d(220);`)    <td>        <td>     <td>
-  <tr><td>Literal instance                          <td>UDL (`123m`)                       <td>UDL (`123_m`)                                <td>        <td>     <td>
-  <tr><td>Variable instance                         <td>constructor (`quantity<metre>(v)`) <td>constructor (`length::meter_t(v)`)           <td>        <td>     <td>
-  <tr><td>Any representation                        <td>yes                                <td>no (macro to set the default type)           <td>        <td>     <td>
-  <tr><td>Quantity template arguments type deduction<td>yes                                <td>no                                           <td>        <td>     <td>
-  <tr><td>System support                            <td>no                                 <td>no                                           <td>        <td>     <td>
-  <tr><td>C++ Concepts                              <td>yes                                <td>no                                           <td>no      <td>     <td>
-  <tr><td>Types downcasting                         <td>yes                                <td>no                                           <td>no      <td>     <td>
-  <tr><td>Implicit unit conversions                 <td>same dimension non-truncating only <td>                                             <td>        <td>     <td>
-  <tr><td>Explicit unit conversions                 <td>`quantity_cast`                    <td>                                             <td>        <td>     <td>
-  <tr><td>Temperature support                       <td>Kelvins only + conversion functions<td>                                             <td>        <td>     <td>
-  <tr><td>String output                             <td>TBD                                <td>yes                                          <td>        <td>     <td>
-  <tr><td>String input                              <td>no                                 <td>no                                           <td>        <td>     <td>
-  <tr><td>Macros in the user interface              <td>no                                 <td>yes                                          <td>        <td>     <td>
-  <tr><td>Non-linear scale support                  <td>no                                 <td>yes                                          <td>        <td>     <td>
+  <tr><th>Feature                                   <th>mp-units                           <th>nholthaus                                    <th>bstamour<th>benri                                   <th>mford units
+  <tr><td>SI                                        <td>yes                                <td>yes                                          <td>yes     <td>yes                                     <td>
+  <tr><td>Customary system                          <td>yes                                <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>Other systems                             <td>???                                <td>yes (`bytes`, `radians`)                     <td>        <td>yes                                     <td>
+  <tr><td>C++ version                               <td>C++20                              <td>C++14                                        <td>        <td>C++14                                   <td>
+  <tr><td>Base dimension id                         <td>string                             <td>index on template parameter list             <td>        <td>string                                  <td>
+  <tr><td>Dimension                                 <td>type (`length`)                    <td>none                                         <td>        <td>alias to type list (`length_t`)         <td>
+  <tr><td>Dimension representation                  <td>type list                          <td>Class template arguments                     <td>        <td>type list                               <td>
+  <tr><td>Fractional exponents                      <td>yes                                <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>Type traits for dimensions                <td>no                                 <td>yes                                          <td>        <td>some                                    <td>
+  <tr><td>Unit                                      <td>type (`metre`)                     <td>type (`length::meter_t`)                     <td>        <td>alias to type (`metre_t`)               <td>
+  <tr><td>UDLs                                      <td>yes                                <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>Composable UDLs                           <td>no (`kilometre`)                   <td>                                             <td>        <td>yes (`kilo * metre`)                    <td>
+  <tr><td>Predefined scaled unit types              <td>some                               <td>all                                          <td>        <td>                                        <td>
+  <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>type + UDL (`length::kilometer_t` + `_km`)   <td>        <td>                                        <td>
+  <tr><td>Meter vs metre                            <td>metre                              <td>meter                                        <td>        <td>metre                                   <td>
+  <tr><td>Singular vs plural                        <td>singular (`metre`)                 <td>both (`length::meter_t` + `length::meters_t`)<td>        <td>singular (`metre`)                      <td>
+  <tr><td>Quantity                                  <td>type (`quantity<metre> q(2);`)     <td>value of unit (`length::meter_t d(220);`)    <td>        <td>type (`quantity<metre> q(2);`)          <td>
+  <tr><td>Literal instance                          <td>UDL (`123m`)                       <td>UDL (`123_m`)                                <td>        <td>UDL (`1_metre`)                         <td>
+  <tr><td>Variable instance                         <td>constructor (`quantity<metre>(v)`) <td>constructor (`length::meter_t(v)`)           <td>        <td>constructor (`quantity<metre>(v)`)      <td>
+  <tr><td>Any representation                        <td>yes                                <td>no (macro to set the default type)           <td>        <td>yes (macro default of `double`)         <td>
+  <tr><td>Quantity template arguments type deduction<td>yes                                <td>no                                           <td>        <td>                                        <td>
+  <tr><td>System support                            <td>no                                 <td>no                                           <td>        <td>no                                      <td>
+  <tr><td>C++ Concepts                              <td>yes                                <td>no                                           <td>no      <td>no                                      <td>
+  <tr><td>Types downcasting                         <td>yes                                <td>no                                           <td>no      <td>no                                      <td>
+  <tr><td>Implicit unit conversions                 <td>same dimension non-truncating only <td>                                             <td>        <td>no                                      <td>
+  <tr><td>Explicit unit conversions                 <td>`quantity_cast`                    <td>                                             <td>        <td>`simple_cast` (`constexpr`)/`unit_cast` <td>
+  <tr><td>Temperature support                       <td>Kelvins only + conversion functions<td>                                             <td>        <td>yes                                     <td>
+  <tr><td>String output                             <td>TBD                                <td>yes                                          <td>        <td>no                                      <td>
+  <tr><td>String input                              <td>no                                 <td>no                                           <td>        <td>no                                      <td>
+  <tr><td>Macros in the user interface              <td>no                                 <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>Non-linear scale support                  <td>no                                 <td>yes                                          <td>        <td>                                        <td>
+  <tr><td>`<cmath>` support                         <td>no                                 <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>`<chrono>` support                        <td>no                                 <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>Affine types                              <td>no                                 <td>no                                           <td>        <td>yes (`quantity`, `quantity_point`)      <td>
+  <tr><td>Prefix representation                     <td>                                   <td>                                             <td>        <td>type list                               <td>
+  <tr><td>Physical/Mathematical constants           <td>no                                 <td>limited                                      <td>        <td>all                                     <td>
+  <tr><td>Dimensionless quantity                    <td>no                                 <td>                                             <td>        <td>yes                                     <td>
+  <tr><td>Arbitrary conversions                     <td>                                   <td>no                                           <td>        <td>yes                                     <td>
+  <tr><td>User defined dimensions                   <td>yes                                <td>no                                           <td>        <td>yes                                     <td>
+  <tr><td>User defined units                        <td>yes                                <td>                                             <td>        <td>yes                                     <td>
+  <tr><td>User defined prefixes                     <td>yes                                <td>yes                                          <td>        <td>yes                                     <td>
 </table>
 <!-- markdownlint-enable line-length -->
 
@@ -609,10 +640,10 @@ Improving user experience {#user-experience}
 Type aliasing issues {#type-aliasing-issues}
 --------------------------------------------
 
-Type aliases benefit developers but not end-users. As a result, users end up with colossal
+Type aliases benefit developers but not end-users. As a result users end up with colossal
 error messages.
 
-Taking Boost.Untis as an example the code developer works with the following syntax:
+Taking Boost.Units as an example, the code developer works with the following syntax:
 
 ```cpp
 namespace bu = boost::units;
@@ -622,8 +653,8 @@ constexpr bu::quantity<bu::si::velocity> avg_speed(bu::quantity<bu::si::length> 
 { return d * t; }
 ```
 
-Above calcaulation contains a simple error as a velocity [=derived quantity=] cannot be
-created from multiplication of legth and time [=base quantities=]. If such an error happens
+Above calculation contains a simple error as a velocity [=derived quantity=] cannot be
+created from multiplication of length and time [=base quantities=]. If such an error happens
 in the source code, user will need to analyze the following error for gcc-8:
 
 <!-- markdownlint-disable line-length -->
@@ -808,7 +839,7 @@ using downcast_target = decltype(detail::downcast_target_impl<T>());
 `units::downcast_target` is used to obtain the target type of the downcasting operation
 registered for a given instantiation in a base type.
 
-For example, to determine a downcasted type of a quantity multiply operation, the following
+For example, to determine a downcasted type of a quantity multiplication, the following
 can be done:
 
 ```cpp
@@ -819,8 +850,7 @@ using ret = quantity<downcast_target<unit<dim, ratio>>, common_rep>;
 ```
 
 `detail::downcast_target_impl` checks if a downcasting target is registered for the specific
-base class. If yes, it returns the registered type. Otherwise, it works like a regular identity
-type returning a provided base class.
+base class. If registered, `detail::downcast_target_impl` returns the registered type, otherwise it returns the provided base class.
 
 ```cpp
 namespace detail {
@@ -846,13 +876,14 @@ namespace detail {
 Template instantiation issues {#template-instantiation-issues}
 --------------------------------------------------------------
 
-C++ is known for its massive error logs caused by the compilation errors deep down in the
-stack of the internal implementation of function template instantiations. This is caused by
-the fact that in the vast majority of cases, function templates just take a `typename T` as
-a function template parameter, which does not place any constraints on the actual type.
-Placing such constraints with C++17 is possible thanks to SFINAE and helpers like
-`std::enable_if` or `std::void_t`, but we all know that it is not really user-friendly.
-Let's consider the following example:
+C++ is known for massive error logs caused by compilation errors deep down in the stack of
+function template instantiations of an implementation. In the vast majority of cases, this
+is caused by function templates just taking a `typename T` as their parameter, not placing
+any constratints on the actual type. In C++17 placing such constraints is possible thanks
+to SFINAE and helpers like `std::enable_if` or `std::void_t`. However, these are known to be
+not really user-friendly.
+
+Consider the following example:
 
 ```cpp
 template<typename Length, typename Time,
@@ -867,15 +898,16 @@ constexpr auto avg_speed(Length d, Time t)
 }
 ```
 
-This is clearly not the most user-friendly way to write everyday code. Imagine what would
-happen with the above sample if we had to provide longer and more complex, possibly
-multiline calculations. That is why we believe that C++20 concepts are the way to go.
+Clearly this is not the most user-friendly way to write code every day. Imagine the effort
+involved for C++ experts and non-experts alike to write longer and more complex functions,
+multiline calculations, or even whole programs in this style. Oviously C++20 concepts 
+radically simplify the boiler plate involved and are thus the way to go.
 
 
 Better errors with C++20 concepts {#better-errors-with-concepts}
 ----------------------------------------------------------------
 
-With concepts the same code can look like:
+With C++20 concepts above example is simplified to:
 
 ```cpp
 template<units::Length L, units::Time T>
@@ -885,7 +917,7 @@ constexpr units::Velocity auto avg_speed(L d, T t)
 }
 ```
 
-or even with the usage of generic function it can be implemented as:
+Using generic functions, it can even be implemented, without the template syntax, as:
 
 ```cpp
 constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
@@ -894,12 +926,12 @@ constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto 
 }
 ```
 
-Thanks to this, we get not only much stronger interfaces with their compile-time contracts
-clearly expressed by concepts right in the function template signature but also much better
-error logs. The latter is caused by the fact that the concept constraints validation is
-being done early in the function instantiation process.
+Thanks to C++20 concepts we not only get much stronger interfaces with their compile-time contracts clearly expressed by concepts in the function template signature, but also much
+better error logs. Concept constraint validation being done early in the function instantiation
+process catches errors early and not deep in the instantiation stack, significantly improving
+the readability of the actual errors.
 
-As a result, we can end up with the error like:
+For example, gcc with experimental Concepts TS support generates the following message:
 
 <!-- markdownlint-disable line-length -->
 ```text
@@ -932,18 +964,17 @@ include/meta/meta_fwd.hpp:224:18: note: ‘meta::detail::barrier’ evaluated to
 ```
 <!-- markdownlint-enable line-length -->
 
-This error was created by gcc with the experimental Concepts TS support. We can expect that
-the QoI of error logs will improve even more with time. What is important here is that the
-user gets the exact information of what was wrong with the provided type and why it did not
-meet the required constraints.
+While still being a little verbose, this is a big improvement to the page-long instantation
+lists shown above. The user gets the exact information of what was wrong with the provided
+type, why it did not meet the required constraints, and where the error occured. With concept
+suppport still being experimental, we expect error message to improve even more in the future.
 
 
 Limiting intermediate quantity value conversions {#limiting-intermediate-value-conversions}
 ===========================================================================================
 
 Many of the physical units libraries on the market decide to quietly convert different
-[=units=] to the one fixed, [=coherent derived unit=] of the [=dimension=]. For example,
-the following code:
+[=units=] to the one fixed, [=coherent derived unit=] of the [=dimension=]. For example:
 
 ```cpp
 namespace bu = boost::units;
@@ -955,15 +986,15 @@ constexpr bu::quantity<bu::si::velocity> avg_speed(bu::quantity<bu::si::length> 
 }
 ```
 
-always converts incoming `d` length and `t` time arguments to the [=base units=] of their
-[=dimensions=]. So if the user intends to write the code like this one:
+The code always (implicitly) converts incoming `d` length and `t` time arguments to the
+[=base units=] of their [=dimensions=]. So if the user intends to write the code like:
 
 ```cpp
 using kilometer_base_unit = bu::make_scaled_unit<bu::si::length,
                                                  bu::scale<10, bu::static_rational<3>>>::type;
-using length_kilometer = kilometer_base_unit::unit_type;
-using time_hour = bu::metric::hour_base_unit::unit_type;
-using velocity_kilometers_per_hour = bu::divide_typeof_helper<length_kilometer, time_hour>::type;
+using length_kilometer    = kilometer_base_unit::unit_type;
+using time_hour           = bu::metric::hour_base_unit::unit_type;
+using kilometers_per_hour = bu::divide_typeof_helper<length_kilometer, time_hour>::type;
 BOOST_UNITS_STATIC_CONSTANT(hours, time_hour);
 
 const auto v = avg_speed(bu::quantity<bu::si::length>(220 * bu::si::kilo * bu::si::meters),
@@ -972,15 +1003,32 @@ const bu::quantity<velocity_kilometers_per_hour> kmph(v);
 std::cout << kmph.value() << " km/h\n";
 ```
 
-all the values provided as arguments are first converted to SI [=base units=] before the
-function executes. After the function returns its result, it is converted back to the
-same units as provided by the user for the input arguments. It is an unnecessary coast
-in runtime, but also it might be the source of precision loss.
+All the values provided as arguments are first converted to SI [=base units=] before the
+function executes. After the function returns, the result is converted back to the same units as provided by the user for the input arguments. These conversions can significantly slow down
+the execution of a function, and lead to an increased loss of precision.
+
+For our example, three conversions have to be made. One to convert the length from `220km` to `220000m`, one to convert the time from `2h` to `7200s`, and one to convert the result back from
+`30.5555...m/s` to `110km/s`. Yet, when considering the units, no conversion actually has to be
+made. Simply dividing `220` by `2` would suffice.
+
+Even for the case where the result is desired in another unit, the implementation loses on
+performance and precision:
+
+```cpp
+const auto v = avg_speed(bu::quantity<bu::si::length>(220 * bu::si::kilo * bu::si::meters),
+                         bu::quantity<bu::si::time>(2 * hours));
+const bu::quantity<miles_per_hour> mph(v);
+std::cout << mph.value() << " mi/h\n";
+```
+
+Still three conversions are performed, whereas an optimal implementation would store the result
+of `220km/2h` as `110km/h` without conversion and only convert `110km/h` to `68.35mi/h`.
+
 
 Template arguments type deduction {#arguments-type-deduction}
 -------------------------------------------------------------
 
-The above problem can somehow be solved by the function template argument deduction:
+Above problem can be solved using function template argument deduction:
 
 ```cpp
 template<typename LengthSystem, typename Rep1, typename TimeSystem, typename Rep2>
@@ -991,8 +1039,12 @@ constexpr auto avg_speed(bu::quantity<bu::unit<bu::length_dimension, LengthSyste
 }
 ```
 
-which allows us to form a template function taking required dimensions for its parameters.
-Constraining the return value is a bigger problem, though. We can do something like this:
+This allows us to put requirements on the parameter dimensions without limiting the units
+allowed. Therefore no conversion before the function call is necessary, reducing conversion
+overhead and precision loss.
+
+Yet, constraining the return value is a bigger problem. In C++17 it is possible to achieve a
+constrained return value, but the syntax is not very pretty:
 
 ```cpp
 template<typename LengthSystem, typename Rep1, typename TimeSystem, typename Rep2>
@@ -1006,28 +1058,29 @@ avg_speed(bu::quantity<bu::unit<bu::length_dimension, LengthSystem>, Rep1> d,
 }
 ```
 
-However, this requires from the user to manually reimplement dimensional analysis logic
-in the template metaprogramming land which is not a solution here.
+What is more, the user has to manually reimplement dimensional analysis logic in template
+metaprogramming land, not actually using the units library which should provide such a
+functionality.
 
-Worth noting is that with some libraries, we cannot address even the first step for
+It is worth noting, that for some libraries we cannot even address the first step for the
 function template arguments. In the case of [[NIC_UNITS]] [=derived units=] are implemented
 in terms of [=base units=]:
 
 ```cpp
-using meter_t = units::unit_t<units::unit<std::ratio<1>, units::category::length_unit>>;
+using meter_t     = units::unit_t<units::unit<std::ratio<1>, units::category::length_unit>>;
 using kilometer_t = units::unit_t<units::unit<std::ratio<1000, 1>, meter_t>,
                                   std::ratio<0, 1>,
                                   std::ratio<0, 1>>>;
 ```
 
-which makes it impossible to know upfront where `units::category::length_unit` will exist
+This makes it impossible to know upfront where `units::category::length_unit` will exist
 in a class template instantiation.
 
 Generic programming with concepts {#generic-programming-with-concepts}
 ----------------------------------------------------------------------
 
-The answer to such problems is again C++20 concepts. With their help the same function
-can be implemented as:
+The answer to constraining templates is again C++20 concepts. With their help the above
+function can be implemented as:
 
 ```cpp
 constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
@@ -1036,7 +1089,7 @@ constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto 
 }
 ```
 
-This gives us benefits of:
+This gives us the benefit of:
 - working on the user-provided units and values without any intermediate conversions,
 - better error logs (as described in [[#better-errors-with-concepts]]),
 - function template parameter constraints clearly expressed in the function template signature,
@@ -1046,19 +1099,22 @@ This gives us benefits of:
 With such an approach, the resulting binary generated by the compiler is the same fast
 (or sometimes even faster) than the one generated for direct usage of fundamental types.
 
-Additionally, concepts usage relieves us from the most common need for a
-[=system of quantities=], which is to define a new system just to fix a custom base unit
-for a specific dimension. This is just a workaround to limit the number of intermediate
-conversions.
+Additionally, concept usage relieves us from the need to implement a [=system of quantities=],
+which in other libraries needs to be defined to fix a custom base unit to a specific dimension.
+In these libraries, defining such a unit system is a workaround for constraining template
+function parameters and limiting the number of intermediate conversions.
 
-Also, important to notice here is the fact that C++20 concepts are useful not only to constrain
+Futhermore it needs to be emphasized, that C++20 concepts are useful not only to constrain
 function template arguments and their return value but can also be used to constrain the types
-of user's variables:
+of user variables:
 
 ```cpp
 const units::Velocity auto speed = avg_speed(220.km, 2.h);
 ```
 
+If for some reason the function `avg_speed` would no longer return a velocity, the error would
+be shown clearly by the compiler, a feature which cannot be provided by C++17 template
+metaprogramming.
 
 `std::ratio` on steroids {#ratio-on-steroids}
 =============================================
@@ -1068,14 +1124,12 @@ Some of the [=derived units=] have really [=multiple of a unit|big=] or
 that it cannot be expressed with `std::ratio`, which is implemented in terms of
 `std::intmax_t`.
 
-This is why it is really hard to express units like electronvolt (eV) where
-1eV = 1.602176634×10<sup>−19</sup> J or dalton where
-1 Da = 1.660539040(20)×10<sup>−27</sup> kg.
-Although a custom [=system of quantities=] could be a solution, it would be a sort of
-workaround here.
+This makes it really hard to express units like electronvolt (eV) where
+1eV = 1.602176634×10<sup>−19</sup> J or Dalton where 1 Da = 1.660539040(20)×10<sup>−27</sup> kg.
+Although a custom [=system of quantities=] could be a solution, it would only be a workaround
+as it cannot provide seamless conversion between all possible units.
 
-We need a better, flexible solution. One of the possiblities might be to redefine ratio with
-a one additional parameter:
+A better, more flexible solution is needed. One of the possiblities might be to redefine ratio with one additional parameter:
 
 ```cpp
 template<std::intmax_t Num, std::intmax_t Den = 1, std::intmax_t Exp = 0>
@@ -1083,34 +1137,37 @@ template<std::intmax_t Num, std::intmax_t Den = 1, std::intmax_t Exp = 0>
 struct new_ratio;
 ```
 
-With such an approach we will be able to easily address all of the ratios with a required
-precision.
+With such an approach it will be possible to easily address any occuring ratio with a required
+precision. For example, the conversion rate between one electronvolt and one Joule could be
+expressed as:
 
+```cpp
+new_ratio<1602176634, 1000000000, -19>
+```
 
 Extensibility {#extensibility}
 ==============================
 
 The units library should be designed in a way that allows users to easily extend it with
-their own units, derived, or even base, dimensions. The C++ Standard Library will most probably
+their own units, derived, or even base dimensions. The C++ Standard Library will most likely
 decide to ship with a support for "just" physical units with possible extension to digital
-information dimensions and their units. This shouldn't limit the users to the library engine
-to address their needs in their domains.
+information dimensions and their units. This should not limit users to the units and quantities provided by library engine, but address all their needs in their specific domains.
 
-Here are the most important points that have to be addressed by such an engine in order to
-provide good extensibility:
-- allows extending the library with new [=units=], [=derived quantity|derived=], and
-    [=base quantities=],
-- provides the same user experience for user-defined entities as for built-in ones,
-- no preprocessor macros in the user's interface,
-- extensions created by two independent vendors should not collide with each other as long
-    as the address separate domains.
+The most important points that have to be provided by such C++ Standard library engine in
+order to provide good extensibility are:
+- The library has to be extendible with new [=units=], [=derived quantity|derived=], and
+    [=base quantities=], interacting with the existing ones.
+- The user-defined entities have to provide the same user experience as built-in ones.
+- Extension shall be possible without preprocessor macros in the user interface.
+- Extensions to the C++ Standard library engine created by two independent vendors shall not 
+    collide with each other as long as they address separate domains.
 
 
 Easy to use and hard to abuse {#easy-to-use-hard-to-abuse}
 ==========================================================
 
-A lot users complain about the complexity of existing solutions. For example to start with
-Boost.Units users have to:
+Users complain about the complexity of existing solutions. For example, Boost.Units users
+have to:
 - include a lot of specific header files,
 - define a lot of types by themselves (see [[#limiting-intermediate-value-conversions]]),
 - fight with compilation errors (see [[#user-experience]]) and debugging,
@@ -1124,33 +1181,38 @@ Most of those issues can be solved during the design time. We should strive to p
 1. Behavior similar to `std::chrono` as it proved to be a good design and the user base already
     got used to that.
 2. Clear responsibility of each type (base_dimension -> exp -> dimension -> unit -> quantity).
-3. Easy to extend with custom dimensions or units.
-4. Easy to understand error messages and good debugging experience thanks to downcast
+3. Ease to extend with custom dimensions or units.
+4. Ease to understand error messages and a good debugging experience thanks to downcast
     facility and concepts.
 5. No dedicated abstraction for [=systems=] that would complicate implementation and reasoning
     about the library engine and functionality (at least until future users will not provide
     solid requirements and use cases for such an entity).
+6. A basic set of prefixes, units, quantities, constants, and concepts.
 
 
 Design principles {#design-principles}
 ======================================
 
-Here are the basic design principles that should be used to implement a physical units library
-for C++:
-1. Safety and performance
+The basic design principles that should be used to implement a physical units library
+for C++ are:
+1. Safety and performance:
     - strong types
     - only safe implicit conversions should be allowed
-    - compile-time safety and verification wherever possible
+    - compile-time safety and verification wherever possible (break at compile time, not at
+        runtime)
     - constexpr all the things
-    - as fast or even faster than when working with fundamental types
-2. The best possible user experience
+    - as fast or even faster than working with fundamental types
+2. The best possible user experience:
     - interfaces embraced with clear concepts and contracts
     - user friendly compiler errors
     - good debugging experience
-3. No macros in the user interface
-4. Easy extensibility
-5. No external dependencies
-6. Possibility to be standardized as a freestanding part of the C++ Standard Library
+3. No macros in the user interface.
+4. Easy extensibility.
+5. No external dependencies.
+6. Possibility to be standardized as a freestanding part of the C++ Standard Library.
+7. Batteries included:
+    - provide basic prefixes, units, quantities, constants, and concepts
+    - non-experts should easily be able to achieve simple calculations
 
 
 Open questions {#open-questions}
@@ -1794,23 +1856,31 @@ Polls {#polls}
 1. Do we want a physical units library in the C++ standard?
 2. Should we provide the support for some [=off-system units=] (i.e. eV)?
 3. Do we want to have support for digital information [=dimensions=] and its
-    [=multiple of a unit|prefixes=] in the initial version of the library?
+     [=multiple of a unit|prefixes=] in the initial version of the library?
 4. Do we prefer UDL, multiply, or mixed syntax for units?
 5. Do we like the concept-based approach to prevent truncation?
 6. Do we like a downcasting facility or do we want to wait for other solutions (strong types
-    in the language, better compiler errors, ...)?
+     in the language, better compiler errors, ...)?
 7. Do we prefer NTTP usage for `ratio` and `exp`?
-8. Do we want to require explicit casts between different units of the same dimension, or
-    do we allow `chrono`-like implicit conversions (floating-point representation and
-    non-truncating integer conversions)?
-9. Do we agree with Kelvins only support for temperature and verbose conversion functions
-    for other [=units=] and absolute temperatures?
-10. Which option of UDLs do we prefer ([[#integral-udl]])?
-11. Should we provide `seconds<int>` or stay with `quantity<second, int>`
+8. Do we want to require explicit representation casts between different units of the same
+     dimension, or do we allow `chrono`-like implicit conversions (floating-point representation
+     and non-truncating integer conversions)?
+9. Do we want to require explicit unit casts between different units of the same dimension,
+     or do we allow `chrono`-like implicit conversions (implicitly convert kilometre to metre,
+     sometimes doing unnecessary conversions)?
+10. Do we agree with Kelvins only support for temperature and verbose conversion functions
+      for other [=units=] and absolute temperatures?
+11. Which option of UDLs do we prefer ([[#integral-udl]])?
+12. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)
+13. Should we provide `seconds<int>` or stay with `quantity<second, int>`
     ([[#seconds-int]])?
-12. Should we provide support for dimensionless quantities ([[#dimensionless-quantities]])?
-13. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)
-14. Do we want to introduce a dedicated system type?
+14. Should we provide support for dimensionless quantities ([[#dimensionless-quantities]])?
+15. Do we want to introduce a dedicated system type?
+16. Should affine types be provided? (relative vs absolute)
+17. Should ISO 80000-1:2009 units be provided? If yes, how should updates to the ISO standard
+      be handled? (Separate namespaces?)
+18. Should constants be provided? If yes, how should updates to the constants be handled?
+      (Separate namespaces?)
 
 
 Acknowledgments {#acknowledgements}
@@ -1819,7 +1889,7 @@ Acknowledgments {#acknowledgements}
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting my
 membership in the ISO C++ Committee and the production of this proposal.
 
-I would also like to thank Jan Sende for his contributions to the `mp-units` library and
+I would also like to thank Jan A. Sende for his contributions to the `mp-units` library and
 this document.
 
 <pre class=biblio>
@@ -1897,7 +1967,7 @@ this document.
         "title": "units"
     },
     "BENRI": {
-        "authors": [ "Jan Sende" ],
+        "authors": [ "Jan A. Sende" ],
         "href": "https://github.com/jansende/benri",
         "title": "benri"
     },
