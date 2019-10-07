@@ -1345,7 +1345,7 @@ const auto v10 = (km/h)(123);
 const auto v11 = 123km/h;
 ```
 
-All of the above variables for length and velocity are respectively of the same type and
+All of the above variables for length and velocity are respectively of the same [=unit=] and
 contain the same value.
 
 The good parts here are:
