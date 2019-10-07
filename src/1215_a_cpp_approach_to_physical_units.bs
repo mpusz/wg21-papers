@@ -181,7 +181,7 @@ constexpr std::units::percent lightspeed_limit(std::units::Length auto d, std::u
 }
 ```
 Should fail to compile with:
-```test
+```text
 example.cpp: in function 'constexpr std::units::Velocity auto avg_speed(std::units::Length auto d, std::units::Time auto t)'
 example.cpp: error: t is not a Length.
 example.cpp: error: d is not a Time.
