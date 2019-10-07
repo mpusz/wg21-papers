@@ -1647,22 +1647,31 @@ Polls {#polls}
 1. Do we want a physical units library in the C++ standard?
 2. Should we provide the support for some [=off-system units=] (i.e. eV)?
 3. Do we want to have support for digital information [=dimensions=] and its
-    [=multiple of a unit|prefixes=] in the initial version of the library?
+   [=multiple of a unit|prefixes=] in the initial version of the library?
 4. Do we prefer UDL, multiply, or mixed syntax for units?
 5. Do we like the concept-based approach to prevent truncation?
 6. Do we like a downcasting facility or do we want to wait for other solutions (strong types
-    in the language, better compiler errors, ...)?
+   in the language, better compiler errors, ...)?
 7. Do we prefer NTTP usage for `ratio` and `exp`?
-8. Do we want to require explicit casts between different units of the same dimension, or
-    do we allow `chrono`-like implicit conversions (floating-point representation and
-    non-truncating integer conversions)?
-9. Do we agree with Kelvins only support for temperature and verbose conversion functions
+8. Do we want to require explicit representation casts between different units of the same
+   dimension, or do we allow `chrono`-like implicit conversions (floating-point representation
+   and non-truncating integer conversions)?
+9. Do we want to require explicit unit casts between different units of the same dimension,
+   or do we allow `chrono`-like implicit conversions (implicitly convert kilometre to metre,
+   sometimes doing unnecessary conversions)?
+10. Do we agree with Kelvins only support for temperature and verbose conversion functions
     for other [=units=] and absolute temperatures?
-10. Which option of UDLs do we prefer ([[#integral-udl]])?
-11. Should we provide `seconds<int>` or stay with `quantity<second, int>`?
-12. Should we provide support for dimensionless quantities?
-13. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)
-14. Do we want to introduce a dedicated system type?
+11. Which option of UDLs do we prefer ([[#integral-udl]])?
+12. Should we provide `seconds<int>` or stay with `quantity<second, int>`?
+13. Should we provide support for dimensionless quantities?
+14. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)
+15. Do we want to introduce a dedicated system type?
+16. Should affine types be provided? (relative vs absolute)
+17. Should ISO 80000-1:2009 units be provided? If yes, how should updates to the ISO standard
+    be handled? (Separate namespaces?)
+18. Should constants be provided? If yes, how should updates to the constants be handled?
+    (Separate namespaces?)
+19. Should the quantity representation be limited to built-in types?
 
 
 Acknowledgments {#acknowledgements}
