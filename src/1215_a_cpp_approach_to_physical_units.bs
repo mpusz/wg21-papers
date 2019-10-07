@@ -534,9 +534,9 @@ Comparison {#comparison}
 <table>
   <tr><th>Feature                                   <th>mp-units                           <th>Boost.Units                                                                         <th>cppnow17-units<th>PhysUnits-CT-Cpp11>
   <tr><td>SI                                        <td>yes                                <td>yes                                                                                 <td>yes           <td>yes
-  <tr><td>Customary system                          <td>yes                                <td>yes                                                                                 <td>              <td>
-  <tr><td>Other systems                             <td>???                                <td>yes                                                                                 <td>              <td>
-  <tr><td>C++ version                               <td>C++20                              <td>C++98 + `constexpr`                                                                 <td>              <td>
+  <tr><td>Customary system                          <td>yes                                <td>yes                                                                                 <td>              <td>some
+  <tr><td>Other systems                             <td>???                                <td>yes                                                                                 <td>              <td>some
+  <tr><td>C++ version                               <td>C++20                              <td>C++98 + `constexpr`                                                                 <td>              <td>C++11
   <tr><td>Base dimension id                         <td>string                             <td>integer                                                                             <td>              <td>
   <tr><td>Dimension                                 <td>type (`length`)                    <td>type (`length_dimension`)                                                           <td>              <td>
   <tr><td>Dimension representation                  <td>type list                          <td>type list                                                                           <td>              <td>
@@ -563,6 +563,16 @@ Comparison {#comparison}
   <tr><td>String input                              <td>no                                 <td>no                                                                                  <td>              <td>
   <tr><td>Macros in the user interface              <td>no                                 <td>yes                                                                                 <td>              <td>
   <tr><td>Non-linear scale support                  <td>no                                 <td>no                                                                                  <td>              <td>
+  <tr><td>`<cmath>` support                         <td>no                                 <td>yes                                                                                 <td>              <td>no
+  <tr><td>`<chrono>` support                        <td>no                                 <td>no                                                                                  <td>              <td>no
+  <tr><td>Affine types                              <td>no                                 <td>yes (`TBD`, `TBD`)                                                                  <td>              <td>no
+  <tr><td>Prefix representation                     <td>                                   <td>                                                                                    <td>              <td>
+  <tr><td>Physical/Mathematical constants           <td>no                                 <td>yes                                                                                 <td>              <td>limited
+  <tr><td>Dimensionless quantity                    <td>no                                 <td>                                                                                    <td>              <td>
+  <tr><td>Arbitrary conversions                     <td>                                   <td>yes                                                                                 <td>              <td>yes
+  <tr><td>User defined dimensions                   <td>yes                                <td>yes                                                                                 <td>              <td>no
+  <tr><td>User defined units                        <td>yes                                <td>                                                                                    <td>              <td>
+  <tr><td>User defined prefixes                     <td>yes                                <td>yes                                                                                 <td>              <td>xes
 </table>
 
 <br>
@@ -599,6 +609,16 @@ Comparison {#comparison}
   <tr><td>String input                              <td>no                                 <td>no                                           <td>        <td>no                                      <td>
   <tr><td>Macros in the user interface              <td>no                                 <td>yes                                          <td>        <td>yes                                     <td>
   <tr><td>Non-linear scale support                  <td>no                                 <td>yes                                          <td>        <td>                                        <td>
+  <tr><td>`<cmath>` support                         <td>no                                 <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>`<chrono>` support                        <td>no                                 <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>Affine types                              <td>no                                 <td>no                                           <td>        <td>yes (`quantity`, `quantity_point`)      <td>
+  <tr><td>Prefix representation                     <td>                                   <td>                                             <td>        <td>type list                               <td>
+  <tr><td>Physical/Mathematical constants           <td>no                                 <td>limited                                      <td>        <td>all                                     <td>
+  <tr><td>Dimensionless quantity                    <td>no                                 <td>                                             <td>        <td>yes                                     <td>
+  <tr><td>Arbitrary conversions                     <td>                                   <td>no                                           <td>        <td>yes                                     <td>
+  <tr><td>User defined dimensions                   <td>yes                                <td>no                                           <td>        <td>yes                                     <td>
+  <tr><td>User defined units                        <td>yes                                <td>                                             <td>        <td>yes                                     <td>
+  <tr><td>User defined prefixes                     <td>yes                                <td>yes                                          <td>        <td>yes                                     <td>
 </table>
 <!-- markdownlint-enable line-length -->
 
