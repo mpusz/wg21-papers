@@ -544,6 +544,7 @@ Comparison {#comparison}
   <tr><td>Type traits for dimensions                <td>no                                 <td>yes                                                                                 <td>              <td>
   <tr><td>Unit                                      <td>type (`metre`)                     <td>type + constant (`si::length` + `si::meter`)                                        <td>              <td>
   <tr><td>UDLs                                      <td>yes                                <td>no                                                                                  <td>              <td>
+  <tr><td>Composable UDLs                           <td>no (`kilometre`)                   <td>no                                                                                  <td>              <td>
   <tr><td>Predefined scaled unit types              <td>some                               <td>no                                                                                  <td>              <td>
   <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>user's type + multiply with constant (`make_scaled_unit<>` + `si::kilo * si::meter`)<td>              <td>
   <tr><td>Meter vs metre                            <td>metre                              <td>both                                                                                <td>              <td>
@@ -590,6 +591,7 @@ Comparison {#comparison}
   <tr><td>Type traits for dimensions                <td>no                                 <td>yes                                          <td>        <td>some                                    <td>
   <tr><td>Unit                                      <td>type (`metre`)                     <td>type (`length::meter_t`)                     <td>        <td>alias to type (`metre_t`)               <td>
   <tr><td>UDLs                                      <td>yes                                <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>Composable UDLs                           <td>no (`kilometre`)                   <td>                                             <td>        <td>yes (`kilo * metre`)                    <td>
   <tr><td>Predefined scaled unit types              <td>some                               <td>all                                          <td>        <td>                                        <td>
   <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>type + UDL (`length::kilometer_t` + `_km`)   <td>        <td>                                        <td>
   <tr><td>Meter vs metre                            <td>metre                              <td>meter                                        <td>        <td>metre                                   <td>
