@@ -180,8 +180,8 @@ Scope {#scope}
 
 Although there is a public demand for a generic units library that could handle any units and
 dimensions, the author suggests scoping the Committee efforts only on the physical and possibly
-computer science (i.e. `bit`, `byte`, `bitrate`) units first. The library should be designed with
-easy extensibility in mind so anyone needing a new base or derived dimensions
+computer science (i.e. `bit`, `byte`, `bitrate`) units first. The library should be designed
+with easy extensibility in mind so anyone needing a new base or derived dimensions
 (i.e. `coffee/milk/water/sugar` system) could achieve this with a few lines of the C++ code
 (not preprocessor macros).
 
@@ -219,11 +219,11 @@ ISO 80000-1:2009(E) Quantities and units - Part 1: General
         to be [=quantities=] of the same kind, namely, of the kind of quantity called length.)
 - [=Quantities=] of the same kind within a given [=system of quantities=] have the same quantity
     [=dimension=]. However, [=quantities=] of the same [=dimension=] are not necessarily of
-    the same kind.        
+    the same kind.
     - For example, the absorbed dose and the dose equivalent have the same
         dimension. However, the former measures the absolute amount of radiation one receives
-        wherase the latter is a weighted measurement taking into account the kind of radiation on 
-        was exposed to.
+        wherase the latter is a weighted measurement taking into account the kind of radiation
+        on was exposed to.
 
 <dfn lt="system of quantities|system">system of quantities, system</dfn>
 
@@ -337,9 +337,9 @@ unit</dfn>
 off-system unit</dfn>
 
 - [=Measurement unit=] that does not belong to a given [=system of units=]. For example, the
-    electronvolt (≈ 1,602 18 × 10–19 J) is an off-system measurement unit of energy with respect
-    to the SI or day, hour, minute are off-system measurement units of time with respect to the
-    SI.
+    electronvolt (≈ 1,602 18 × 10–19 J) is an off-system measurement unit of energy with
+    respect to the SI or day, hour, minute are off-system measurement units of time with
+    respect to the SI.
 
 <dfn lt="International System of Units|SI">International System of Units (SI)</dfn>
 
@@ -352,7 +352,7 @@ off-system unit</dfn>
 - [=Measurement unit=] obtained by multiplying a given [=measurement unit=] by an integer
     greater than one.
 - [=SI=] prefixes refer strictly to powers of 10, and should not be used for powers of 2. That
-    is, 1 kbit should not be used to represent 1024 bits (2<sup>10</sup> bits), which is a 
+    is, 1 kbit should not be used to represent 1024 bits (2<sup>10</sup> bits), which is a
     kibibit (1 Kibit).
 
 <dfn>submultiple of a unit</dfn>
@@ -850,7 +850,8 @@ using ret = quantity<downcast_target<unit<dim, ratio>>, common_rep>;
 ```
 
 `detail::downcast_target_impl` checks if a downcasting target is registered for the specific
-base class. If registered, `detail::downcast_target_impl` returns the registered type, otherwise it returns the provided base class.
+base class. If registered, `detail::downcast_target_impl` returns the registered type,
+otherwise it returns the provided base class.
 
 ```cpp
 namespace detail {
@@ -900,7 +901,7 @@ constexpr auto avg_speed(Length d, Time t)
 
 Clearly this is not the most user-friendly way to write code every day. Imagine the effort
 involved for C++ experts and non-experts alike to write longer and more complex functions,
-multiline calculations, or even whole programs in this style. Oviously C++20 concepts 
+multiline calculations, or even whole programs in this style. Obviously C++20 concepts
 radically simplify the boiler plate involved and are thus the way to go.
 
 
@@ -926,7 +927,8 @@ constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto 
 }
 ```
 
-Thanks to C++20 concepts we not only get much stronger interfaces with their compile-time contracts clearly expressed by concepts in the function template signature, but also much
+Thanks to C++20 concepts we not only get much stronger interfaces with their compile-time
+contracts clearly expressed by concepts in the function template signature, but also much
 better error logs. Concept constraint validation being done early in the function instantiation
 process catches errors early and not deep in the instantiation stack, significantly improving
 the readability of the actual errors.
@@ -1004,12 +1006,14 @@ std::cout << kmph.value() << " km/h\n";
 ```
 
 All the values provided as arguments are first converted to SI [=base units=] before the
-function executes. After the function returns, the result is converted back to the same units as provided by the user for the input arguments. These conversions can significantly slow down
-the execution of a function, and lead to an increased loss of precision.
+function executes. After the function returns, the result is converted back to the same
+units as provided by the user for the input arguments. These conversions can significantly
+slow down the execution of a function, and lead to an increased loss of precision.
 
-For our example, three conversions have to be made. One to convert the length from `220km` to `220000m`, one to convert the time from `2h` to `7200s`, and one to convert the result back from
-`30.5555...m/s` to `110km/s`. Yet, when considering the units, no conversion actually has to be
-made. Simply dividing `220` by `2` would suffice.
+For our example, three conversions have to be made. One to convert the length from `220km`
+to `220000m`, one to convert the time from `2h` to `7200s`, and one to convert the result
+back from `30.5555...m/s` to `110km/s`. Yet, when considering the units, no conversion
+actually has to be made. Simply dividing `220` by `2` would suffice.
 
 Even for the case where the result is desired in another unit, the implementation loses on
 performance and precision:
@@ -1043,8 +1047,8 @@ This allows us to put requirements on the parameter dimensions without limiting 
 allowed. Therefore no conversion before the function call is necessary, reducing conversion
 overhead and precision loss.
 
-Yet, constraining the return value is a bigger problem. In C++17 it is possible to achieve a
-constrained return value, but the syntax is not very pretty:
+Yet, constraining the return value is a bigger problem. In C++17 it is possible to achieve
+a constrained return value, but the syntax is not very pretty:
 
 ```cpp
 template<typename LengthSystem, typename Rep1, typename TimeSystem, typename Rep2>
@@ -1125,11 +1129,13 @@ that it cannot be expressed with `std::ratio`, which is implemented in terms of
 `std::intmax_t`.
 
 This makes it really hard to express units like electronvolt (eV) where
-1eV = 1.602176634×10<sup>−19</sup> J or Dalton where 1 Da = 1.660539040(20)×10<sup>−27</sup> kg.
+1eV = 1.602176634×10<sup>−19</sup> J or Dalton where
+1 Da = 1.660539040(20)×10<sup>−27</sup> kg.
 Although a custom [=system of quantities=] could be a solution, it would only be a workaround
 as it cannot provide seamless conversion between all possible units.
 
-A better, more flexible solution is needed. One of the possiblities might be to redefine ratio with one additional parameter:
+A better, more flexible solution is needed. One of the possiblities might be to redefine
+ratio with one additional parameter:
 
 ```cpp
 template<std::intmax_t Num, std::intmax_t Den = 1, std::intmax_t Exp = 0>
@@ -1151,7 +1157,8 @@ Extensibility {#extensibility}
 The units library should be designed in a way that allows users to easily extend it with
 their own units, derived, or even base dimensions. The C++ Standard Library will most likely
 decide to ship with a support for "just" physical units with possible extension to digital
-information dimensions and their units. This should not limit users to the units and quantities provided by library engine, but address all their needs in their specific domains.
+information dimensions and their units. This should not limit users to the units and
+quantities provided by library engine, but address all their needs in their specific domains.
 
 The most important points that have to be provided by such C++ Standard library engine in
 order to provide good extensibility are:
@@ -1159,8 +1166,8 @@ order to provide good extensibility are:
     [=base quantities=], interacting with the existing ones.
 - The user-defined entities have to provide the same user experience as built-in ones.
 - Extension shall be possible without preprocessor macros in the user interface.
-- Extensions to the C++ Standard library engine created by two independent vendors shall not 
-    collide with each other as long as they address separate domains.
+- Extensions to the C++ Standard library engine created by two independent vendors shall
+    not collide with each other as long as they address separate domains.
 
 
 Easy to use and hard to abuse {#easy-to-use-hard-to-abuse}
@@ -1448,9 +1455,9 @@ have sense. For example:
 - If I am sitting in a moving train, is my velocity == 0?
 - Is my velocity == 0 when the train stops?
 
-However, for some [=base quantities=] like temperature, absolute values are really needed. For
-example, how much is `0 ℃ + 0 ℃`? Is it `0 ℃` or `0 ℃` or `273.15 ℃`? Yes, the repeated
-value of `0 ℃` is not an error here ;-) Actually, all of the answers are right:
+However, for some [=base quantities=] like temperature, absolute values are really needed.
+For example, how much is `0 ℃ + 0 ℃`? Is it `0 ℃` or `0 ℃` or `273.15 ℃`? Yes, the
+repeated value of `0 ℃` is not an error here ;-) Actually, all of the answers are right:
 - Two (absolute) temperatures:
 
     ```text
