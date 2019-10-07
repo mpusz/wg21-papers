@@ -29,7 +29,7 @@ that activity.
 
 ### Under Development
 
-- [P1215: A C++ Approach to Physical Units](papers/1215_a_cpp_approach_to_physical_units.html)
+- [D1935: A C++ Approach to Physical Units](papers/1935_a_cpp_approach_to_physical_units.html)
 
 ## More Papers
 
