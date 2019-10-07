@@ -1726,8 +1726,8 @@ any helper aliases for their domains and use cases if they choose so (i.e. `s(12
 Should we provide support for [=dimensionless quantities=]? {#dimensionless-quantities}
 ---------------------------------------------------------------------------------------
 
-Some [=quantities of dimension one=] are defined as the ratios of two [=quantities of
-the same kind=]. The [=coherent derived unit=] is the number one, symbol 1. For example:
+Some [=quantities of dimension one=] are defined as the ratios of two [=quantities=] of
+the same [=kind=]. The [=coherent derived unit=] is the number one, symbol 1. For example:
 plane angle, solid angle, refractive index, relative permeability, mass fraction,
 friction factor, Mach number, etc.
 
