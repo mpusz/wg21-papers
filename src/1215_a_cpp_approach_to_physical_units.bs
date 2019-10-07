@@ -1571,7 +1571,7 @@ Acknowledgments {#acknowledgements}
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting my
 membership in the ISO C++ Committee and the production of this proposal.
 
-I would also like to thank Jan Sende for his contributions to the `mp-units` library and
+I would also like to thank Jan A. Sende for his contributions to the `mp-units` library and
 this document.
 
 <pre class=biblio>
@@ -1649,7 +1649,7 @@ this document.
         "title": "units"
     },
     "BENRI": {
-        "authors": [ "Jan Sende" ],
+        "authors": [ "Jan A. Sende" ],
         "href": "https://github.com/jansende/benri",
         "title": "benri"
     },
