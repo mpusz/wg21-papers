@@ -317,7 +317,7 @@ unit</dfn>
 <dfn>base unit</dfn>
 
 - Measurement unit that is adopted by convention for a [=base quantity=].
-- In each coherent [=system of units=], there is only one base unit for each [=base quantity=].
+- In each [=coherent system of units=], there is only one base unit for each [=base quantity=].
 - A base unit may also serve for a [=derived quantity=] of the same [=quantity dimension=].
 - For example, the ISQ has the base units of: metre, kilogram, second, Ampere, Kelvin, mole,
     and candela.
@@ -341,6 +341,13 @@ unit</dfn>
 
 - Set of [=base units=] and [=derived units=], together with their multiples and submultiples,
     defined in accordance with given rules, for a given [=system of quantities=].
+
+<dfn>coherent system of units</dfn>
+
+- [=System of units=], based on a given [=system of quantities=], in which the measurement
+    unit for each [=derived quantity=] is a [=coherent derived unit=].
+- A [=system of units=] can be coherent only with respect to a [=system of quantities=] and
+    the adopted [=base units=].
 
 <dfn lt="off-system measurement unit|off-system unit">off-system measurement unit,
 off-system unit</dfn>
