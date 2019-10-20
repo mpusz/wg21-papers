@@ -922,15 +922,15 @@ a strong type assigned by the user. A simplified mental model of the facility ma
 represented as:
 
 ```cpp
-struct velocity : derived_dimension<exp<base_dim_length, 1>, exp<base_dim_time, -1>>;
-struct metre_per_second : derived_unit<velocity, std::ratio<1>>;
+struct velocity : dimension<exp<base_dim_length, 1>, exp<base_dim_time, -1>>;
+struct metre_per_second : unit<velocity, "m/s", std::ratio<1>>;
 ```
 
 In the above example, `velocity` and `metre_per_second` are the downcasting targets
-(child classes), and specific `derived_dimension` and `derived_unit` class template
-instantiations are downcasting sources (base classes). The downcasting facility provides
-one to one type substitution mechanism for those types. This means that only one child
-class can be created for a specific base class template instantiation.
+(child classes), and specific `dimension` and `unit` class template instantiations
+are downcasting sources (base classes). The downcasting facility provides one to one
+type substitution mechanism for those types. This means that only one child class can
+be created for a specific base class template instantiation.
 
 The downcasting facility is provided through two dedicated types, a concept, and a few
 helper template aliases.
@@ -976,12 +976,15 @@ type of a downcasting operation. It is used in the following way to define `dime
 
 ```cpp
 template<typename Child, Exponent... Es>
-struct derived_dimension : downcast_helper<Child, detail::make_dimension_t<Es...>> {};
+struct derived_dimension : downcast_helper<Child, typename detail::make_dimension<Es...>::type> {};
 ```
 
 ```cpp
-template<typename Child, Dimension D>
-struct derived_unit<Child, D, R> : downcast_helper<Child, unit<D, ratio<1>>> {};
+template<typename Child, basic_fixed_string Symbol, Dimension D, typename PrefixType = no_prefix>
+struct coherent_derived_unit : downcast_helper<Child, unit<D, ratio<1>>> {
+  static constexpr auto symbol = Symbol;
+  using prefix_type = PrefixType;
+};
 ```
 
 With such helper types, the only thing the user has to do is to register a new type for the
@@ -989,8 +992,8 @@ downcasting facility by publicly deriving from one of those CRTP types and provi
 child type as the first template parameter of the CRTP type:
 
 ```cpp
-struct velocity : derived_dimension<velocity, exp<base_dim_length, 1>, exp<base_dim_time, -1>>;
-struct metre_per_second : derived_unit<metre_per_second, velocity, std::ratio<1>>;
+struct velocity : derived_dimension<velocity, exp<base_dim_length, 1>, exp<base_dim_time, -1>> {};
+struct metre_per_second : coherent_derived_unit<metre_per_second, "m/s", velocity> {};
 ```
 
 The above types are used to define the base and target of a downcasting operation. To perform
@@ -1601,10 +1604,10 @@ struct ratio {
 
 ```cpp
 // US customary units
-struct yard : derived_unit<yard, length, ratio(9'144, 10'000)> {};
-struct foot : derived_unit<foot, length, yard::ratio / 3> {};
-struct inch : derived_unit<inch, length, foot::ratio / 12> {};
-struct mile : derived_unit<mile, length, 1'760 * yard::ratio> {};
+struct yard : derived_unit<yard, "yd", length, ratio(9'144, 10'000)> {};
+struct foot : derived_unit<foot, "ft", length, yard::ratio / 3> {};
+struct inch : derived_unit<inch, "in", length, foot::ratio / 12> {};
+struct mile : derived_unit<mile, "mi", length, 1'760 * yard::ratio> {};
 ```
 
 Also, please see the mixed approach described in [[#prefixes-and-units]] which opens the door
@@ -1999,29 +2002,41 @@ base dimension and new units based on it, only minimal code is required:
 using namespace units;
 
 // custom base dimension
-struct base_dim_digital_information {
-  static constexpr const char* value = "digital information";
-};
+struct base_dim_digital_information : base_dimension<"digital information", "b"> {};
 
 // custom derived dimension and its concept
 struct digital_information : derived_dimension<digital_information,
-                                               units::exp<base_dim_digital_information, 1>> {};
+                                               exp<base_dim_digital_information, 1>> {};
 
 template<typename T>
 concept DigitalInformation = QuantityOf<T, digital_information>;
 
+// custom prefixes
+struct data_prefix;
+struct kibi : prefix<kibi, data_prefix, ratio<    1'024>, "Ki"> {};
+struct mebi : prefix<mebi, data_prefix, ratio<1'048'576>, "Mi"> {};
+
 // custom units and their units
-struct bit : derived_unit<bit, digital_information> {};
-struct byte : derived_unit<byte, digital_information, ratio<8>> {};
+struct bit : coherent_derived_unit<bit, "b", digital_information, data_prefix> {};
+struct kilobit : prefixed_derived_unit<kilobit, kibi, bit> {};
+struct byte : derived_unit<byte, "B", digital_information, ratio<8>> {};
+struct kilobyte : prefixed_derived_unit<kilobyte, kibi, byte> {};
 
 inline namespace literals {
   constexpr auto operator""_b(unsigned long long l) { return quantity<bit, std::int64_t>(l); }
+  constexpr auto operator""_Kib(unsigned long long l) { return quantity<kilobit, std::int64_t>(l); }
   constexpr auto operator""_B(unsigned long long l) { return quantity<byte, std::int64_t>(l); }
+  constexpr auto operator""_KiB(unsigned long long l) { return quantity<kilobyte, std::int64_t>(l); }
 }
 
 // unit tests
 static_assert(1_B == 8_b);
+static_assert(1024_b == 1_Kib);
+static_assert(1024_B == 1_KiB);
+static_assert(8 * 1024_b == 1_KiB);
+static_assert(8 * 1_Kib == 1_KiB);
 ```
+
 
 Polls {#polls}
 ==============
