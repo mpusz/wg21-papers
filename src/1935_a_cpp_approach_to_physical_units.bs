@@ -411,7 +411,145 @@ Boost.Units {#boost.units}
 --------------------------
 
 Boost.Units [[BOOST.UNITS]] is probably the most widely adopted library in this domain.
-It was first released in Boost 1.36.0 that was released in 2008.
+It was first included in Boost 1.36.0 that was released in 2008.
+
+### Usage example ### {#boost.units.usage.example}
+
+```cpp
+#include <boost/units/io.hpp>
+#include <boost/units/quantity.hpp>
+#include <boost/units/systems/si/length.hpp>
+#include <boost/units/systems/si/time.hpp>
+#include <boost/units/systems/si/velocity.hpp>
+#include <cassert>
+#include <iostream>
+
+namespace bu = boost::units;
+
+constexpr bu::quantity<bu::si::velocity> avg_speed(bu::quantity<bu::si::length> d,
+                                                   bu::quantity<bu::si::time> t)
+{ return d / t; }
+
+void test()
+{
+  const auto v = avg_speed(10 * bu::si::meters, 2 * bu::si::seconds);
+  assert(v == 5 * bu::si::meters_per_second);  // passes
+  std::cout << v << '\n';                      // prints 5 m s^-1
+}
+```
+
+[Compiler Explorer](https://godbolt.org/z/NT5wj3)
+
+First thing to notice above is that a few headers have to be included just to make such a
+simple code to compile. Novices with Boost.Units library report this as an issue as sometimes
+it is not obvious why the code does not compile and which headers are missing.
+
+Now, let us extend such a code sample for a real-life use case where we would like to pass
+a distance in kilometers or miles and duration in hours and get a velocity in those [=units=].
+
+```cpp
+#include <boost/units/base_units/metric/hour.hpp>
+#include <boost/units/base_units/us/mile.hpp>
+#include <boost/units/io.hpp>
+#include <boost/units/make_scaled_unit.hpp>
+#include <boost/units/quantity.hpp>
+#include <boost/units/systems/si/length.hpp>
+#include <boost/units/systems/si/time.hpp>
+#include <boost/units/systems/si/velocity.hpp>
+#include <boost/units/systems/si/prefixes.hpp>
+#include <cassert>
+#include <iostream>
+
+namespace bu = boost::units;
+
+using kilometer_base_unit = bu::make_scaled_unit<bu::si::length,
+                                                 bu::scale<10, bu::static_rational<3>>>::type;
+using length_kilometer = kilometer_base_unit::unit_type;
+
+using length_mile = bu::us::mile_base_unit::unit_type;
+BOOST_UNITS_STATIC_CONSTANT(miles, length_mile);
+
+using time_hour = bu::metric::hour_base_unit::unit_type;
+BOOST_UNITS_STATIC_CONSTANT(hours, time_hour);
+
+using velocity_kilometers_per_hour = bu::divide_typeof_helper<length_kilometer, time_hour>::type;
+BOOST_UNITS_STATIC_CONSTANT(kilometers_per_hour, velocity_kilometers_per_hour);
+
+using velocity_miles_per_hour = bu::divide_typeof_helper<length_mile, time_hour>::type;
+BOOST_UNITS_STATIC_CONSTANT(miles_per_hour, velocity_miles_per_hour);
+
+
+constexpr bu::quantity<bu::si::velocity> avg_speed(bu::quantity<bu::si::length> d,
+                                                   bu::quantity<bu::si::time> t)
+{ return d / t; }
+
+void test1()
+{
+  const auto v = avg_speed(bu::quantity<bu::si::length>(220 * bu::si::kilo * bu::si::meters),
+                           bu::quantity<bu::si::time>(2 * hours));
+  bu::quantity<velocity_kilometers_per_hour> kmph(v);
+//  assert(kmph == 110 * kilometers_per_hour);  // fails
+  std::cout << kmph << '\n';                    // prints 110 k(m h^-1)
+}
+
+void test2()
+{
+  const auto v = avg_speed(bu::quantity<bu::si::length>(140 * miles),
+                           bu::quantity<bu::si::time>(2 * hours));
+  bu::quantity<velocity_miles_per_hour> mph(v);
+//  assert(mph == 70 * miles_per_hour);  // fails
+  std::cout << mph << '\n';              // prints 70 mi h^-1
+}
+```
+
+[Compiler Explorer](https://godbolt.org/z/tyzle0)
+
+Even with such a simple example we immediately need to include even more headers and we
+have to define custom [=unit=] types and their constants for quantities that should be common
+and provided by the library for user's convenience.
+
+Also, please notice that both asserts fail. This is caused by the fact that this and many
+other units libraries implicitly convert all the units to the [=coherent derived units=] of
+their dimensions which impacts the runtime performance and precision. This is another
+common problem reported by users for Boost.Units. More information on this subject can be
+found at [[#limiting-intermediate-value-conversions]]).
+
+To remove unnecessary conversions we will use a function template. The good part is it
+makes the assert to pass as there are no more intermediate conversions being done in both cases.
+However, the side effect of this change is an increased complexity of code which now is
+probably too hard to be implemented by a common C++ developer:
+
+```cpp
+template<typename LengthSystem, typename Rep1, typename TimeSystem, typename Rep2>
+constexpr bu::quantity<typename bu::divide_typeof_helper<bu::unit<bu::length_dimension, LengthSystem>,
+                                                         bu::unit<bu::time_dimension, TimeSystem>>::type>
+avg_speed(bu::quantity<bu::unit<bu::length_dimension, LengthSystem>, Rep1> d,
+          bu::quantity<bu::unit<bu::time_dimension, TimeSystem>, Rep2> t)
+{ return d / t; }
+
+void test1()
+{
+  const auto v = avg_speed(220 * bu::si::kilo * bu::si::meters, 2 * hours);
+  assert(v == 110 * kilometers_per_hour);  // pass
+  std::cout << v << '\n';                  // prints 110 k(m h^-1)
+}
+
+void test2()
+{
+  const auto v = avg_speed(140 * miles, 2 * hours);
+  assert(v == 70 * miles_per_hour);  // pass
+  std::cout << v << '\n';            // prints 70 mi h^-1
+}
+```
+
+[Compiler Explorer](https://godbolt.org/z/nwi2tZ)
+
+The above example will be used as base for comparison to other units libraries described
+in the next chapters.
+
+### Design ### {#boost.units.design}
+
+
 
 {TBD}
 
