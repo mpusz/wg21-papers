@@ -383,6 +383,18 @@ value</dfn>
 - A quantity value can be presented in more than one way.
 
 
+Other definitions {#other-definitions}
+--------------------------------------
+
+<dfn>base dimension</dfn>
+
+- A [=dimension=] of a [=base quantity=].
+
+<dfn>derived dimension</dfn>
+
+- A [=dimension=] of a [=derived quantity=].
+
+
 Prior Work {#prior-work}
 ========================
 
