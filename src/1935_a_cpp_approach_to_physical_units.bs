@@ -1908,6 +1908,94 @@ Should the library treat such entities as regular scalars or should some strong 
 mechanism be provided to support those?
 
 
+What about Unicode? {#unicode}
+------------------------------
+
+Every unit and its prefix can be printed with ASCII characters but it will probably not
+result with the best user experience. [=Quantities=] can often be represented better with
+Unicode symbols. For example an ASCII text output can look like:
+
+```cpp
+10 us
+2 kg*m/s^2
+```
+
+while the same [=quantities=] can be represented as:
+
+```cpp
+10 μs
+2 kg⋅m/s²
+```
+
+If we decide to continue with the second approach it is not clear how to achieve this. For
+example `std::chrono::duration` is specified to return `μs` if the character `U+00B5` can be
+represented in the encoding used for `charT`, `us` otherwise. However this is specified for:
+
+```cpp
+template<class charT, class traits, class Rep, class Period>
+basic_ostream<charT, traits>& operator<<(basic_ostream<charT, traits>& os,
+                                         const duration<Rep, Period>& d);
+```
+
+which requires `charT` to be `char` or `wchar_t`. C++20 specification does not mention
+Unicode characters at all here. Even if we decide to provide a support for Unicode character
+sets (`charN_t`) here, it is not clear how to create such streams. Currently we do not have
+`std::u8cout` or even `std::u8ostream` in the C++ Standard Library.
+
+Also, providing partial specializations to define such [=unit=] symbols:
+
+```cpp
+template<typename CharT, typename Traits, typename Prefix, typename Ratio>
+inline constexpr std::basic_string_view<CharT, Traits> prefix_symbol;
+
+// one definition for all character types
+template<typename CharT, typename Traits>
+inline constexpr std::basic_string_view<CharT, Traits>
+    prefix_symbol<CharT, Traits, si_prefix, std::milli> = "m";
+
+// definition for non-Unicode systems
+template<typename Traits>
+inline constexpr std::basic_string_view<char, Traits>
+    prefix_symbol<char, Traits, si_prefix, std::micro> = "u";
+template<typename Traits>
+inline constexpr std::basic_string_view<wchar_t, Traits>
+    prefix_symbol<wchar_t, Traits, si_prefix, std::micro> = L"u";
+
+// definition for Unicode
+template<typename Traits>
+inline constexpr std::basic_string_view<std::char8_t, Traits>
+    prefix_symbol<std::char8_t, Traits, si_prefix, std::micro> = u8"µ";
+template<typename Traits>
+inline constexpr std::basic_string_view<std::char16_t, Traits>
+    prefix_symbol<std::char16_t, Traits, si_prefix, std::micro> = u"µ";
+template<typename Traits>
+inline constexpr std::basic_string_view<std::char32_t, Traits>
+    prefix_symbol<std::char32_t, Traits, si_prefix, std::micro> = U"µ";
+```
+
+starts to be a nightmare for library developers. Even, though we provided dedicated
+specializations for all character types for `std::micro` (which is actually a lot of
+boilerplate code), the first definition of `std::milli` will not compile for other
+character types than `char`. Right now there is no possibility in the C++ standard
+to define one literal that will allow to initialize all versions of such a variable
+template. If we had such a feature, additionally, it would be great to be able to
+initialize all non-Unicode character types with one literal and all Unicode character
+types with another one using Unicode character set. If we had such facility we could
+implement `std::micro` case from above with only two partial specializations:
+
+```cpp
+// definition for non-Unicode systems
+template<non_unicode charT, typename Traits>
+inline constexpr std::basic_string_view<charT, Traits>
+    prefix_symbol<charT, Traits, si_prefix, std::micro> = NON_UNICODE("u");
+
+// definition for Unicode
+template<unicode charT, typename Traits>
+inline constexpr std::basic_string_view<charT, Traits>
+    prefix_symbol<charT, Traits, si_prefix, std::micro> = UNICODE("µ");
+```
+
+
 Impact on the Standard {#impact}
 ================================
 
