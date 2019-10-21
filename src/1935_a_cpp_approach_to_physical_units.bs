@@ -33,9 +33,10 @@ r0 ➡ r1 {#r0r1}
 - New definitions added (coherent system of units, base dimension, derived dimension, reduced
     dimension) to [[#terms-and_definitions]]
 - [[#prior-work]] chapter updated
+- [[#number]] added
 - [[#unicode]] chapter added
+- [[#polls]] extended and split to separate ISO C++ rooms
 - [[MP-UNITS]] code samples updated to reflect the current library design
-- [[#polls]] split to separate ISO C++ rooms
 
 
 Introduction {#introduction}
@@ -2171,7 +2172,15 @@ Should we provide support for [=dimensionless quantities=]? {#dimensionless-quan
 Some [=quantities of dimension one=] are defined as the ratios of two [=quantities=] of
 the same [=kind=]. The [=coherent derived unit=] is the number one, symbol 1. For example:
 plane angle, solid angle, refractive index, relative permeability, mass fraction,
-friction factor, Mach number, etc.
+friction factor, Mach number, etc. However, should all such division results be treated as
+dimensionless quantities rather than scalars?
+
+```cpp
+auto q1 = 10s / 2s;
+auto q2 = 90kmph / 30kmph;
+```
+
+If not, how to determine when to return a scalar an when the dimensionless quantity?
 
 Numbers of entities are also [=quantities of dimension one=]. For example: number of
 turns in a coil, number of molecules in a given sample, degeneracy of the energy levels
