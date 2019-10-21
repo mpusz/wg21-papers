@@ -30,7 +30,12 @@ Revision History {#revision-history}
 r0 ➡ r1 {#r0r1}
 ----------------
 
-- TBD
+- New definitions added (coherent system of units, base dimension, derived dimension, reduced
+    dimension) to [[#terms-and_definitions]]
+- [[#prior-work]] chapter updated
+- [[#unicode]] chapter added
+- [[MP-UNITS]] code samples updated to reflect the current library design
+- [[#polls]] split to separate ISO C++ rooms
 
 
 Introduction {#introduction}
