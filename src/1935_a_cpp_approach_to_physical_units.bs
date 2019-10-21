@@ -393,6 +393,14 @@ Other definitions {#other-definitions}
 <dfn>derived dimension</dfn>
 
 - A [=dimension=] of a [=derived quantity=].
+- Often implemented as a list of exponents of [=base dimensions=].
+
+<dfn>reduced dimension</dfn>
+
+A [=derived dimension=] in which:
+- [=base dimensions=] are not repeated in a list (each base dimension is provided at most once),
+- [=base dimensions=] are consistently ordered,
+- [=base dimensions=] having zero exponent are elided.
 
 
 Prior Work {#prior-work}
@@ -548,6 +556,254 @@ The above example will be used as base for comparison to other units libraries d
 in the next chapters.
 
 ### Design ### {#boost.units.design}
+
+[=Base dimensions=] are associated with tag types that have assigned a unique integer in order
+to be able to sort them on a list of a [=derived dimension=]. Negative ordinals are reserved
+for use by the library.
+
+```cpp
+template<typename Derived, long N> 
+class base_dimension : public ordinal<N> {
+public:
+  typedef unspecified dimension_type;
+  typedef Derived type;
+};
+```
+
+To define custom base dimension the user has to:
+
+```cpp
+struct my_dimension : boost::units::base_dimension<my_dimension, 1> {};
+```
+
+To define [=derived dimensions=] corresponding to the [=base dimensions=], MPL-conformant
+typelists of [=base dimensions=] must be created by using the `dim` class to encapsulate
+pairs of [=base dimensions=] and `static_rational` exponents. The `make_dimension_list`
+class acts as a wrapper to ensure that the resulting type is in the form of a [=reduced dimension=]:
+
+```cpp
+typedef make_dimension_list<
+    boost::mpl::list<dim<length_base_dimension,static_rational<1>>>
+>::type length_dimension;
+```
+
+This can also be accomplished using a convenience typedef provided by `base_dimension`:
+
+```cpp
+typedef length_base_dimension::dimension_type length_dimension;
+```
+
+To define the [=derived dimension=] similar steps have to be done:
+
+```cpp
+typedef make_dimension_list<
+    boost::mpl::list<dim<mass_base_dimension, static_rational<1>>,
+                     dim<length_base_dimension, static_rational<2>>,
+                     dim<time_base_dimension, static_rational<-2>>>
+>::type energy_dimension;
+```
+
+or
+
+```cpp
+typedef derived_dimension<mass_base_dimension, 1,
+                          length_base_dimension, 2,
+                          time_base_dimension, -2>::type energy_dimension;
+```
+
+A [=unit=] is defined as a set of [=base units=] each of which can be raised to an arbitrary
+rational exponent. Units are, like dimensions, purely compile-time variables with no
+associated value.
+
+```cpp
+template<typename Dim, typename System, typename Enable>
+class unit {
+public:
+  typedef unit<Dim, System> unit_type;
+  typedef unit<Dim, System> this_type;
+  typedef Dim dimension_type;
+  typedef System system_type;
+
+  unit();
+  unit(const this_type&);
+  BOOST_CXX14_CONSTEXPR this_type& operator=(const this_type&);
+};
+```
+
+In addition to supporting the compile-time dimensional analysis operations, the `+`, `-`,
+`*`, and `/` runtime operators are provided for unit variables.
+
+Base units are defined much like base dimensions and again negative ordinals are reserved:
+
+```cpp
+template<typename Derived, typename Dim, long N>
+class base_unit;
+```
+
+To define a simple [=system of units=]:
+
+```cpp
+struct meter_base_unit : base_unit<meter_base_unit, length_dimension, 1> { };
+struct kilogram_base_unit : base_unit<kilogram_base_unit, mass_dimension, 2> { };
+struct second_base_unit : base_unit<second_base_unit, time_dimension, 3> { };
+
+typedef make_system<meter_base_unit, kilogram_base_unit, second_base_unit>::type mks_system;
+
+typedef unit<dimensionless_type, mks_system>      dimensionless;
+
+typedef unit<length_dimension, mks_system>        length;
+typedef unit<mass_dimension, mks_system>          mass;
+typedef unit<time_dimension, mks_system>          time;
+
+typedef unit<area_dimension, mks_system>          area;
+typedef unit<energy_dimension, mks_system>        energy;
+```
+
+The macro `BOOST_UNITS_STATIC_CONSTANT` is provided to facilitate ODR- and thread-safe
+constant definition in header files. With this some constants are defined for the supported
+units to simplify variable definitions:
+
+```cpp
+BOOST_UNITS_STATIC_CONSTANT(meter, length);
+BOOST_UNITS_STATIC_CONSTANT(meters, length);
+BOOST_UNITS_STATIC_CONSTANT(kilogram, mass);
+BOOST_UNITS_STATIC_CONSTANT(kilograms, mass);
+BOOST_UNITS_STATIC_CONSTANT(second, time);
+BOOST_UNITS_STATIC_CONSTANT(seconds, time);
+
+BOOST_UNITS_STATIC_CONSTANT(square_meter, area);
+BOOST_UNITS_STATIC_CONSTANT(square_meters, area);
+BOOST_UNITS_STATIC_CONSTANT(joule, energy);
+BOOST_UNITS_STATIC_CONSTANT(joules, energy);
+```
+
+To provide a textual output of units specialize the `base_unit_info` class for each
+fundamental dimension tag:
+
+```cpp
+template<>
+struct base_unit_info<meter_base_unit> {
+  static std::string name() { return "meter"; }
+  static std::string symbol() { return "m"; }
+};
+```
+
+and similarly for `kilogram_base_unit` and `second_base_unit`.
+
+It is possible to define a [=base unit=] as being a multiple of another [=base unit=].
+For example, the way that `kilogram_base_unit` is actually defined by the library is
+along the following lines:
+
+```cpp
+struct gram_base_unit : boost::units::base_unit<gram_base_unit, mass_dimension, 1> {};
+typedef scaled_base_unit<gram_base_unit, scale<10, static_rational<3>>> kilogram_base_unit;
+```
+
+It is also possible to scale a [=unit=] as a whole, rather than scaling the individual
+[=base units=] which comprise it. For this purpose, the metafunction `make_scaled_unit`
+is used:
+
+```cpp
+typedef make_scaled_unit<si::time, scale<10, static_rational<-9>>>::type nanosecond;
+```
+
+Interesting point to note here is that even though Boost.Units has a strong and deeply
+integrated support for [=system of units|systems of units=] it implements a US Customary
+Units in an [=SI=] system rather than as an independent system of units:
+
+```cpp
+namespace us {
+  struct yard_base_unit : public boost::units::base_unit<yard_base_unit,
+                                                         si::meter_base_unit::dimension_type, -501> {
+    static const char* name();
+    static const char* symbol();
+  };
+
+  typedef scaled_base_unit<yard_base_unit, scale<1760, static_rational<1>>> mile_base_unit;
+}
+
+template<> struct base_unit_info<us::mile_base_unit>;
+```
+
+[=Quantities=] are implemented by the `quantity` class template:
+
+```cpp
+template<class Unit,class Y = double>
+class quantity;
+```
+
+Operators `+`, `-`, `*`, and `/` are provided for algebraic operations between scalars and
+[=units=], scalars and [=quantities=], [=units=] and [=quantities=], and between [=quantities=].
+Also, the standard set of boolean comparison operators (`==`, `!=`, `<`, `<=`, `>`, and
+`>=`) are provided to allow comparison of [=quantities=] from the same [=system of units=].
+In addition, integral and rational powers and roots can be computed using the `pow<R>` and
+`root<R>` non-member functions.
+
+To provide conversions between different [=units=] the following macro has to be used:
+
+```cpp
+BOOST_UNITS_DEFINE_CONVERSION_FACTOR(foot_base_unit, meter_base_unit, double, 0.3048);
+```
+
+The macro `BOOST_UNITS_DEFAULT_CONVERSION` specifies a conversion that will be applied
+to a base unit when no direct conversion is possible. This can be used to make arbitrary
+conversions work with a single specialization:
+
+```cpp
+struct my_unit_tag : boost::units::base_unit<my_unit_tag, boost::units::force_type, 1> {};
+
+// define the conversion factor
+BOOST_UNITS_DEFINE_CONVERSION_FACTOR(my_unit_tag, SI::force, double, 3.14159265358979323846);
+
+// make conversion to SI the default.
+BOOST_UNITS_DEFAULT_CONVERSION(my_unit_tag, SI::force);
+```
+
+This library is designed to emphasize safety above convenience when performing operations
+with dimensioned [=quantities=]. Specifically:
+- construction of [=quantities=] is required to fully specify both value and [=unit=]
+- direct construction from a scalar value is prohibited (though the static member function
+    `from_value` is provided to enable this functionality where it is necessary)
+- `quantity_cast` to a reference allows direct access to the underlying value of a
+    [=quantity=] variable
+- an explicit constructor is provided to enable conversion between dimensionally compatible
+    [=quantities=] in different [=system|unit systems=]
+- implicit conversions between [=system of units|systems of units=] are allowed only when
+    the [=reduced dimensions=] are identical, allowing, for example, trivial conversions
+    between equivalent units in different systems (such as SI seconds and CGS seconds) while
+    simultaneously enabling unintentional [=system|unit system=] mismatches to be caught
+    at compile time and preventing potential loss of precision and performance overhead
+    from unintended conversions
+- assignment follows the same rules
+- an exception is made for [=quantities=] for which the [=unit=] reduces to a [=dimensionless
+    quantity=];
+    in this case, implicit conversion to the underlying value type is allowed via class template
+    specialization
+- [=quantities=] of different value types are implicitly convertible only if the value types
+    are themselves implicitly convertible
+- the [=quantity=] class also defines a `value()` member for directly accessing the underlying
+    value
+
+
+There are two distinct types of systems that can be envisioned:
+1. Homogeneous systems
+
+    Systems which hold a linearly independent set of base units which can be used to represent
+    many different dimensions. For example, the SI system has seven base dimensions and seven
+    base units corresponding to them. It can represent any unit which uses only those seven
+    base dimensions. Thus it is a homogeneous_system.
+
+2. Heterogeneous systems
+
+    Systems which store the exponents of every base unit involved are termed heterogeneous.
+    Some units can only be represented in this way. For example, area in `m ft` is intrinsically
+    heterogeneous, because the base units of meters and feet have identical dimensions. As
+    a result, simply storing a dimension and a set of base units does not yield a unique
+    solution. A practical example of the need for heterogeneous units, is an empirical
+    equation used in aviation: `H = (r/C)^2` where `H` is the radar beam height in feet and
+    `r` is the radar range in nautical miles. In order to enforce dimensional correctness of
+    this equation, the constant, `C`, must be expressed in nautical `miles per foot^(1/2)`,
+    mixing two distinct base units of length.
 
 
 
@@ -716,19 +972,19 @@ Comparison {#comparison}
   <tr><td>Implicit unit conversions                 <td>same dimension non-truncating only <td>no                                                                                  <td>              <td>
   <tr><td>Explicit unit conversions                 <td>`quantity_cast`                    <td>`quantity_cast`                                                                     <td>              <td>
   <tr><td>Temperature support                       <td>Kelvins only + conversion functions<td>Kelvins only + dedicated systems                                                    <td>              <td>
-  <tr><td>String output                             <td>TBD                                <td>yes                                                                                 <td>              <td>
+  <tr><td>String output                             <td>yes                                <td>yes                                                                                 <td>              <td>
   <tr><td>String input                              <td>no                                 <td>no                                                                                  <td>              <td>
   <tr><td>Macros in the user interface              <td>no                                 <td>yes                                                                                 <td>              <td>
   <tr><td>Non-linear scale support                  <td>no                                 <td>no                                                                                  <td>              <td>
-  <tr><td>`<cmath>` support                         <td>no                                 <td>yes                                                                                 <td>              <td>no
+  <tr><td>`<cmath>` support                         <td>TBD                                <td>yes                                                                                 <td>              <td>no
   <tr><td>`<chrono>` support                        <td>no                                 <td>no                                                                                  <td>              <td>no
-  <tr><td>Affine types                              <td>no                                 <td>yes (`TBD`, `TBD`)                                                                  <td>              <td>no
-  <tr><td>Prefix representation                     <td>                                   <td>                                                                                    <td>              <td>
-  <tr><td>Physical/Mathematical constants           <td>no                                 <td>yes                                                                                 <td>              <td>limited
-  <tr><td>Dimensionless quantity                    <td>no                                 <td>                                                                                    <td>              <td>
+  <tr><td>Affine types                              <td>???                                <td>yes (`absolute<Q>`)                                                                 <td>              <td>no
+  <tr><td>Prefix representation                     <td>                                   <td>yes                                                                                 <td>              <td>
+  <tr><td>Physical/Mathematical constants           <td>TBD                                <td>yes                                                                                 <td>              <td>limited
+  <tr><td>Dimensionless quantity                    <td>???                                <td>yes                                                                                 <td>              <td>
   <tr><td>Arbitrary conversions                     <td>                                   <td>yes                                                                                 <td>              <td>yes
   <tr><td>User defined dimensions                   <td>yes                                <td>yes                                                                                 <td>              <td>no
-  <tr><td>User defined units                        <td>yes                                <td>                                                                                    <td>              <td>
+  <tr><td>User defined units                        <td>yes                                <td>yes                                                                                 <td>              <td>
   <tr><td>User defined prefixes                     <td>yes                                <td>yes                                                                                 <td>              <td>xes
 </table>
 
@@ -763,16 +1019,16 @@ Comparison {#comparison}
   <tr><td>Implicit unit conversions                 <td>same dimension non-truncating only <td>                                             <td>        <td>no                                      <td>
   <tr><td>Explicit unit conversions                 <td>`quantity_cast`                    <td>                                             <td>        <td>`simple_cast` (`constexpr`)/`unit_cast` <td>
   <tr><td>Temperature support                       <td>Kelvins only + conversion functions<td>                                             <td>        <td>yes                                     <td>
-  <tr><td>String output                             <td>TBD                                <td>yes                                          <td>        <td>no                                      <td>
+  <tr><td>String output                             <td>yes                                <td>yes                                          <td>        <td>no                                      <td>
   <tr><td>String input                              <td>no                                 <td>no                                           <td>        <td>no                                      <td>
   <tr><td>Macros in the user interface              <td>no                                 <td>yes                                          <td>        <td>yes                                     <td>
   <tr><td>Non-linear scale support                  <td>no                                 <td>yes                                          <td>        <td>                                        <td>
-  <tr><td>`<cmath>` support                         <td>no                                 <td>yes                                          <td>        <td>yes                                     <td>
+  <tr><td>`<cmath>` support                         <td>TBD                                <td>yes                                          <td>        <td>yes                                     <td>
   <tr><td>`<chrono>` support                        <td>no                                 <td>yes                                          <td>        <td>yes                                     <td>
-  <tr><td>Affine types                              <td>no                                 <td>no                                           <td>        <td>yes (`quantity`, `quantity_point`)      <td>
+  <tr><td>Affine types                              <td>???                                <td>no                                           <td>        <td>yes (`quantity`, `quantity_point`)      <td>
   <tr><td>Prefix representation                     <td>                                   <td>                                             <td>        <td>type list                               <td>
-  <tr><td>Physical/Mathematical constants           <td>no                                 <td>limited                                      <td>        <td>all                                     <td>
-  <tr><td>Dimensionless quantity                    <td>no                                 <td>                                             <td>        <td>yes                                     <td>
+  <tr><td>Physical/Mathematical constants           <td>TBD                                <td>limited                                      <td>        <td>all                                     <td>
+  <tr><td>Dimensionless quantity                    <td>???                                <td>                                             <td>        <td>yes                                     <td>
   <tr><td>Arbitrary conversions                     <td>                                   <td>no                                           <td>        <td>yes                                     <td>
   <tr><td>User defined dimensions                   <td>yes                                <td>no                                           <td>        <td>yes                                     <td>
   <tr><td>User defined units                        <td>yes                                <td>                                             <td>        <td>yes                                     <td>
@@ -1657,14 +1913,26 @@ functions for conversions between different kinds  of temperature values and the
 Should we support [=systems=] as a separate type? {#systems-support}
 --------------------------------------------------------------------
 
+The basic rationale for a [=system of units=] is that "Unit systems should form closed
+universes independent from each other" as stated by [[P1930R0]]. But what does it really
+mean? Does it mean that every system should be independent from others and define its
+own dimensions and their units? Does it mean that it should not be possible to mix
+units from different systems even with explicit casts? If yes, are we ready to reimplement
+most of the same dimensional logic for every system from scratch?
+
 US Customary System has the same [=dimensions=] and most of the units as the [=SI=] with
 the differences scoped mostly only in length and mass [=units=] and [=derived quantities=]
 using those. From the implementation and standardization point of view it is much simpler
 to use the common definitions of such physical dimensions and just provide [=units=] dedicated
-to such a [=system=] next to the [=SI=] ones (i.e. meters and miles).
+to such a [=system=] next to the [=SI=] ones (i.e. meters and miles). This is why even
+Boost.Units, the only library supporting systems, implements US units in [=SI=] system.
 
-Even [=systems=] that seem to be totally isolated from typical [=SI=] uses cases like
-`coffee/milk/water/sugar` system at some point will probably need time, volume, and other
+Another potential candidate for a dedicated system could be CGS (centimetre–gram–second)
+system, but even here all physical dimensions are defined in the same way so the units
+can, and in some cases should, be possible to be mixed with units from [=SI=].
+
+Even [=systems=] like `coffee/milk/water/sugar` system that seem to be totally isolated
+from typical [=SI=] use cases at some point will probably need time, volume, and other
 [=SI=] dimensions too.
 
 Boost.Units uses [=systems=] mostly to provide the capability of having a different
