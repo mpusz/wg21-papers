@@ -2190,6 +2190,35 @@ Should the library treat such entities as regular scalars or should some strong 
 mechanism be provided to support those?
 
 
+Number concept {#number}
+------------------------
+
+Assuming that we will vote for a widespread concepts usage in the library it would be
+also nice to have a concept for scalars. Currently [[MP-UNITS]] defines a scalar as:
+
+```cpp
+template<typename T>
+concept Number = std::regular<T> &&
+    std::totally_ordered<T> &&
+    requires(T a, T b) {
+      { a + b } -> std::same_as<T>;
+      { a - b } -> std::same_as<T>;
+      { a * b } -> std::same_as<T>;
+      { a / b } -> std::same_as<T>;
+      { +a } -> std::same_as<T>;
+      { -a } -> std::same_as<T>;
+      { a += b } -> std::same_as<T&>;
+      { a -= b } -> std::same_as<T&>;
+      { a *= b } -> std::same_as<T&>;
+      { a /= b } -> std::same_as<T&>;
+      { T{0} };
+};
+
+template<typename T>
+concept Scalar = (!Quantity<T>) && Number<T>;
+```
+
+
 What about Unicode? {#unicode}
 ------------------------------
 
@@ -2442,9 +2471,10 @@ SG6 {#sg6}
     for other [=units=] and absolute temperatures? Should affine types be provided
     ([[#relative-vs-absolute]])?
 7. Should we provide support for dimensionless quantities ([[#dimensionless-quantities]])?
-8. Should constants be provided? If yes, how should updates to the constants be handled?
+8. Do we want to standardize Number concept ([[#number]])?
+9. Should constants be provided? If yes, how should updates to the constants be handled?
     (Separate namespaces?)
-9. Should all ISO 80000-1:2009 units be provided? If yes, how should updates to the ISO standard
+10. Should all ISO 80000-1:2009 units be provided? If yes, how should updates to the ISO standard
     be handled? (Separate namespaces?)
 
 
