@@ -448,11 +448,12 @@ void test()
 {
   const auto v = avg_speed(10 * bu::si::meters, 2 * bu::si::seconds);
   assert(v == 5 * bu::si::meters_per_second);  // passes
-  std::cout << v << '\n';                      // prints 5 m s^-1
+  assert(v.value() == 5);                      // passes
+  std::cout << v << '\n';                      // prints "5 m s^-1"
 }
 ```
 
-[Compiler Explorer](https://godbolt.org/z/NT5wj3)
+[Compiler Explorer](https://godbolt.org/z/XITZI2)
 
 First thing to notice above is that a few headers have to be included just to make such a
 simple code to compile. Novices with Boost.Units library report this as an issue as sometimes
@@ -476,8 +477,7 @@ a distance in kilometers or miles and duration in hours and get a velocity in th
 
 namespace bu = boost::units;
 
-using kilometer_base_unit = bu::make_scaled_unit<bu::si::length,
-                                                 bu::scale<10, bu::static_rational<3>>>::type;
+using kilometer_base_unit = bu::make_scaled_unit<bu::si::length, bu::scale<10, bu::static_rational<3>>>::type;
 using length_kilometer = kilometer_base_unit::unit_type;
 
 using length_mile = bu::us::mile_base_unit::unit_type;
@@ -501,30 +501,32 @@ void test1()
 {
   const auto v = avg_speed(bu::quantity<bu::si::length>(220 * bu::si::kilo * bu::si::meters),
                            bu::quantity<bu::si::time>(2 * hours));
+  // assert(v.value() == 110);                   // fails
   bu::quantity<velocity_kilometers_per_hour> kmph(v);
-//  assert(kmph == 110 * kilometers_per_hour);  // fails
-  std::cout << kmph << '\n';                    // prints 110 k(m h^-1)
+  // assert(kmph == 110 * kilometers_per_hour);  // fails
+  std::cout << kmph << '\n';                     // prints "110 k(m h^-1)"
 }
 
 void test2()
 {
   const auto v = avg_speed(bu::quantity<bu::si::length>(140 * miles),
                            bu::quantity<bu::si::time>(2 * hours));
+  // assert(v.value() == 70);             // fails
   bu::quantity<velocity_miles_per_hour> mph(v);
-//  assert(mph == 70 * miles_per_hour);  // fails
-  std::cout << mph << '\n';              // prints 70 mi h^-1
+  // assert(mph == 70 * miles_per_hour);  // fails
+  std::cout << mph << '\n';               // prints "70 mi h^-1"
 }
 ```
 
-[Compiler Explorer](https://godbolt.org/z/tyzle0)
+[Compiler Explorer](https://godbolt.org/z/-hRa66)
 
 Even with such a simple example we immediately need to include even more headers and we
 have to define custom [=unit=] types and their constants for quantities that should be common
 and provided by the library for user's convenience.
 
-Also, please notice that both asserts fail. This is caused by the fact that this and many
-other units libraries implicitly convert all the units to the [=coherent derived units=] of
-their dimensions which impacts the runtime performance and precision. This is another
+Also, please notice that both pairs of asserts fail. This is caused by the fact that this
+and many other units libraries implicitly convert all the units to the [=coherent derived
+units=] of their dimensions which impacts the runtime performance and precision. This is another
 common problem reported by users for Boost.Units. More information on this subject can be
 found at [[#limiting-intermediate-value-conversions]]).
 
@@ -544,19 +546,21 @@ avg_speed(bu::quantity<bu::unit<bu::length_dimension, LengthSystem>, Rep1> d,
 void test1()
 {
   const auto v = avg_speed(220 * bu::si::kilo * bu::si::meters, 2 * hours);
-  assert(v == 110 * kilometers_per_hour);  // pass
-  std::cout << v << '\n';                  // prints 110 k(m h^-1)
+  assert(v.value() == 110);                // passes
+  assert(v == 110 * kilometers_per_hour);  // passes
+  std::cout << v << '\n';                  // prints "110 k(m h^-1)"
 }
 
 void test2()
 {
   const auto v = avg_speed(140 * miles, 2 * hours);
-  assert(v == 70 * miles_per_hour);  // pass
-  std::cout << v << '\n';            // prints 70 mi h^-1
+  assert(v.value() == 70);           // passes
+  assert(v == 70 * miles_per_hour);  // passes
+  std::cout << v << '\n';            // prints "70 mi h^-1"
 }
 ```
 
-[Compiler Explorer](https://godbolt.org/z/nwi2tZ)
+[Compiler Explorer](https://godbolt.org/z/6kRNEb)
 
 The above example will be used as base for comparison to other units libraries described
 in the next chapters.
@@ -765,6 +769,48 @@ BOOST_UNITS_DEFINE_CONVERSION_FACTOR(my_unit_tag, SI::force, double, 3.141592653
 BOOST_UNITS_DEFAULT_CONVERSION(my_unit_tag, SI::force);
 ```
 
+Boost.Units also allows to provide runtime-defined conversion factors with:
+
+```cpp
+using boost::units::base_dimension;
+using boost::units::base_unit;
+
+static const long currency_base = 1;
+
+struct currency_base_dimension : base_dimension<currency_base_dimension, 1> {};
+
+typedef currency_base_dimension::dimension_type currency_type;
+
+template<long N>
+struct currency_base_unit : base_unit<currency_base_unit<N>, currency_type, currency_base + N> {};
+
+typedef currency_base_unit<0> us_dollar_base_unit;
+typedef currency_base_unit<1> euro_base_unit;
+
+typedef us_dollar_base_unit::unit_type us_dollar;
+typedef euro_base_unit::unit_type euro;
+
+// an array of all possible conversions
+double conversion_factors[2][2] = {
+  {1.0, 1.0},
+  {1.0, 1.0}
+};
+
+double get_conversion_factor(long from, long to) {
+  return (conversion_factors[from][to]);
+}
+
+void set_conversion_factor(long from, long to, double value) {
+  conversion_factors[from][to] = value;
+  conversion_factors[to][from] = 1.0 / value;
+}
+
+BOOST_UNITS_DEFINE_CONVERSION_FACTOR_TEMPLATE((long N1)(long N2),
+                                              currency_base_unit<N1>,
+                                              currency_base_unit<N2>,
+                                              double, get_conversion_factor(N1, N2));
+```
+
 This library is designed to emphasize safety above convenience when performing operations
 with dimensioned [=quantities=]. Specifically:
 - construction of [=quantities=] is required to fully specify both value and [=unit=]
@@ -790,7 +836,6 @@ with dimensioned [=quantities=]. Specifically:
 - the [=quantity=] class also defines a `value()` member for directly accessing the underlying
     value
 
-
 There are two distinct types of systems that can be envisioned:
 1. Homogeneous systems
 
@@ -811,9 +856,96 @@ There are two distinct types of systems that can be envisioned:
     this equation, the constant, `C`, must be expressed in nautical `miles per foot^(1/2)`,
     mixing two distinct base units of length.
 
+```cpp
+namespace cgs {
+  typedef scaled_base_unit<boost::units::si::meter_base_unit,
+                           scale<10, static_rational<-2>>> centimeter_base_unit;
+  typedef make_system<centimeter_base_unit,
+                      gram_base_unit,
+                      boost::units::si::second_base_unit,
+                      biot_base_unit>::type system;
+}
+```
 
+```cpp
+quantity<si::area>      A(1.5*si::meter*cgs::centimeter);
 
-{TBD}
+std::cout << 1.5*si::meter*cgs::centimeter << std::endl  // prints 1.5 cm m
+          << A << std::endl                              // prints 0.015 m^2
+          << std::endl;
+```
+
+To provide temperature support Boost.Units define 2 new systems:
+
+```cpp
+namespace celsius {
+  typedef make_system<boost::units::temperature::celsius_base_unit>::type system;
+  typedef unit<temperature_dimension, system> temperature;
+
+  static const temperature degree;
+  static const temperature degrees;
+}
+
+namespace fahrenheit {
+  typedef make_system<boost::units::temperature::fahrenheit_base_unit>::type system;
+  typedef unit<temperature_dimension, system> temperature;
+
+  static const temperature degree;
+  static const temperature degrees;
+}
+```
+
+and a wrapper for handling absolute units (points rather than vectors) to provide affine space support:
+
+```cpp
+template<typename Y>
+class absolute {
+public:
+  // types
+  typedef absolute<Y> this_type;
+  typedef Y           value_type;
+
+  // construct/copy/destruct
+  absolute();
+  absolute(const value_type &);
+  absolute(const this_type &);
+  BOOST_CXX14_CONSTEXPR this_type & operator=(const this_type &);
+
+  // public member functions
+  BOOST_CONSTEXPR const value_type & value() const;
+  BOOST_CXX14_CONSTEXPR const this_type & operator+=(const value_type &);
+  BOOST_CXX14_CONSTEXPR const this_type & operator-=(const value_type &);
+};
+```
+
+With above we can:
+
+```cpp
+template<class From, class To>
+struct conversion_helper {
+  static BOOST_CONSTEXPR To convert(const From&);
+};
+
+typedef conversion_helper<quantity<absolute<fahrenheit::temperature>>,
+                          quantity<absolute<si::temperature>>> absolute_conv_type;
+typedef conversion_helper<quantity<fahrenheit::temperature>,
+                          quantity<si::temperature>>           relative_conv_type;
+
+quantity<absolute<fahrenheit::temperature>> T1p(32.0 * absolute<fahrenheit::temperature>());
+quantity<fahrenheit::temperature>           T1v(32.0 * fahrenheit::degrees);
+
+quantity<absolute<si::temperature>>         T2p(T1p);
+quantity<si::temperature>                   T2v(T1v);
+
+std::cout << T1p << std::endl                               // prints 32 absolute  F
+          << absolute_conv_type::convert(T1p) << std::endl  // prints 273.15 absolute  K
+          << T2p << std::endl                               // prints 273.15 absolute  K
+          << T1v << std::endl                               // prints 32 F
+          << relative_conv_type::convert(T1v) << std::endl  // prints 17.7778 K
+          << T2v << std::endl                               // prints 17.7778 K
+          << std::endl;
+```
+
 
 cppnow17-units {#cppnow17-units}
 --------------------------------
