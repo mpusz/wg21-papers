@@ -971,9 +971,136 @@ celsius + kelvin = celsius
 PhysUnits-CT-Cpp11 {#PhysUnits-CT-Cpp11}
 ----------------------------------------
 
-[[PHYSUNITS-CT-CPP11]]
+[[PHYSUNITS-CT-CPP11]] is the library based on the work of Michael Kenniston from 2001 and
+expanded and adapted for C++11 by Martin Moene.
 
-{TBD}
+### Usage example ### {#PhysUnits-CT-Cpp11.usage.example}
+
+```cpp
+#include <phys/units/io.hpp>
+#include <phys/units/quantity.hpp>
+#include <phys/units/other_units.hpp>
+#include <iostream>
+#include <cassert>
+
+namespace pu = phys::units;
+using namespace pu::literals;
+using namespace phys::units::io;
+
+constexpr pu::quantity<pu::speed_d> avg_speed(pu::quantity<pu::length_d> d,
+                                              pu::quantity<pu::time_interval_d> t)
+{
+  return d / t;
+}
+
+void test1()
+{
+  constexpr auto v = avg_speed(220 * pu::kilo * pu::meter, 2 * pu::hour);
+  assert(v == 110 * pu::kilo * pu::meter / pu::hour);  // pass
+  std::cout << v << '\n';                              // prints "30.5556 m/s"
+}
+
+void test2()
+{
+  constexpr auto v = avg_speed(140 * pu::mile, 2 * pu::hour);
+  assert(v == 70 * pu::mile / pu::hour);  // pass
+  std::cout << v << '\n';                 // prints "31.2928 m/s"
+}
+```
+
+Please note that this library is a pretty simple library and thus has a lot limitations:
+1. We are unable to pass arguments to `avg_speed` in units provided by the user because
+    quantities are always converted to base units (so there is no need to try to make it
+    a function template).
+2. Because of above we also do not get the result in the unit we would like.
+3. There is no possibility to cast returned quantity to the unit that we would like to use
+    for printing.
+4. `quantity` does not provide accessor to its numeric value so we cannot check with an assert
+    if the quantity respectively stores `110` and `70`. If we could, the check would fail
+    anyway.
+5. Because of always forced intermediate conversions to base units the second assert passes
+    even though the result's precision is degraded (both sides of equality are the same broken).
+
+
+### Design ### {#PhysUnits-CT-Cpp11.design}
+
+The library defines dimensions such as `length_d` and `mass_d` as a list of 7 template
+parameters representing exponents of each [=SI=] dimension:
+
+```cpp
+#ifdef PHYS_UNITS_REP_TYPE
+   using Rep = PHYS_UNITS_REP_TYPE;
+#else
+   using Rep = double;
+#endif
+
+template<int D1, int D2, int D3, int D4 = 0, int D5 = 0, int D6 = 0, int D7 = 0>
+struct dimensions {
+  template<int R1, int R2, int R3, int R4, int R5, int R6, int R7>
+  constexpr bool operator==(dimensions<R1, R2, R3, R4, R5, R6, R7> const&) const;
+
+  template<int R1, int R2, int R3, int R4, int R5, int R6, int R7>
+  constexpr bool operator!=(dimensions<R1, R2, R3, R4, R5, R6, R7> const& rhs) const;
+};
+
+typedef dimensions<0, 0, 0> dimensionless_d;
+
+typedef dimensions<1, 0, 0, 0, 0, 0, 0> length_d;
+typedef dimensions<0, 1, 0, 0, 0, 0, 0> mass_d;
+typedef dimensions<0, 0, 1, 0, 0, 0, 0> time_interval_d;
+typedef dimensions<0, 0, 0, 1, 0, 0, 0> electric_current_d;
+typedef dimensions<0, 0, 0, 0, 1, 0, 0> thermodynamic_temperature_d;
+typedef dimensions<0, 0, 0, 0, 0, 1, 0> amount_of_substance_d;
+typedef dimensions<0, 0, 0, 0, 0, 0, 1> luminous_intensity_d;
+```
+
+Quantities represent their units (`meter`, `kilogram`, ...):
+
+```cpp
+template<typename Dims, typename T = Rep>
+class quantity { /* ... */ };
+
+// The seven SI base units.  These tie our numbers to the real world.
+
+constexpr quantity<length_d> meter{detail::magnitude_tag, 1.0};
+constexpr quantity<mass_d> kilogram{detail::magnitude_tag, 1.0};
+constexpr quantity<time_interval_d> second{detail::magnitude_tag, 1.0};
+constexpr quantity<electric_current_d> ampere{detail::magnitude_tag, 1.0};
+constexpr quantity<thermodynamic_temperature_d> kelvin{detail::magnitude_tag, 1.0};
+constexpr quantity<amount_of_substance_d> mole{detail::magnitude_tag, 1.0};
+constexpr quantity<luminous_intensity_d> candela{detail::magnitude_tag, 1.0};
+```
+
+Derived dimensions and units are defined in the same way:
+
+```cpp
+// The rest of the standard dimensional types, as specified in SP811.
+
+using absorbed_dose_d         = dimensions<2, 0, -2>;
+using absorbed_dose_rate_d    = dimensions<2, 0, -3>;
+using acceleration_d          = dimensions<1, 0, -2>;
+using activity_of_a_nuclide_d = dimensions<0, 0, -1>;
+using angular_velocity_d      = dimensions<0, 0, -1>;
+using angular_acceleration_d  = dimensions<0, 0, -2>;
+using area_d                  = dimensions<2, 0, 0>;
+using capacitance_d           = dimensions<-2, -1, 4, 2>;
+using concentration_d         = dimensions<-3, 0, 0, 0, 0, 1>;
+// ...
+
+// The derived SI units, as specified in SP811.
+
+constexpr Rep radian{Rep(1)};
+constexpr Rep steradian{Rep(1)};
+constexpr quantity<force_d> newton{meter * kilogram / square(second)};
+constexpr quantity<pressure_d> pascal{newton / square(meter)};
+constexpr quantity<energy_d> joule{newton * meter};
+constexpr quantity<power_d> watt{joule / second};
+// ...
+```
+
+The library also provides UDLs for SI units and their prefixes ranging from `yocto`
+to `yotta`. Thus it is possible to write quantity literals such as `1_ns` and `42.195_km`.
+
 
 Nic Holthaus units {#nic-units}
 -------------------------------
