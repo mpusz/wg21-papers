@@ -2187,8 +2187,13 @@ why it was decided that only relative quantity values will be modeled by the lib
 Moreover, providing support for only relative quantities of other temperature units than
 Kelvin will probably still be misused by the users. This is why we suggest to support
 only Kelvins as built-in temperature units and provide verbose non-member utility
-functions for conversions between different kinds  of temperature values and their units.
+functions for conversions between different kinds of temperature values and their units.
 
+Alternatively, we could consider:
+1. Providing a fully featured engine to implement an affine space. For example
+    `quantity<absolute<units>>, Rep>` (like in Boost.Units) could be used for this purpose.
+2. The solution based on [[CPPNOW17-UNITS]] where kelvin is always treated as relative
+    temperature and celsius and fahrenheit are always treated as an absolute one.
 
 Should we support [=systems=] as a separate type? {#systems-support}
 --------------------------------------------------------------------
