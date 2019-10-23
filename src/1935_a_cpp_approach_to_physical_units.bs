@@ -2744,11 +2744,12 @@ SG6 {#sg6}
 6. Do we agree with Kelvins only support for temperature and verbose conversion functions
     for other [=units=] and absolute temperatures? Should affine types be provided
     ([[#relative-vs-absolute]])?
-7. Should we provide support for dimensionless quantities ([[#dimensionless-quantities]])?
-8. Do we want to standardize Number concept ([[#number]])?
-9. Should constants be provided? If yes, how should updates to the constants be handled?
+7. Do we want to support runtime-specified conversions too (e.g. to support currency)?
+8. Should we provide support for dimensionless quantities ([[#dimensionless-quantities]])?
+9. Do we want to standardize Number concept ([[#number]])?
+10. Should constants be provided? If yes, how should updates to the constants be handled?
     (Separate namespaces?)
-10. Should all ISO 80000-1:2009 units be provided? If yes, how should updates to the ISO standard
+11. Should all ISO 80000-1:2009 units be provided? If yes, how should updates to the ISO standard
     be handled? (Separate namespaces?)
 
 
