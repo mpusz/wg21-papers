@@ -951,9 +951,22 @@ cppnow17-units {#cppnow17-units}
 --------------------------------
 
 Steven Watanabe, the coauthor of the previous library, started the work on the modernized
-version of the library based on the results of LiaW on C++Now 2017 [[CPPNOW17-UNITS]]
+version of the library based on the results of LiaW on C++Now 2017 [[CPPNOW17-UNITS]]. As
+the library was never finished we will not discuss it in details.
 
-{TBD}
+### Design ### {#cppnow17-units.design}
+
+The main design is similar to [[BOOST.UNITS]] with one important difference - no systems.
+Another interesting design change is the approach for temperatures. With the new design
+Celsius and Fahrenheit are always treated as absolute temperatures and only Kelvins can
+act as an absolute or relative value.
+
+```cpp
+kelvin + kelvin = kelvin
+celsius - celsius = kelvin
+celsius + kelvin = celsius
+```
+
 
 PhysUnits-CT-Cpp11 {#PhysUnits-CT-Cpp11}
 ----------------------------------------
