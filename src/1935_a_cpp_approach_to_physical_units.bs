@@ -957,6 +957,16 @@ the library was never finished we will not discuss it in details.
 ### Design ### {#cppnow17-units.design}
 
 The main design is similar to [[BOOST.UNITS]] with one important difference - no systems.
+Steven Watanabe provided the following rationale for this design change:
+
+*"My take is that a system is essentially a set of units with linearly independent
+dimensions and this can be implemented as a convenience on top of the core functionality.
+Boost.Units started out with a design based solely on systems, but that proved to be too
+inflexible. We added support for combining individual units, similar to current libraries.
+However, having both systems and base units supported directly in the core library results
+in a very convoluted design and is one of the main issues that I wanted to fix in a new
+library."*
+
 Another interesting design change is the approach for temperatures. With the new design
 Celsius and Fahrenheit are always treated as absolute temperatures and only Kelvins can
 act as an absolute or relative value.
@@ -1188,6 +1198,7 @@ using namespace units::literals;
 
 units::voltage::volt_t v = 230_V;
 ```
+
 
 Bryan St. Amour units {#bryan-units}
 ------------------------------------
@@ -2231,6 +2242,10 @@ Important point to note here is that adding direct [=systems=] support in the li
 system might negatively affect user experience. Most of the verbose compilation errors
 presented in [[#type-aliasing-issues]] are caused by a dedicated systems support in
 Boost.Units.
+
+Please also note that the author of the only library providing direct systems support
+[[BOOST.UNITS]] removed them in the refreshed design of a new library
+([[#cppnow17-units.design]]).
 
 
 Interoperability with `std::chrono::duration` {#duration-interoperability}
