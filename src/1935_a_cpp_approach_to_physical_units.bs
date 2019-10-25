@@ -1005,15 +1005,17 @@ constexpr pu::quantity<pu::speed_d> avg_speed(pu::quantity<pu::length_d> d,
 
 void test1()
 {
-  constexpr auto v = avg_speed(220 * pu::kilo * pu::meter, 2 * pu::hour);
-  assert(v == 110 * pu::kilo * pu::meter / pu::hour);  // pass
-  std::cout << v << '\n';                              // prints "30.5556 m/s"
+  constexpr auto v = avg_speed(220_km, 2 * pu::hour);
+//  assert(v.magnitude() == 110);  // fails
+  assert(v == 110_km / pu::hour);  // passes
+  std::cout << v << '\n';          // prints "30.5556 m/s"
 }
 
 void test2()
 {
   constexpr auto v = avg_speed(140 * pu::mile, 2 * pu::hour);
-  assert(v == 70 * pu::mile / pu::hour);  // pass
+//  assert(v.magnitude() == 70);          // fails
+  assert(v == 70 * pu::mile / pu::hour);  // passes
   std::cout << v << '\n';                 // prints "31.2928 m/s"
 }
 ```
@@ -1022,13 +1024,11 @@ Please note that this library is a pretty simple library and thus has a lot limi
 1. We are unable to pass arguments to `avg_speed` in units provided by the user because
     quantities are always converted to base units (so there is no need to try to make it
     a function template).
-2. Because of above we also do not get the result in the unit we would like.
+2. Because of above we also do not get the result in the unit we would like. This it why
+    the first assert fails.
 3. There is no possibility to cast returned quantity to the unit that we would like to use
     for printing.
-4. `quantity` does not provide accessor to its numeric value so we cannot check with an assert
-    if the quantity respectively stores `110` and `70`. If we could, the check would fail
-    anyway.
-5. Because of always forced intermediate conversions to base units the second assert passes
+4. Because of always forced intermediate conversions to base units the second assert passes
     even though the result's precision is degraded (both sides of equality are the same broken).
 
 
@@ -1237,7 +1237,7 @@ Comparison {#comparison}
   <tr><td>SI                                        <td>yes                                <td>yes                                                                    <td>yes                                           <td>yes
   <tr><td>Customary system                          <td>yes                                <td>yes                                                                    <td>yes                                           <td>some
   <tr><td>Other systems                             <td>???                                <td>yes                                                                    <td>yes (`bytes`, `radians`)                      <td>no
-  <tr><td>C++ version                               <td>C++20                              <td>C++98 + `constexpr`                                                    <td>C++14                                         <td>C++14
+  <tr><td>C++ version                               <td>C++20                              <td>C++98 + `constexpr`                                                    <td>C++14                                         <td>C++11
   <tr><td>Base dimension id                         <td>string                             <td>integer                                                                <td>index on template parameter list              <td>index on template parameter list
   <tr><td>Dimension                                 <td>type (`length`)                    <td>type (`length_dimension`)                                              <td>none                                          <td>type (`length_d`)
   <tr><td>Dimension representation                  <td>type list                          <td>type list                                                              <td>Class template arguments                      <td>class template
@@ -1253,7 +1253,7 @@ Comparison {#comparison}
   <tr><td>Quantity                                  <td>type (`quantity<metre> q(2);`)     <td>type (`quantity<si::length> q(2 * si::meter);`)                        <td>value of unit (`length::meter_t d(220);`)     <td>type (`quantity<speed_d> speed = 45_km / hour;`)
   <tr><td>Literal instance                          <td>UDL (`123m`)                       <td>Number * static constant (`123 * si::meters`)                          <td>UDL (`123_m`)                                 <td>UDL (`1_m`)
   <tr><td>Variable instance                         <td>constructor (`quantity<metre>(v)`) <td>Variable * static constant (`d * si::meters`)                          <td>constructor (`length::meter_t(v)`)            <td>Variable * static constant (`d * kilo * meter`)
-  <tr><td>Any representation                        <td>yes                                <td>yes                                                                    <td>no (macro to set the default type)            <td>no (macro to set the default type)
+  <tr><td>Any representation                        <td>yes                                <td>yes                                                                    <td>no (macro to set the default type)            <td>yes
   <tr><td>Quantity template arguments type deduction<td>yes                                <td>yes                                                                    <td>no                                            <td>no
   <tr><td>System support                            <td>no                                 <td>yes                                                                    <td>no                                            <td>no
   <tr><td>C++ Concepts                              <td>yes                                <td>no                                                                     <td>no                                            <td>no
@@ -1269,10 +1269,10 @@ Comparison {#comparison}
   <tr><td>`<cmath>` support                         <td>TBD                                <td>yes                                                                    <td>yes                                           <td>no
   <tr><td>`<chrono>` support                        <td>no                                 <td>no                                                                     <td>yes                                           <td>no
   <tr><td>Affine types                              <td>???                                <td>yes (`absolute<Q>`)                                                    <td>no                                            <td>no
-  <tr><td>Prefix representation (???)               <td>                                   <td>yes                                                                    <td>                                              <td>
+  <tr><td>Prefix representation                     <td>ratio                              <td>`scale<10, static_rational<exponent>>`                                 <td>                                              <td>long double
   <tr><td>Physical/Mathematical constants           <td>TBD                                <td>yes                                                                    <td>limited                                       <td>limited
   <tr><td>Dimensionless quantity                    <td>???                                <td>yes                                                                    <td>                                              <td>yes
-  <tr><td>Arbitrary conversions (???)               <td>                                   <td>yes                                                                    <td>no                                            <td>yes
+  <tr><td>Arbitrary conversions                     <td>yes                                <td>yes                                                                    <td>no                                            <td>yes
   <tr><td>User defined dimensions                   <td>yes                                <td>yes                                                                    <td>no                                            <td>no
   <tr><td>User defined units                        <td>yes                                <td>yes                                                                    <td>                                              <td>yes
   <tr><td>User defined prefixes                     <td>yes                                <td>yes                                                                    <td>yes                                           <td>yes
@@ -1317,10 +1317,10 @@ Comparison {#comparison}
   <tr><td>`<cmath>` support                         <td>TBD                                <td>        <td>yes                                     <td>
   <tr><td>`<chrono>` support                        <td>no                                 <td>        <td>yes                                     <td>
   <tr><td>Affine types                              <td>???                                <td>        <td>yes (`quantity`, `quantity_point`)      <td>
-  <tr><td>Prefix representation                     <td>                                   <td>        <td>type list                               <td>
+  <tr><td>Prefix representation                     <td>ratio                              <td>        <td>type list                               <td>
   <tr><td>Physical/Mathematical constants           <td>TBD                                <td>        <td>all                                     <td>
   <tr><td>Dimensionless quantity                    <td>???                                <td>        <td>yes                                     <td>
-  <tr><td>Arbitrary conversions                     <td>                                   <td>        <td>yes                                     <td>
+  <tr><td>Arbitrary conversions                     <td>yes                                   <td>        <td>yes                                     <td>
   <tr><td>User defined dimensions                   <td>yes                                <td>        <td>yes                                     <td>
   <tr><td>User defined units                        <td>yes                                <td>        <td>yes                                     <td>
   <tr><td>User defined prefixes                     <td>yes                                <td>        <td>yes                                     <td>
