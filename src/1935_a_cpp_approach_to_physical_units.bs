@@ -2791,8 +2791,48 @@ Implementation Experience {#implementation}
 ===========================================
 
 The author of this document implemented `mp-units` [[MP-UNITS]] library, where he tested
-different ideas and proved the implementability of the features described in the paper. The
-library framework consists of a few concepts: [=quantities=], [=units=], [=dimensions=],
+different ideas and proved the implementability of the features described in the paper.
+
+Usage example {#mp-units.usage.example}
+---------------------------------------
+
+```cpp
+#include <units/dimensions/velocity.h>
+#include <iostream>
+#include <cassert>
+
+constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
+{
+  return d / t;
+}
+
+void test1()
+{
+  using namespace units::literals;
+
+  const auto v = avg_speed(220.km, 2h);
+  assert(v.count() == 110);   // passes
+  assert(v == 110kmph);       // passes
+  std::cout << v << '\n';     // prints "110 km/h"
+}
+
+void test2()
+{
+  using namespace units::literals;
+
+  const auto v = avg_speed(units::quantity<units::mile>(140), units::quantity<units::hour>(2));
+  assert(v.count() == 70);    // passes
+  assert(v == 70mph);         // passes
+  std::cout << v << '\n';     // prints "70 mi/h"
+}
+```
+
+[Compiler Explorer](https://godbolt.org/z/I8JXj4)
+
+Design {#mp-units.design}
+-------------------------
+
+The library framework consists of a few concepts: [=quantities=], [=units=], [=dimensions=],
 and their exponents. From the user's point of view, the most important is a [=quantity=].
 
 [=Quantity=] is a precise amount of a unit for a specified dimension with a specific representation:
