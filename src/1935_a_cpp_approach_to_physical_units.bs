@@ -37,6 +37,7 @@ r0 ➡ r1 {#r0r1}
 - [[#unicode]] chapter added
 - [[#polls]] extended and split to separate ISO C++ rooms
 - [[MP-UNITS]] code samples updated to reflect the current library design
+- [[#systems-support]] extended
 
 
 Introduction {#introduction}
@@ -2399,6 +2400,9 @@ can, and in some cases should, be possible to be mixed with units from [=SI=].
 Even [=systems=] like `coffee/milk/water/sugar` system that seem to be totally isolated
 from typical [=SI=] use cases at some point will probably need time, volume, and other
 [=SI=] dimensions too.
+
+This is why even when the library claims to support different unit systems it often does
+that based on [=SI=] anyway (i.e. [[BENRI]] provides headers like `si/cgs.h`).
 
 Boost.Units uses [=systems=] mostly to provide the capability of having a different
 [=base unit=] for a [=dimension=] to limit intermediate conversions while passing quantities
