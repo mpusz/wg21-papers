@@ -33,11 +33,12 @@ r0 ➡ r1 {#r0r1}
 - New definitions added (coherent system of units, base dimension, derived dimension, reduced
     dimension) to [[#terms-and_definitions]]
 - [[#prior-work]] chapter updated
+- [[#systems-support]] extended
 - [[#number]] added
 - [[#unicode]] chapter added
+- [[#implementation]] extended
 - [[#polls]] extended and split to separate ISO C++ rooms
 - [[MP-UNITS]] code samples updated to reflect the current library design
-- [[#systems-support]] extended
 
 
 Introduction {#introduction}
@@ -2372,9 +2373,10 @@ functions for conversions between different kinds of temperature values and thei
 
 Alternatively, we could consider:
 1. Providing a fully featured engine to implement an affine space. For example
-    `quantity<absolute<units>>, Rep>` (like in Boost.Units) could be used for this purpose.
-2. The solution based on [[CPPNOW17-UNITS]] where kelvin is always treated as relative
-    temperature and celsius and fahrenheit are always treated as an absolute one.
+    `quantity<absolute<units>>, Rep>` (like in [[BOOST.UNITS]]) or `quantity_point`
+    (like in [[BENRI]]) could be used for this purpose.
+2. The solution based on [[CPPNOW17-UNITS]] where Kelvin is always treated as relative
+    temperature and Celsius and Fahrenheit are always treated as an absolute one.
 
 Should we support [=systems=] as a separate type? {#systems-support}
 --------------------------------------------------------------------
