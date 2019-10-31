@@ -1265,17 +1265,121 @@ The side effects of this are:
     ```
 
 
+benri {#benri}
+--------------
+
+[[BENRI]] is a library written by Jan A. Sende and provides wide support for many
+[=system|systems of units=], physical constants, mathematic operations, and affine spaces.
+
+### Usage example ### {#benri.usage.example}
+
+```cpp
+#include <benri/si/imperial.h>
+#include <benri/si/si.h>
+#include <iostream>
+#include <cassert>
+
+template<class Length, class Time,
+         typename = std::enable_if_t<benri::type::detect_if<Length, benri::type::has_dimension,
+                                                            benri::dimension::length_t> &&
+                                     benri::type::detect_if<Time, benri::type::has_dimension,
+                                                            benri::dimension::time_t>>>
+constexpr auto avg_speed(const Length& length, const Time& time)
+{
+  const auto ret = length / time;
+  static_assert(benri::type::detect_if<decltype(ret), benri::type::has_dimension,
+                benri::dimension::velocity_t>);
+  return ret;
+}
+
+void test1()
+{
+  using namespace benri::si;
+
+  const auto v = avg_speed(220_kilo * metre, 2_hour);
+  assert(v.value() == 110);                // passes
+  assert(v == 110 * kilo * metre / hour);  // passes
+//  std::cout << v << '\n';                // no support
+}
+
+void test2()
+{
+  using namespace benri::si;
+
+  const auto v = avg_speed(140 * imperial::mile, 2 * hour);
+  assert(v.value() == 70);                  // passes
+  assert(v == 70 * imperial::mile / hour);  // passes
+//  std::cout << v << '\n';                 // no support
+}
+```
+
+[Compiler Explorer](https://godbolt.org/z/XANP7J)
+
+Above usage example is quite similar to the one in [[#nic-units.usage.example]] as both
+libraries do not support function template arguments deduction for `quantity` class template
+function arguments to improve overload resolution process. The interface architect has to use
+SFINAE to achieve that.
+
+On contrary to [[NIC_UNITS]] this library does not provide short predefined UDLs. UDLs are
+defined only for prefixes and long names of named [=units=] while the user needs to compose
+all other derived units by him/herself (i.e. `110_kilo * metre / hour`). This makes this
+library to be similar to [[BOOST.UNITS]] in that aspect.
+
+Interesting point to also notice here is that the library intentionally does not provide
+text output support and leaves that work to the user. Beside forcing every user to
+reinvent the wheel this approach might also result in some issues:
+- ODR violations (several dependency libraries might reimplement the same operator)
+- lookup problems (if user will not define the operators in `std` or `benri` namespace
+    those will not be found via ADL from a generic code)
+
+### Design ### {#benri.design}
+
+The `unit` type implements the physics concept of a [=unit=] which is the product of a
+prefix and a number of [=base dimensions=] with an associated power:
+
+```cpp
+template <class Dimension, class Prefix>
+struct unit;
+```
+
+where both `Dimension` and `Prefix` are sorted type lists. Representing a prefix as a
+type list is unique to this library and is meant to address limited range of `std::ratio`.
+
+[=Quantities=] are addressed with two distinct types that are used to provide affine space
+support:
+
+```cpp
+template <class Unit, class ValueType = Precision>
+class quantity;
+
+template <class Unit, class ValueType = Precision>
+class quantity_point;
+```
+
+This library puts usage safety over user's convenience. The effect of this is that even
+obvious conversions require explicit casts on assignment, arithmetic operations, and
+comparisons:
+
+```cpp
+// auto a = 1_metre + 10_centi * metre;  // does not compile
+//  assert(a < 10_metre);                // does not compile
+
+auto a = benri::simple_cast<decltype(centi * metre)>(1_metre) + 10_centi * metre;
+assert(a < benri::simple_cast<decltype(centi * metre)>(10_metre));
+```
+
+It can also be noted here that this library enforces AAA (Almost Always Auto) programming
+style as due to limited number of predefined derived units it is often impossible to clearly
+provide exact [=unit=] in a `quantity` type:
+
+```cpp
+const auto speed = a * metre / b * second;
+```
+
 Bryan St. Amour units {#bryan-units}
 ------------------------------------
 
 [[BRYAN_UNITS]]
-
-{TBD}
-
-benri {#benri}
---------------
-
-[[BENRI]]
 
 {TBD}
 
@@ -1310,7 +1414,7 @@ Comparison {#comparison}
   <tr><td>Type traits for dimensions                <td>no                                 <td>yes                                                                    <td>no                                                <td>yes
   <tr><td>Unit                                      <td>type (`metre`)                     <td>type + constant (`si::length` + `si::meter`)                           <td>values (`meter`)                                  <td>type (`length::meter_t`)
   <tr><td>UDLs                                      <td>yes                                <td>no                                                                     <td>some                                              <td>yes
-  <tr><td>Composable UDLs                           <td>no                                 <td>no                                                                     <td>no                                                <td>no
+  <tr><td>Composable Units                          <td>no                                 <td>no                                                                     <td>no                                                <td>no
   <tr><td>Predefined scaled unit types              <td>some                               <td>no                                                                     <td>some                                              <td>all
   <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>predefined values or multiplied with a prefix (`si::kilo * si::meter`) <td>value + UDL (`mile` + `_km`)                      <td>type + UDL (`length::kilometer_t` + `_km`)
   <tr><td>Meter vs metre                            <td>metre                              <td>both                                                                   <td>both                                              <td>meter
@@ -1346,49 +1450,49 @@ Comparison {#comparison}
 <br>
 
 <table>
-  <tr><th>Feature                                   <th>mp-units                           <th>bstamour<th>benri                                   <th>mford units
-  <tr><td>SI                                        <td>yes                                <td>yes     <td>yes                                     <td>
-  <tr><td>Customary system                          <td>yes                                <td>        <td>yes                                     <td>
-  <tr><td>Other systems                             <td>???                                <td>        <td>yes                                     <td>
-  <tr><td>C++ version                               <td>C++20                              <td>        <td>C++14                                   <td>
-  <tr><td>Base dimension id                         <td>string                             <td>        <td>string                                  <td>
-  <tr><td>Dimension                                 <td>type (`length`)                    <td>        <td>alias to type list (`length_t`)         <td>
-  <tr><td>Dimension representation                  <td>type list                          <td>        <td>type list                               <td>
-  <tr><td>Fractional exponents                      <td>yes                                <td>        <td>yes                                     <td>
-  <tr><td>Type traits for dimensions                <td>no                                 <td>        <td>some                                    <td>
-  <tr><td>Unit                                      <td>type (`metre`)                     <td>        <td>alias to type (`metre_t`)               <td>
-  <tr><td>UDLs                                      <td>yes                                <td>        <td>yes                                     <td>
-  <tr><td>Composable UDLs                           <td>no (`kilometre`)                   <td>        <td>yes (`kilo * metre`)                    <td>
-  <tr><td>Predefined scaled unit types              <td>some                               <td>        <td>                                        <td>
-  <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>        <td>                                        <td>
-  <tr><td>Meter vs metre                            <td>metre                              <td>        <td>metre                                   <td>
-  <tr><td>Singular vs plural                        <td>singular (`metre`)                 <td>        <td>singular (`metre`)                      <td>
-  <tr><td>Quantity                                  <td>type (`quantity<metre> q(2);`)     <td>        <td>type (`quantity<metre> q(2);`)          <td>
-  <tr><td>Literal instance                          <td>UDL (`123m`)                       <td>        <td>UDL (`1_metre`)                         <td>
-  <tr><td>Variable instance                         <td>constructor (`quantity<metre>(v)`) <td>        <td>constructor (`quantity<metre>(v)`)      <td>
-  <tr><td>Any representation                        <td>yes                                <td>        <td>yes (macro default of `double`)         <td>
-  <tr><td>Quantity template arguments type deduction<td>yes                                <td>        <td>                                        <td>
-  <tr><td>System support                            <td>no                                 <td>        <td>no                                      <td>
-  <tr><td>C++ Concepts                              <td>yes                                <td>no      <td>no                                      <td>
-  <tr><td>Types downcasting                         <td>yes                                <td>no      <td>no                                      <td>
-  <tr><td>Implicit unit conversions                 <td>same dimension non-truncating only <td>        <td>no                                      <td>
-  <tr><td>Explicit unit conversions                 <td>`quantity_cast`                    <td>        <td>`simple_cast` (`constexpr`)/`unit_cast` <td>
-  <tr><td>Runtime conversion factors                <td>no                                 <td>        <td>                                        <td>
-  <tr><td>Temperature support                       <td>Kelvins only + conversion functions<td>        <td>yes                                     <td>
-  <tr><td>String output                             <td>yes                                <td>        <td>no                                      <td>
-  <tr><td>String input                              <td>no                                 <td>        <td>no                                      <td>
-  <tr><td>Macros in the user interface              <td>no                                 <td>        <td>yes                                     <td>
-  <tr><td>Non-linear scale support                  <td>no                                 <td>        <td>                                        <td>
-  <tr><td>`<cmath>` support                         <td>TBD                                <td>        <td>yes                                     <td>
-  <tr><td>`<chrono>` support                        <td>no                                 <td>        <td>yes                                     <td>
-  <tr><td>Affine types                              <td>???                                <td>        <td>yes (`quantity`, `quantity_point`)      <td>
-  <tr><td>Prefix representation                     <td>ratio                              <td>        <td>type list                               <td>
-  <tr><td>Physical/Mathematical constants           <td>TBD                                <td>        <td>all                                     <td>
-  <tr><td>Dimensionless quantity                    <td>???                                <td>        <td>yes                                     <td>
-  <tr><td>Arbitrary conversions                     <td>yes                                   <td>        <td>yes                                     <td>
-  <tr><td>User defined dimensions                   <td>yes                                <td>        <td>yes                                     <td>
-  <tr><td>User defined units                        <td>yes                                <td>        <td>yes                                     <td>
-  <tr><td>User defined prefixes                     <td>yes                                <td>        <td>yes                                     <td>
+  <tr><th>Feature                                   <th>mp-units                           <th>benri                                   <th>bstamour<th>mford units
+  <tr><td>SI                                        <td>yes                                <td>yes                                     <td>yes     <td>
+  <tr><td>Customary system                          <td>yes                                <td>yes                                     <td>        <td>
+  <tr><td>Other systems                             <td>???                                <td>yes                                     <td>        <td>
+  <tr><td>C++ version                               <td>C++20                              <td>C++14                                   <td>        <td>
+  <tr><td>Base dimension id                         <td>string                             <td>string                                  <td>        <td>
+  <tr><td>Dimension                                 <td>type (`length`)                    <td>alias to type list (`length_t`)         <td>        <td>
+  <tr><td>Dimension representation                  <td>type list                          <td>type list                               <td>        <td>
+  <tr><td>Fractional exponents                      <td>yes                                <td>yes                                     <td>        <td>
+  <tr><td>Type traits for dimensions                <td>no                                 <td>some                                    <td>        <td>
+  <tr><td>Unit                                      <td>type (`metre`)                     <td>alias to type (`metre_t`)               <td>        <td>
+  <tr><td>UDLs                                      <td>yes                                <td>yes (long form only i.e. `_metre`)      <td>        <td>
+  <tr><td>Composable Units                          <td>no (`kilometre`)                   <td>yes (`kilo * metre`)                    <td>        <td>
+  <tr><td>Predefined scaled unit types              <td>some                               <td>no                                      <td>        <td>
+  <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>no                                      <td>        <td>
+  <tr><td>Meter vs metre                            <td>metre                              <td>metre                                   <td>        <td>
+  <tr><td>Singular vs plural                        <td>singular (`metre`)                 <td>singular (`metre`)                      <td>        <td>
+  <tr><td>Quantity                                  <td>type (`quantity<metre> q(2);`)     <td>type (`quantity<metre> q(2);`)          <td>        <td>
+  <tr><td>Literal instance                          <td>UDL (`123m`)                       <td>UDL (`1_metre`)                         <td>        <td>
+  <tr><td>Variable instance                         <td>constructor (`quantity<metre>(v)`) <td>constructor (`quantity<metre>(v)`)      <td>        <td>
+  <tr><td>Any representation                        <td>yes                                <td>yes (macro default of `double`)         <td>        <td>
+  <tr><td>Quantity template arguments type deduction<td>yes                                <td>no                                      <td>        <td>
+  <tr><td>System support                            <td>no                                 <td>no                                      <td>        <td>
+  <tr><td>C++ Concepts                              <td>yes                                <td>no                                      <td>no      <td>
+  <tr><td>Types downcasting                         <td>yes                                <td>no                                      <td>no      <td>
+  <tr><td>Implicit unit conversions                 <td>same dimension non-truncating only <td>no                                      <td>        <td>
+  <tr><td>Explicit unit conversions                 <td>`quantity_cast`                    <td>`simple_cast` (`constexpr`)/`unit_cast` <td>        <td>
+  <tr><td>Runtime conversion factors                <td>no                                 <td>no                                      <td>        <td>
+  <tr><td>Temperature support                       <td>Kelvins only + conversion functions<td>yes                                     <td>        <td>
+  <tr><td>String output                             <td>yes                                <td>no                                      <td>        <td>
+  <tr><td>String input                              <td>no                                 <td>no                                      <td>        <td>
+  <tr><td>Macros in the user interface              <td>no                                 <td>yes                                     <td>        <td>
+  <tr><td>Non-linear scale support                  <td>no                                 <td>no                                      <td>        <td>
+  <tr><td>`<cmath>` support                         <td>TBD                                <td>yes                                     <td>        <td>
+  <tr><td>`<chrono>` support                        <td>no                                 <td>yes                                     <td>        <td>
+  <tr><td>Affine types                              <td>???                                <td>yes (`quantity`, `quantity_point`)      <td>        <td>
+  <tr><td>Prefix representation                     <td>ratio                              <td>type list                               <td>        <td>
+  <tr><td>Physical/Mathematical constants           <td>TBD                                <td>all                                     <td>        <td>
+  <tr><td>Dimensionless quantity                    <td>???                                <td>yes                                     <td>        <td>
+  <tr><td>Arbitrary conversions                     <td>yes                                <td>yes                                     <td>        <td>
+  <tr><td>User defined dimensions                   <td>yes                                <td>yes                                     <td>        <td>
+  <tr><td>User defined units                        <td>yes                                <td>yes                                     <td>        <td>
+  <tr><td>User defined prefixes                     <td>yes                                <td>yes                                     <td>        <td>
 </table>
 <!-- markdownlint-enable line-length -->
 
