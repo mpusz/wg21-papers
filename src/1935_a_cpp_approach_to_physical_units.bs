@@ -34,6 +34,7 @@ r0 ➡ r1 {#r0r1}
     dimension) to [[#terms-and_definitions]]
 - [[#prior-work]] chapter updated
 - [[#systems-support]] extended
+- [[#integral-udl]] updated
 - [[#number]] added
 - [[#unicode]] chapter added
 - [[#implementation]] extended
@@ -2499,11 +2500,10 @@ Above is caused by the constraints copied from `std::chrono::duration` and put o
 conversion constructors requiring the denominator of `ratio` to be 1 in case of the integral
 representation type.
 
-Based on the above we could agree to provide an UDL for floating point literals only or make
-the integral one return a quantity with `long double` as a representation type. However,
-if we consider a [=base quantity=] like a digital information, what does it mean to have
-a fraction of bit? This probably not the only one isolated example when actually only integral
-UDLs have sense.
+Based on the above we could agree on making integral UDLs returning a quantity with
+`long double` as a representation type. However, if we consider a [=base quantity=] like
+a digital information, what does it mean to have a fraction of bit? This probably is not
+the only one isolated example when actually only integral UDLs have sense.
 
 Summarizing above we have the following options to choose from as an answer to
 "Should we provide integral UDLs?":
@@ -2512,7 +2512,6 @@ Summarizing above we have the following options to choose from as an answer to
 2. Yes, but integral literals get floating-point `Rep`.
 3. Yes, but only for specific units like a `bit`, `byte`, etc. where floating-point types do
     not have much sense (no floating-point UDLs in such case).
-4. No, just use floating-point UDLs for all (no integral UDLs at all in the library).
 
 
 `quantity<dim_length, metre>` or `quantity<metre>`? {#dimension-in-quantity}
