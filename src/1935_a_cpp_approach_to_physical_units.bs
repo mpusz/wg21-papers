@@ -1227,7 +1227,8 @@ and `Byte`.
 ```cpp
 namespace units {
 
-template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
+template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>,
+         class Translation = std::ratio<0>>
 struct unit;
 
 }
@@ -1378,123 +1379,65 @@ provide exact [=unit=] in a `quantity` type:
 const auto speed = a * metre / b * second;
 ```
 
-Bryan St. Amour units {#bryan-units}
-------------------------------------
 
-[[BRYAN_UNITS]]
+Other {#other}
+--------------
 
-{TBD}
+There are more smaller units solutions out there. The author reviewed also the following
+libraries:
+- Michael Ford units ([[MIKEFORD3_UNITS]])
+- Bryan St. Amour units ([[BRYAN_UNITS]])
+- Vincent Ducharme units ([[DUCHARME_UNITS]])
 
-Michael Ford units {#mikeford3-units}
--------------------------------------
-
-[[MIKEFORD3_UNITS]]
-
-{TBD}
-
-`std::chrono::duration` {#chrono::duration}
--------------------------------------------
-
-{TBD}
 
 Comparison {#comparison}
 ------------------------
 
-{TBD}
-
 <!-- markdownlint-disable line-length -->
 <table>
-  <tr><th>Feature                                   <th>mp-units                           <th>Boost.Units                                                            <th>PhysUnits-CT-Cpp11>                               <th>nholthaus
-  <tr><td>SI                                        <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes
-  <tr><td>Customary system                          <td>yes                                <td>yes                                                                    <td>some                                              <td>yes
-  <tr><td>Other systems                             <td>???                                <td>yes                                                                    <td>no                                                <td>yes (`bytes`, `radians`)
-  <tr><td>C++ version                               <td>C++20                              <td>C++98 + `constexpr`                                                    <td>C++11                                             <td>C++14
-  <tr><td>Base dimension id                         <td>string                             <td>integer                                                                <td>index on template parameter list                  <td>index on template parameter list
-  <tr><td>Dimension                                 <td>type (`length`)                    <td>type (`length_dimension`)                                              <td>type (`length_d`)                                 <td>namespace
-  <tr><td>Dimension representation                  <td>type list                          <td>type list                                                              <td>class template                                    <td>Class template arguments
-  <tr><td>Fractional exponents                      <td>yes                                <td>yes                                                                    <td>no                                                <td>yes
-  <tr><td>Type traits for dimensions                <td>no                                 <td>yes                                                                    <td>no                                                <td>yes
-  <tr><td>Unit                                      <td>type (`metre`)                     <td>type + constant (`si::length` + `si::meter`)                           <td>values (`meter`)                                  <td>type (`length::meter_t`)
-  <tr><td>UDLs                                      <td>yes                                <td>no                                                                     <td>some                                              <td>yes
-  <tr><td>Composable Units                          <td>no                                 <td>no                                                                     <td>no                                                <td>no
-  <tr><td>Predefined scaled unit types              <td>some                               <td>no                                                                     <td>some                                              <td>all
-  <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>predefined values or multiplied with a prefix (`si::kilo * si::meter`) <td>value + UDL (`mile` + `_km`)                      <td>type + UDL (`length::kilometer_t` + `_km`)
-  <tr><td>Meter vs metre                            <td>metre                              <td>both                                                                   <td>both                                              <td>meter
-  <tr><td>Singular vs plural                        <td>singular (`metre`)                 <td>both (`meter` + `meters`)                                              <td>singular                                          <td>both (`length::meter_t` + `length::meters_t`)
-  <tr><td>Quantity                                  <td>type (`quantity<metre> q(2);`)     <td>type (`quantity<si::length> q(2 * si::meter);`)                        <td>type (`quantity<speed_d> speed = 45_km / hour;`)  <td>value of unit (`length::meter_t d(220);`)
-  <tr><td>Literal instance                          <td>UDL (`123m`)                       <td>Number * static constant (`123 * si::meters`)                          <td>UDL (`1_m`)                                       <td>UDL (`123_m`)
-  <tr><td>Variable instance                         <td>constructor (`quantity<metre>(v)`) <td>Variable * static constant (`d * si::meters`)                          <td>Variable * static constant (`d * kilo * meter`)   <td>constructor (`length::meter_t(v)`)
-  <tr><td>Any representation                        <td>yes                                <td>yes                                                                    <td>yes                                               <td>no (macro to set the default type)
-  <tr><td>Quantity template arguments type deduction<td>yes                                <td>yes                                                                    <td>no                                                <td>no
-  <tr><td>System support                            <td>no                                 <td>yes                                                                    <td>no                                                <td>no
-  <tr><td>C++ Concepts                              <td>yes                                <td>no                                                                     <td>no                                                <td>no
-  <tr><td>Types downcasting                         <td>yes                                <td>no                                                                     <td>no                                                <td>no
-  <tr><td>Implicit unit conversions                 <td>same dimension non-truncating only <td>no                                                                     <td>same dimension                                    <td>same dimension
-  <tr><td>Explicit unit conversions                 <td>`quantity_cast`                    <td>`quantity_cast`                                                        <td>yes                                               <td>no
-  <tr><td>Runtime conversion factors                <td>no                                 <td>yes                                                                    <td>no                                                <td>no
-  <tr><td>Temperature support                       <td>Kelvins only + conversion functions<td>Kelvins in SI + other in dedicated systems                             <td>relative values only                              <td>absolute values only
-  <tr><td>String output                             <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes
-  <tr><td>String input                              <td>no                                 <td>no                                                                     <td>no                                                <td>no
-  <tr><td>Macros in the user interface              <td>no                                 <td>yes                                                                    <td>no                                                <td>yes
-  <tr><td>Non-linear scale support                  <td>no                                 <td>no                                                                     <td>no                                                <td>yes
-  <tr><td>`<cmath>` support                         <td>TBD                                <td>yes                                                                    <td>no                                                <td>yes
-  <tr><td>`<chrono>` support                        <td>no                                 <td>no                                                                     <td>no                                                <td>yes
-  <tr><td>Affine types                              <td>???                                <td>yes (`absolute<Q>`)                                                    <td>no                                                <td>no
-  <tr><td>Prefix representation                     <td>ratio                              <td>`scale<10, static_rational<exponent>>`                                 <td>long double                                       <td>ratio
-  <tr><td>Physical/Mathematical constants           <td>TBD                                <td>yes                                                                    <td>limited                                           <td>limited
-  <tr><td>Dimensionless quantity                    <td>???                                <td>yes                                                                    <td>yes                                               <td>yes
-  <tr><td>Arbitrary conversions                     <td>yes                                <td>yes                                                                    <td>yes                                               <td>no
-  <tr><td>User defined dimensions                   <td>yes                                <td>yes                                                                    <td>no                                                <td>no
-  <tr><td>User defined units                        <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes
-  <tr><td>User defined prefixes                     <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes
-</table>
-
-<br>
-
-<table>
-  <tr><th>Feature                                   <th>mp-units                           <th>benri                                   <th>bstamour<th>mford units
-  <tr><td>SI                                        <td>yes                                <td>yes                                     <td>yes     <td>
-  <tr><td>Customary system                          <td>yes                                <td>yes                                     <td>        <td>
-  <tr><td>Other systems                             <td>???                                <td>yes                                     <td>        <td>
-  <tr><td>C++ version                               <td>C++20                              <td>C++14                                   <td>        <td>
-  <tr><td>Base dimension id                         <td>string                             <td>string                                  <td>        <td>
-  <tr><td>Dimension                                 <td>type (`length`)                    <td>alias to type list (`length_t`)         <td>        <td>
-  <tr><td>Dimension representation                  <td>type list                          <td>type list                               <td>        <td>
-  <tr><td>Fractional exponents                      <td>yes                                <td>yes                                     <td>        <td>
-  <tr><td>Type traits for dimensions                <td>no                                 <td>some                                    <td>        <td>
-  <tr><td>Unit                                      <td>type (`metre`)                     <td>alias to type (`metre_t`)               <td>        <td>
-  <tr><td>UDLs                                      <td>yes                                <td>yes (long form only i.e. `_metre`)      <td>        <td>
-  <tr><td>Composable Units                          <td>no (`kilometre`)                   <td>yes (`kilo * metre`)                    <td>        <td>
-  <tr><td>Predefined scaled unit types              <td>some                               <td>no                                      <td>        <td>
-  <tr><td>Scaled units                              <td>type + UDL (`kilometre` + `km`)    <td>no                                      <td>        <td>
-  <tr><td>Meter vs metre                            <td>metre                              <td>metre                                   <td>        <td>
-  <tr><td>Singular vs plural                        <td>singular (`metre`)                 <td>singular (`metre`)                      <td>        <td>
-  <tr><td>Quantity                                  <td>type (`quantity<metre> q(2);`)     <td>type (`quantity<metre> q(2);`)          <td>        <td>
-  <tr><td>Literal instance                          <td>UDL (`123m`)                       <td>UDL (`1_metre`)                         <td>        <td>
-  <tr><td>Variable instance                         <td>constructor (`quantity<metre>(v)`) <td>constructor (`quantity<metre>(v)`)      <td>        <td>
-  <tr><td>Any representation                        <td>yes                                <td>yes (macro default of `double`)         <td>        <td>
-  <tr><td>Quantity template arguments type deduction<td>yes                                <td>no                                      <td>        <td>
-  <tr><td>System support                            <td>no                                 <td>no                                      <td>        <td>
-  <tr><td>C++ Concepts                              <td>yes                                <td>no                                      <td>no      <td>
-  <tr><td>Types downcasting                         <td>yes                                <td>no                                      <td>no      <td>
-  <tr><td>Implicit unit conversions                 <td>same dimension non-truncating only <td>no                                      <td>        <td>
-  <tr><td>Explicit unit conversions                 <td>`quantity_cast`                    <td>`simple_cast` (`constexpr`)/`unit_cast` <td>        <td>
-  <tr><td>Runtime conversion factors                <td>no                                 <td>no                                      <td>        <td>
-  <tr><td>Temperature support                       <td>Kelvins only + conversion functions<td>yes                                     <td>        <td>
-  <tr><td>String output                             <td>yes                                <td>no                                      <td>        <td>
-  <tr><td>String input                              <td>no                                 <td>no                                      <td>        <td>
-  <tr><td>Macros in the user interface              <td>no                                 <td>yes                                     <td>        <td>
-  <tr><td>Non-linear scale support                  <td>no                                 <td>no                                      <td>        <td>
-  <tr><td>`<cmath>` support                         <td>TBD                                <td>yes                                     <td>        <td>
-  <tr><td>`<chrono>` support                        <td>no                                 <td>yes                                     <td>        <td>
-  <tr><td>Affine types                              <td>???                                <td>yes (`quantity`, `quantity_point`)      <td>        <td>
-  <tr><td>Prefix representation                     <td>ratio                              <td>type list                               <td>        <td>
-  <tr><td>Physical/Mathematical constants           <td>TBD                                <td>all                                     <td>        <td>
-  <tr><td>Dimensionless quantity                    <td>???                                <td>yes                                     <td>        <td>
-  <tr><td>Arbitrary conversions                     <td>yes                                <td>yes                                     <td>        <td>
-  <tr><td>User defined dimensions                   <td>yes                                <td>yes                                     <td>        <td>
-  <tr><td>User defined units                        <td>yes                                <td>yes                                     <td>        <td>
-  <tr><td>User defined prefixes                     <td>yes                                <td>yes                                     <td>        <td>
+  <tr><th>Feature                                    <th>mp-units                           <th>Boost.Units                                                            <th>PhysUnits-CT-Cpp11>                               <th>nholthaus                                      <th>benri
+  <tr><td>SI                                         <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>yes
+  <tr><td>Customary system                           <td>yes                                <td>yes                                                                    <td>some                                              <td>yes                                            <td>yes
+  <tr><td>Other systems                              <td>???                                <td>yes                                                                    <td>no                                                <td>yes (`bytes`, `radians`)                       <td>yes
+  <tr><td>C++ version                                <td>C++20                              <td>C++98 + `constexpr`                                                    <td>C++11                                             <td>C++14                                          <td>C++14
+  <tr><td>Base dimension id                          <td>string                             <td>integer                                                                <td>index on template parameter list                  <td>index on template parameter list               <td>string
+  <tr><td>Dimension                                  <td>type (`length`)                    <td>alias to type list (`length_dimension`)                                <td>alias to type list (`length_d`)                   <td>namespace (`length`)                           <td>alias to type list (`length_t`)
+  <tr><td>Dimension representation                   <td>type list                          <td>type list                                                              <td>class template                                    <td>Class template arguments                       <td>type list
+  <tr><td>Fractional exponents                       <td>yes                                <td>yes                                                                    <td>no                                                <td>yes                                            <td>yes
+  <tr><td>Type traits for dimensions                 <td>no                                 <td>yes                                                                    <td>no                                                <td>yes                                            <td>some
+  <tr><td>Unit                                       <td>type (`metre`)                     <td>alias + constant (`si::length` + `si::meter`)                          <td>values (`meter`)                                  <td>alias (`length::meter_t`)                      <td>alias (`metre_t`)
+  <tr><td>UDLs                                       <td>yes                                <td>no                                                                     <td>some                                              <td>yes                                            <td>yes (long form only i.e. `_metre`)
+  <tr><td>Composable Units                           <td>no                                 <td>no                                                                     <td>no                                                <td>no                                             <td>yes (`kilo * metre`)
+  <tr><td>Predefined scaled unit types               <td>some                               <td>no                                                                     <td>some                                              <td>all                                            <td>no
+  <tr><td>Scaled units                               <td>type + UDL (`kilometre` + `km`)    <td>predefined values or multiplied with a prefix (`si::kilo * si::meter`) <td>value + UDL (`mile` + `_km`)                      <td>type + UDL (`length::kilometer_t` + `_km`)     <td>no
+  <tr><td>Meter vs metre                             <td>metre                              <td>both                                                                   <td>both                                              <td>meter                                          <td>metre
+  <tr><td>Singular vs plural                         <td>singular (`metre`)                 <td>both (`meter` + `meters`)                                              <td>singular                                          <td>both (`length::meter_t` + `length::meters_t`)  <td>singular (`metre`)
+  <tr><td>Quantity                                   <td>type (`quantity<metre> q(2);`)     <td>type (`quantity<si::length> q(2 * si::meter);`)                        <td>type (`quantity<speed_d> speed = 45_km / hour;`)  <td>value of unit (`length::meter_t d(220);`)      <td>type (`quantity<metre> q(2);`)
+  <tr><td>Literal instance                           <td>UDL (`123m`)                       <td>Number * static constant (`123 * si::meters`)                          <td>UDL (`1_m`)                                       <td>UDL (`123_m`)                                  <td>UDL (`1_metre`)
+  <tr><td>Variable instance                          <td>constructor (`quantity<metre>(v)`) <td>Variable * static constant (`d * si::meters`)                          <td>Variable * static constant (`d * kilo * meter`)   <td>constructor (`length::meter_t(v)`)             <td>constructor (`quantity<metre>(v)`)
+  <tr><td>Any representation                         <td>yes                                <td>yes                                                                    <td>yes                                               <td>no (macro to set the default type)             <td>yes (macro default of `double`)
+  <tr><td>Quantity template arguments type deduction <td>yes                                <td>yes                                                                    <td>no                                                <td>no                                             <td>no
+  <tr><td>System support                             <td>no                                 <td>yes                                                                    <td>no                                                <td>no                                             <td>no
+  <tr><td>C++ Concepts                               <td>yes                                <td>no                                                                     <td>no                                                <td>no                                             <td>no
+  <tr><td>Types downcasting                          <td>yes                                <td>no                                                                     <td>no                                                <td>no                                             <td>no
+  <tr><td>Implicit unit conversions                  <td>same dimension non-truncating only <td>no                                                                     <td>same dimension                                    <td>same dimension                                 <td>no
+  <tr><td>Explicit unit conversions                  <td>`quantity_cast`                    <td>`quantity_cast`                                                        <td>yes                                               <td>no                                             <td>`simple_cast` (`constexpr`)/`unit_cast`
+  <tr><td>Runtime conversion factors                 <td>no                                 <td>yes                                                                    <td>no                                                <td>no                                             <td>no
+  <tr><td>Temperature support                        <td>Kelvins only + conversion functions<td>Kelvins in SI + other in dedicated systems                             <td>relative values only                              <td>absolute values only                           <td>yes
+  <tr><td>String output                              <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>no
+  <tr><td>String input                               <td>no                                 <td>no                                                                     <td>no                                                <td>no                                             <td>no
+  <tr><td>Macros in the user interface               <td>no                                 <td>yes                                                                    <td>no                                                <td>yes                                            <td>yes
+  <tr><td>Non-linear scale support                   <td>no                                 <td>no                                                                     <td>no                                                <td>yes                                            <td>no
+  <tr><td>`<cmath>` support                          <td>TBD                                <td>yes                                                                    <td>no                                                <td>yes                                            <td>yes
+  <tr><td>`<chrono>` support                         <td>no                                 <td>no                                                                     <td>no                                                <td>yes                                            <td>yes
+  <tr><td>Affine types                               <td>???                                <td>yes (`absolute<Q>`)                                                    <td>no                                                <td>no                                             <td>yes (`quantity`, `quantity_point`)
+  <tr><td>Prefix representation                      <td>ratio                              <td>`scale<10, static_rational<exponent>>`                                 <td>long double                                       <td>ratio                                          <td>type list
+  <tr><td>Physical/Mathematical constants            <td>TBD                                <td>yes                                                                    <td>limited                                           <td>limited                                        <td>all
+  <tr><td>Dimensionless quantity                     <td>???                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>yes
+  <tr><td>Arbitrary conversions                      <td>yes                                <td>yes                                                                    <td>yes                                               <td>no                                             <td>yes
+  <tr><td>User defined dimensions                    <td>yes                                <td>yes                                                                    <td>no                                                <td>no                                             <td>yes
+  <tr><td>User defined units                         <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>yes
+  <tr><td>User defined prefixes                      <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>yes
 </table>
 <!-- markdownlint-enable line-length -->
 
