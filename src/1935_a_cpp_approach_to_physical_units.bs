@@ -3082,7 +3082,11 @@ this document.
         "authors": [ "Michael Ford" ],
         "href": "https://github.com/mikeford3/units",
         "title": "units"
+    },
+    "DUCHARME_UNITS": {
+        "authors": [ "Vincent Ducharme" ],
+        "href": "https://github.com/VincentDucharme/Units",
+        "title": "units"
     }
-
 }
 </pre>
