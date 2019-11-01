@@ -4,7 +4,7 @@ Shortname: D1935
 Revision: 1
 Status: D
 Group: WG21
-Audience: SG6, LEWG
+Audience: LEWG, SG6, SG16
 URL: https://mpusz.github.io/wg21-papers/papers/1935_a_cpp_approach_to_physical_units.html
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This document starts the discussion about the Physical Units support for the
@@ -14,10 +14,6 @@ Abstract: This document starts the discussion about the Physical Units support f
           experience. The rest of the document describes solutions and techniques that
           can be used to mitigate those issues. All of them were implemented and tested
           by the author in the mp-units library.
-
-          {Please note that the chapter [[#prior-work]] is still incomplete and will be
-          filled in D1935R1 that should be available as a draft on the LEWG Wiki before
-          Belfast meeting }
 Repository: mpusz/wg21_papers
 !Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/1935_a_cpp_approach_to_physical_units.bs">github.com/mpusz/wg21_papers/blob/master/src/1935_a_cpp_approach_to_physical_units.bs</a>
 Markup Shorthands: markdown on
@@ -2318,7 +2314,8 @@ functions for conversions between different kinds of temperature values and thei
 Alternatively, we could consider:
 1. Providing a fully featured engine to implement an affine space. For example
     `quantity<absolute<units>>, Rep>` (like in [[BOOST.UNITS]]) or `quantity_point`
-    (like in [[BENRI]]) could be used for this purpose.
+    (like in [[BENRI]]) could be used for this purpose. If we decide to go this route,
+    how to distinguish between UDLs for the same unit addressing such two abstractions?
 2. The solution based on [[CPPNOW17-UNITS]] where Kelvin is always treated as relative
     temperature and Celsius and Fahrenheit are always treated as an absolute one.
 
