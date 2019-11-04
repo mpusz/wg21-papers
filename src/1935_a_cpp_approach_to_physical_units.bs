@@ -29,6 +29,7 @@ r0 ➡ r1 {#r0r1}
 - New definitions added (coherent system of units, base dimension, derived dimension, reduced
     dimension) to [[#terms-and_definitions]]
 - [[#prior-work]] chapter updated
+- [[#prefixes-and-units]] extended with last paragraph
 - [[#systems-support]] extended
 - [[#integral-udl]] updated
 - [[#number]] added
@@ -2178,6 +2179,19 @@ The drawbacks of such a solution are:
 - the code written by the developer will not be similar to the types printed in the compilation
     error logs
 - no support for such a unit by the downcasting facility (units are values instead of types)
+
+Please note that 2nd and 3rd case may look tempting because nice examples where used. It can
+get worse for a lot of [=dimensions=]:
+- volume (`3 * m * m * m`, `3 * units::metre * units::metre * units::metre`)
+- acceleration (`10 * m / s / s`, `3 * units::metre / units::second / units::second`)
+
+while the same [=dimensions=] with the first approach looks as follows:
+- volume (`3cub_m`, `quantity<cubic_metre>(3)`)
+- acceleration (`10mps_sq`, `quantity<metre_per_second_sq>(3)`)
+
+and provide dowcasting support at the same time which will provide exactly the same experience
+for the end user in a compilation log or the compiler to the one that developer has while
+implementing the library code.
 
 
 NTTP usage {#nttp-usage}
