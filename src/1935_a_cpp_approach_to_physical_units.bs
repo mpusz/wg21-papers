@@ -2961,7 +2961,7 @@ LEWG {#lewg}
 3. Do we like the concept-based approach to prevent truncation
     ([[#generic-programming-with-concepts]])?
 4. Do we like a downcasting facility or do we want to wait for other solutions (strong types
-    in the language, better compiler errors, ...) ([[##downcasting]])?
+    in the language, better compiler errors, ...) ([[#downcasting]])?
 5. Do we prefer NTTP usage for `ratio` and `exp` ([[#nttp-usage]])?
 6. Which option of UDLs do we prefer ([[#integral-udl]])?
 7. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)?
