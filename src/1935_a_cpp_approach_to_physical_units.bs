@@ -1393,7 +1393,7 @@ Comparison {#comparison}
 
 <!-- markdownlint-disable line-length -->
 <table>
-  <tr><th>Feature                                    <th>mp-units                           <th>Boost.Units                                                            <th>PhysUnits-CT-Cpp11>                               <th>nholthaus                                      <th>benri
+  <tr><th>Feature                                    <th>mp-units                           <th>Boost.Units                                                            <th>PhysUnits-CT-Cpp11                                <th>nholthaus                                      <th>benri
   <tr><td>SI                                         <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>yes
   <tr><td>Customary system                           <td>yes                                <td>yes                                                                    <td>some                                              <td>yes                                            <td>yes
   <tr><td>Other systems                              <td>???                                <td>yes                                                                    <td>no                                                <td>yes (`bytes`, `radians`)                       <td>yes
@@ -1405,7 +1405,7 @@ Comparison {#comparison}
   <tr><td>Type traits for dimensions                 <td>no                                 <td>yes                                                                    <td>no                                                <td>yes                                            <td>some
   <tr><td>Unit                                       <td>type (`metre`)                     <td>alias + constant (`si::length` + `si::meter`)                          <td>values (`meter`)                                  <td>alias (`length::meter_t`)                      <td>alias (`metre_t`)
   <tr><td>UDLs                                       <td>yes                                <td>no                                                                     <td>some                                              <td>yes                                            <td>yes (long form only i.e. `_metre`)
-  <tr><td>Composable Units                           <td>no                                 <td>no                                                                     <td>no                                                <td>no                                             <td>yes (`kilo * metre`)
+  <tr><td>Composable Units                           <td>no                                 <td>prefix only (`kilo * metre`)                                           <td>prefix only (`kilo * metre`)                      <td>no                                             <td>yes (`kilo * metre`)
   <tr><td>Predefined scaled unit types               <td>some                               <td>no                                                                     <td>some                                              <td>all                                            <td>no
   <tr><td>Scaled units                               <td>type + UDL (`kilometre` + `km`)    <td>predefined values or multiplied with a prefix (`si::kilo * si::meter`) <td>value + UDL (`mile` + `_km`)                      <td>type + UDL (`length::kilometer_t` + `_km`)     <td>no
   <tr><td>Meter vs metre                             <td>metre                              <td>both                                                                   <td>both                                              <td>meter                                          <td>metre
@@ -1433,7 +1433,8 @@ Comparison {#comparison}
   <tr><td>Physical/Mathematical constants            <td>TBD                                <td>yes                                                                    <td>limited                                           <td>limited                                        <td>all
   <tr><td>Dimensionless quantity                     <td>???                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>yes
   <tr><td>Arbitrary conversions                      <td>yes                                <td>yes                                                                    <td>yes                                               <td>no                                             <td>yes
-  <tr><td>User defined dimensions                    <td>yes                                <td>yes                                                                    <td>no                                                <td>no                                             <td>yes
+  <tr><td>User defined base dimensions               <td>yes                                <td>yes                                                                    <td>no                                                <td>no                                             <td>yes
+  <tr><td>User defined derived dimensions            <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>yes
   <tr><td>User defined units                         <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>yes
   <tr><td>User defined prefixes                      <td>yes                                <td>yes                                                                    <td>yes                                               <td>yes                                            <td>yes
 </table>
@@ -2233,10 +2234,10 @@ using ratio_multiply = detail::ratio_multiply_impl<R1, R2>::type;
 Usage examples of such an approach looks as follows:
 
 ```cpp
-struct yard : derived_unit<yard, length, ratio<9'144, 10'000>> {};
-struct foot : derived_unit<foot, length, ratio_multiply<ratio<1, 3>, yard::ratio>> {};
-struct inch : derived_unit<inch, length, ratio_multiply<ratio<1, 12>, foot::ratio>> {};
-struct mile : derived_unit<mile, length, ratio_multiply<ratio<1'760>, yard::ratio>> {};
+struct yard : derived_unit<yard, "yd", length, ratio<9'144, 10'000>> {};
+struct foot : derived_unit<foot, "ft", length, ratio_multiply<ratio<1, 3>, yard::ratio>> {};
+struct inch : derived_unit<inch, "in", length, ratio_multiply<ratio<1, 12>, foot::ratio>> {};
+struct mile : derived_unit<mile, "mi", length, ratio_multiply<ratio<1'760>, yard::ratio>> {};
 ```
 
 With NTTP the implementation and usage of the `ratio` are much easier:
@@ -2262,12 +2263,12 @@ struct ratio {
                  safe_multiply(lhs.den / gcd2, rhs.den / gcd1));
   }
 
-  [[nodiscard]] friend consteval ratio operator*(std::intmax_t n, const ratio& rhs)
+  [[nodiscard]] friend constexpr ratio operator*(std::intmax_t n, const ratio& rhs)
   {
     return ratio(n) * rhs;
   }
 
-  [[nodiscard]] friend consteval ratio operator*(const ratio& lhs, std::intmax_t n)
+  [[nodiscard]] friend constexpr ratio operator*(const ratio& lhs, std::intmax_t n)
   {
     return lhs * ratio(n);
   }
@@ -2702,6 +2703,7 @@ Unicode symbols. For example an ASCII text output can look like:
 ```cpp
 10 us
 2 kg*m/s^2
+37 deg. C
 ```
 
 while the same [=quantities=] can be represented as:
@@ -2709,6 +2711,7 @@ while the same [=quantities=] can be represented as:
 ```cpp
 10 μs
 2 kg⋅m/s²
+37 °C
 ```
 
 If we decide to continue with the second approach it is not clear how to achieve this. For
@@ -2960,8 +2963,8 @@ LEWG {#lewg}
 2. Do we prefer UDL, multiply, or mixed syntax for units ([[#prefixes-and-units]])?
 3. Do we like the concept-based approach to prevent truncation
     ([[#generic-programming-with-concepts]])?
-4. Do we like a downcasting facility or do we want to wait for other solutions (strong types
-    in the language, better compiler errors, ...) ([[#downcasting]])?
+4. Do we like a downcasting facility and would like to standardize it as a part of `std`
+    ([[#downcasting]])?
 5. Do we prefer NTTP usage for `ratio` and `exp` ([[#nttp-usage]])?
 6. Which option of UDLs do we prefer ([[#integral-udl]])?
 7. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)?
@@ -2971,11 +2974,11 @@ LEWG {#lewg}
 SG6 {#sg6}
 ----------
 
-1. Do we want to have support for digital information [=dimensions=] and its
+1. Do we want to have built-in support for digital information [=dimensions=] and its
     [=multiple of a unit|prefixes=] in the initial version of the library?
-2. Should we provide the support for some [=off-system units=] (i.e. eV)?
+2. Should we provide built-in support for some [=off-system units=] or limit to SI units only?
 3. Do we want to introduce a dedicated system type ([[#systems-support]])?
-4. Do we want to require explicit representation casts between different units of the same
+4. Do we want to require explicit representation casts between the same units of the same
     dimension, or do we allow `chrono`-like implicit conversions (floating-point representation
     and non-truncating integer conversions)?
 5. Do we want to require explicit unit casts between different units of the same dimension,
@@ -2983,13 +2986,14 @@ SG6 {#sg6}
 6. Do we agree with Kelvins only support for temperature and verbose conversion functions
     for other [=units=] and absolute temperatures? Should affine types be provided
     ([[#relative-vs-absolute]])?
-7. Do we want to support runtime-specified conversions too (e.g. to support currency)?
-8. Should we provide support for dimensionless quantities ([[#dimensionless-quantities]])?
-9. Do we want to standardize Number concept ([[#number]])?
+7. Do we want to provide support for runtime-specified conversions too (e.g. to support
+    currency)?
+8. Should we provide support for dimensionless quantities or just use scalars ([[#dimensionless-quantities]])?
+9. Do we want to standardize a Number concept ([[#number]])?
 10. Should constants be provided? If yes, how should updates to the constants be handled?
     (Separate namespaces?)
-11. Should all ISO 80000-1:2009 units be provided? If yes, how should updates to the ISO standard
-    be handled? (Separate namespaces?)
+11. Which SI standards should be supported (ISO 80000-1:2009, SI 2019) be provided? How
+    should updates to the ISO standard be handled? (Separate namespaces?)
 
 
 SG16 {#sg16}
@@ -2999,6 +3003,7 @@ SG16 {#sg16}
 2. Do we want a support for `charN_t` at all given the paltry support currently in the standard?
 3. Should we provide different symbol presentation for `charN_t` vs `char` and `wchar_t`?
 4. Should we provide localized unit names and symbols?
+5. Should we provide `std::basic_fixed_string`?
 
 
 Acknowledgments {#acknowledgements}
