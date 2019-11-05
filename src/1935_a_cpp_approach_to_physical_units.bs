@@ -35,6 +35,7 @@ r0 ➡ r1 {#r0r1}
 - [[#number]] added
 - [[#unicode]] chapter added
 - [[#implementation]] extended
+- [[#duration-interoperability]] alternative 2 replaced with a better idea
 - [[#polls]] extended and split to separate ISO C++ rooms
 - [[MP-UNITS]] code samples updated to reflect the current library design
 
@@ -1400,17 +1401,17 @@ Comparison {#comparison}
   <tr><td>C++ version                                <td>C++20                              <td>C++98 + `constexpr`                                                    <td>C++11                                             <td>C++14                                          <td>C++14
   <tr><td>Base dimension id                          <td>string                             <td>integer                                                                <td>index on template parameter list                  <td>index on template parameter list               <td>string
   <tr><td>Dimension                                  <td>type (`length`)                    <td>alias to type list (`length_dimension`)                                <td>alias to type list (`length_d`)                   <td>namespace (`length`)                           <td>alias to type list (`length_t`)
-  <tr><td>Dimension representation                   <td>type list                          <td>type list                                                              <td>class template                                    <td>Class template arguments                       <td>type list
+  <tr><td>Dimension representation                   <td>type list                          <td>type list                                                              <td>class template arguments                          <td>class template arguments                       <td>type list
   <tr><td>Fractional exponents                       <td>yes                                <td>yes                                                                    <td>no                                                <td>yes                                            <td>yes
   <tr><td>Type traits for dimensions                 <td>no                                 <td>yes                                                                    <td>no                                                <td>yes                                            <td>some
-  <tr><td>Unit                                       <td>type (`metre`)                     <td>alias + constant (`si::length` + `si::meter`)                          <td>values (`meter`)                                  <td>alias (`length::meter_t`)                      <td>alias (`metre_t`)
+  <tr><td>Unit                                       <td>type (`metre`)                     <td>alias + constant (`si::length` + `si::meter`)                          <td>value (`meter`)                                   <td>alias (`length::meter_t`)                      <td>alias (`metre_t`)
   <tr><td>UDLs                                       <td>yes                                <td>no                                                                     <td>some                                              <td>yes                                            <td>yes (long form only i.e. `_metre`)
   <tr><td>Composable Units                           <td>no                                 <td>prefix only (`kilo * metre`)                                           <td>prefix only (`kilo * metre`)                      <td>no                                             <td>yes (`kilo * metre`)
   <tr><td>Predefined scaled unit types               <td>some                               <td>no                                                                     <td>some                                              <td>all                                            <td>no
   <tr><td>Scaled units                               <td>type + UDL (`kilometre` + `km`)    <td>predefined values or multiplied with a prefix (`si::kilo * si::meter`) <td>value + UDL (`mile` + `_km`)                      <td>type + UDL (`length::kilometer_t` + `_km`)     <td>no
   <tr><td>Meter vs metre                             <td>metre                              <td>both                                                                   <td>both                                              <td>meter                                          <td>metre
   <tr><td>Singular vs plural                         <td>singular (`metre`)                 <td>both (`meter` + `meters`)                                              <td>singular                                          <td>both (`length::meter_t` + `length::meters_t`)  <td>singular (`metre`)
-  <tr><td>Quantity                                   <td>type (`quantity<metre> q(2);`)     <td>type (`quantity<si::length> q(2 * si::meter);`)                        <td>type (`quantity<speed_d> speed = 45_km / hour;`)  <td>value of unit (`length::meter_t d(220);`)      <td>type (`quantity<metre> q(2);`)
+  <tr><td>Quantity                                   <td>type (`quantity<metre> q(2);`)     <td>type (`quantity<si::length> q(2 * si::meter);`)                        <td>type (`quantity<speed_d> speed = 45_km / hour;`)  <td>type (`length::meter_t d(220);`)      <td>type (`quantity<metre> q(2);`)
   <tr><td>Literal instance                           <td>UDL (`123m`)                       <td>Number * static constant (`123 * si::meters`)                          <td>UDL (`1_m`)                                       <td>UDL (`123_m`)                                  <td>UDL (`1_metre`)
   <tr><td>Variable instance                          <td>constructor (`quantity<metre>(v)`) <td>Variable * static constant (`d * si::meters`)                          <td>Variable * static constant (`d * kilo * meter`)   <td>constructor (`length::meter_t(v)`)             <td>constructor (`quantity<metre>(v)`)
   <tr><td>Any representation                         <td>yes                                <td>yes                                                                    <td>yes                                               <td>no (macro to set the default type)             <td>yes (macro default of `double`)
@@ -1427,7 +1428,7 @@ Comparison {#comparison}
   <tr><td>Macros in the user interface               <td>no                                 <td>yes                                                                    <td>no                                                <td>yes                                            <td>yes
   <tr><td>Non-linear scale support                   <td>no                                 <td>no                                                                     <td>no                                                <td>yes                                            <td>no
   <tr><td>`<cmath>` support                          <td>TBD                                <td>yes                                                                    <td>no                                                <td>yes                                            <td>yes
-  <tr><td>`<chrono>` support                         <td>no                                 <td>no                                                                     <td>no                                                <td>yes                                            <td>yes
+  <tr><td>`<chrono>` support                         <td>???                                <td>no                                                                     <td>no                                                <td>yes                                            <td>yes
   <tr><td>Affine types                               <td>???                                <td>yes (`absolute<Q>`)                                                    <td>no                                                <td>no                                             <td>yes (`quantity`, `quantity_point`)
   <tr><td>Prefix representation                      <td>ratio                              <td>`scale<10, static_rational<exponent>>`                                 <td>long double                                       <td>ratio                                          <td>type list
   <tr><td>Physical/Mathematical constants            <td>TBD                                <td>yes                                                                    <td>limited                                           <td>limited                                        <td>all
@@ -2456,10 +2457,8 @@ the types:
     of `std::units::quantity` class template (assuming that we will not use NTTP ratios
     as described in [[#nttp-usage]]). This would be probably the best solution from
     the API point of view but unfortunately it will cause an ABI break.
-2. Provide a partial specialization for a time [=dimension=] to have additional
-    conversion operations to/from `std::chrono::duration` built-in into the class template
-    itself for a time [=dimension=]. However, this solution would be hard to maintain and
-    keep synchronized with the `std::units::quantity` class template.
+2. Provide built-in conversion facility that among others can be used to allow conversion
+    between `std::chrono::duration` and `std::units::quantity`.
 3. Provide non-member function to convert and compare between those two types.
 4. Just ignore `std::chrono::duration` and do not provide any conversion utilities in the
     standard library.
@@ -2931,7 +2930,7 @@ struct data_prefix;
 struct kibi : prefix<kibi, data_prefix, ratio<    1'024>, "Ki"> {};
 struct mebi : prefix<mebi, data_prefix, ratio<1'048'576>, "Mi"> {};
 
-// custom units and their units
+// custom units and their literals
 struct bit : coherent_derived_unit<bit, "b", digital_information, data_prefix> {};
 struct kilobit : prefixed_derived_unit<kilobit, kibi, bit> {};
 struct byte : derived_unit<byte, "B", digital_information, ratio<8>> {};
@@ -2961,7 +2960,7 @@ LEWG {#lewg}
 
 1. Do we want a physical units library in the C++ standard?
 2. Do we prefer UDL, multiply, or mixed syntax for units ([[#prefixes-and-units]])?
-3. Do we like the concept-based approach to prevent truncation
+3. Do we like the concept-based approach to prevent truncation and intermediate conversions
     ([[#generic-programming-with-concepts]])?
 4. Do we like a downcasting facility and would like to standardize it as a part of `std`
     ([[#downcasting]])?
@@ -2969,6 +2968,7 @@ LEWG {#lewg}
 6. Which option of UDLs do we prefer ([[#integral-udl]])?
 7. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)?
 8. Should we provide `seconds<int>` or stay with `quantity<second, int>` ([[#seconds-int]])?
+9. What about `std::chrono::duration` ([[#duration-interoperability]])?
 
 
 SG6 {#sg6}
