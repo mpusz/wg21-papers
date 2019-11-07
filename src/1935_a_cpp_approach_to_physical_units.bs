@@ -1,8 +1,8 @@
 <pre class='metadata'>
 Title: A C++ Approach to Physical Units
-Shortname: D1935
+Shortname: P1935
 Revision: 1
-Status: D
+Status: P
 Group: WG21
 Audience: LEWGI, SG6, SG16
 URL: https://mpusz.github.io/wg21-papers/papers/1935_a_cpp_approach_to_physical_units.html
