@@ -3103,6 +3103,12 @@ this document.
         "authors": [ "Vincent Ducharme" ],
         "href": "https://github.com/VincentDucharme/Units",
         "title": "units"
+    },
+    "WALTER_E_BROWN": {
+        "authors": [ "Walter E. Brown" ],
+        "href": "https://lss.fnal.gov/archive/1998/conf/Conf-98-328.pdf",
+        "title": "Introduction to the SI Library of Unit-Based Computation",
+        "publisher": "International Conference on Computing in High Energy Physics (CHEP ’98),"
     }
 }
 </pre>
