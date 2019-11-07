@@ -4,7 +4,7 @@ Shortname: P1935
 Revision: 1
 Status: P
 Group: WG21
-Audience: LEWGI, SG6, SG16
+Audience: LEWG, SG6, SG16, SG18
 URL: https://mpusz.github.io/wg21-papers/papers/1935_a_cpp_approach_to_physical_units.html
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This document starts the discussion about the Physical Units support for the
