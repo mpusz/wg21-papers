@@ -2338,6 +2338,10 @@ Alternatively, we could consider:
 Should we support [=systems=] as a separate type? {#systems-support}
 --------------------------------------------------------------------
 
+For many years we have requirements to support multiple [=system|systems of units=].
+Walter E. Brown started to present papers on this subject more than 20 years ago
+[[WALTER_E_BROWN]].
+
 The basic rationale for a [=system of units=] is that "Unit systems should form closed
 universes independent from each other" as stated by [[P1930R0]]. But what does it really
 mean? Does it mean that every system should be independent from others and define its
