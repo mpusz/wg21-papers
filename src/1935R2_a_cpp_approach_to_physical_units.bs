@@ -3097,7 +3097,7 @@ this document.
     "DUCHARME_UNITS": {
         "authors": [ "Vincent Ducharme" ],
         "href": "https://github.com/VincentDucharme/Units",
-        "title": "units"
+    "title": "units"
     },
     "WALTER_E_BROWN": {
         "authors": [ "Walter E. Brown" ],
@@ -3107,4 +3107,3 @@ this document.
     }
 }
 </pre>
-

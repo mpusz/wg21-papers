@@ -47,10 +47,10 @@ install:
 script:
   - |
     # Run Bikeshed
+    cd src
     git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1html|p' | xargs -n1 -t -r make
 
     # Run script
-    cd src
     make update
     git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)md|\1pdf|p' | xargs -n1 -t -r make
     git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)md|\1html|p' | xargs -n1 -t -r make

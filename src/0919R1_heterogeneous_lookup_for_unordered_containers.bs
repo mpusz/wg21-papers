@@ -633,4 +633,3 @@ membership in the ISO C++ Committee and the production of this proposal.
     }
 }
 </pre>
-
