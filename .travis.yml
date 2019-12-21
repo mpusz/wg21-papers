@@ -37,7 +37,8 @@ install:
     # Install Bikeshed
     git clone https://github.com/tabatkins/bikeshed.git
     pip2 install --editable --user $PWD/bikeshed
-    python -m bikeshed update
+    alias bikeshed=$(python2 -c 'import site; print(site.USER_BASE)')/bin/bikeshed
+    bikeshed update
 
     # Install pandoc and latex
     wget https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-1-amd64.deb
@@ -49,7 +50,7 @@ script:
     # Run Bikeshed
     cd src
     mkdir generated
-    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1bs generated/\1html|p' | xargs -n1 -t -r python -m bikeshed spec
+    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1bs generated/\1html|p' | xargs -n1 -t -r make
 
     # Run script
     make update
