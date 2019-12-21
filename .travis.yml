@@ -37,6 +37,7 @@ install:
     # Install Bikeshed
     git clone https://github.com/tabatkins/bikeshed.git
     pip2 install --editable --user $PWD/bikeshed
+    export PATH="${PATH}:$(python2 -c 'import site; print(site.USER_BASE)')/bin"
     bikeshed update
 
     # Install pandoc and latex
