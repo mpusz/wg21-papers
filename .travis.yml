@@ -37,7 +37,7 @@ install:
     # Install Bikeshed
     git clone https://github.com/tabatkins/bikeshed.git
     pip2 install --editable --user $PWD/bikeshed
-    alias bikeshed=python2 $(python2 -c 'import site; print(site.USER_BASE)')/bin/bikeshed
+    alias bikeshed=python2 $PWD/bikeshed/bikeshed.py
     bikeshed update
 
     # Install pandoc and latex
@@ -50,16 +50,15 @@ script:
     # Run Bikeshed
     cd src
     mkdir generated
-    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1bs generated/\1html|p' | xargs -n1 -t -r make
+    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1bs generated/\1html|p' | xargs -n1 -t -r make -C src
 
     # Run script
     make update
-    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)md|\1pdf|p' | xargs -n1 -t -r make
-    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)md|\1html|p' | xargs -n1 -t -r make
+    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)md|\1pdf|p' | xargs -n1 -t -r make -C src
+    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)md|\1html|p' | xargs -n1 -t -r make -C src
 
   - |
     # Prepare output to deploy
-    cd ..
     mkdir -p github.io/papers
     travis_retry wget https://github.com/mpusz/wg21-papers/archive/gh-pages.zip
     unzip gh-pages.zip
