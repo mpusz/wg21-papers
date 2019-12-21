@@ -36,7 +36,7 @@ install:
   - |
     # Install Bikeshed
     git clone https://github.com/tabatkins/bikeshed.git
-    pip2 install --editable $PWD/bikeshed
+    pip2 install --editable --user $PWD/bikeshed
     bikeshed update
 
     # Install pandoc and latex
@@ -47,7 +47,7 @@ install:
 script:
   - |
     # Run Bikeshed
-    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | grep .bs$ | xargs -n1 -t -r bikeshed spec
+    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1html|p' | xargs -n1 -t -r make
 
     # Run script
     cd src
@@ -66,10 +66,6 @@ script:
       mv "$@" github.io/papers
     fi
     set -- wg21-papers-gh-pages/papers/*.pdf
-    if [ "$#" -gt 0 ]; then
-      mv "$@" github.io/papers
-    fi
-    set -- src/*.html
     if [ "$#" -gt 0 ]; then
       mv "$@" github.io/papers
     fi
