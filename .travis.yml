@@ -23,7 +23,6 @@
 sudo: false
 language: python
 python:
-  - "2.7"
   - "3.7"
 addons:
   apt:
@@ -50,6 +49,11 @@ script:
     # Run Bikeshed
     git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | grep .bs$ | xargs -n1 -t -r bikeshed spec
 
+    # Run script
+    cd src
+    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1pdf|p' | xargs -n1 -t -r make
+    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1html|p' | xargs -n1 -t -r make
+
   - |
     # Prepare output to deploy
     mkdir -p github.io/papers
@@ -60,7 +64,19 @@ script:
     if [ "$#" -gt 0 ]; then
       mv "$@" github.io/papers
     fi
+    set -- wg21-papers-gh-pages/papers/*.pdf
+    if [ "$#" -gt 0 ]; then
+      mv "$@" github.io/papers
+    fi
     set -- src/*.html
+    if [ "$#" -gt 0 ]; then
+      mv "$@" github.io/papers
+    fi
+    set -- src/generated/*.html
+    if [ "$#" -gt 0 ]; then
+      mv "$@" github.io/papers
+    fi
+    set -- src/generated/*.pdf
     if [ "$#" -gt 0 ]; then
       mv "$@" github.io/papers
     fi
