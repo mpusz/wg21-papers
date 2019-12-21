@@ -24,13 +24,26 @@ sudo: false
 language: python
 python:
   - "2.7"
+  - "3.7"
+addons:
+  apt:
+    packages:
+    - texlive-latex-base
+    - texlive-latex-extra
+    - texlive-fonts-recommended
+    - texlive-latex-recommended
 
 install:
   - |
     # Install Bikeshed
     git clone https://github.com/tabatkins/bikeshed.git
-    pip install --editable $PWD/bikeshed
+    pip2 install --editable $PWD/bikeshed
     bikeshed update
+
+    # Install pandoc and latex
+    wget https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-1-amd64.deb
+    sudo dpkg -i pandoc-2.9-1-amd64.deb
+    pip3 install panflute
 
 script:
   - |
