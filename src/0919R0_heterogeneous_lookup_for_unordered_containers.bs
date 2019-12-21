@@ -1,0 +1,482 @@
+<pre class='metadata'>
+Title: Heterogeneous lookup for unordered containers
+Shortname: P0919
+Revision: 0
+Status: P
+Date: 2018-02-08
+Group: WG21
+Audience: LEWG, LWG
+URL: http://wg21.link/P0919r0
+Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
+Abstract: This proposal adds heterogeneous lookup support to the unordered associative containers in the
+          C++ Standard Library. As a result, a creation of a temporary key object is not needed when
+          different (but compatible) type is provided as a key to the member function. This also makes
+          unordered and regular associative container interfaces and functionality more compatible with
+          each other.
+          
+          With the changes proposed by this paper the following code will work without any additional
+          performance hits:
+          ```cpp
+          template<typename Key, typename Value>
+          using h_str_umap = std::unordered_map<Key, Value, string_hash, std::equal_to<>>;
+          h_str_umap<std::string, int> map = /* ... */;
+          map.find("This does not create a temporary std::string object :-)"sv);
+          ```
+
+Repository: mpusz/wg21_papers
+!Source: <a href="https://github.com/mpusz/wg21_papers/blob/master/src/unordered_heterogeneous_lookup.bs">github.com/mpusz/wg21_papers/blob/master/src/unordered_heterogeneous_lookup.bs</a>
+Markup Shorthands: markdown on
+</pre>
+
+
+Motivation and Scope {#motivation-and-scope}
+============================================
+
+[[!N3657]] merged into C++14 IS introduced heterogeneous lookup support for ordered associative containers
+(`std::map`, `std::set`, etc) to the C++ Standard Library. Authors of that document pointed that
+the requirement to construct (either implicitly or explicitly) the object of `key_type` to do the lookup
+may be really expensive.
+
+Unordered containers still lack support for such functionality and users are often hit by that
+performance problem.
+
+
+Performance related concerns {#motivation-performance}
+------------------------------------------------------
+
+Consider such use case:
+
+<div class=example id=example-1>
+
+```cpp
+std::unordered_map<std::string, int> map = /* ... */;
+auto it1 = map.find("abc");
+auto it2 = map.find("def"sv);
+```
+</div>
+
+In C++17 above code will construct `std::string` temporary and then will compare it with container's
+elements to find the key. There is no implementation-specific reason to prevent lookup by an arbitrary
+key type `T`, as long as `hash(t) == hash(k)` for any key `k` in the map, if `t == k`.
+
+
+Design related concerns {#motivation-design}
+--------------------------------------------
+
+Another motivating case is mentioned in [[N3573]]. Consider:
+
+<div class=example id=example-2>
+
+```cpp
+std::unordered_set<std::unique_ptr<T>> set;
+```
+</div>
+
+Whilst it's possible to insert `std::unique_ptr<T>` into the set, there are no means to erase or test for
+membership, as that would involve constructing two `std::unique_ptr<T>` to the same resource.
+
+In such a case C++ developer is forced to either:
+1. Weaken the design and not use smart pointers for memory ownership management which may result int
+    stability or security issues.
+2. Provide custom stateful (memory overhead) deleter that only optionally destroys the managed resource as
+    suggested by [[STACKOVERFLOW-1]]:
+
+```cpp
+class opt_out_deleter {
+  bool delete_;
+public:
+  explicit opt_out_deleter(bool do_delete = true) : delete_{do_delete} {}
+  template<typename T>
+  void operator()(T* p) const
+  {
+    if(delete_) delete p;
+  }
+};
+
+template<typename T>
+using set_unique_ptr = std::unique_ptr<T, opt_out_deleter>;
+
+template<typename T>
+set_unique_ptr<T> make_find_ptr(T* raw)
+{
+  return set_unique_ptr<T>{raw, opt_out_deleter{false}};
+}
+
+set_unique_ptr set = /* ... */;
+auto it = set.find(make_find_ptr(raw));
+```
+
+3. Use `std::unordered_map<T*, std::unique_ptr<T>>` instead which again results in memory overhead.
+
+
+The similar code may also have a different side effect. Let's consider:
+
+<div class=example id=example-3>
+
+```cpp
+struct my_data {
+  size_t i;
+  std::array<char, 256> data;
+  explicit my_data(size_t i_) : i{i_}
+  { std::iota(begin(data), end(data), 0); }
+};
+
+struct my_data_equal {
+  bool operator()(const std::unique_ptr<my_data>& l,
+                  const std::unique_ptr<my_data>& r) const
+  { return l->i == r->i; }
+};
+
+struct my_data_hash {
+  size_t operator()(const std::unique_ptr<my_data>& v) const
+  { return std::hash<size_t>{}(v->i); }
+};
+
+using my_set = std::unordered_set<std::unique_ptr<my_data>,
+                                  my_data_hash, my_data_equal>;
+my_set set = /* ... */;
+auto it = set.find(std::make_unique<my_data>(1));
+```
+</div>
+
+This case not only introduces a dynamic memory allocation related performance hit on every lookup but also
+messes up with nicely defined ownership strategy.
+
+
+Prior Work {#prior-work}
+========================
+
+[[N3573]] tried to address this issue. While the motivation described in that paper sounds reasonable
+the proposed solution goes too far and may cause problems. See [[#design-decisions]] for more details.
+
+
+Impact On The Standard {#impact}
+================================
+
+This proposal modifies the unordered associative containers in `<unordered_map>` and `<unordered_set>` by
+overloading the lookup member functions with member function templates.
+
+There are no language changes. 
+
+Almost all existing C++17 code is unaffected because new member functions are disabled from overload
+resolution process unless `Hash` template parameter has `is_transparent` property. That is not the case
+for the code created before this proposal.
+
+
+Design Decisions {#design-decisions}
+====================================
+
+Heterogeneous hash function object {#design-heterogeneous-hash}
+---------------------------------------------------------------
+
+[[N3573]] paper suggests adding
+
+```cpp
+namespace std {
+  template<typename T = void>
+  struct hash;
+  
+  template<>
+  struct hash<void> {
+    template<typename T>
+    std::size_t operator()(T&& t) {
+      return std::hash<typename std::decay<T>::type>()(std::forward<T>(t));
+    }
+  };
+}
+```
+
+While that could be useful and compatible with changes introduced for many operations in [[N3421]],
+there is too big chance of two types being equality-comparable but having incompatible hashes.
+
+Following issue was pointed out in the [[REFLECTOR-1]].
+
+For example, under gcc 7.2.0,
+
+```cpp
+std::hash<long>{}(-1L) == 18446744073709551615ULL
+std::hash<double>{}(-1.0) == 11078049357879903929ULL
+```
+
+which makes following code fail
+
+```cpp
+std::unordered_set<double, std::hash<>, std::equal_to<>> s;
+s.insert(-1L);                  // Internally converts -1L to -1.0
+assert(s.find(-1L) != s.end()); // Fails: calls hash<long>(-1L) and gets the wrong bucket
+```
+
+Note that under C++17 rules that code succeeds, because `find()` also converts its parameter to `double`
+before hashing.
+
+This proposal intentionally **does not suggest** standardizing heterogeneous hash function object
+`template<> std::hash<void>`. Doing that might be tempting but it requires more investigations and
+can be always added via future proposals.
+
+
+Additional parameters in lookup member functions overloads {#design-function-additional-parameters}
+----------------------------------------------------------
+
+[[N3573]] also proposes adding additional parameters to lookup functions so the users may provide
+different hash and equality comparison functor objects for each member function call.
+
+```cpp
+template<typename T, typename Hash = std::hash<>, typename Eq = std::equal_to<>>
+iterator find(T t, Hash h = Hash(), Eq e = Eq());
+template<typename T, typename Hash = std::hash<>, typename Eq = std::equal_to<>>
+const_iterator find(T t, Hash h = Hash(), Eq e = Eq()) const;
+```
+
+That is not consistent with the current interface of ordered associative containers and therefore it
+is **not proposed** by this paper. If such functionality is considered useful it can be added in the
+future by other paper both for ordered and unordered associative containers.
+
+
+Lookup member functions template overloads {#design-function-template}
+----------------------------------------------------------------------
+
+For consistency reasons this paper proposes heterogeneous lookup for unordered associative containers
+should be provided by the same means as it is the case for ordered ones. Containers will only change
+their interface when **both** the equality comparator and hash functions define nested tag type called
+`is_transparent`. 
+    
+By providing explicit tag `is_transparent` in the hash functor object, the user explicitly states that
+the intention of this type is to provide coherent and interchangeable hash values for all the types 
+supported by the functor's call operators.
+
+Concerns raised in [[#motivation-and-scope]] are addressed by this proposal in the following way:
+
+```cpp
+struct string_hash {
+  using is_transparent = void;                    // I confirm I know what I am doing
+  using hash_type = std::hash<std::string_view>;  // just a helper local type
+  size_t operator()(std::string_view txt) const   { return hash_type{}(txt); }
+  size_t operator()(const std::string& txt) const { return hash_type{}(txt); }
+  size_t operator()(const char* txt) const        { return hash_type{}(txt); }
+};
+
+std::unordered_map<std::string, int, string_hash, std::equal_to<>> map = /* ... */;
+map.find("abc");
+map.find("def"sv);
+```
+
+To find more details on how to address all code examples provided in this paper please refer to
+[[#implementation]].
+
+
+Proposed Wording {#wording}
+===========================
+
+The proposed changes are relative to the working draft of the standard as of [[!n4700]].
+
+Modify **26.2.7 [unord.req]** paragraph 11 as follows:
+
+<blockquote>
+In Table 91: `X` denotes an unordered associative container class, `a` denotes a value of type `X`,
+`a2` denotes a value of a type with nodes compatible with type `X` (Table 89), `b` denotes a possibly
+`const` value of type `X`, `a_uniq` denotes a value of type `X` when `X` supports unique keys, `a_eq`
+denotes a value of type `X` when `X` supports equivalent keys,
+<INS>`a_tran` denotes a possibly `const` value of type `X` when the *qualified-ids*
+`X::key_equal::is_transparent` and `X::hasher::is_transparent` are both valid and denote types (17.9.2),</INS>
+`i` and `j` denote input iterators that refer to `value_type`, `[i, j)` denotes a valid range, `p` and `q2`
+denote valid constant iterators to `a`, `q` and `q1` denote valid dereferenceable constant iterators
+to `a`, `r` denotes a valid dereferenceable iterator to `a`, `[q1, q2)` denotes a valid range in `a`,
+`il` denotes a value of type `initializer_list<value_type>`, `t` denotes a value of type `X::value_type`,
+`k` denotes a value of type `key_type`, 
+<INS>`ke` is a value such that (1) `eq(r, ke) == eq(ke, r)` with `r` the key value of `e` and `e` in `a_tran`,
+(2) `hf(r) == hf(ke)` if `eq(r, ke)` is `true`, and (3) `eq(r, ke) && eq(r, r') == eq(r', ke)` where `r'` is
+also the key of an element in `a_tran`,</INS>
+`hf` denotes a possibly `const` value of type `hasher`, `eq` denotes a possibly `const` value of type
+`key_equal`, `n` denotes a value of type `size_type`, `z` denotes a value of type `float`, and `nh` denotes
+a non-const rvalue of type `X::node_type`.
+</blockquote>
+
+Modify table 91 in section **26.2.7 [unord.req]** as follows:
+
+<blockquote>
+
+<table>
+  <tr>
+    <th>Expression</th>
+    <th>Return type</th>
+    <th>Assertion/note pre-/post-condition</th>
+    <th>Complexity</th>
+  </tr>
+  <tr>
+    <td>`b.find(k)`</td>
+    <td>`iterator`; `const_iterator` for const `b`.</td>
+    <td>Returns an iterator pointing to an element with key equivalent to `k`, or `b.end()` 
+        if no such element exists.</td>
+    <td>Average case O(1), worst case O(`b.size()`).</td>
+  </tr>
+  <tr>
+    <td><ins>`a_tran.find(ke)`</ins></td>
+    <td><ins>`iterator`; `const_iterator` for const `a_tran`.</ins></td>
+    <td><ins>Returns an iterator pointing to an element with key `r` such that `eq(r, ke)`,
+    or `a_tran.end()` if no such element exists.</ins></td>
+    <td><ins>Average case O(1), worst case O(`a_tran.size()`).</ins></td>
+  </tr>
+  <tr>
+    <td>`b.count(k)`</td>
+    <td>`size_type`</td>
+    <td>Returns the number of elements with key equivalent to `k`.</td>
+    <td>Average case O(`b.count(k)`), worst case O(`b.size()`).</td>
+  </tr>
+  <tr>
+    <td><ins>`a_tran.count(ke)`</ins></td>
+    <td><ins>`size_type`</ins></td>
+    <td><ins>Returns the number of elements with key `r` such that `eq(r, ke)`.</ins></td>
+    <td><ins>Average case O(`a_tran.count(ke)`), worst case O(`a_tran.size()`).</ins></td>
+  </tr>
+  <tr>
+    <td>`b.equal_range(k)`</td>
+    <td>`pair<iterator, iterator>`; `pair<const_iterator, const_iterator>` for const `b`.</td>
+    <td>Returns a range containing all elements with keys equivalent to `k`. Returns
+        `make_pair(b.end(), b.end())` if no such elements exist.</td>
+    <td>Average case O(`b.count(k)`), worst case O(`b.size()`).</td>
+  </tr>
+  <tr>
+    <td><ins>`a_tran.equal_range(k)`</ins></td>
+    <td><ins>`pair<iterator, iterator>`; `pair<const_iterator, const_iterator>` for const `a_tran`.</ins></td>
+    <td><ins>Returns a range containing all elements with keys `k` such that `eq(k, ke)` is `true`. Returns
+        `make_pair(a_tran.end(), a_tran.end())` if no such elements exist.</ins></td>
+    <td><ins>Average case O(`a_tran.count(k)`), worst case O(`a_tran.size()`).</ins></td>
+  </tr>
+</table>
+
+</blockquote>
+
+Add paragraph 18 in **26.2.7 [unord.req]**:
+
+<blockquote>
+<ins>
+The member function templates find, count, and equal_range shall not participate in overload resolution
+unless the *qualified-ids* `Pred::is_transparent` and `Hash::is_transparent` are both valid and denote
+types (17.9.2).
+</ins>
+</blockquote>
+
+In **26.5.4.1 [unord.map.overview]** add:
+
+<blockquote>
+<pre>
+// map operations:
+iterator       find(const key_type& k);
+const_iterator find(const key_type& k) const;
+<ins>template &lt;class K> iterator       find(const K& k);
+template &lt;class K> const_iterator find(const K& k) const;</ins>
+size_type count(const key_type& k) const;
+<ins>template &lt;class K> size_type count(const K& k) const;</ins>
+pair&lt;iterator, iterator>             equal_range(const key_type& k);
+pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
+<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
+template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
+</pre>
+</blockquote>
+
+In **26.5.5.1 [unord.multimap.overview]** add:
+
+<blockquote>
+<pre>
+// map operations:
+iterator       find(const key_type& k);
+const_iterator find(const key_type& k) const;
+<ins>template &lt;class K> iterator       find(const K& k);
+template &lt;class K> const_iterator find(const K& k) const;</ins>
+size_type count(const key_type& k) const;
+<ins>template &lt;class K> size_type count(const K& k) const;</ins>
+pair&lt;iterator, iterator>             equal_range(const key_type& k);
+pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
+<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
+template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
+</pre>
+</blockquote>
+
+In **26.5.6.1 [unord.set.overview]** add:
+
+<blockquote>
+<pre>
+// set operations:
+iterator       find(const key_type& k);
+const_iterator find(const key_type& k) const;
+<ins>template &lt;class K> iterator       find(const K& k);
+template &lt;class K> const_iterator find(const K& k) const;</ins>
+size_type count(const key_type& k) const;
+<ins>template &lt;class K> size_type count(const K& k) const;</ins>
+pair&lt;iterator, iterator>             equal_range(const key_type& k);
+pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
+<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
+template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
+</pre>
+</blockquote>
+
+In **26.5.7.1 [unord.multiset.overview]** add:
+
+<blockquote>
+<pre>
+// set operations:
+iterator       find(const key_type& k);
+const_iterator find(const key_type& k) const;
+<ins>template &lt;class K> iterator       find(const K& k);
+template &lt;class K> const_iterator find(const K& k) const;</ins>
+size_type count(const key_type& k) const;
+<ins>template &lt;class K> size_type count(const K& k) const;</ins>
+pair&lt;iterator, iterator>             equal_range(const key_type& k);
+pair&lt;const_iterator, const_iterator> equal_range(const key_type& k) const;
+<ins>template &lt;class K> pair&lt;iterator, iterator>             equal_range(const K& k);
+template &lt;class K> pair&lt;const_iterator, const_iterator> equal_range(const K& k) const;</ins>
+</pre>
+</blockquote>
+
+
+Feature Testing {#feature-testing}
+==================================
+
+The `__cpp_lib_unordered_map_heterogeneous_lookup` feature test macro should be added.
+
+
+Implementation Experience {#implementation}
+===========================================
+
+Changes related to this proposal as well as answers to all of the code examples provided in this paper
+are partially implemented in [GitHub repo](https://github.com/mpusz/unordered_v2) against
+[libc++ 5.0.0](https://libcxx.llvm.org).
+
+Simple performance tests provided there proved more than:
+- 20% performance gain for short text (SSO used in `std::string` temporary) in [EXAMPLE 1](#example-1)
+- 35% performance gain for long text (dynamic memory allocation in `std::string` temporary) in [EXAMPLE 1](#example-1)
+- 85% performance gain in [EXAMPLE 3](#example-3)
+
+
+Possible Future Extensions {#future-extensions}
+===============================================
+
+[[#design-heterogeneous-hash]] and [[#design-function-additional-parameters]] are not proposed by
+this paper but can be explored and proposed in the future.
+
+
+Acknowledgements {#acknowledgements}
+====================================
+
+Thanks to Casey Carter for initial review of this proposal and help with wording issues.
+ 
+Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting my
+membership in the ISO C++ Committee and the production of this proposal.
+
+
+<pre class=biblio>
+{
+    "REFLECTOR-1": {
+        "authors": [ "Joe Gottman" ],
+        "href": "https://groups.google.com/a/isocpp.org/d/msg/std-proposals/mRu7rIrDAEw/bYMyojZRaiEJ",
+        "title": "N3573: Why heterogenous extensions to unordered containers will not work",
+        "publisher": "ISO C++ Standard - Future Proposals"
+    },
+    "STACKOVERFLOW-1": {
+        "authors": [ "Xeo" ],
+        "href": "https://stackoverflow.com/a/17853770",
+        "title": "Using a std::unordered_set of std::unique_ptr",
+        "publisher": "StackOverflow"
+    }
+}
+</pre>
