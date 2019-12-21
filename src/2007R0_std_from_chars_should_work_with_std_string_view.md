@@ -6,7 +6,7 @@ audience:
   - Library Evolution Working Group Incubator
   - Library Evolution Working Group
 author:
-  - name: Mateusz Pusz
+  - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
     email: <mateusz.pusz@gmail.com>
 ---
 
