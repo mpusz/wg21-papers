@@ -49,7 +49,7 @@ script:
   - |
     # Run Bikeshed
     mkdir generated
-    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1bs generated/\1html|p' | xargs -n1 -t -r make -C src
+    git diff --name-only --diff-filter=d $TRAVIS_COMMIT_RANGE | sed -n 's|^src/\(.*\)bs|\1html generated/\1html|p' | xargs -n1 -t -r make -C src
 
     # Run script
     make update
