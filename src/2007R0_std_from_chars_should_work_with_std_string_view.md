@@ -148,4 +148,3 @@ denoting]{.add}[`[first, last)` is required to be]{.rm} a valid range.
 
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting my
 membership in the ISO C++ Committee and the production of this proposal.
-
