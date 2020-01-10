@@ -1,6 +1,6 @@
 ---
 title: "`std::from_chars` should work with `std::string_view`"
-document: D2007R0
+document: P2007R0
 date: today
 audience:
   - Library Evolution Working Group Incubator
@@ -59,7 +59,7 @@ void foo(std::string_view txt)
 ## A correct approach
 
 A correct approach works on the underlying data rather than on iterators which is counter
-intuitive as for C++ we always taught to use iterators to denote ranges:
+intuitive as we always taught to use iterators to denote ranges in C++:
 
 ```cpp
 void foo(std::string_view txt)
@@ -148,4 +148,3 @@ denoting]{.add}[`[first, last)` is required to be]{.rm} a valid range.
 
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting my
 membership in the ISO C++ Committee and the production of this proposal.
-
