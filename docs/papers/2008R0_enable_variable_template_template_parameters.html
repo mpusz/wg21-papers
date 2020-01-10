@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2019-12-23" />
+  <meta name="dcterms.date" content="2020-01-10" />
   <title>Enable variable template template parameters</title>
   <style>
       code{white-space: pre-wrap;}
@@ -419,11 +419,11 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>D2008R0</td>
+    <td>P2008R0</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2019-12-23</td>
+    <td>2020-01-10</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -446,12 +446,13 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <ul>
 <li><a href="#introduction"><span class="toc-section-number">1</span> Introduction<span></span></a></li>
 <li><a href="#motivation-and-scope"><span class="toc-section-number">2</span> Motivation and Scope<span></span></a></li>
-<li><a href="#acknowledgements"><span class="toc-section-number">3</span> Acknowledgements<span></span></a></li>
+<li><a href="#proposal"><span class="toc-section-number">3</span> Proposal<span></span></a></li>
+<li><a href="#acknowledgements"><span class="toc-section-number">4</span> Acknowledgements<span></span></a></li>
 </ul>
 </div>
 <section id="introduction" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
-<p>In C++ we can easily form a template that will take a class template as its parameter. With C++14 we got variable templates. They proved to be useful in many domains but still are not first class citizens in C++. For example they cannot be passed as a template parameter to a template. This document tries to address this.</p>
+<p>In C++ we can easily form a template that will take a class template as its parameter. With C++14 we got variable templates. They proved to be useful in many domains but still are not first-class citizens in C++. For example, they cannot be passed as a template parameter to a template. This document proposes adding such a feature.</p>
 </section>
 <section id="motivation-and-scope" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Motivation and Scope<a href="#motivation-and-scope" class="self-link"></a></h1>
@@ -466,20 +467,24 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <span id="cb2-2"><a href="#cb2-2"></a><span class="kw">concept</span> satisfies <span class="op">=</span> Trait<span class="op">&lt;</span>T<span class="op">&gt;::</span>value;</span></code></pre></div>
 <p>and then be used to constrain a template:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">template</span><span class="op">&lt;</span>satisfies<span class="op">&lt;</span>is_ratio<span class="op">&gt;</span> R1, satisfies<span class="op">&lt;</span>is_ratio<span class="op">&gt;</span> R2<span class="op">&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">using</span> ratio_add <span class="op">=</span> <em>see below</em>;</span></code></pre></div>
-<p>After C++14 we learnt that variable templates are less to type (no need for a <code>XXX_v</code> helper) and often are faster to compile. The above <code>is_ratio</code> type trait can be rewritten as:</p>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">using</span> ratio_add <span class="op">=</span> <span class="co">/* ... */</span>;</span></code></pre></div>
+<p>After C++14 we learnt that variable templates are less to type (no need for a <code>_v</code> helper) and are often faster to compile. The above <code>is_ratio</code> type trait can be rewritten as:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
 <span id="cb4-2"><a href="#cb4-2"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_ratio <span class="op">=</span> <span class="kw">false</span>;</span>
 <span id="cb4-3"><a href="#cb4-3"></a></span>
 <span id="cb4-4"><a href="#cb4-4"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">intmax_t</span> Num, <span class="dt">intmax_t</span> Den<span class="op">&gt;</span></span>
 <span id="cb4-5"><a href="#cb4-5"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_ratio<span class="op">&lt;</span>ratio<span class="op">&lt;</span>Num, Den<span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span></code></pre></div>
-<p>However, the above cannot be passed to a class template anymore. The syntax:</p>
+<p>However, contrary to a class template, the above variable template cannot be passed to a template at all. The syntax:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T, <span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span><span class="op">&gt;</span> <span class="dt">bool</span> Trait<span class="op">&gt;</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a><span class="kw">concept</span> satisfies <span class="op">=</span> Trait<span class="op">&lt;</span>T<span class="op">&gt;</span>;</span></code></pre></div>
 <p>is not a valid C++ as of today.</p>
 </section>
-<section id="acknowledgements" data-number="3">
-<h1 data-number="3"><span class="header-section-number">3</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<section id="proposal" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Proposal<a href="#proposal" class="self-link"></a></h1>
+<p>Extend C++ template syntax with a variable template parameter kind.</p>
+</section>
+<section id="acknowledgements" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting my membership in the ISO C++ Committee and the production of this proposal.</p>
 </section>
 </div>
