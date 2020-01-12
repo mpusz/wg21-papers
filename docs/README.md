@@ -34,6 +34,7 @@ to this activity.
 - [P0920R2: Precalculated hash values in lookup](papers/0920R2_precalculated_hash_values_in_lookup.html)
 - [P1935R0: A C++ Approach to Physical Units](papers/1935R0_a_cpp_approach_to_physical_units.html)
 - [P1935R1: A C++ Approach to Physical Units](papers/1935R1_a_cpp_approach_to_physical_units.html)
+- [P1985R0: Universal Template Parameters](papers/1985R0_universal_template_parameters.html)
 - [P2007R0: `std::from_chars` should work with `std::string_view`](papers/2007R0_std_from_chars_should_work_with_std_string_view.html)
 - [P2008R0: Enable variable template template parameters](papers/2008R0_enable_variable_template_template_parameters.html)
 
