@@ -1,10 +1,10 @@
 <pre class='metadata'>
 Title: A C++ Approach to Physical Units
-Shortname: D1935
+Shortname: P1935
 Revision: 2
-Status: D
+Status: P
 Group: WG21
-Audience: LEWG, SG6, SG16, SG18
+Audience: LEWG, SG6, SG18
 URL: https://mpusz.github.io/wg21-papers/papers/1935_a_cpp_approach_to_physical_units.html
 Editor: Mateusz Pusz, Epam Systems http://www.epam.com, mateusz.pusz@gmail.com, http://www.train-it.eu
 Abstract: This document starts the discussion about the Physical Units support for the
@@ -27,6 +27,13 @@ r1 ➡ r2 {#r1r2}
 ----------------
 
 - [[MP-UNITS]] code samples updated to reflect the current library design
+- [[#other-design-decisions]] chapter added
+- [[#systems-support]] chapter reworked
+- [[#dimensionless-quantities]] chapter reworked
+- [[#no-runtime-conversions]] chapter added
+- [[#no-quantity-kind]] chapter added
+- [[#text-output]] chapter added
+- [[#open-questions]] chapter reworked
 
 r0 ➡ r1 {#r0r1}
 ----------------
@@ -34,11 +41,11 @@ r0 ➡ r1 {#r0r1}
 - New definitions added (coherent system of units, base dimension, derived dimension, reduced
     dimension) to [[#terms-and_definitions]]
 - [[#prior-work]] chapter updated
-- [[#prefixes-and-units]] extended with last paragraph
+- Prefixes and units chapter extended with last paragraph
 - [[#systems-support]] extended
-- [[#integral-udl]] updated
-- [[#number]] added
-- [[#unicode]] chapter added
+- Integral UDLs chapter updated
+- Number concept chapter added
+- Unicode chapter added
 - [[#implementation]] extended
 - [[#duration-interoperability]] alternative 2 replaced with a better idea
 - [[#polls]] extended and split to separate ISO C++ rooms
@@ -199,12 +206,14 @@ std::cout << "Average speed: "
 Scope {#scope}
 --------------
 
-Although there is a public demand for a generic units library that could handle any units and
-dimensions, the author suggests scoping the Committee efforts only on the physical and possibly
-computer science (i.e. `bit`, `byte`, `bitrate`) units first. The library should be designed
-with easy extensibility in mind so anyone needing a new base or derived dimensions
-(i.e. `coffee/milk/water/sugar` system) could achieve this with a few lines of the C++ code
-(not preprocessor macros).
+There is a public demand for a generic units library that could handle any units and dimensions.
+There are many, often conflicting, requirements. Some of them can be found in [[P1930R0]].
+
+To limit the initial scope, the author suggests scoping the Committee efforts only on the
+physical and possibly computer science (i.e. `bit`, `byte`, `bitrate`) units first. The library
+should be designed with easy extensibility in mind so anyone needing a new base or derived
+dimensions (i.e. `coffee/milk/water/sugar` system) could achieve this with a few lines of
+the C++ code (not preprocessor macros).
 
 After releasing a first, restricted version of the library and observing how it is used we
 can consider standardizing additional dimensions, units, and constants in the following
@@ -1768,28 +1777,25 @@ For example, the latest svn version of gcc-10 generates the following error mess
 
 <!-- markdownlint-disable line-length -->
 ```text
-hello_units.cpp: In instantiation of ‘constexpr units::Velocity avg_speed(L, T)
+hello_units.cpp: In instantiation of ‘constexpr auto [requires units::Velocity<<placeholder>, >] avg_speed(L, T)
     [with L = units::quantity<units::si::dim_length, units::si::kilometre, long int>;
           T = units::quantity<units::si::dim_time, units::si::hour, long int>]’:
-hello_units.cpp:39:41:   required from here
-hello_units.cpp:33:14: error: placeholder constraints not satisfied
-   33 |   return d * t;
-      |              ^
-In file included from units/physical/si/velocity.h:25,
-                 from hello_units.cpp:23:
-units/physical/dimensions.h:137:9: note: within ‘template<class T> concept const bool units::Velocity<T>
-    [with T = units::quantity<units::unknown_dimension<units::exp<units::si::dim_length, 1, 1>, units::exp<units::si::dim_time, 1, 1> >,
-                              units::scaled_unit<units::ratio<3600000, 1>, units::unknown_unit>, long int>]’
-  137 | concept Velocity = physical::QuantityOf<T, physical::dim_velocity>;
-      |         ^~~~~~~~
-units/physical/dimensions.h:38:9: note: within ‘template<class Q, template<class ...> class DimTemplate>
-    concept const bool units::physical::QuantityOf<Q, DimTemplate>
-    [with Q = units::quantity<units::unknown_dimension<units::exp<units::si::dim_length, 1, 1>, units::exp<units::si::dim_time, 1, 1> >,
-                              units::scaled_unit<units::ratio<3600000, 1>, units::unknown_unit>, long int>;
-          DimTemplate = units::physical::dim_velocity]’
-   38 | concept QuantityOf = Quantity<Q> && is_derived_from_instantiation<typename Q::dimension, DimTemplate>;
-      |         ^~~~~~~~~~
-units/physical/dimensions.h:38:9: note: ‘units::is_derived_from_instantiation’ evaluated to false
+hello_units.cpp:39:32:   required from here
+hello_units.cpp:33:14: error: deduced return type does not satisfy placeholder constraints
+    33 |   return d * t;
+       |              ^
+hello_units.cpp:33:14: note: constraints not satisfied
+ In file included from units/physical/si/velocity.h:25,
+                  from hello_units.cpp:23:
+ units/physical/dimensions.h:38:9:   required for the satisfaction of
+    ‘QuantityOf<units::quantity<units::unknown_dimension<units::exp<units::si::dim_length, 1, 1>, units::exp<units::si::dim_time, 1, 1> >,
+                                units::scaled_unit<units::ratio<36, 1, 5>, units::unknown_unit>, long int>, units::physical::dim_velocity>’
+ units/physical/dimensions.h:137:9:   required for the satisfaction of
+    ‘Velocity<units::quantity<units::unknown_dimension<units::exp<units::si::dim_length, 1, 1>, units::exp<units::si::dim_time, 1, 1> >,
+                             units::scaled_unit<units::ratio<36, 1, 5>, units::unknown_unit>, long int> >’
+ units/physical/dimensions.h:38:37: note: the expression ‘is_derived_from_instantiation<typename Q::dimension, DimTemplate>’ evaluated to ‘false’
+    38 | concept QuantityOf = Quantity<Q> && is_derived_from_instantiation<typename Q::dimension, DimTemplate>;
+       |                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 <!-- markdownlint-enable line-length -->
 
@@ -1935,12 +1941,13 @@ function template arguments and their return value but can also be used to const
 of user variables:
 
 ```cpp
-const units::Velocity auto speed = avg_speed(220.km, 2.h);
+const units::Velocity auto speed = avg_speed(220km, 2h);
 ```
 
 If for some reason the function `avg_speed` would no longer return a velocity, the error would
 be shown clearly by the compiler, a feature which cannot be provided by C++17 template
 metaprogramming.
+
 
 `std::ratio` on steroids {#ratio-on-steroids}
 =============================================
@@ -1952,12 +1959,12 @@ that it cannot be expressed with `std::ratio`, which is implemented in terms of
 
 This makes it really hard to express units like electronvolt (eV) where
 1eV = 1.602176634×10<sup>−19</sup> J or Dalton where
-1 Da = 1.660539040(20)×10<sup>−27</sup> kg.
-Although a custom [=system of quantities=] could be a solution, it would only be a workaround
-as it cannot provide seamless conversion between all possible units.
+1 Da = 1.660539040(20)×10<sup>−27</sup> kg. Although a custom [=system of quantities=] could
+be a solution, it would only be a workaround as it cannot provide seamless conversion between
+all possible units.
 
-A better, more flexible solution is needed. One of the possibilities might be to redefine
-ratio with one additional parameter:
+A better, more flexible solution is needed. One of the possibilities is to extend ratio with
+one additional parameter:
 
 ```cpp
 template<std::intmax_t Num, std::intmax_t Den = 1, std::intmax_t Exp = 0>
@@ -1972,6 +1979,181 @@ expressed as:
 ```cpp
 new_ratio<1602176634, 1000000000, -19>
 ```
+
+
+Other design decisions {#other-design-decisions}
+================================================
+
+Systems support {#systems-support}
+----------------------------------
+
+From all analysed libraries only [[BOOST.UNITS]] defines a dedicated type for different systems
+support. All other libraries either ignore this subject or just provide named units of other
+systems as scaled units with SI units as a reference. The first approach is too constraining
+and even the author of [[BOOST.UNITS]] said:
+
+*"My take is that a system is essentially a set of units with linearly independent
+dimensions and this can be implemented as a convenience on top of the core functionality.
+Boost.Units started out with a design based solely on systems, but that proved to be too
+inflexible. We added support for combining individual units, similar to current libraries.
+However, having both systems and base units supported directly in the core library results
+in a very convoluted design and is one of the main issues that I wanted to fix in a new
+library."*
+
+On the other hand the second approach seems too limited and naive. It is true that the
+[=SI=] dominates the market but there are domains (i.e. astrology) that commonly use other
+[=system|systems of units=] (i.e. CGS). For analysis and converting needs [=quantities=] of
+such [=systems=] can be expressed as scaled [=SI=] units but such an approach will not work
+for a text output of [=units=] symbols.
+
+According to [[!ISO_80000-1]] a [=system of quantities=] is a set of [=quantities=] together
+with a set of non-contradictory equations relating those [=quantities=]. Those equations
+are composed from exponents of system's [=base quantities=]. Each [=base quantity=] has
+a [=base unit=] which is a measurement unit that is adopted by convention for this
+[=base quantity=].
+
+It seems that the best way to represent the above in C++ code is to provide a `base_dimension`
+class template that represents a dimension of a base quantity and is identified with a
+pair of an unique compile-time text describing the dimension symbol and a base unit adopted
+for this dimension:
+
+```cpp
+template<basic_fixed_string Symbol, Unit U>
+  requires U::is_named
+struct base_dimension {
+  static constexpr auto symbol = Symbol;
+  using base_unit = U;
+};
+```
+
+Pair of symbol and unit template parameters form an unique identifier of the base dimension.
+These identifiers provide total ordering of exponents of base dimensions in a derived dimension.
+
+The SI physical units system defines 7 base dimensions:
+
+```cpp
+namespace units::si {
+
+struct dim_length : base_dimension<"L", metre> {};
+struct dim_mass : base_dimension<"M", kilogram> {};
+struct dim_time : base_dimension<"T", second> {};
+struct dim_electric_current : base_dimension<"I", ampere> {};
+struct dim_thermodynamic_temperature : base_dimension<"Θ", kelvin> {};
+struct dim_substance : base_dimension<"N", mole> {};
+struct dim_luminous_intensity : base_dimension<"J", candela> {};
+
+}
+```
+
+All other derived quantities of [=SI=] are composed from those.
+
+There are two reasons why a `base_dimension` gets a unit as its template parameter. First,
+the base unit is needed for the text output of unnamed derived units. Second, by providing
+a different [=unit=] for the same physical dimension we can define a [=base quantity=] of
+another [=system=]. For example CGS definitions may look as follows:
+
+```cpp
+namespace units::cgs {
+
+struct dim_length : base_dimension<"L", centimetre> {};
+struct dim_mass : base_dimension<"M", gram> {};
+using si::dim_time;
+
+}
+```
+
+Equivalent base dimensions in different systems have the same symbol identifiers and get units
+from the same hierarchy (with the same reference in `scaled_unit`). Thanks to that we have
+the ability to explicitly cast quantities of the same dimension from different systems or
+even mix them in one `derived_dimension` definition.
+
+Another important point to notice is that the [=systems=] of units are not closed (classes)
+but open (namespaces) and can be easily extended, or its content can be partially/fully
+imported to other systems.
+
+
+[=Dimensionless quantities=] {#dimensionless-quantities}
+---------------------------------------------------------
+
+Some [=quantities of dimension one=] are defined as ratios of two [=quantities=] of
+the same [=kind=]. The [=coherent derived unit=] is the number one, symbol 1. For example:
+plane angle, solid angle, refractive index, relative permeability, mass fraction,
+friction factor, Mach number, etc.
+
+There are two implementation possibilities here:
+
+**Option 1**
+
+```cpp
+auto q1 = length<metre, double>() / length<metre, double>();
+static_assert(std::is_same_v<q1, double>);
+```
+
+**Option 2**
+
+```cpp
+auto q1 = length<metre, double>() / length<metre, double>();
+static_assert(std::is_same_v<q1::dimension, dimension<>>);
+```
+
+"Option 2" provides a false impression of strong type safety. We have something that looks
+like a strong type but is actually as dumb as a scalar. In most of the libraries that follow
+such a way this type has a special semantics (provided either via a partial specialization
+or SFINAE). For example in [[BOOST.UNITS]]:
+
+*"Because dimensionless quantities have no associated units, they behave as normal scalars,
+and allow implicit conversion to and from the underlying value type or types that are
+convertible to/from that value type."*
+
+It was decided to continue with an "Option 1". "If you are as dumb as a scalar, be a scalar".
+If a user gets a `double` from an `operator/` he/she knows exactly what to expect. If it
+is some strange quantity-ish type it is exactly the opposite. It is also easier to standardize
+and implement.
+
+
+No runtime-specified conversions {#no-runtime-conversions}
+----------------------------------------------------------
+
+It might be tempting to provide runtime conversion factors between units of the same quantity
+i.e. to provide a solution to convert between different currencies. From all analysed libraries
+only [[BOOST.UNITS]] supports such a functionality. However, such an approach complicates the
+design and bends it towards solutions that are not strictly related to physical quantities.
+
+There was a really strong consensus during the Belfast meeting discussion to not provide such
+a functionality which also corresponds to the authors private opinion on this subject.
+
+
+No initial support for quantity [=kinds=] {#no-quantity-kind}
+-------------------------------------------------------------
+
+According to [[ISO_80000-1]] [=quantities=] of the same kind within a given [=system=] of
+quantities have the same quantity [=dimension=] but quantities of the same [=dimension=] may
+not necessarily be of the same kind. A good example here might be width, depth, and height
+of the package. All of those [=quantities=] are of length [=dimension=] but it is questionable
+if all quantity arithmetic operations (i.e. addition) should be allowed between their values
+(namely, should we be allowed to add width to height).
+
+Such abstractions, limitations, and operations can and should be provided by the software
+layers above the generic purpose physical units library. It is a domain-specific knowledge
+what are the quantity kinds and which operations should be allowed between them.
+
+The author's opinion was backed up by the poll in Belfast where the room felt strongly
+against prioritizing quantity [=kinds=] in the initial release of the library.
+
+
+Text output {#text-output}
+--------------------------
+
+There is a popular demand for the physical units library is to be able to automatically
+print quantity [=unit=] symbols. Some of the analysed libraries already provide such
+a support but none of them supports `std::format` facility. In Belfast, SG16 decided that
+we should scope mainly on this facility and leave the support for `std::ostream` to the
+author's discretion.
+
+During the same meeting in Belfast, SG16 was really pushing towards localizations support.
+However, it was decided that it should be done only after the initial library version is
+done and when an alternative to `std::locale` is introduced in C++.
+
 
 Extensibility {#extensibility}
 ==============================
@@ -2046,250 +2228,116 @@ for C++ are:
 Open questions {#open-questions}
 ================================
 
-How to represent SI prefixes and derived units? {#prefixes-and-units}
----------------------------------------------------------------------
+UDLs vs constants to create quantities {#udls_vs_constants}
+-----------------------------------------------------------
 
-There are at least 3 ways to represent derived units:
-1. Provide a new strong type and an UDL for each unit
-2. Define the type only for a [=coherent derived unit=] and use multiplier syntax to obtain
-    more [=derived units=]
-3. Mixed approach using strong types, NTTPs, and variable templates
-
-Starting with the first case. Each [=derived unit=] gets its own type and an UDL. With such
-an approach we can easily write:
+There are two different ways to create quantities. The first one is `std::chrono`-like where
+for each unit we define an UDL:
 
 ```cpp
-using units::literals;
+namespace units::si::inline literals {
 
-const auto d1 = 123km;
-const auto d2 = units::quantity<units::kilometre>(123);
+// m
+constexpr auto operator"" m(unsigned long long l) { return length<metre, std::int64_t>(l); }
+constexpr auto operator"" m(long double l) { return length<metre, long double>(l); }
 
-const auto v1 = 123kmph;
-const auto v2 = units::quantity<units::kilometre_per_hour>(123);
-```
+// cm
+constexpr auto operator"" cm(unsigned long long l) { return length<centimetre, std::int64_t>(l); }
+constexpr auto operator"" cm(long double l) { return length<centimetre, long double>(l); }
 
-The good parts here are:
-- clear, strong types for each defined unit
-- support for such a unit by the downcasting facility
-- existence of an UDL
-
-The drawbacks of such a solution are:
-- as library framework will probably not predefine all possible variations of [=base units=]
-    and their [=multiple of a unit|prefixes=] (i.e gigametre_per_second) the user will have
-    to define every such a unit before the first use
-- the same as above applies to UDLs
-- only one unit spelling form (`meter` vs. `meters` vs. `metre` vs. `metres`) supported
-- naming of some units can become clunky (i.e. `sq_volt_per_hertz`)
-
-The second case assumes that each dimension will get only a predefined
-[=coherent derived unit=] and the rest of the [=derived units=] will be either created with
-a multiplier syntax or defined by the user:
-
-```cpp
-namespace bu = boost::units;
-
-const auto d1 = 123k * bu::si::meters;  // no an actual Boost.Units syntax
-const auto d2 = 123 * bu::si::kilo * bu::si::meters;
-
-using kilometer_base_unit = bu::make_scaled_unit<bu::si::length,
-                                                 bu::scale<10, bu::static_rational<3>>>::type;
-using length_kilometer = kilometer_base_unit::unit_type;
-using time_hour = bu::metric::hour_base_unit::unit_type;
-using velocity_kilometers_per_hour = bu::divide_typeof_helper<length_kilometer, time_hour>::type;
-BOOST_UNITS_STATIC_CONSTANT(kilometers_per_hour, velocity_kilometers_per_hour);
-
-// const auto v1 = ???
-const auto v2 = 123 * kilometers_per_hour;
-```
-
-The good parts here are:
-- multiple possible spellings of unit names
-- easy to use existing [=coherent derived units=] with all SI prefixes
-
-The drawbacks of such a solution are:
-- verbose UDLs
-- no support by the downcasting facility
-- user has to make a significant effort to create new [=derived units=] that are not easily
-    constructible with SI prefixes (i.e. kilometre)
-
-The third approach is using a mix of several language features including strong types,
-Non Type Template Parameters (NTTP), and UDLs. With such an approach we can end up with a
-variety of syntaxes. Please note that the long list below is only to list all of
-the possibilities in this design space and we do not propose anything like this for now.
-We can easily forbid any or all of the following syntaxes:
-
-```cpp
-inline constexpr auto kilometre = kilo*metre;
-inline constexpr auto km = kilometre;
-
-namespace literals {
-  constexpr auto operator ""km(unsigned long long l) { return quantity<km, std::int64_t>(l); }
-  constexpr auto operator ""km(long double l) { return quantity<km, long double>(l); }
 }
-
-const auto d1  = quantity<kilo*metre>(123);
-const auto d2  = quantity<kilometre>(123);
-const auto d3  = quantity<k*metre>(123);
-const auto d4  = quantity<k*m>(123);
-const auto d5  = quantity<km>(123);
-const auto d6  = kilo(123)*metre;
-const auto d7  = kilometre(123);
-const auto d8  = kilo*metre(123);
-const auto d9  = kilometre(123);
-const auto d10 = 1000*metre(123);
-const auto d11 = metre(123'000);
-const auto d12 = 123k*m;
-const auto d13 = 123km;
-const auto d14 = k*123m;
-const auto d15 = 123kilo*metres;
-const auto d16 = (km)(123);
-
-const auto v1  = quantity<kilo*metre/hour>(123);
-const auto v2  = quantity<kilometre/hour>(123);
-const auto v3  = quantity<k*m/h>(123);
-const auto v4  = quantity<km/h>(123);
-const auto v5  = kilo * metre(123) / hour(1);
-const auto v6  = kilo * metre(123) / hour();
-const auto v7  = kilometre(123) / hour;
-const auto v8  = k*m(123)/h;
-const auto v9  = km(123)/h;
-const auto v10 = (km/h)(123);
-const auto v11 = 123km/h;
 ```
 
-All of the above variables for length and velocity are respectively of the same [=unit=] and
-contain the same value.
-
-The good parts here are:
-- library has to implement only base named units
-- natural syntax of spelling units (i.e. 123km/h or quantity<kilometre/hour>(123))
-- user is able to easily construct any possible variation of base units without any additional
-    library support
-- multiple possible spellings of unit names
-
-The drawbacks of such a solution are:
-- "there is more than one way to do it" problem
-- the code written by the developer will not be similar to the types printed in the compilation
-    error logs
-- no support for such a unit by the downcasting facility (units are values instead of types)
-
-Please note that 2nd and 3rd case may look tempting because nice examples where used. It can
-get worse for a lot of [=dimensions=]:
-- volume (`3 * m * m * m`, `3 * units::metre * units::metre * units::metre`)
-- acceleration (`10 * m / s / s`, `3 * units::metre / units::second / units::second`)
-
-while the same [=dimensions=] with the first approach looks as follows:
-- volume (`3cub_m`, `quantity<cubic_metre>(3)`)
-- acceleration (`10mps_sq`, `quantity<metre_per_second_sq>(3)`)
-
-and provide dowcasting support at the same time which will provide exactly the same experience
-for the end user in a compilation log or the compiler to the one that developer has while
-implementing the library code.
-
-
-NTTP usage {#nttp-usage}
-------------------------
-
-There are a few points in the physical units domain design that could benefit from Non-Type
-Template Parameters usage. One of the most apparent cases here is `ratio`. A classical
-implementation of such a class template looks like this:
+The second possibility here is to use constants:
 
 ```cpp
-template<intmax_t Num, intmax_t Den = 1>
-struct ratio {
-  static constexpr intmax_t num = Num * static_sign<Den>::value / static_gcd<Num, Den>::value;
-  static constexpr intmax_t den = static_abs<Den>::value / static_gcd<Num, Den>::value;
-  using type = ratio<num, den>;
-};
-```
+namespace units::si {
 
-Besides, it provides a few utilities to do operations on such types:
+inline constexpr length<metre, std::int64_t> m(1);
+inline constexpr length<centimetre, std::int64_t> cm(1);
 
-```cpp
-namespace detail {
-  template<typename R1, typename R2>
-  struct ratio_multiply_impl {
-  private:
-    static constexpr intmax_t gcd1 = static_gcd<R1::num, R2::den>::value;
-    static constexpr intmax_t gcd2 = static_gcd<R2::num, R1::den>::value;
-  public:
-    using type = ratio<safe_multiply<(R1::num / gcd1), (R2::num / gcd2)>::value,
-                       safe_multiply<(R1::den / gcd2), (R2::den / gcd1)>::value>;
-    static constexpr intmax_t num = type::num;
-    static constexpr intmax_t den = type::den;
-  };
 }
-template<typename R1, typename R2>
-using ratio_multiply = detail::ratio_multiply_impl<R1, R2>::type;
 ```
 
-Usage examples of such an approach looks as follows:
+Initially, we decided to be consistent with `std::chrono` but the more experience we get the
+more problems we see with such an approach:
 
-```cpp
-struct yard : derived_unit<yard, "yd", length, ratio<9'144, 10'000>> {};
-struct foot : derived_unit<foot, "ft", length, ratio_multiply<ratio<1, 3>, yard::ratio>> {};
-struct inch : derived_unit<inch, "in", length, ratio_multiply<ratio<1, 12>, foot::ratio>> {};
-struct mile : derived_unit<mile, "mi", length, ratio_multiply<ratio<1'760>, yard::ratio>> {};
-```
+1. UDLs are only for compile-time known values. Currently with UDLs:
 
-With NTTP the implementation and usage of the `ratio` are much easier:
+    ```cpp
+    using namespace units::si;
+    auto v1 = 120km / 2h;
+    auto v2 = length<kilometre>(length) / time<hour>(duration);
+    ```
 
-```cpp
-struct ratio {
-  std::intmax_t num;
-  std::intmax_t den;
+    with constants those 2 cases would look like:
 
-  explicit constexpr ratio(std::intmax_t n, std::intmax_t d = 1) :
-    num(n * (d < 0 ? -1 : 1) / std::gcd(n, d)),
-    den(abs(d) / std::gcd(n, d))
-  {
-  }
+    ```cpp
+    using namespace units::si;
+    auto v1 = 120 * km / (2 * h);
+    auto v2 = length * km / duration * h;
+    ```
 
-  [[nodiscard]] constexpr bool operator==(const ratio&) = default;
+    Constants treat both cases in a unified way. It is also worth to notice that we work mostly
+    with runtime variables and compile-time known values appear only in physical constants
+    and unit tests.
 
-  [[nodiscard]] friend constexpr ratio operator*(const ratio& lhs, const ratio& rhs)
-  {
-    const std::intmax_t gcd1 = std::gcd(lhs.num, rhs.den);
-    const std::intmax_t gcd2 = std::gcd(rhs.num, lhs.den);
-    return ratio(safe_multiply(lhs.num / gcd1, rhs.num / gcd2),
-                 safe_multiply(lhs.den / gcd2, rhs.den / gcd1));
-  }
+    A tricky case here for constants that we cannot fell into `2h` is always equivalent to
+    `2 * h`. In such a case `auto v1 = 120 * km / 2 * h;` would be invalid. It has to either
+    be spelled as `auto v1 = 120 * km / (2 * h);` or `auto v1 = 120 * km / 2 / h;`. This is
+    probably the biggest issue with this syntax.
 
-  [[nodiscard]] friend constexpr ratio operator*(std::intmax_t n, const ratio& rhs)
-  {
-    return ratio(n) * rhs;
-  }
+2. UDLs for some units may be impossible to achieve in C++. We already found issues with
+    `F` (farad), `J` (joule), `W` (watt), `K` (kelvin), `d` (day), `l` or `L` (litre), `erg`,
+    `ergps`. It is probably still not the complete list here. All of those problems originated
+    from the fact that those numeric symbols are already used in literals (sometimes compiler
+    extensions but still). We can fix some of those cases with additional wording but probably
+    some of them will remain broken and we will need to invent workarounds. None of those
+    issues affect constants.
 
-  [[nodiscard]] friend constexpr ratio operator*(const ratio& lhs, std::intmax_t n)
-  {
-    return lhs * ratio(n);
-  }
-};
-```
+3. UDLs cannot be disambiguated with the namespace name:
 
-```cpp
-// US customary units
-struct yard : derived_unit<yard, "yd", length, ratio(9'144, 10'000)> {};
-struct foot : derived_unit<foot, "ft", length, yard::ratio / 3> {};
-struct inch : derived_unit<inch, "in", length, foot::ratio / 12> {};
-struct mile : derived_unit<mile, "mi", length, 1'760 * yard::ratio> {};
-```
+    ```cpp
+    using namespace si;
+    auto d = 1cm;   // quantity<si::dim_length, si::centimetre>
+    ```
 
-Also, please see the mixed approach described in [[#prefixes-and-units]] which opens the door
-to new natural syntax of spelling [=units=].
+    ```cpp
+    using namespace cgs;
+    auto d = 1cm;  // quantity<cgs::dim_length, si::centimetre>
+    ```
+
+    ```cpp
+    using namespace si;
+    using namespace cgs;
+    auto d = 1cm;   // FAILS TO COMPILE
+    ```
+
+    With constants it is simple:
+
+    ```cpp
+    using namespace si;
+    using namespace cgs;
+    auto d1 = 1 * si::cm;   // quantity<si::dim_length, si::centimetre>
+    auto d2 = 1 * cgs::cm;  // quantity<cgs::dim_length, si::centimetre>
+    ```
+
+Should we remain consistent with `std::chrono` and use UDLs which are considered a modern C++
+way to create an instance of a concrete type, or should we reach for pre-C++11 ways of doing
+it which actually may prove better in this particular case?
 
 
-Relative vs absolute quantity {#relative-vs-absolute}
------------------------------------------------------
+Affine types {#affine-types}
+----------------------------
 
 One of the most critical aspects of the physical units library is to understand what a
-[=quantity=] is? An absolute or relative value? For most [=dimensions=] only relative values
+[=quantity=] is? An absolute or a relative value? For most [=dimensions=] only relative values
 have sense. For example:
 - Where are absolute 123 meters?
 - If I am sitting in a moving train, is my velocity == 0?
 - Is my velocity == 0 when the train stops?
 
-However, for some [=base quantities=] like temperature, absolute values are really needed.
+However, for some [=quantities=] like temperature, absolute values are really needed.
 For example, how much is `0 ℃ + 0 ℃`? Is it `0 ℃` or `0 ℃` or `273.15 ℃`? Yes, the
 repeated value of `0 ℃` is not an error here ;-) Actually, all of the answers are right:
 - Two (absolute) temperatures:
@@ -2310,120 +2358,16 @@ repeated value of `0 ℃` is not an error here ;-) Actually, all of the answers 
     0 ℃ + 0 ℃ = 0 K + 0 K = 0 K = 0 ℃
     ```
 
-As proven above, it is a complex and a pretty hard problem. The average user of the library
+As described above, it is a complex and a pretty hard problem. The average user of the library
 will probably not be able to distinguish between different kinds of quantities. This is
-why it was decided that only relative quantity values will be modeled by the library.
-Moreover, providing support for only relative quantities of other temperature units than
-Kelvin will probably still be misused by the users. This is why we suggest to support
-only Kelvins as built-in temperature units and provide verbose non-member utility
-functions for conversions between different kinds of temperature values and their units.
+why it was decided that a `quantity` type will model only relative quantity values and
+specifically for temperatures to provide support only for kelvins.
 
-Alternatively, we could consider:
-1. Providing a fully featured engine to implement an affine space. For example
-    `quantity<absolute<units>>, Rep>` (like in [[BOOST.UNITS]]) or `quantity_point`
-    (like in [[BENRI]]) could be used for this purpose. If we decide to go this route,
-    how to distinguish between UDLs for the same unit addressing such two abstractions?
-2. The solution based on [[CPPNOW17-UNITS]] where Kelvin is always treated as relative
-    temperature and Celsius and Fahrenheit are always treated as an absolute one.
-
-Should we support [=systems=] as a separate type? {#systems-support}
---------------------------------------------------------------------
-
-For many years we have requirements to support multiple [=system|systems of units=].
-Walter E. Brown started to present papers on this subject more than 20 years ago
-[[WALTER_E_BROWN]].
-
-The basic rationale for a [=system of units=] is that "Unit systems should form closed
-universes independent from each other" as stated by [[P1930R0]]. But what does it really
-mean? Does it mean that every system should be independent from others and define its
-own dimensions and their units? Does it mean that it should not be possible to mix
-units from different systems even with explicit casts? If yes, are we ready to reimplement
-most of the same dimensional logic for every system from scratch?
-
-US Customary System has the same [=dimensions=] and most of the units as the [=SI=] with
-the differences scoped mostly only in length and mass [=units=] and [=derived quantities=]
-using those. From the implementation and standardization point of view it is much simpler
-to use the common definitions of such physical dimensions and just provide [=units=] dedicated
-to such a [=system=] next to the [=SI=] ones (i.e. meters and miles). This is why even
-Boost.Units, the only library supporting systems, implements US units in [=SI=] system.
-
-Another potential candidate for a dedicated system could be CGS (centimetre–gram–second)
-system, but even here all physical dimensions are defined in the same way so the units
-can, and in some cases should, be possible to be mixed with units from [=SI=].
-
-Even [=systems=] like `coffee/milk/water/sugar` system that seem to be totally isolated
-from typical [=SI=] use cases at some point will probably need time, volume, and other
-[=SI=] dimensions too.
-
-This is why even when the library claims to support different unit systems it often does
-that based on [=SI=] anyway (i.e. [[BENRI]] provides headers like `si/cgs.h`).
-
-Boost.Units uses [=systems=] mostly to provide the capability of having a different
-[=base unit=] for a [=dimension=] to limit intermediate conversions while passing quantities
-as vocabulary types in the interfaces. Usage of templates functions constrained with concepts
-for generic algorithms and concrete types for domain-specific needs addresses this area easily.
-For more information on this subject please refer to
-[[#limiting-intermediate-value-conversions]].
-
-Important point to note here is that adding direct [=systems=] support in the library type
-system might negatively affect user experience. Most of the verbose compilation errors
-presented in [[#type-aliasing-issues]] are caused by a dedicated systems support in
-Boost.Units.
-
-Please also note that the author of the only library providing direct systems support
-[[BOOST.UNITS]] removed them in the refreshed design of a new library
-([[#cppnow17-units.design]]).
-
-For example here is how we can support CGS without having direct systems support:
-
-```cpp
-namespace cgs {
-
-  using units::centimetre;
-  using units::gram;
-  using units::second;
-  struct centimetre_per_second : units::deduced_derived_unit<centimetre_per_second, "cm/s", units::velocity, centimetre, second> {};
-  struct gal : units::deduced_derived_unit<gal, "Gal", units::acceleration, centimetre, second> {};
-  struct dyne : units::deduced_derived_unit<dyne, "dyn", units::force, centimetre, gram, second> {};
-  struct erg : units::deduced_derived_unit<erg, "erg", units::energy, centimetre, gram, second> {};
-  struct ergps : units::deduced_derived_unit<ergps, "erg/s", units::power, centimetre, gram, second> {};
-  struct barye : units::deduced_derived_unit<barye, "Ba", units::pressure, centimetre, gram, second> {};
-
-
-  inline namespace literals {
-
-    using namespace units::literals;
-
-    constexpr auto operator""cmps(unsigned long long l) { return units::quantity<centimetre_per_second, std::int64_t>(l); }
-    constexpr auto operator""cmps(long double l) { return units::quantity<centimetre_per_second, long double>(l); }
-    constexpr auto operator""Gal(unsigned long long l) { return units::quantity<gal, std::int64_t>(l); }
-    constexpr auto operator""Gal(long double l) { return units::quantity<gal, long double>(l); }
-    constexpr auto operator""dyn(unsigned long long l) { return units::quantity<dyne, std::int64_t>(l); }
-    constexpr auto operator""dyn(long double l) { return units::quantity<dyne, long double>(l); }
-    constexpr auto operator""_erg(unsigned long long l) { return units::quantity<erg, std::int64_t>(l); }
-    constexpr auto operator""_erg(long double l) { return units::quantity<erg, long double>(l); }
-    constexpr auto operator""_ergps(unsigned long long l) { return units::quantity<ergps, std::int64_t>(l); }
-    constexpr auto operator""_ergps(long double l) { return units::quantity<ergps, long double>(l); }
-    constexpr auto operator""Ba(unsigned long long l) { return units::quantity<barye, std::int64_t>(l); }
-    constexpr auto operator""Ba(long double l) { return units::quantity<barye, long double>(l); }
-
-  }  // namespace literals
-
-}
-```
-
-```cpp
-using namespace cgs::literals;
-
-static_assert(100cm == 1m);
-static_assert(1'000g == 1kg);
-static_assert(100cmps == 1mps);
-static_assert(100Gal == 1mps_sq);
-static_assert(100'000dyn == 1N);
-static_assert(10'000'000_erg == 1_J);
-static_assert(10'000'000_ergps == 1W);
-static_assert(10Ba == 1Pa);
-```
+Later on as an extension we can consider one of the two alternatives:
+1. Provide additional type called `quantity_point` that will model absolute quantity value
+    semantics. Only then we suggest to provide support for other temperature units.
+2. Provide verbose non-member utility functions for conversions between different kinds of
+    temperature values and their units.
 
 
 Interoperability with `std::chrono::duration` {#duration-interoperability}
@@ -2446,335 +2390,13 @@ make its design not suitable for a general purpose units library framework:
 
 Because of the above issues we cannot just use `std::chrono::duration` design as it is right
 now and use it for physical units implementation or even as a representation of only time
-[=dimension=]. There are however, a few possibilities here to provide interoperability between
+[=quantity=]. There are however, a few possibilities here to provide interoperability between
 the types:
-1. One of the solutions could be making a `std::chrono::duration` an alias or a child class
-    of `std::units::quantity` class template (assuming that we will not use NTTP ratios
-    as described in [[#nttp-usage]]). This would be probably the best solution from
-    the API point of view but unfortunately it will cause an ABI break.
-2. Provide built-in conversion facility that among others can be used to allow conversion
+1. Provide built-in conversion facility that among others can be used to allow conversion
     between `std::chrono::duration` and `std::units::quantity`.
-3. Provide non-member function to convert and compare between those two types.
-4. Just ignore `std::chrono::duration` and do not provide any conversion utilities in the
-    standard library.
-
-From all options above we propose the first one if we decide that C++23 will be an ABI breaking
-release. In such a case we could update `std::ratio` type as described in
-[[#ratio-on-steroids]]. Otherwise, we would probably go with the option #3.
-
-
-Should we provide integral UDLs? {#integral-udl}
-------------------------------------------------
-
-User Defined Literals support is really handy for the end-users. However, it sometimes might
-cause more confusion than benefits. For example defining both UDL versions for a velocity:
-
-```cpp
-inline namespace literals {
-
-  constexpr auto operator""kmph(unsigned long long l)
-  { return quantity<kilometre_per_hour, std::int64_t>(l); }
-
-  constexpr auto operator""kmph(long double l)
-  { return quantity<kilometre_per_hour, long double>(l); }
-
-}
-```
-
-and a function template defined as:
-
-```cpp
-constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto t)
-{
-  return d / t;
-}
-```
-
-might cause the following code to not compile:
-
-```cpp
-const units::Velocity auto speed = avg_speed(220km, 2h);
-```
-
-while the following one compiles fine:
-
-```cpp
-const units::Velocity auto speed = avg_speed(220.km, 2h);
-```
-
-Above is caused by the constraints copied from `std::chrono::duration` and put on the
-conversion constructors requiring the denominator of `ratio` to be 1 in case of the integral
-representation type.
-
-Based on the above we could agree on making integral UDLs returning a quantity with
-`long double` as a representation type. However, if we consider a [=base quantity=] like
-a digital information, what does it mean to have a fraction of bit? This probably is not
-the only one isolated example when actually only integral UDLs have sense.
-
-Summarizing above we have the following options to choose from as an answer to
-"Should we provide integral UDLs?":
-1. Yes, as is (always both integral and floating-point for all units). And leave it up to the
-    user to use them correctly.
-2. Yes, but integral literals get floating-point `Rep`.
-3. Yes, but only for specific units like a `bit`, `byte`, etc. where floating-point types do
-    not have much sense (no floating-point UDLs in such case).
-
-
-`quantity<dim_length, metre>` or `quantity<metre>`? {#dimension-in-quantity}
-----------------------------------------------------------------------------
-
-The initial version of the mp-units library provided the following `quantity` class template
-definition:
-
-```cpp
-template<Dimension D, Unit U, Scalar Rep>
-  requires std::same_as<D, typename U::dimension>
-class quantity;
-```
-
-This allowed the following helper aliases:
-
-```cpp
-template<Unit U = meter, Scalar Rep = double>
-using length = quantity<dimension_length, U, Rep>;
-```
-
-With such a framework and CTAD usage user could write the following:
-
-```cpp
-units::length d(3);                // 3 meters
-units::length<units::mile> d3(3);  // 3 miles
-```
-
-or
-
-```cpp
-units::velocity speed = avg_speed(220.km, 2.h);
-```
-
-or
-
-```cpp
-template<typename U, typename Rep>
-void foo(units::length<U, Rep> dist);
-```
-
-to constrain the type to a length dimension.
-
-The downside of such a design was that the dimension was provided twice in every `quantity`
-class template instantiation which was affecting user experience by longer types in error logs
-or during debugging:
-
-```cpp
-error: conversion from ‘quantity<units::dimension<units::exp<units::base_dim_length, 1>,
-units::exp<units::base_dim_time, 1> >, units::unit<units::dimension<units::exp<
-units::base_dim_length, 1>, units::exp<units::base_dim_time, 1> >, std::ratio<3600000, 1> >,
-[...]>’ to non-scalar type ‘quantity<units::dimension_velocity, units::kilometer_per_hour,
-[...]>’ requested
-```
-
-During evening session in Cologne the author received a feedback from SG6 members that such
-a duplication should be removed. Right now the design looks as follows:
-
-```cpp
-template<Unit U, Scalar Rep>
-class quantity;
-```
-
-With this there is no possibility to provide a helper alias for a length [=dimension=] and
-above examples have to be implemented in terms of concepts:
-
-```cpp
-units::quantity<units::metre> d(3);  // 3 meters
-units::quantity<units::mile> d3(3);  // 3 miles
-```
-
-or
-
-```cpp
-units::Velocity auto speed = avg_speed(220.km, 2.h);
-```
-
-or
-
-```cpp
-template<units::Length Quantity>
-void foo(Quantity dist);
-```
-
-The good part here is that the error logs are more readable with such an approach:
-
-```cpp
-error: conversion from ‘quantity<units::unit<units::dimension<units::exp<units::base_dim_length,
-1>, units::exp<units::base_dim_time, 1> >, std::ratio<3600000, 1> >, [...]>’ to non-scalar type
-‘quantity<units::kilometer_per_hour, [...]>’ requested
-```
-
-Both cases provide the similar functionality so it is a matter of taste here on which of the
-syntaxes the Committee will choose to continue with.
-
-
-Should we provide `seconds<int>` or stay with `quantity<second, int>`? {#seconds-int}
--------------------------------------------------------------------------------------
-
-Some of the users complain that writing `quantity<second>(123)` is too verbose and they would
-prefer a helper alias that would allow them to write `seconds(123)`. This however, starts to
-generate a few issues:
-- `second` represent a [=unit=]
-- `seconds` represents a [=quantity=]
-- plural form reserved for quantities might not be easy to achieve or easy to distinguish for
-    some [=units=] like `sq_volt_per_hertz`.
-
-We can consider renaming `second` to `unit_second` and provide `seconds` as an alias to the
-`quantity` class template. However, this will probably set in stone usage of aliases as no
-one will be willing to write a verbose code like `quantity<unit_second>(123)`. This is why
-we are looking for a concrete guideline on which of the options the Committee prefers.
-
-Author preference is to stay with the current design and leave it up to the users to create
-any helper aliases for their domains and use cases if they choose so (i.e. `s(123)`).
-
-
-Should we provide support for [=dimensionless quantities=]? {#dimensionless-quantities}
----------------------------------------------------------------------------------------
-
-Some [=quantities of dimension one=] are defined as the ratios of two [=quantities=] of
-the same [=kind=]. The [=coherent derived unit=] is the number one, symbol 1. For example:
-plane angle, solid angle, refractive index, relative permeability, mass fraction,
-friction factor, Mach number, etc. However, should all such division results be treated as
-dimensionless quantities rather than scalars?
-
-```cpp
-auto q1 = 10s / 2s;
-auto q2 = 90kmph / 30kmph;
-```
-
-If not, how to determine when to return a scalar an when the dimensionless quantity?
-
-Numbers of entities are also [=quantities of dimension one=]. For example: number of
-turns in a coil, number of molecules in a given sample, degeneracy of the energy levels
-of a quantum system.
-
-Should the library treat such entities as regular scalars or should some strong typing
-mechanism be provided to support those?
-
-
-Number concept {#number}
-------------------------
-
-Assuming that we will vote for a widespread concepts usage in the library it would be
-also nice to have a concept for scalars. Currently [[MP-UNITS]] defines a scalar as:
-
-```cpp
-template<typename T>
-concept Number = std::regular<T> &&
-    std::totally_ordered<T> &&
-    requires(T a, T b) {
-      { a + b } -> std::same_as<T>;
-      { a - b } -> std::same_as<T>;
-      { a * b } -> std::same_as<T>;
-      { a / b } -> std::same_as<T>;
-      { +a } -> std::same_as<T>;
-      { -a } -> std::same_as<T>;
-      { a += b } -> std::same_as<T&>;
-      { a -= b } -> std::same_as<T&>;
-      { a *= b } -> std::same_as<T&>;
-      { a /= b } -> std::same_as<T&>;
-      { T{0} };
-};
-
-template<typename T>
-concept Scalar = (!Quantity<T>) && Number<T>;
-```
-
-
-What about Unicode? {#unicode}
-------------------------------
-
-Every unit and its prefix can be printed with ASCII characters but it will probably not
-result with the best user experience. [=Quantities=] can often be represented better with
-Unicode symbols. For example an ASCII text output can look like:
-
-```cpp
-10 us
-2 kg*m/s^2
-37 deg. C
-```
-
-while the same [=quantities=] can be represented as:
-
-```cpp
-10 μs
-2 kg⋅m/s²
-37 °C
-```
-
-If we decide to continue with the second approach it is not clear how to achieve this. For
-example `std::chrono::duration` is specified to return `μs` if the character `U+00B5` can be
-represented in the encoding used for `charT`, `us` otherwise. However this is specified for:
-
-```cpp
-template<class charT, class traits, class Rep, class Period>
-basic_ostream<charT, traits>& operator<<(basic_ostream<charT, traits>& os,
-                                         const duration<Rep, Period>& d);
-```
-
-which requires `charT` to be `char` or `wchar_t`. C++20 specification does not mention
-Unicode characters at all here. Even if we decide to provide a support for Unicode character
-sets (`charN_t`) here, it is not clear how to create such streams. Currently we do not have
-`std::u8cout` or even `std::u8ostream` in the C++ Standard Library.
-
-Also, providing partial specializations to define such [=unit=] symbols:
-
-```cpp
-template<typename CharT, typename Traits, typename Prefix, typename Ratio>
-inline constexpr std::basic_string_view<CharT, Traits> prefix_symbol;
-
-// one definition for all character types
-template<typename CharT, typename Traits>
-inline constexpr std::basic_string_view<CharT, Traits>
-    prefix_symbol<CharT, Traits, si_prefix, std::milli> = "m";
-
-// definition for non-Unicode systems
-template<typename Traits>
-inline constexpr std::basic_string_view<char, Traits>
-    prefix_symbol<char, Traits, si_prefix, std::micro> = "u";
-template<typename Traits>
-inline constexpr std::basic_string_view<wchar_t, Traits>
-    prefix_symbol<wchar_t, Traits, si_prefix, std::micro> = L"u";
-
-// definition for Unicode
-template<typename Traits>
-inline constexpr std::basic_string_view<std::char8_t, Traits>
-    prefix_symbol<std::char8_t, Traits, si_prefix, std::micro> = u8"µ";
-template<typename Traits>
-inline constexpr std::basic_string_view<std::char16_t, Traits>
-    prefix_symbol<std::char16_t, Traits, si_prefix, std::micro> = u"µ";
-template<typename Traits>
-inline constexpr std::basic_string_view<std::char32_t, Traits>
-    prefix_symbol<std::char32_t, Traits, si_prefix, std::micro> = U"µ";
-```
-
-starts to be a nightmare for library developers. Even, though we provided dedicated
-specializations for all character types for `std::micro` (which is actually a lot of
-boilerplate code), the first definition of `std::milli` will not compile for other
-character types than `char`. Right now there is no possibility in the C++ standard
-to define one literal that will allow to initialize all versions of such a variable
-template. If we had such a feature, additionally, it would be great to be able to
-initialize all non-Unicode character types with one literal and all Unicode character
-types with another one using Unicode character set. If we had such facility we could
-implement `std::micro` case from above with only two partial specializations:
-
-```cpp
-// definition for non-Unicode systems
-template<non_unicode charT, typename Traits>
-inline constexpr std::basic_string_view<charT, Traits>
-    prefix_symbol<charT, Traits, si_prefix, std::micro> = NON_UNICODE("u");
-
-// definition for Unicode
-template<unicode charT, typename Traits>
-inline constexpr std::basic_string_view<charT, Traits>
-    prefix_symbol<charT, Traits, si_prefix, std::micro> = UNICODE("µ");
-```
+2. Provide non-member functions to convert and compare between those two types.
+3. Ignore `std::chrono::duration`, do not provide any conversion utilities in the standard
+    library and leave it for the user.
 
 
 Impact on the Standard {#impact}
@@ -2784,10 +2406,9 @@ The library would be mostly a pure addition to the C++ Standard Library with the
 potential exceptions:
 1. It is unclear how to provide interoperability with the `std::chrono::duration`
     (more information in [[#duration-interoperability]]).
-2. `std::units::ratio` will most probably need to be a different type with the similar
-    semantics to `std::ratio` (more information in [[#ratio-on-steroids]]). However, if we
-    decide C++23 to be an ABI breaking release we could update `std::ratio` with an additional
-    template parameter.
+2. `std::units::ratio` will be a different type with the similar semantics to `std::ratio`
+    (more information in [[#ratio-on-steroids]]). However, if we decide C++23 to be an ABI
+    breaking release we could update `std::ratio` with an additional template parameter.
 
 
 Implementation Experience {#implementation}
@@ -2800,7 +2421,8 @@ Usage example {#mp-units.usage.example}
 ---------------------------------------
 
 ```cpp
-#include <units/dimensions/velocity.h>
+#include <units/physical/si/velocity.h>
+#include <units/physical/international/velocity.h>
 #include <iostream>
 #include <cassert>
 
@@ -2811,9 +2433,9 @@ constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto 
 
 void test1()
 {
-  using namespace units::literals;
+  using namespace units::si::literals;
 
-  const auto v = avg_speed(220.km, 2h);
+  const auto v = avg_speed(220km, 2h);
   assert(v.count() == 110);   // passes
   assert(v == 110kmph);       // passes
   std::cout << v << '\n';     // prints "110 km/h"
@@ -2821,16 +2443,18 @@ void test1()
 
 void test2()
 {
-  using namespace units::literals;
+  using namespace units;
+  using namespace units::international::literals;
 
-  const auto v = avg_speed(units::quantity<units::mile>(140), units::quantity<units::hour>(2));
+  const auto v = avg_speed(si::length<international::mile>(140), si::time<si::hour>(2));
   assert(v.count() == 70);    // passes
   assert(v == 70mph);         // passes
   std::cout << v << '\n';     // prints "70 mi/h"
 }
 ```
 
-[Compiler Explorer](https://godbolt.org/z/I8JXj4)
+[Compiler Explorer](https://godbolt.org/z/iVzR7y)
+
 
 Design {#mp-units.design}
 -------------------------
@@ -2841,15 +2465,15 @@ and their exponents. From the user's point of view, the most important is a [=qu
 [=Quantity=] is a precise amount of a unit for a specified dimension with a specific representation:
 
 ```cpp
-units::quantity<units::kilometre, double> d1(123);
-auto d2 = 123km;    // units::quantity<units::kilometre, std::int64_t>
+units::si::length<units::si::kilometre, double> d1(123);
+auto d2 = 123km;    // units::quantity<units::si::dim_length, units::si::kilometre, std::int64_t>
 ```
 
 There are C++ concepts provided for each such quantity type:
 
 ```cpp
 template<typename T>
-concept Length = QuantityOf<T, length>;
+concept Length = physical::QuantityOf<T, physical::dim_length>;
 ```
 
 With these concepts, we can easily write a function template:
@@ -2864,14 +2488,16 @@ constexpr units::Velocity auto avg_speed(units::Length auto d, units::Time auto 
 This template function can be used in the following way:
 
 ```cpp
-const units::quantity<units::kilometre> d(220);
-const units::quantity<units::hour> t(2);
-const units::Velocity auto kmph = units::quantity_cast<units::kilometre_per_hour>(avg_speed(d, t));
-std::cout << kmph.count() << " km/h\n";
+using namespace units;
 
-const units::Velocity auto speed = avg_speed(140.mi, 2.h);
+const si::length<si::kilometre> d(220);
+const si::time<si::hour> t(2);
+const Velocity auto kmph = quantity_cast<si::kilometre_per_hour>(avg_speed(d, t));
+std::cout << kmph << "\n";
+
+const Velocity auto speed = avg_speed(140mi, 2h);
 assert(speed.count() == 70);
-std::cout << units::quantity_cast<units::mile_per_hour>(speed).count() << " mph\n";
+std::cout << quantity_cast<international::mile_per_hour>(speed) << "\n";
 ```
 
 This guarantees that no intermediate conversions are being made, and the output binary is as
@@ -2882,68 +2508,114 @@ the library provides an excellent user experience. The error message for type al
 look like:
 
 ```text
-[with D = units::quantity<units::unit<units::dimension<units::exp<units::base_dim_length, 1, 1>,
-                units::exp<units::base_dim_time, 1, -1> >, units::ratio<5, 18> >, double>]
+[with D = units::quantity<units::derived_dimension_base<units::exp<units::si::dim_length, 1, 1>,
+units::exp<units::si::dim_time, 1, -1> >, units::scaled_unit<units::ratio<5, 18>,
+units::si::metre_per_second>, double>]
 ```
 
 Yet, thanks to downcast facility, the actual error message is:
 
 ```text
-[with D = units::quantity<units::kilometre_per_hour, double>]
+[with D = units::quantity<units::si::dim_velocity, units::si::kilometre_per_hour, double>]
 ```
 
 The breakpoint in the debugger became readable as well:
 
 ```text
-Breakpoint 1, avg_speed<units::quantity<units::kilometre, double>,
-                        units::quantity<units::hour, double> >
+Breakpoint 1, avg_speed<units::quantity<units::si::length, units::si::kilometre, double>,
+                        units::quantity<units::si::time, units::si::hour, double> >
 (d=..., t=...) at velocity.cpp:31
 31      return d / t;
 ```
 
 Moreover, it is really easy to extend the library with custom units, derived units, and
-base dimensions. For example, if the user wants to provide a custom `digital information`
-base dimension and new units based on it, only minimal code is required:
+base dimensions. A great example of a adding a whole new system can be a `data` system in
+the library which adds support for digital information quantities. In summary it adds:
+
+1. New prefix type and its prefixes:
 
 ```cpp
-#include <units/quantity.h>
+namespace units::data {
 
-using namespace units;
+struct prefix : prefix_type {};
 
-// custom base dimension
-struct base_dim_digital_information : base_dimension<"digital information", "b"> {};
+struct kibi : units::prefix<kibi, prefix, "Ki", ratio<    1'024>> {};
+struct mebi : units::prefix<mebi, prefix, "Mi", ratio<1'048'576>> {};
 
-// custom derived dimension and its concept
-struct digital_information : derived_dimension<digital_information,
-                                               exp<base_dim_digital_information, 1>> {};
+}
+```
+
+2. New units for `information`:
+
+```cpp
+namespace units::data {
+
+struct bit : named_unit<bit, "b", prefix> {};
+struct kibibit : prefixed_unit<kibibit, kibi, bit> {};
+
+struct byte : named_scaled_unit<byte, "B", prefix, ratio<8>, bit> {};
+struct kibibyte : prefixed_unit<kibibyte, kibi, byte> {};
+
+}
+```
+
+3. New base dimension, its concept, and quantity alias:
+
+```cpp
+namespace units::data {
+
+struct dim_information : base_dimension<"information", bit> {};
 
 template<typename T>
-concept DigitalInformation = QuantityOf<T, digital_information>;
+concept Information = QuantityOf<T, dim_information>;
 
-// custom prefixes
-struct data_prefix;
-struct kibi : prefix<kibi, data_prefix, ratio<    1'024>, "Ki"> {};
-struct mebi : prefix<mebi, data_prefix, ratio<1'048'576>, "Mi"> {};
+template<Unit U, Scalar Rep = double>
+using information = quantity<dim_information, U, Rep>;
 
-// custom units and their literals
-struct bit : coherent_derived_unit<bit, "b", digital_information, data_prefix> {};
-struct kilobit : prefixed_derived_unit<kilobit, kibi, bit> {};
-struct byte : derived_unit<byte, "B", digital_information, ratio<8>> {};
-struct kilobyte : prefixed_derived_unit<kilobyte, kibi, byte> {};
+}
+```
+
+4. UDLs for new units
+
+```cpp
+namespace units::data::inline literals {
+
+// bits
+constexpr auto operator""b(unsigned long long l) { return information<bit, std::int64_t>(l); }
+constexpr auto operator""Kib(unsigned long long l) { return information<kibibit, std::int64_t>(l); }
+
+// bytes
+constexpr auto operator""B(unsigned long long l) { return information<byte, std::int64_t>(l); }
+constexpr auto operator""KiB(unsigned long long l) { return information<kibibyte, std::int64_t>(l); }
+
+}
+```
+
+5. A new `bitrate` derived dimension, its units, concept, quantity helper, and UDLs
+
+```cpp
+namespace units::data {
+
+struct bit_per_second : unit<bit_per_second> {};
+struct dim_bitrate : derived_dimension<dim_bitrate, bit_per_second, exp<dim_information, 1>, exp<si::dim_time, -1>> {};
+
+struct kibibit_per_second : deduced_unit<kibibit_per_second, dim_bitrate, kibibit, si::second> {};
+
+template<typename T>
+concept Bitrate = QuantityOf<T, dim_bitrate>;
+
+template<Unit U, Scalar Rep = double>
+using bitrate = quantity<dim_bitrate, U, Rep>;
 
 inline namespace literals {
-  constexpr auto operator""_b(unsigned long long l) { return quantity<bit, std::int64_t>(l); }
-  constexpr auto operator""_Kib(unsigned long long l) { return quantity<kilobit, std::int64_t>(l); }
-  constexpr auto operator""_B(unsigned long long l) { return quantity<byte, std::int64_t>(l); }
-  constexpr auto operator""_KiB(unsigned long long l) { return quantity<kilobyte, std::int64_t>(l); }
+
+// bits
+constexpr auto operator""_bps(unsigned long long l) { return bitrate<bit_per_second, std::int64_t>(l); }
+constexpr auto operator""_Kibps(unsigned long long l) { return bitrate<kibibit_per_second, std::int64_t>(l); }
+
 }
 
-// unit tests
-static_assert(1_B == 8_b);
-static_assert(1024_b == 1_Kib);
-static_assert(1024_B == 1_KiB);
-static_assert(8 * 1024_b == 1_KiB);
-static_assert(8 * 1_Kib == 1_KiB);
+}
 ```
 
 
@@ -2954,16 +2626,12 @@ LEWG {#lewg}
 ------------
 
 1. Do we want a physical units library in the C++ standard?
-2. Do we prefer UDL, multiply, or mixed syntax for units ([[#prefixes-and-units]])?
+2. Do we prefer UDL or constants to create quantities ([[#udls_vs_constants ]])?
 3. Do we like the concept-based approach to prevent truncation and intermediate conversions
     ([[#generic-programming-with-concepts]])?
 4. Do we like a downcasting facility and would like to standardize it as a part of `std`
     ([[#downcasting]])?
-5. Do we prefer NTTP usage for `ratio` and `exp` ([[#nttp-usage]])?
-6. Which option of UDLs do we prefer ([[#integral-udl]])?
-7. Should American spelling be provided? (`meter` vs. `metre`, `ton` vs. `tonne`, ...)?
-8. Should we provide `seconds<int>` or stay with `quantity<second, int>` ([[#seconds-int]])?
-9. What about `std::chrono::duration` ([[#duration-interoperability]])?
+5. What about `std::chrono::duration` ([[#duration-interoperability]])?
 
 
 SG6 {#sg6}
@@ -2972,33 +2640,14 @@ SG6 {#sg6}
 1. Do we want to have built-in support for digital information [=dimensions=] and its
     [=multiple of a unit|prefixes=] in the initial version of the library?
 2. Should we provide built-in support for some [=off-system units=] or limit to SI units only?
-3. Do we want to introduce a dedicated system type ([[#systems-support]])?
-4. Do we want to require explicit representation casts between the same units of the same
+3. Do we want to require explicit representation casts between the same units of the same
     dimension, or do we allow `chrono`-like implicit conversions (floating-point representation
     and non-truncating integer conversions)?
-5. Do we want to require explicit unit casts between different units of the same dimension,
+4. Do we want to require explicit unit casts between different units of the same dimension,
     or do we allow `chrono`-like implicit conversions (implicitly convert kilometre to metre)?
-6. Do we agree with Kelvins only support for temperature and verbose conversion functions
+5. Do we agree with Kelvins only support for temperature and verbose conversion functions
     for other [=units=] and absolute temperatures? Should affine types be provided
-    ([[#relative-vs-absolute]])?
-7. Do we want to provide support for runtime-specified conversions too (e.g. to support
-    currency)?
-8. Should we provide support for dimensionless quantities or just use scalars ([[#dimensionless-quantities]])?
-9. Do we want to standardize a Number concept ([[#number]])?
-10. Should constants be provided? If yes, how should updates to the constants be handled?
-    (Separate namespaces?)
-11. Which SI standards should be supported (ISO 80000-1:2009, SI 2019) be provided? How
-    should updates to the ISO standard be handled? (Separate namespaces?)
-
-
-SG16 {#sg16}
-------------
-
-1. Should we use strings containing characters outside the basic source character set?
-2. Do we want a support for `charN_t` at all given the paltry support currently in the standard?
-3. Should we provide different symbol presentation for `charN_t` vs `char` and `wchar_t`?
-4. Should we provide localized unit names and symbols?
-5. Should we provide `std::basic_fixed_string`?
+    ([[#affine-types]])?
 
 
 Acknowledgments {#acknowledgements}
@@ -3097,13 +2746,7 @@ this document.
     "DUCHARME_UNITS": {
         "authors": [ "Vincent Ducharme" ],
         "href": "https://github.com/VincentDucharme/Units",
-    "title": "units"
-    },
-    "WALTER_E_BROWN": {
-        "authors": [ "Walter E. Brown" ],
-        "href": "https://lss.fnal.gov/archive/1998/conf/Conf-98-328.pdf",
-        "title": "Introduction to the SI Library of Unit-Based Computation",
-        "publisher": "International Conference on Computing in High Energy Physics (CHEP ’98),"
+        "title": "units"
     }
 }
 </pre>
