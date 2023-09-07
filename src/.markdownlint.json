@@ -1,7 +1,30 @@
 {
     "extends": "../.markdownlint.json",
-    "MD003": { "style": "setext_with_atx" },
-    "MD007": { "indent": 4 },
-    "MD013": { "line_length": 90, "code_block_line_length": 97 },
-    "MD033": { "allowed_elements": [ "pre", "table", "th", "tr", "td", "blockquote", "del", "ins", "dfn", "sup", "br" ] }
+    "MD003": {
+        "style": "consistent"
+    },
+    "MD007": {
+        "indent": 4
+    },
+    "MD013": {
+        "line_length": 100,
+        "code_block_line_length": 118
+    },
+    "MD025": false,
+    "MD032": true,
+    "MD033": {
+        "allowed_elements": [
+            "pre",
+            "table",
+            "th",
+            "tr",
+            "td",
+            "blockquote",
+            "del",
+            "ins",
+            "dfn",
+            "sup",
+            "br"
+        ]
+    }
 }
