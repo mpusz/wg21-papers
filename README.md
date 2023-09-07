@@ -5,8 +5,10 @@ C++ experts.
 
 [src](src) directory contains source version of those documents. They are written in markdown-like
 language. Depending on the file extension the paper using either:
+
 - [Bikeshed](https://github.com/tabatkins/bikeshed),
 - [mpark/wg21](https://github.com/mpark/wg21),
+
 for their processing.
 
 Generated outcome documents can be found on [GitHub IO](https://mpusz.github.io/wg21-papers)
