@@ -23,21 +23,21 @@ author:
 Several groups in the ISO C++ Committee reviewed the "P1935: A C++ Approach to Physical Units"
 [@P1935R2] proposal in Belfast 2019 and Prague 2020. All those groups
 expressed interest in the potential standardization of such a library and encouraged further
-work. The authors also got a valuable initial feedback that highly influenced the design of
+work. The authors also got valuable initial feedback that highly influenced the design of
 the V2 version of the [@MP-UNITS] library.
 
-In the following years the library's authors scoped on getting more feedback from the production
-and design and develop version 2 of the [@MP-UNITS] library that resolves the issues raised
-by the users and Committee members. The features and interfaces of this version seems to be
-close to be the best what we can get with the current version of the C++ language standard.
+In the following years, the library's authors scoped on getting more feedback from the production
+and design and developed version 2 of the [@MP-UNITS] library that resolves the issues raised
+by the users and Committee members. The features and interfaces of this version are close to
+being the best we can get with the current version of the C++ language standard.
 
 This paper is authored by not only the [@MP-UNITS] library developers but also by the authors
-of other actively maintained similar libraries on the market as well as other active members
-of the C++ physical quantities and units community that worked on this subject for many years
-now. We join our forces to say with one voice that we deeply care about standardizing such
+of other actively maintained similar libraries on the market and other active members of
+the C++ physical quantities and units community who have worked on this subject for many years.
+We join our forces to say with one voice that we deeply care about standardizing such
 features as a part of the C++ Standard Library. Based on our long and broad experience in
-the subject we agree and believe that the interfaces that will be provided by us in the
-upcoming proposals are the best we can get as of today in the C++ language.
+the subject, we agree that the interfaces we will provide in the upcoming proposals are
+the best we can get today in the C++ language.
 
 
 # About Authors
@@ -46,21 +46,21 @@ upcoming proposals are the best we can get as of today in the C++ language.
 
 Mateusz got interested in the physical units subject while contributing to the [@LK8000]
 Tactical Flight Computer Open Source project over 10 years ago. The project's code was far
-from being "safe" in the C++ sense and this is when Mateusz started to explore alternatives.
+from being "safe" in the C++ sense, and this is when Mateusz started to explore alternatives.
 
-Through the next years he tried to use several existing solutions which always were far
-from being user-friendly so he also tried to write a better framework a few times from
+Through the following years, he tried to use several existing solutions, which were always
+far from being user-friendly, so he also tried to write a better framework a few times from
 scratch by himself.
 
 Finally, with the availability of brand new Concepts TS in the gcc-7, the [@MP-UNITS] project
-was created. It was designed with the safety and user-experience in mind. After many years
+was created. It was designed with safety and user experience in mind. After many years
 of working on the project, the [@MP-UNITS] library is probably the most modern and complete
-solution on the C++ market.
+solution in the C++ market.
 
-Through the last years Mateusz put a lot of effort to build a community around physical
-units. He provided lot's of talks and workshops on this subject on various C++ conferences.
+Through the last few years, Mateusz has put much effort into building a community around physical
+units. He provided many talks and workshops on this subject at various C++ conferences.
 He also approached the authors of other actively maintained libraries to get their feedback
-and invite to work together to find and agree on the best solution possible for the C++ language.
+and invited them to work together to find and agree on the best solution for the C++ language.
 This paper is the result of those actions.
 
 ## Dominik Berner
@@ -69,7 +69,7 @@ Author of [@SI_LIB].
 
 ## Johel Ernesto Guerrero Peña
 
-Contributor to [@MP-UNITS] an many other Open Source projects.
+Contributor to [@MP-UNITS] and many other Open Source projects.
 
 ## Charles Hogg
 
@@ -82,24 +82,24 @@ Author of [@P1930R0].
 
 # Motivation
 
-This chapter describes why we believe that physical quantities and units should be the part of
+This chapter describes why we believe that physical quantities and units should be part of
 a C++ Standard Library.
 
 ## Safety
 
-It's is no longer only the space industry or experienced pilots that benefit from autonomous
-operations of some machines. We are living in the world where more and more common people trust
-the machines with their lives on a daily basis. In the not so distant future we will be allowed
-to sleep while our car will autonomously drive us home from a late party. As a result much more
-C++ engineers are expected to write life-critical software today than it was a few years ago.
-Unfortunately, there is not enough training and experience in that domain and the C++ language
-itself does not change fast enough to enforce safe-by-construction code.
+It is no longer only the space industry or experienced pilots that benefit from the autonomous
+operations of some machines. We live in a world where more and more ordinary people trust
+machines with their lives daily. In the near future, we will be allowed to sleep while our
+car autonomously drives us home from a late party. As a result, much more C++ engineers are
+expected to write life-critical software today than it was a few years ago.Unfortunately,
+there is insufficient training and experience in that domain, and the C++ language does not
+change fast enough to enforce safe-by-construction code.
 
 One of the areas where C++ can significantly improve the safety of applications being written
-by thousands of developers is introducing type-safe, well-tested, standardized way to handle
-physical quantities and their units. Tha rationale for this is that people tend to have problems
-with communicating or using proper units both in the code and in a daily life. There are numerous
-expensive failures and accidents that happened because of using invalid unit or a quantity type.
+by thousands of developers is introducing a type-safe, well-tested, standardized way to handle
+physical quantities and their units. The rationale for this is that people tend to have problems
+communicating or using proper units both in the code and in daily life. Numerous
+expensive failures and accidents happened because of using an invalid unit or a quantity type.
 
 The most famous and probably the most expensive example in the software engineering domain is
 the Mars Climate Orbiter that in 1999 failed to enter Mars orbit and crashed while entering
@@ -107,72 +107,72 @@ its atmosphere [@MARS_ORBITER]. This is not the only example here. People tend t
 quite often. We see similar errors occurring in various domains over the years:
 
 - On October 12, 1492, Christopher Columbus unintentionally discovered America because during
-  his travel preparations he mixed Arabic mile with a Roman mile which led to the wrong estimation
+  his travel preparations, he mixed the Arabic mile with a Roman mile, which led to the wrong estimation
   of the equator and his expected travel distance [@COLUMBUS]
 - Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41 000 feet
   (12 000 metres), midway through the flight because the fuel had been calculated in pounds
   instead of kilograms by the ground crew [@GIMLI_GLIDER]
-- On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to the miscommunication between
+- On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a miscommunication between
   pilots about desired flight altitude [@FLIGHT_6316]
-- In February 2001 Zoo crew built an enclosure for Clarence the Tortoise with a weight of
+- In February 2001, the Zoo crew built an enclosure for Clarence the Tortoise with a weight of
   250 pounds instead of 250 kilograms [@CLARENCE]
 - In December 2003, one of the roller coaster’s cars at Tokyo Disneyland’s Space Mountain attraction
   suddenly derailed due to a broken axle caused by the confusion after upgrading the specification
   from imperial to metric units [@DISNEY]
-- During construction of the Hochrheinbrücke bridge connects small German town of Laufenburg
-  with Swiss Laufenburg the construction team made a sign error that resulted in the discrepancy
+- During construction of the Hochrheinbrücke bridge, connects the small German town of Laufenburg
+  with Swiss Laufenburg, the construction team made a sign error that resulted in the discrepancy
   of 54 cm between the two outer ends of the bridge [@HOCHRHEINBRÜCKE]
 - An American company sold a shipment of wild rice to a Japanese customer, quoting a price of
   39 cents per pound, but the customer thought the quote was for 39 cents per kilogram [@WILD_RICE]
 - A whole set of medication dose errors...
 
-The safety subject is so vast and important by itself that we dedicated a separate paper PXXXXX
+The safety subject is so vast and essential by itself that we dedicated a separate paper **P????**
 that discusses all the nuances in detail.
 
 ## Vocabulary types
 
-We standardized many library features that are mostly used in the implementation details
+We standardized many library features mostly used in the implementation details
 (fmt, ranges, random-number generators, etc.). However, we believe that the most important
-role of the C++ Standard is to provide standardized way of communication between different
+role of the C++ Standard is to provide a standardized way of communication between different
 vendors.
 
-Let's imagine a world without `std::string` or `std::vector`. Every vendor has their own version
-of it and of course they are completely incompatible with each other. As a result, when someone
-needs to integrate software coming from different vendors, it turns out to be nearly impossible task.
+Let's imagine a world without `std::string` or `std::vector`. Every vendor has their version
+of it, and of course, they are completely incompatible with each other. As a result, when someone
+needs to integrate software from different vendors, it turns out to be nearly impossible.
 
 Introducing `std::chrono::duration` and `std::chrono::time_point` improved the interfaces a lot,
-but time is only one of many quantities that we deal within our software on a daily basis.
+but time is only one of many quantities that we deal with in our software on a daily basis.
 We desperately need to be able to express more quantities and units in a standardized way so
 different libraries get means to communicate with each other.
 
 ## Certification
 
-Mission/life-critical projects or the ones for embedded devices often can't use external libraries
-that are not officially certified (i.e. MISRA). This is a huge issue for those companies as those
-typically are natural users of a physical quantities and units library.
+Mission/life-critical projects or those for embedded devices often can only use external libraries
+that are officially certified (i.e. MISRA). This is a huge issue for those companies as those
+typically are natural users of physical quantities and units library.
 
 ## Complex and complicated
 
-If, for example for the reasons described above, vendors can't use and Open Source library in
-a production project they are forced to write their own abstractions by themselves. Besides it being
-not costs and time effective, it also happens that writing a physical quantities and units library
-by yourself is far from being an easy task. Doing this is complex and complicated, especially for
-engineers that are not in the experts in the domain. There are many special corner cases to cover
-that most of the developers even not realize before actually falling to a trap in production. As
-a result companies either use really simple and unsafe numeric wrappers or abandon the effort totally
-and just use `double` to express quantity values which leads to safety issues.
+For example, suppose vendors can't use an Open Source library in a production project for
+the above reasons. In that case, they are forced to write their own abstractions by themselves.
+Besides being not cost and time-effective, it also happens that writing a physical quantities and
+units library by yourself is far from easy. Doing this is complex and complicated, especially for
+engineers who are not experts in the domain. There are many exceptional corner cases to cover
+that most developers do not even realize before falling into a trap in production. As
+a result, companies either use really simple and unsafe numeric wrappers or abandon the effort totally
+and just use `double` to express quantity values which lead to safety issues.
 
 ## Standardizing existing practice
 
-There is plenty of physical units libraries on the market for many years now. Through the years
-we have learnt the best practices on how to handle specific cases in the domain. Various products
-may have different scopes, support different C++ versions, but taking that aside they use really
-similar concepts, types, and operations under the hood. We know how to do those things already.
+Plenty of physical units libraries have been on the market for many years. Through the years,
+we have learned the best practices for handling specific cases in the domain. Various products
+may have different scopes and support different C++ versions. Still, taking that aside, they use
+really similar concepts, types, and operations under the hood. We know how to do those things already.
 
 The authors of this paper developed and delivered multiple successful C++ libraries for this domain.
-They joined forces and are working together now to propose the best physical quantities and units
-library we can get with the latest version of the C++ language. They share their private time and
-efforts with the hope that the ISO C++ Committee will be willing to include such a feature in
+They joined forces and are working together to propose the best physical quantities and units
+library we can get with the latest version of the C++ language. They spend their private time and
+efforts hoping that the ISO C++ Committee will be willing to include such a feature in
 the C++ Standard Library.
 
 
@@ -180,11 +180,11 @@ the C++ Standard Library.
 
 _Note: The code examples presented in this paper may not exactly reflect the final interface
 design that is going to be proposed in the following papers. We are still doing some small
-fine-tunning to improve the library._
+fine-tuning to improve the library._
 
-As no papers on the physical quantities and units interfaces were submitted so far, to allow
-the reader to better understand the features and scope of the library this chapter presents
-a few simple examples.
+As no papers on the physical quantities and units interfaces have been submitted so far,
+to allow the reader to better understand the features and scope of the library this chapter
+presents a few simple examples.
 
 ## Hello Units
 
@@ -233,8 +233,8 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/Tsesa1Pvq).
 
 ## Bridge across the Rhine
 
-The next example codifies the history of a famous accident during construction of a bridge across
-the Rhine river between German and Swiss part of the town Laufenburg [@HOCHRHEINBRÜCKE].
+The following example codifies the history of a famous accident during the construction of a bridge across
+the Rhine River between the German and Swiss parts of the town Laufenburg [@HOCHRHEINBRÜCKE].
 It also nicely presents how [the Affine Space is being modeled in the library](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/).
 
 
@@ -472,7 +472,7 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/bPf98s5qn).
 
 # Scope
 
-The below tables just briefly highlight the expected scope and feature set. Each of the features will
+The tables below briefly highlight the expected scope and feature set. Each of the features will
 be described in detail in the upcoming papers. To learn more right away and to be able to provide
 and early feedback we encourage everyone to check the documentation of the [@MP-UNITS].
 
@@ -482,7 +482,7 @@ and early feedback we encourage everyone to check the documentation of the [@MP-
 |----------------------------------------|:--------:|---------------------------------------------------------------------------------------------------------------------------------|
 | Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them          |
 | Quantity Kinds                         |    1     | `frequency`, `activity`, and `modulation_rate` or `energy` and `moment_of_force` should be distinct quantities                  |
-| Various quantities of the same kind    |    1     | `width`, `height`, `wavelength` (all of the kind `length`) should be distinct  quantities                                       |
+| Various quantities of the same kind    |    1     | `width`, `height`, `wavelength` (all of the kind `length`) should be distinct quantities                                        |
 | Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities). |
 | Logarithmic units support              |    2     | Support for logarithmic units (i.e. decibel)                                                                                    |
 | Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity                                                                          |
@@ -540,12 +540,12 @@ _Note:_ No built-in support for text output of `quantity_point`.
 
 # Plan For Standardization
 
-We believe that having physical quantities and units support in C++ would be extremely useful for
-many C++ developers, and that ideally, we should ship it in C++29. We believe that it can be done,
-and propose a plan on how to get there. The plan below is of course not be an irrevocable commitment:
-if things get delayed or controversial for whatever reason, physical quantities and units (or some
-parts of it) will miss the train and we will have to wait three more years. But we believe that having
-a clear plan approved by LEWG will help to keep the efforts on track.
+Having physical quantities and units support in C++ would be extremely useful for many C++ developers,
+ and ideally, we should ship it in C++29. We believe that it can be done, and we propose a plan
+ to get there. The plan below is, of course, not an irrevocable commitment. If things get delayed
+ or controversial for whatever reason, physical quantities and units (or some parts of it)
+ will miss the train and we will have to wait three more years. However, having a clear plan approved
+ by LEWG will help to keep the efforts on track.
 
 | Meeting            | C++ Milestones                                     | Activities                                                                                                                                   |
 |--------------------|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -566,6 +566,12 @@ a clear plan approved by LEWG will help to keep the efforts on track.
 | 2028.2             | C++29 CS finalized                                 | Resolve any outstanding design/wording issues                                                                                                |
 | 2028.3             |                                                    | Resolve NB comments                                                                                                                          |
 | 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                          |
+
+
+# Acknowledgements
+
+Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting
+Mateusz's membership in the ISO C++ Committee and the production of this proposal.
 
 
 ---
