@@ -4,7 +4,7 @@ This repo contains ISO C++ Committee (WG21) papers that I created or co-authored
 C++ experts.
 
 [src](src) directory contains source version of those documents. They are written in markdown-like
-language. Depending on the file extension the paper using either:
+language. Depending on the file extension the specific paper is using either:
 
 - [Bikeshed](https://github.com/tabatkins/bikeshed),
 - [mpark/wg21](https://github.com/mpark/wg21),
