@@ -541,11 +541,11 @@ _Note:_ No built-in support for text output of `quantity_point`.
 # Plan For Standardization
 
 Having physical quantities and units support in C++ would be extremely useful for many C++ developers,
- and ideally, we should ship it in C++29. We believe that it can be done, and we propose a plan
- to get there. The plan below is, of course, not an irrevocable commitment. If things get delayed
- or controversial for whatever reason, physical quantities and units (or some parts of it)
- will miss the train and we will have to wait three more years. However, having a clear plan approved
- by LEWG will help to keep the efforts on track.
+and ideally, we should ship it in C++29. We believe that it can be done, and we propose a plan
+to get there. The plan below is, of course, not an irrevocable commitment. If things get delayed
+or controversial for whatever reason, physical quantities and units (or some parts of it)
+will miss the train and we will have to wait three more years. However, having a clear plan approved
+by LEWG will help to keep the efforts on track.
 
 | Meeting            | C++ Milestones                                     | Activities                                                                                                                                   |
 |--------------------|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
