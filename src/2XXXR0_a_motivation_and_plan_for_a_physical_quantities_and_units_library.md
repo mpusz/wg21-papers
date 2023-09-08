@@ -150,6 +150,8 @@ different libraries get means to communicate with each other.
 Mission/life-critical projects or those for embedded devices often can only use external libraries
 that are officially certified (i.e. MISRA). This is a huge issue for those companies as those
 typically are natural users of physical quantities and units library.
+<!-- I'm having trouble understanding the previous paragraph.
+IIUC, those certified libraries have interfaces with units, but are not type-safe. -->
 
 ## Complex and complicated
 
@@ -513,7 +515,7 @@ _Note:_ No built-in support for text output of `quantity_point`.
 
 | Feature                           | Priority | Description                                                                                                                                                                                                                      |
 |-----------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The most important ISQ quantities |    1     | Specification of the most commonly used ISQ quantities                                                                                                                                                                           |
+| The most important ISQ quantities |    1     | Specification of the most commonly used ISQ quantities <!-- Which are those? -->                                                                                                                                                 |
 | ISQ 3-6                           |    1     | Specification of the ISQ quantities specified in ISO 80000 parts 3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)                                                                                             |
 | ISQ 7-12                          |    3     | Specification of the ISQ quantities specified in ISO 80000 parts 7 - 12 (Light and radiation, Acoustics, Physical chemistry and molecular physics, Atomic and nuclear physics, Characteristic numbers, Condensed matter physics) |
 | ISQ 13                            |    2     | Specification of the ISQ quantities specified in IEC 80000-13 (Information science and technology) + units                                                                                                                       |
@@ -566,6 +568,11 @@ by LEWG will help to keep the efforts on track.
 | 2028.2             | C++29 CS finalized                                 | Resolve any outstanding design/wording issues                                                                                                |
 | 2028.3             |                                                    | Resolve NB comments                                                                                                                          |
 | 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                          |
+<!-- LWG will no doubt have their hands full with things like Executors.
+But once the C++29 WP is open for merging, it'd be best to get the papers merged ASAP.
+And then have MSVC, Clang, and GCC's stdlib to implement them ASAP.
+That way, we can get early adoption and UX before C++29 ships, in case any issue pops up.
+Or maybe just target a TS, and strive to get those stdlib implementations to implement them. -->
 
 
 # Acknowledgements
