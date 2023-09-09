@@ -91,7 +91,7 @@ It is no longer only the space industry or experienced pilots that benefit from 
 operations of some machines. We live in a world where more and more ordinary people trust
 machines with their lives daily. In the near future, we will be allowed to sleep while our
 car autonomously drives us home from a late party. As a result, much more C++ engineers are
-expected to write life-critical software today than it was a few years ago.Unfortunately,
+expected to write life-critical software today than it was a few years ago. Unfortunately,
 there is insufficient training and experience in that domain, and the C++ language does not
 change fast enough to enforce safe-by-construction code.
 
@@ -119,7 +119,7 @@ quite often. We see similar errors occurring in various domains over the years:
 - In December 2003, one of the roller coaster’s cars at Tokyo Disneyland’s Space Mountain attraction
   suddenly derailed due to a broken axle caused by the confusion after upgrading the specification
   from imperial to metric units [@DISNEY]
-- During construction of the Hochrheinbrücke bridge, connects the small German town of Laufenburg
+- During construction of the Hochrheinbrücke bridge, to connect the small German town of Laufenburg
   with Swiss Laufenburg, the construction team made a sign error that resulted in the discrepancy
   of 54 cm between the two outer ends of the bridge [@HOCHRHEINBRÜCKE]
 - An American company sold a shipment of wild rice to a Japanese customer, quoting a price of
@@ -148,7 +148,7 @@ different libraries get means to communicate with each other.
 ## Certification
 
 Mission/life-critical projects or those for embedded devices often can only use external libraries
-that are officially certified (i.e. MISRA). This is a huge issue for those companies as those
+that are officially certified (e.g., MISRA). This is a huge issue for those companies as those
 typically are natural users of physical quantities and units library.
 
 ## Complex and complicated
@@ -179,11 +179,11 @@ the C++ Standard Library.
 # Look and Feel
 
 _Note: The code examples presented in this paper may not exactly reflect the final interface
-design that is going to be proposed in the following papers. We are still doing some small
+design that is going to be proposed in the follow-up papers. We are still doing some small
 fine-tuning to improve the library._
 
 As no papers on the physical quantities and units interfaces have been submitted so far,
-to allow the reader to better understand the features and scope of the library this chapter
+to allow the reader to better understand the features and scope of the library, this chapter
 presents a few simple examples.
 
 ## Hello Units
@@ -327,12 +327,12 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/197s4jcvs).
 
 ## Storage Tank
 
-Our last example estimates the process of filling the storage tank with some contents. It presents:
+Our last example estimates the process of filling a storage tank with some contents. It presents:
 
 - [the importance of supporting more than one distinct quantity for the same kind](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds),
-- [Faster-than-lightspeed constants](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/),
+- [faster-than-lightspeed constants](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/),
 - how easy it is to [add custom quantity types](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#defining-quantities)
-when needed,
+when needed, and
 - interoperability with `std::chrono::duration`.
 
 ```cpp
@@ -474,17 +474,17 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/bPf98s5qn).
 
 The tables below briefly highlight the expected scope and feature set. Each of the features will
 be described in detail in the upcoming papers. To learn more right away and to be able to provide
-and early feedback we encourage everyone to check the documentation of the [@MP-UNITS].
+and early feedback, we encourage everyone to check the documentation of the [@MP-UNITS].
 
 ## Basic Framework
 
 | Feature                                | Priority | Description                                                                                                                     |
 |----------------------------------------|:--------:|---------------------------------------------------------------------------------------------------------------------------------|
 | Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them          |
-| Quantity Kinds                         |    1     | `frequency`, `activity`, and `modulation_rate` or `energy` and `moment_of_force` should be distinct quantities                  |
+| Quantity Kinds                         |    1     | `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities          |
 | Various quantities of the same kind    |    1     | `width`, `height`, `wavelength` (all of the kind `length`) should be distinct quantities                                        |
-| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities). |
-| Logarithmic units support              |    2     | Support for logarithmic units (i.e. decibel)                                                                                    |
+| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities)  |
+| Logarithmic units support              |    2     | Support for logarithmic units (e.g., decibel)                                                                                   |
 | Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity                                                                          |
 
 ## The Affine Space
@@ -514,7 +514,7 @@ _Note:_ No built-in support for text output of `quantity_point`.
 | Feature                           | Priority | Description                                                                                                                                                                                                                      |
 |-----------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | The most important ISQ quantities |    1     | Specification of the most commonly used ISQ quantities                                                                                                                                                                           |
-| ISQ 3-6                           |    1     | Specification of the ISQ quantities specified in ISO 80000 parts 3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)                                                                                             |
+| ISQ 3-6                           |    1     | Specification of the ISQ quantities specified in ISO/IEC 80000 parts 3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)                                                                                         |
 | ISQ 7-12                          |    3     | Specification of the ISQ quantities specified in ISO 80000 parts 7 - 12 (Light and radiation, Acoustics, Physical chemistry and molecular physics, Atomic and nuclear physics, Characteristic numbers, Condensed matter physics) |
 | ISQ 13                            |    2     | Specification of the ISQ quantities specified in IEC 80000-13 (Information science and technology) + units                                                                                                                       |
 
