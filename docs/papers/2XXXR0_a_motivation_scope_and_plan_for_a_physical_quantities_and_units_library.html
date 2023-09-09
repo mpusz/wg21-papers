@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-09-08" />
+  <meta name="dcterms.date" content="2023-09-09" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-09-08</td>
+    <td>2023-09-09</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -573,7 +573,7 @@ world where more and more ordinary people trust machines with their
 lives daily. In the near future, we will be allowed to sleep while our
 car autonomously drives us home from a late party. As a result, much
 more C++ engineers are expected to write life-critical software today
-than it was a few years ago.Unfortunately, there is insufficient
+than it was a few years ago. Unfortunately, there is insufficient
 training and experience in that domain, and the C++ language does not
 change fast enough to enforce safe-by-construction code.</p>
 <p>One of the areas where C++ can significantly improve the safety of
@@ -608,7 +608,7 @@ Tortoise with a weight of 250 pounds instead of 250 kilograms <span class="citat
 Disneyland’s Space Mountain attraction suddenly derailed due to a broken
 axle caused by the confusion after upgrading the specification from
 imperial to metric units <span class="citation" data-cites="DISNEY">[<a href="#ref-DISNEY" role="doc-biblioref">Disney</a>]</span></li>
-<li>During construction of the Hochrheinbrücke bridge, connects the
+<li>During construction of the Hochrheinbrücke bridge, to connect the
 small German town of Laufenburg with Swiss Laufenburg, the construction
 team made a sign error that resulted in the discrepancy of 54 cm between
 the two outer ends of the bridge <span class="citation" data-cites="HOCHRHEINBRÜCKE">[<a href="#ref-HOCHRHEINBRÜCKE" role="doc-biblioref">Hochrheinbrücke</a>]</span></li>
@@ -641,10 +641,9 @@ able to express more quantities and units in a standardized way so
 different libraries get means to communicate with each other.</p>
 <h2 data-number="3.3" id="certification"><span class="header-section-number">3.3</span> Certification<a href="#certification" class="self-link"></a></h2>
 <p>Mission/life-critical projects or those for embedded devices often
-can only use external libraries that are officially certified
-(i.e. MISRA). This is a huge issue for those companies as those
-typically are natural users of physical quantities and units
-library.</p>
+can only use external libraries that are officially certified (e.g.,
+MISRA). This is a huge issue for those companies as those typically are
+natural users of physical quantities and units library.</p>
 <h2 data-number="3.4" id="complex-and-complicated"><span class="header-section-number">3.4</span> Complex and complicated<a href="#complex-and-complicated" class="self-link"></a></h2>
 <p>For example, suppose vendors can’t use an Open Source library in a
 production project for the above reasons. In that case, they are forced
@@ -675,11 +674,11 @@ willing to include such a feature in the C++ Standard Library.</p>
 <h1 data-number="4" id="look-and-feel"><span class="header-section-number">4</span> Look and Feel<a href="#look-and-feel" class="self-link"></a></h1>
 <p><em>Note: The code examples presented in this paper may not exactly
 reflect the final interface design that is going to be proposed in the
-following papers. We are still doing some small fine-tuning to improve
+follow-up papers. We are still doing some small fine-tuning to improve
 the library.</em></p>
 <p>As no papers on the physical quantities and units interfaces have
 been submitted so far, to allow the reader to better understand the
-features and scope of the library this chapter presents a few simple
+features and scope of the library, this chapter presents a few simple
 examples.</p>
 <h2 data-number="4.1" id="hello-units"><span class="header-section-number">4.1</span> Hello Units<a href="#hello-units" class="self-link"></a></h2>
 <p>This simple example serves as a showcase of various features
@@ -810,16 +809,16 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 <p>Try it in <a href="https://godbolt.org/z/197s4jcvs">the Compiler
 Explorer</a>.</p>
 <h2 data-number="4.3" id="storage-tank"><span class="header-section-number">4.3</span> Storage Tank<a href="#storage-tank" class="self-link"></a></h2>
-<p>Our last example estimates the process of filling the storage tank
-with some contents. It presents:</p>
+<p>Our last example estimates the process of filling a storage tank with
+some contents. It presents:</p>
 <ul>
 <li><a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds">the
 importance of supporting more than one distinct quantity for the same
 kind</a>,</li>
-<li><a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/">Faster-than-lightspeed
+<li><a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/">faster-than-lightspeed
 constants</a>,</li>
 <li>how easy it is to <a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#defining-quantities">add
-custom quantity types</a> when needed,</li>
+custom quantity types</a> when needed, and</li>
 <li>interoperability with
 <code class="sourceCode default">std::chrono::duration</code>.</li>
 </ul>
@@ -954,7 +953,8 @@ Explorer</a>.</p>
 <p>The tables below briefly highlight the expected scope and feature
 set. Each of the features will be described in detail in the upcoming
 papers. To learn more right away and to be able to provide and early
-feedback we encourage everyone to check the documentation of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>.</p>
+feedback, we encourage everyone to check the documentation of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>.</p>
+<!-- markdownlint-disable MD013 -->
 <h2 data-number="5.1" id="basic-framework"><span class="header-section-number">5.1</span> Basic Framework<a href="#basic-framework" class="self-link"></a></h2>
 <table>
 <colgroup>
@@ -988,9 +988,9 @@ templates, dimensions, quantity specifications, units,
 <td style="text-align: center;">1</td>
 <td><code class="sourceCode default">frequency</code>,
 <code class="sourceCode default">activity</code>, and
-<code class="sourceCode default">modulation_rate</code> or
+<code class="sourceCode default">modulation_rate</code>, or
 <code class="sourceCode default">energy</code> and
-<code class="sourceCode default">moment_of_force</code> should be
+<code class="sourceCode default">moment_of_force</code>, which should be
 distinct quantities</td>
 </tr>
 <tr class="odd">
@@ -1006,12 +1006,12 @@ quantities</td>
 <td>Vector and tensor representation types</td>
 <td style="text-align: center;">2</td>
 <td>Support for quantities of vector and tensor representation types (no
-changes are needed for vectors and tensors of quantities).</td>
+changes are needed for vectors and tensors of quantities)</td>
 </tr>
 <tr class="odd">
 <td>Logarithmic units support</td>
 <td style="text-align: center;">2</td>
-<td>Support for logarithmic units (i.e. decibel)</td>
+<td>Support for logarithmic units (e.g., decibel)</td>
 </tr>
 <tr class="even">
 <td>Polymorphic unit</td>
@@ -1131,8 +1131,8 @@ facilities</td>
 <tr class="even">
 <td>ISQ 3-6</td>
 <td style="text-align: center;">1</td>
-<td>Specification of the ISQ quantities specified in ISO 80000 parts 3 -
-6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)</td>
+<td>Specification of the ISQ quantities specified in ISO/IEC 80000 parts
+3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)</td>
 </tr>
 <tr class="odd">
 <td>ISQ 7-12</td>
@@ -1290,7 +1290,7 @@ SG6</td>
 <td>2024.1 (Tokyo)</td>
 <td></td>
 <td>Paper on the Basic Framework (priority 1 features) to LEWG<br>Paper
-about text output to SG16<br>Paper about math operations to SG6</td>
+about text output to SG16<br>Paper about math utilities to SG6</td>
 </tr>
 <tr class="odd">
 <td>2024.2 (Stockholm)</td>
@@ -1303,8 +1303,8 @@ LEWG</td>
 <td>2024.3 (Wrocław)</td>
 <td>Last meeting for LEWG review of new C++26 features</td>
 <td>Paper about <code class="sourceCode default">std::chrono</code>
-support to LEWG<BR>Move text output paper to LEWG<br>Move math
-operations paper to LEWG</td>
+support to LEWG<BR>Move text output paper to LEWG<br>Move math utilities
+paper to LEWG</td>
 </tr>
 <tr class="odd">
 <td>2025.1</td>
@@ -1375,10 +1375,12 @@ text output to LWG</td>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <h1 data-number="7" id="acknowledgements"><span class="header-section-number">7</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
 proposal.</p>
+<!-- markdownlint-disable -->
 <h1 data-number="8" id="bibliography"><span class="header-section-number">8</span> References<a href="#bibliography" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
 <div id="ref-AU" class="csl-entry" role="doc-biblioentry">
