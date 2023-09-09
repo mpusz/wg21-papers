@@ -476,6 +476,8 @@ The tables below briefly highlight the expected scope and feature set. Each of t
 be described in detail in the upcoming papers. To learn more right away and to be able to provide
 and early feedback, we encourage everyone to check the documentation of the [@MP-UNITS].
 
+<!-- markdownlint-disable MD013 -->
+
 ## Basic Framework
 
 | Feature                                | Priority | Description                                                                                                                     |
@@ -567,12 +569,15 @@ by LEWG will help to keep the efforts on track.
 | 2028.3             |                                                    | Resolve NB comments                                                                                                                          |
 | 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                          |
 
+<!-- markdownlint-enable MD013 -->
 
 # Acknowledgements
 
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
 
+
+<!-- markdownlint-disable -->
 
 ---
 references:
