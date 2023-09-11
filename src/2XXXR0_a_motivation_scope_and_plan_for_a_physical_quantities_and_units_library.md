@@ -109,9 +109,19 @@ quite often. We see similar errors occurring in various domains over the years:
 - On October 12, 1492, Christopher Columbus unintentionally discovered America because during
   his travel preparations, he mixed the Arabic mile with a Roman mile, which led to the wrong estimation
   of the equator and his expected travel distance [@COLUMBUS]
+- In 1628 a new warship Vasa accidentally had an asymmetrical hull (being thicker on the port side
+  than the starboard side) which was one of the reasons for her to sank less than a mile into her maiden
+  voyage, with the death of 30 people on board. This asymmetry could be caused by the usage of
+  different systems of measurement as archaeologists have found four rulers used by the workmen who
+  built the ship. Two were calibrated in Swedish feet, which had 12 inches, while the other two
+  measured Amsterdam feet, which had 11 inches [@VASA].
 - Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41 000 feet
   (12 000 metres), midway through the flight because the fuel had been calculated in pounds
-  instead of kilograms by the ground crew [@GIMLI_GLIDER]
+  instead of kilograms by the ground crew [@GIMLI_GLIDER].
+- The British rock band Black Sabbath during its Born Again tour in 1983 ordered replica of Stonehenge
+  as props for the scene but unfortunately they had to leave it in the storage area because on the order
+  their manager wrote dimensions down in metres when he meant feet and the stones didn't feet the scene.
+  "It cost a fortune to make but there was not a building on earth that you could fit it into" [@STONEHENGE].
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a miscommunication between
   pilots about desired flight altitude [@FLIGHT_6316]
 - In February 2001, the Zoo crew built an enclosure for Clarence the Tortoise with a weight of
@@ -480,14 +490,14 @@ and early feedback, we encourage everyone to check the documentation of the [@MP
 
 ## Basic Framework
 
-| Feature                                | Priority | Description                                                                                                                     |
-|----------------------------------------|:--------:|---------------------------------------------------------------------------------------------------------------------------------|
-| Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them          |
-| Quantity Kinds                         |    1     | `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities          |
-| Various quantities of the same kind    |    1     | `width`, `height`, `wavelength` (all of the kind `length`) should be distinct quantities                                        |
-| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities)  |
-| Logarithmic units support              |    2     | Support for logarithmic units (e.g., decibel)                                                                                   |
-| Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity                                                                          |
+| Feature                                | Priority | Description                                                                                                                    |
+|----------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------|
+| Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them         |
+| Quantity Kinds                         |    1     | `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities         |
+| Various quantities of the same kind    |    1     | `width`, `height`, `wavelength` (all of the kind `length`) should be distinct quantities                                       |
+| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities) |
+| Logarithmic units support              |    2     | Support for logarithmic units (e.g., decibel)                                                                                  |
+| Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity                                                                         |
 
 ## The Affine Space
 
@@ -628,6 +638,22 @@ references:
   citation-label: SI library
   title: SI - Type safety for physical units"
   URL: <https://si.dominikberner.ch/doc>
+- id: STONEHENGE
+  citation-label: Stonehenge
+  author:
+    - family: Robey
+      given: Tim
+  title: "Tiny stones, giant laughs: the story behind Spinal Tap's Stonehenge"
+  URL: <https://www.telegraph.co.uk/films/2020/05/01/tiny-stones-giant-laughs-story-behind-spinal-taps-stonehenge>
+- id: VASA
+  citation-label: Vasa
+  author:
+    - family: Chatterjee
+      given: Rhitu
+    - family: Mullins
+      given: Lisa
+  title: "New Clues Emerge in Centuries-Old Swedish Shipwreck"
+  URL: <https://theworld.org/stories/2012-02-23/new-clues-emerge-centuries-old-swedish-shipwreck>
 - id: WILD_RICE
   citation-label: Wild Rice
   title: "Manufacturers, exporters think metric"
