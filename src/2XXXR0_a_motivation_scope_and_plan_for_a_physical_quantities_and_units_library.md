@@ -135,7 +135,7 @@ quite often. We see similar errors occurring in various domains over the years:
   of 54 cm between the two outer ends of the bridge [@HOCHRHEINBRÜCKE]
 - An American company sold a shipment of wild rice to a Japanese customer, quoting a price of
   39 cents per pound, but the customer thought the quote was for 39 cents per kilogram [@WILD_RICE]
-- A whole set of medication dose errors...
+- A whole set of [@MEDICATION_DOSE_ERRORS]...
 
 The safety subject is so vast and essential by itself that we dedicated a separate paper **P????**
 that discusses all the nuances in detail.
@@ -631,6 +631,17 @@ references:
   citation-label: Mars Orbiter
   title: "Mars Climate Orbiter"
   URL: <https://en.wikipedia.org/wiki/Mars_Climate_Orbiter>
+- id: MEDICATION_DOSE_ERRORS
+  citation-label: Medication dose errors
+  author:
+    - family: Mulac
+      given: Alma
+    - family: Hagesaether
+      given: Ellen
+    - family: Granas
+      given: Anne Gerd
+  title: "Medication dose calculation errors and other numeracy mishaps in hospitals: Analysis of the nature and enablers of incident reports"
+  URL: <https://onlinelibrary.wiley.com/doi/10.1111/jan.15072>
 - id: MP-UNITS
   citation-label: mp-units
   title: "mp-units - A Physical Quantities and Units library for C++"
