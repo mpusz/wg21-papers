@@ -109,19 +109,20 @@ quite often. We see similar errors occurring in various domains over the years:
 - On October 12, 1492, Christopher Columbus unintentionally discovered America because during
   his travel preparations, he mixed the Arabic mile with a Roman mile, which led to the wrong estimation
   of the equator and his expected travel distance [@COLUMBUS]
-- In 1628 a new warship Vasa accidentally had an asymmetrical hull (being thicker on the port side
-  than the starboard side) which was one of the reasons for her to sank less than a mile into her maiden
+- In 1628, a new warship, Vasa, accidentally had an asymmetrical hull (being thicker on the port side
+  than the starboard side), which was one of the reasons for her sinking less than a mile into her maiden
   voyage, with the death of 30 people on board. This asymmetry could be caused by the usage of
-  different systems of measurement as archaeologists have found four rulers used by the workmen who
+  different systems of measurement, as archaeologists have found four rulers used by the workers who
   built the ship. Two were calibrated in Swedish feet, which had 12 inches, while the other two
   measured Amsterdam feet, which had 11 inches [@VASA].
 - Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41 000 feet
   (12 000 metres), midway through the flight because the fuel had been calculated in pounds
   instead of kilograms by the ground crew [@GIMLI_GLIDER].
-- The British rock band Black Sabbath during its Born Again tour in 1983 ordered replica of Stonehenge
-  as props for the scene but unfortunately they had to leave it in the storage area because on the order
-  their manager wrote dimensions down in metres when he meant feet and the stones didn't feet the scene.
-  "It cost a fortune to make but there was not a building on earth that you could fit it into" [@STONEHENGE].
+- The British rock band Black Sabbath, during its Born Again tour in 1983, ordered a replica of Stonehenge
+  as props for the scene, but unfortunately, they had to leave them in the storage area because, while
+  submitting the order, their manager wrote dimensions down in meters when he meant feet, and the stones
+  didn't fit the scene. "It cost a fortune to make but there was not a building on earth that you could
+  fit it into" [@STONEHENGE].
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a miscommunication between
   pilots about desired flight altitude [@FLIGHT_6316]
 - In February 2001, the Zoo crew built an enclosure for Clarence the Tortoise with a weight of
