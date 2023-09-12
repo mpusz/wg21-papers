@@ -158,9 +158,12 @@ different libraries get means to communicate with each other.
 
 ## Certification
 
-Mission/life-critical projects or those for embedded devices often can only use external libraries
-that are officially certified (e.g., MISRA). This is a huge issue for those companies as those
-typically are natural users of physical quantities and units library.
+Mission/life-critical projects or those for embedded devices often have to obey the safety norms
+that care about software for safety-critical systems (e.g., ISO 61508 is a basic functional safety
+standard applicable to all industries and ISO 26262 for automotive). As a result, such companies
+often forbid third-party tooling that lacks official certification or does not obey all the
+rules provided by MISRA. This is a huge issue as those companies typically are natural users of
+physical quantities and units libraries.
 
 ## Complex and complicated
 
@@ -171,7 +174,8 @@ units library by yourself is far from easy. Doing this is complex and complicate
 engineers who are not experts in the domain. There are many exceptional corner cases to cover
 that most developers do not even realize before falling into a trap in production. As
 a result, companies either use really simple and unsafe numeric wrappers or abandon the effort totally
-and just use `double` to express quantity values which lead to safety issues.
+and just use `double` to express quantity values which lead to safety issues by accidentally using
+values representing the wrong quantity or having an incorrect unit.
 
 ## Standardizing existing practice
 
@@ -520,7 +524,8 @@ _Note:_ No built-in support for text output of `quantity_point`.
 
 ## Text Input
 
-???
+As long as the C++ Standard does not support parsing text input support of localized text, we do
+not plan to propose any support for parsing of physical quantities.
 
 ## Systems of quantities
 
@@ -587,6 +592,8 @@ by LEWG will help to keep the efforts on track.
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
 
+We would also like to thank Peter Sommerlad for providing valuable feedback that helped us shape
+the final version of this document.
 
 <!-- markdownlint-disable -->
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-09-11" />
+  <meta name="dcterms.date" content="2023-09-12" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-09-11</td>
+    <td>2023-09-12</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -657,9 +657,13 @@ able to express more quantities and units in a standardized way so
 different libraries get means to communicate with each other.</p>
 <h2 data-number="3.3" id="certification"><span class="header-section-number">3.3</span> Certification<a href="#certification" class="self-link"></a></h2>
 <p>Mission/life-critical projects or those for embedded devices often
-can only use external libraries that are officially certified (e.g.,
-MISRA). This is a huge issue for those companies as those typically are
-natural users of physical quantities and units library.</p>
+have to obey the safety norms that care about software for
+safety-critical systems (e.g., ISO 61508 is a basic functional safety
+standard applicable to all industries and ISO 26262 for automotive). As
+a result, such companies often forbid third-party tooling that lacks
+official certification or does not obey all the rules provided by MISRA.
+This is a huge issue as those companies typically are natural users of
+physical quantities and units libraries.</p>
 <h2 data-number="3.4" id="complex-and-complicated"><span class="header-section-number">3.4</span> Complex and complicated<a href="#complex-and-complicated" class="self-link"></a></h2>
 <p>For example, suppose vendors can’t use an Open Source library in a
 production project for the above reasons. In that case, they are forced
@@ -672,7 +676,8 @@ developers do not even realize before falling into a trap in production.
 As a result, companies either use really simple and unsafe numeric
 wrappers or abandon the effort totally and just use
 <code class="sourceCode default">double</code> to express quantity
-values which lead to safety issues.</p>
+values which lead to safety issues by accidentally using values
+representing the wrong quantity or having an incorrect unit.</p>
 <h2 data-number="3.5" id="standardizing-existing-practice"><span class="header-section-number">3.5</span> Standardizing existing
 practice<a href="#standardizing-existing-practice" class="self-link"></a></h2>
 <p>Plenty of physical units libraries have been on the market for many
@@ -1117,7 +1122,9 @@ facilities</td>
 <p><em>Note:</em> No built-in support for text output of
 <code class="sourceCode default">quantity_point</code>.</p>
 <h2 data-number="5.4" id="text-input"><span class="header-section-number">5.4</span> Text Input<a href="#text-input" class="self-link"></a></h2>
-<p>???</p>
+<p>As long as the C++ Standard does not support parsing text input
+support of localized text, we do not plan to propose any support for
+parsing of physical quantities.</p>
 <h2 data-number="5.5" id="systems-of-quantities"><span class="header-section-number">5.5</span> Systems of quantities<a href="#systems-of-quantities" class="self-link"></a></h2>
 <table>
 <colgroup>
@@ -1396,6 +1403,8 @@ text output to LWG</td>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
 proposal.</p>
+<p>We would also like to thank Peter Sommerlad for providing valuable
+feedback that helped us shape the final version of this document.</p>
 <!-- markdownlint-disable -->
 <h1 data-number="8" id="bibliography"><span class="header-section-number">8</span> References<a href="#bibliography" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
