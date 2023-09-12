@@ -209,6 +209,7 @@ and units library should provide:
 ```cpp
 #include <mp-units/systems/si/si.h>
 
+using namespace mp_units;
 using namespace mp_units::si::unit_symbols;
 
 // simple numeric operations
@@ -226,12 +227,12 @@ static_assert(2 * km / (2 * kmph) == 1 * h);
 
 static_assert(2 * m * (3 * m) == 6 * m2);
 
-static_assert(10 * km / (5 * km) == 2);
+static_assert(10 * km / (5 * km) == 2 * one);
 
 static_assert(1000 / (1 * s) == 1 * kHz);
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/j8afKnarv).
+Try it in [the Compiler Explorer](https://godbolt.org/z/81Ev7qhTd).
 
 ## Hello Units
 
