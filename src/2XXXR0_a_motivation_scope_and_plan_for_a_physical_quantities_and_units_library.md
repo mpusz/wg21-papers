@@ -201,9 +201,41 @@ As no papers on the physical quantities and units interfaces have been submitted
 to allow the reader to better understand the features and scope of the library, this chapter
 presents a few simple examples.
 
+## Basic quantity equations
+
+Let's start with a really simple example presenting basic operations that every physical quantities
+and units library should provide:
+
+```cpp
+#include <mp-units/systems/si/si.h>
+
+using namespace mp_units::si::unit_symbols;
+
+// simple numeric operations
+static_assert(10 * km / 2 == 5 * km);
+
+// unit conversions
+static_assert(1 * h == 3600 * s);
+static_assert(1 * km + 1 * m == 1001 * m);
+
+// derived quantities
+inline constexpr auto kmph = km / h;
+static_assert(1 * km / (1 * s) == 1000 * (m / s));
+static_assert(2 * kmph * (2 * h) == 4 * km);
+static_assert(2 * km / (2 * kmph) == 1 * h);
+
+static_assert(2 * m * (3 * m) == 6 * m2);
+
+static_assert(10 * km / (5 * km) == 2);
+
+static_assert(1000 / (1 * s) == 1 * kHz);
+```
+
+Try it in [the Compiler Explorer](https://godbolt.org/z/j8afKnarv).
+
 ## Hello Units
 
-This simple example serves as a showcase of various features available in the [@MP-UNITS] library.
+The next example serves as a showcase of various features available in the [@MP-UNITS] library.
 
 ```cpp
 #include <mp-units/format.h>
