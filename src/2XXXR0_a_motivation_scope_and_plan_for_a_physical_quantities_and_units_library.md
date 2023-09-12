@@ -524,8 +524,8 @@ _Note:_ No built-in support for text output of `quantity_point`.
 
 ## Text Input
 
-As long as the C++ Standard does not support parsing text input support of localized text, we do
-not plan to propose any support for parsing of physical quantities.
+As long as the C++ Standard doesn't provide a generic facility to parse localized text, we do not
+plan to propose any support for doing that for physical quantities and their units.
 
 ## Systems of quantities
 
