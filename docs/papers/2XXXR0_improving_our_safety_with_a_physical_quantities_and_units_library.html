@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2023-09-14" />
+  <title>Improving our safety with a physical quantities and units
+library</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+      div.csl-block{margin-left: 1.5em;}
+      ul.task-list{list-style: none;}
+      pre > code.sourceCode { white-space: pre; position: relative; }
+      pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+      pre > code.sourceCode > span:empty { height: 1.2em; }
+      .sourceCode { overflow: visible; }
+      code.sourceCode > span { color: inherit; text-decoration: inherit; }
+      div.sourceCode { margin: 1em 0; }
+      pre.sourceCode { margin: 0; }
+      @media screen {
+      div.sourceCode { overflow: auto; }
+      }
+      @media print {
+      pre > code.sourceCode { white-space: pre-wrap; }
+      pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+      }
+      pre.numberSource code
+        { counter-reset: source-line 0; }
+      pre.numberSource code > span
+        { position: relative; left: -4em; counter-increment: source-line; }
+      pre.numberSource code > span > a:first-child::before
+        { content: counter(source-line);
+          position: relative; left: -1em; text-align: right; vertical-align: baseline;
+          border: none; display: inline-block;
+          -webkit-touch-callout: none; -webkit-user-select: none;
+          -khtml-user-select: none; -moz-user-select: none;
+          -ms-user-select: none; user-select: none;
+          padding: 0 4px; width: 4em;
+          color: #aaaaaa;
+        }
+      pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+      div.sourceCode
+        {  background-color: #f6f8fa; }
+      @media screen {
+      pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+      }
+      code span { } /* Normal */
+      code span.al { color: #ff0000; } /* Alert */
+      code span.an { } /* Annotation */
+      code span.at { } /* Attribute */
+      code span.bn { color: #9f6807; } /* BaseN */
+      code span.bu { color: #9f6807; } /* BuiltIn */
+      code span.cf { color: #00607c; } /* ControlFlow */
+      code span.ch { color: #9f6807; } /* Char */
+      code span.cn { } /* Constant */
+      code span.co { color: #008000; font-style: italic; } /* Comment */
+      code span.cv { color: #008000; font-style: italic; } /* CommentVar */
+      code span.do { color: #008000; } /* Documentation */
+      code span.dt { color: #00607c; } /* DataType */
+      code span.dv { color: #9f6807; } /* DecVal */
+      code span.er { color: #ff0000; font-weight: bold; } /* Error */
+      code span.ex { } /* Extension */
+      code span.fl { color: #9f6807; } /* Float */
+      code span.fu { } /* Function */
+      code span.im { } /* Import */
+      code span.in { color: #008000; } /* Information */
+      code span.kw { color: #00607c; } /* Keyword */
+      code span.op { color: #af1915; } /* Operator */
+      code span.ot { } /* Other */
+      code span.pp { color: #6f4e37; } /* Preprocessor */
+      code span.re { } /* RegionMarker */
+      code span.sc { color: #9f6807; } /* SpecialChar */
+      code span.ss { color: #9f6807; } /* SpecialString */
+      code span.st { color: #9f6807; } /* String */
+      code span.va { } /* Variable */
+      code span.vs { color: #9f6807; } /* VerbatimString */
+      code span.wa { color: #008000; font-weight: bold; } /* Warning */
+      code.diff {color: #898887}
+      code.diff span.va {color: #006e28}
+      code.diff span.st {color: #bf0303}
+  </style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+text-align: justify;
+}
+@media screen and (max-width: 30em) {
+body {
+margin: 1.5em;
+}
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+</style>
+  <link href="data:image/x-icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Improving our safety with a
+physical quantities and units library</h1>
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #:</td>
+    <td>DXXXXR0</td>
+  </tr>
+  <tr>
+    <td>Date:</td>
+    <td>2023-09-14</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project:</td>
+    <td>Programming Language C++</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Audience:</td>
+    <td>
+      SG23 Safety and Security<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to:</td>
+    <td>
+      Mateusz Pusz (<a href="http://www.epam.com">Epam
+Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateusz.pusz@gmail.com</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">1</span> Introduction<span></span></a></li>
+<li><a href="#the-future-is-here" id="toc-the-future-is-here"><span class="toc-section-number">2</span> The Future Is
+Here<span></span></a></li>
+<li><a href="#affected-industries" id="toc-affected-industries"><span class="toc-section-number">3</span> Affected
+Industries<span></span></a></li>
+<li><a href="#mismeasure-for-measure" id="toc-mismeasure-for-measure"><span class="toc-section-number">4</span> Mismeasure for
+Measure<span></span></a></li>
+<li><a href="#when-a-library-is-not-used" id="toc-when-a-library-is-not-used"><span class="toc-section-number">5</span> When a Library Is Not
+Used<span></span></a>
+<ul>
+<li><a href="#the-proliferation-of-double" id="toc-the-proliferation-of-double"><span class="toc-section-number">5.1</span> The proliferation of
+<code class="sourceCode default">double</code><span></span></a></li>
+<li><a href="#the-proliferation-of-magic-numbers" id="toc-the-proliferation-of-magic-numbers"><span class="toc-section-number">5.2</span> The proliferation of magic
+numbers<span></span></a></li>
+<li><a href="#the-proliferation-of-conversion-macros" id="toc-the-proliferation-of-conversion-macros"><span class="toc-section-number">5.3</span> The proliferation of conversion
+macros<span></span></a></li>
+<li><a href="#lack-of-consistency" id="toc-lack-of-consistency"><span class="toc-section-number">5.4</span> Lack of
+consistency<span></span></a></li>
+</ul></li>
+<li><a href="#safety-features" id="toc-safety-features"><span class="toc-section-number">6</span> Safety Features<span></span></a>
+<ul>
+<li><a href="#unit-conversions" id="toc-unit-conversions"><span class="toc-section-number">6.1</span> Unit
+conversions<span></span></a></li>
+<li><a href="#preventing-truncation-of-data" id="toc-preventing-truncation-of-data"><span class="toc-section-number">6.2</span> Preventing truncation of
+data<span></span></a></li>
+<li><a href="#preventing-surprises-during-units-composition" id="toc-preventing-surprises-during-units-composition"><span class="toc-section-number">6.3</span> Preventing surprises during units
+composition<span></span></a></li>
+<li><a href="#the-affine-space" id="toc-the-affine-space"><span class="toc-section-number">6.4</span> The affine
+space<span></span></a></li>
+<li><a href="#explicit-is-not-explicit-enough" id="toc-explicit-is-not-explicit-enough"><span class="toc-section-number">6.5</span>
+<code class="sourceCode default">explicit</code> is not explicit
+enough<span></span></a></li>
+<li><a href="#obtaining-a-numerical-value-of-a-quantity" id="toc-obtaining-a-numerical-value-of-a-quantity"><span class="toc-section-number">6.6</span> Obtaining a numerical value of a
+quantity<span></span></a></li>
+<li><a href="#preventing-dangling-references" id="toc-preventing-dangling-references"><span class="toc-section-number">6.7</span> Preventing dangling
+references<span></span></a></li>
+<li><a href="#quantity-kinds" id="toc-quantity-kinds"><span class="toc-section-number">6.8</span> Quantity
+kinds<span></span></a></li>
+<li><a href="#quantity-spec-conversions-and-common_quantity_spec" id="toc-quantity-spec-conversions-and-common_quantity_spec"><span class="toc-section-number">6.9</span> quantity spec conversions and
+common_quantity_spec<span></span></a></li>
+<li><a href="#non-negative-quantities" id="toc-non-negative-quantities"><span class="toc-section-number">6.10</span> non-negative
+quantities<span></span></a></li>
+<li><a href="#safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm" id="toc-safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm"><span class="toc-section-number">6.11</span> Safe equations (arithmetic,
+quantity character, multiplication, division, dot, cross,
+norm)<span></span></a></li>
+</ul></li>
+<li><a href="#safety-pitfalls" id="toc-safety-pitfalls"><span class="toc-section-number">7</span> Safety Pitfalls<span></span></a>
+<ul>
+<li><a href="#integer-division" id="toc-integer-division"><span class="toc-section-number">7.1</span> Integer
+division<span></span></a></li>
+<li><a href="#lack-of-safe-numeric-types" id="toc-lack-of-safe-numeric-types"><span class="toc-section-number">7.2</span> Lack of safe numeric
+types<span></span></a></li>
+</ul></li>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">8</span>
+Acknowledgements<span></span></a></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">9</span> References<span></span></a></li>
+</ul>
+</div>
+<h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
+<p>One of the areas where C++ can significantly improve the safety of
+applications being written by thousands of developers is introducing a
+type-safe, well-tested, standardized way to handle physical quantities
+and their units. The rationale is that people tend to have problems
+communicating or using proper units in code and daily life.</p>
+<p>This paper scopes on the security aspects of introducing such a
+library to the C++ language. In the following chapters, we will describe
+which industries are desperately looking for such standardized
+solutions, enumerate some failures and accidents caused by
+misinterpretation of quantities and units in human history, review all
+the features of such a library that improve the safety of our code, and
+also discuss potential safety issues that the library does not prevent
+against.</p>
+<p><em>Note: This paper refers to practices used in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library and presents code
+examples using its interfaces. Those may not exactly reflect the final
+interface design that is going to be proposed in the follow-up papers.
+We are still doing some small fine-tuning to improve the
+library.</em></p>
+<h1 data-number="2" id="the-future-is-here"><span class="header-section-number">2</span> The Future Is Here<a href="#the-future-is-here" class="self-link"></a></h1>
+<p>Not that long ago, we watched SciFi movies about the future Earth
+where people were entering a car with no driver inside, and it
+autonomously drove them to the required destination. Then, it was
+something so futuristic and hard to imagine. Today, it slowly becomes a
+reality of our daily life.</p>
+<p>It is no longer only the space industry or airline pilots that
+benefit from the autonomous operations of some machines. We live in a
+world where more and more ordinary people trust machines with their
+lives daily. Soon, we will be allowed to sleep while our car
+autonomously drives us home from a late party. As a result, many more
+C++ engineers are expected to write life-critical software today than a
+few years ago. Unfortunately, there is insufficient training and
+experience in this domain and the C++ language does not change fast
+enough to enforce a safe-by-construction code.</p>
+<h1 data-number="3" id="affected-industries"><span class="header-section-number">3</span> Affected Industries<a href="#affected-industries" class="self-link"></a></h1>
+<p>When people think about industries that could use physical quantities
+and unit libraries, they think of a few companies related to aerospace,
+autonomous cars, or embedded industries. That is all true, but there are
+many other potential users for such a library.</p>
+<p>Here is a list of some less obvious candidates:</p>
+<ul>
+<li>manufacturing,</li>
+<li>maritime industry,</li>
+<li>freight transport,</li>
+<li>military,</li>
+<li>3D design,</li>
+<li>robotics,</li>
+<li>national laboratories,</li>
+<li>scientific institutions and universities,</li>
+<li>all kinds of navigation and charting,</li>
+<li>GUI frameworks,</li>
+<li>finance (including HFT),</li>
+<li>and many more…</li>
+</ul>
+<p>As we can see, the applications of such a library are so vast. Most
+users benefit from strong types and automated conversions for various
+quantities and units. However, the library also provides affine space
+abstractions, which may also be used in many other domains.</p>
+<h1 data-number="4" id="mismeasure-for-measure"><span class="header-section-number">4</span> Mismeasure for Measure<a href="#mismeasure-for-measure" class="self-link"></a></h1>
+<p>Human history knows many expensive failures and accidents caused by
+mistakes in calculations involving different physical units. The most
+famous and probably the most expensive example in the software
+engineering domain is the Mars Climate Orbiter that in 1999 failed to
+enter Mars orbit and crashed while entering its atmosphere <span class="citation" data-cites="MARS_ORBITER">[<a href="#ref-MARS_ORBITER" role="doc-biblioref">Mars Orbiter</a>]</span>. This is one of many
+examples here. People tend to confuse units quite often. We see similar
+errors occurring in various domains over the years:</p>
+<ul>
+<li>On October 12, 1492, Christopher Columbus unintentionally discovered
+America because, during his travel preparations, he mixed the Arabic
+mile with a Roman mile, which led to the wrong estimation of the equator
+and his expected travel distance <span class="citation" data-cites="COLUMBUS">[<a href="#ref-COLUMBUS" role="doc-biblioref">Columbus</a>]</span>.</li>
+<li>In 1628, a new warship, Vasa, accidentally had an asymmetrical hull
+(being thicker on the port side than the starboard side), which was one
+of the reasons for her sinking less than a mile into her maiden voyage,
+with the death of 30 people on board. This asymmetry could be caused by
+the usage of different systems of measurement, as archaeologists have
+found four rulers used by the workers who built the ship. Two were
+calibrated in Swedish feet, which had 12 inches, while the other two
+measured Amsterdam feet, which had 11 inches <span class="citation" data-cites="VASA">[<a href="#ref-VASA" role="doc-biblioref">Vasa</a>]</span>.</li>
+<li>Air Canada Flight 143 ran out of fuel on July 23, 1983, at an
+altitude of 41 000 feet (12 000 metres), midway through the flight
+because the fuel had been calculated in pounds instead of kilograms by
+the ground crew <span class="citation" data-cites="GIMLI_GLIDER">[<a href="#ref-GIMLI_GLIDER" role="doc-biblioref">Gimli
+Glider</a>]</span>.</li>
+<li>The British rock band Black Sabbath, during its Born Again tour in
+1983, ordered a replica of Stonehenge as props for the scene, but
+unfortunately, they had to leave them in the storage area because, while
+submitting the order, their manager wrote dimensions down in meters when
+he meant feet, and the stones didn’t fit the scene. “It cost a fortune
+to make but there was not a building on earth that you could fit it
+into” <span class="citation" data-cites="STONEHENGE">[<a href="#ref-STONEHENGE" role="doc-biblioref">Stonehenge</a>]</span>.</li>
+<li>On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a
+miscommunication between pilots about the desired flight altitude <span class="citation" data-cites="FLIGHT_6316">[<a href="#ref-FLIGHT_6316" role="doc-biblioref">Flight 6316</a>]</span>.</li>
+<li>In February 2001, the Zoo crew built an enclosure for Clarence the
+Tortoise with a weight of 250 pounds instead of 250 kilograms <span class="citation" data-cites="CLARENCE">[<a href="#ref-CLARENCE" role="doc-biblioref">Clarence</a>]</span>.</li>
+<li>In December 2003, one of the roller coaster’s cars at Tokyo
+Disneyland’s Space Mountain attraction suddenly derailed due to a broken
+axle caused by confusion after upgrading the specification from imperial
+to metric units <span class="citation" data-cites="DISNEY">[<a href="#ref-DISNEY" role="doc-biblioref">Disney</a>]</span>.</li>
+<li>During the construction of the Hochrheinbrücke bridge to connect the
+small German town of Laufenburg with Swiss Laufenburg, the construction
+team made a sign error that resulted in a discrepancy of 54 cm between
+the two outer ends of the bridge <span class="citation" data-cites="HOCHRHEINBRÜCKE">[<a href="#ref-HOCHRHEINBRÜCKE" role="doc-biblioref">Hochrheinbrücke</a>]</span>.</li>
+<li>An American company sold a shipment of wild rice to a Japanese
+customer, quoting a price of 39 cents per pound, but the customer
+thought the quote was for 39 cents per kilogram <span class="citation" data-cites="WILD_RICE">[<a href="#ref-WILD_RICE" role="doc-biblioref">Wild Rice</a>]</span>.</li>
+<li>A whole set of <span class="citation" data-cites="MEDICATION_DOSE_ERRORS">[<a href="#ref-MEDICATION_DOSE_ERRORS" role="doc-biblioref">Medication dose
+errors</a>]</span>…</li>
+</ul>
+<h1 data-number="5" id="when-a-library-is-not-used"><span class="header-section-number">5</span> When a Library Is Not Used<a href="#when-a-library-is-not-used" class="self-link"></a></h1>
+<p>In this chapter, we are going to review typical safety issues related
+to physical quantities and units in the C++ code when a proper library
+is not used. Even though all the examples come from the Open Source
+projects, expensive revenue-generating production source code often is
+similar.</p>
+<h2 data-number="5.1" id="the-proliferation-of-double"><span class="header-section-number">5.1</span> The proliferation of
+<code class="sourceCode default">double</code><a href="#the-proliferation-of-double" class="self-link"></a></h2>
+<p>It turns out that in the C++ software, most of our calculations in
+the physical quantities and units domain are handled with fundamental
+types like <code class="sourceCode default">double</code>. Code like
+below is a typical example here:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">double</span> GlidePolar<span class="op">::</span>MacCreadyAltitude<span class="op">(</span><span class="dt">double</span> MCREADY,</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                                     <span class="dt">double</span> Distance,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">const</span> <span class="dt">double</span> Bearing,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">const</span> <span class="dt">double</span> WindSpeed,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">const</span> <span class="dt">double</span> WindBearing,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                                     <span class="dt">double</span> <span class="op">*</span>BestCruiseTrack,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                                     <span class="dt">double</span> <span class="op">*</span>VMacCready,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">const</span> <span class="dt">bool</span> isFinalGlide,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                                     <span class="dt">double</span> <span class="op">*</span>TimeToGo,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">const</span> <span class="dt">double</span> AltitudeAboveTarget<span class="op">=</span><span class="fl">1.0e6</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">const</span> <span class="dt">double</span> cruise_efficiency<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                                     <span class="kw">const</span> <span class="dt">double</span> TaskAltDiff<span class="op">=-</span><span class="fl">1.0e6</span><span class="op">)</span>;</span></code></pre></div>
+<p><a href="https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Header/McReady.h#L7-L21">Original
+code here</a>.</p>
+<h2 data-number="5.2" id="the-proliferation-of-magic-numbers"><span class="header-section-number">5.2</span> The proliferation of magic
+numbers<a href="#the-proliferation-of-magic-numbers" class="self-link"></a></h2>
+<p>There are a lot of constants and conversion factors involved in the
+quantity equations. Source code responsible for such computations is
+often trashed with magic numbers:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">double</span> AirDensity<span class="op">(</span><span class="dt">double</span> hr, <span class="dt">double</span> temp, <span class="dt">double</span> abs_press<span class="op">)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">(</span><span class="dv">1</span><span class="op">/(</span><span class="fl">287.06</span><span class="op">*(</span>temp<span class="op">+</span><span class="fl">273.15</span><span class="op">)))*(</span>abs_press <span class="op">-</span> <span class="fl">230.617</span> <span class="op">*</span> hr <span class="op">*</span> exp<span class="op">((</span><span class="fl">17.5043</span><span class="op">*</span>temp<span class="op">)/(</span><span class="fl">241.2</span><span class="op">+</span>temp<span class="op">)))</span>;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><a href="https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Source/Library/PressureFunctions.cpp#L134-L136">Original
+code here</a>.</p>
+<h2 data-number="5.3" id="the-proliferation-of-conversion-macros"><span class="header-section-number">5.3</span> The proliferation of conversion
+macros<a href="#the-proliferation-of-conversion-macros" class="self-link"></a></h2>
+<p>The lack of automated unit conversions often results in handwritten
+conversion functions or macros that are spread everywhere among the code
+base:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef PI</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">const</span> <span class="dt">double</span> PI <span class="op">=</span> <span class="op">(</span><span class="dv">4</span><span class="op">*</span>atan<span class="op">(</span><span class="dv">1</span><span class="op">))</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#define EARTH_DIAMETER    </span><span class="fl">12733426.0</span><span class="pp">    </span><span class="co">// Diameter of earth in meters</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#define SQUARED_EARTH_DIAMETER  </span><span class="fl">162140137697476.0</span><span class="pp"> </span><span class="co">// Diameter of earth in meters (EARTH_DIAMETER*EARTH_DIAMETER)</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef DEG_TO_RAD</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#define DEG_TO_RAD  </span><span class="op">(</span>PI<span class="pp"> </span><span class="op">/</span><span class="pp"> </span><span class="dv">180</span><span class="op">)</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#define RAD_TO_DEG  </span><span class="op">(</span><span class="dv">180</span><span class="pp"> </span><span class="op">/</span><span class="pp"> </span>PI<span class="op">)</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="pp">#define NAUTICALMILESTOMETRES </span><span class="op">(</span><span class="dt">double</span><span class="op">)</span><span class="fl">1851.96</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="pp">#define KNOTSTOMETRESSECONDS </span><span class="op">(</span><span class="dt">double</span><span class="op">)</span><span class="fl">0.5144</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="pp">#define TOKNOTS </span><span class="op">(</span><span class="dt">double</span><span class="op">)</span><span class="fl">1.944</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="pp">#define TOFEETPERMINUTE </span><span class="op">(</span><span class="dt">double</span><span class="op">)</span><span class="fl">196.9</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="pp">#define TOMPH   </span><span class="op">(</span><span class="dt">double</span><span class="op">)</span><span class="fl">2.237</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="pp">#define TOKPH   </span><span class="op">(</span><span class="dt">double</span><span class="op">)</span><span class="fl">3.6</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">// meters to.. conversion</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="pp">#define TONAUTICALMILES </span><span class="op">(</span><span class="fl">1.0</span><span class="pp"> </span><span class="op">/</span><span class="pp"> </span><span class="fl">1852.0</span><span class="op">)</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="pp">#define TOMILES         </span><span class="op">(</span><span class="fl">1.0</span><span class="pp"> </span><span class="op">/</span><span class="pp"> </span><span class="fl">1609.344</span><span class="op">)</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="pp">#define TOKILOMETER     </span><span class="op">(</span><span class="fl">0.001</span><span class="op">)</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="pp">#define TOFEET          </span><span class="op">(</span><span class="fl">1.0</span><span class="pp"> </span><span class="op">/</span><span class="pp"> </span><span class="fl">0.3048</span><span class="op">)</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="pp">#define TOMETER         </span><span class="op">(</span><span class="fl">1.0</span><span class="op">)</span></span></code></pre></div>
+<p><a href="https://github.com/LK8000/LK8000/blob/052bbc20a106fda4db41874e788e39020fb86512/Common/Header/Defines.h#L901-L924">Original
+code here</a>.</p>
+<h2 data-number="5.4" id="lack-of-consistency"><span class="header-section-number">5.4</span> Lack of consistency<a href="#lack-of-consistency" class="self-link"></a></h2>
+<p>If we not only lack strong types to isolate the abstractions from
+each other but also lack discipline to keep our code consistent, we end
+up in an awful place:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> DistanceBearing<span class="op">(</span><span class="dt">double</span> lat1, <span class="dt">double</span> lon1,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                     <span class="dt">double</span> lat2, <span class="dt">double</span> lon2,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                     <span class="dt">double</span> <span class="op">*</span>Distance, <span class="dt">double</span> <span class="op">*</span>Bearing<span class="op">)</span>;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="dt">double</span> DoubleDistance<span class="op">(</span><span class="dt">double</span> lat1, <span class="dt">double</span> lon1,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">double</span> lat2, <span class="dt">double</span> lon2,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">double</span> lat3, <span class="dt">double</span> lon3<span class="op">)</span>;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> FindLatitudeLongitude<span class="op">(</span><span class="dt">double</span> Lat, <span class="dt">double</span> Lon,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                           <span class="dt">double</span> Bearing, <span class="dt">double</span> Distance,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                           <span class="dt">double</span> <span class="op">*</span>lat_out, <span class="dt">double</span> <span class="op">*</span>lon_out<span class="op">)</span>;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="dt">double</span> CrossTrackError<span class="op">(</span><span class="dt">double</span> lon1, <span class="dt">double</span> lat1,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                       <span class="dt">double</span> lon2, <span class="dt">double</span> lat2,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>                       <span class="dt">double</span> lon3, <span class="dt">double</span> lat3,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>                       <span class="dt">double</span> <span class="op">*</span>lon4, <span class="dt">double</span> <span class="op">*</span>lat4<span class="op">)</span>;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="dt">double</span> ProjectedDistance<span class="op">(</span><span class="dt">double</span> lon1, <span class="dt">double</span> lat1,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>                         <span class="dt">double</span> lon2, <span class="dt">double</span> lat2,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>                         <span class="dt">double</span> lon3, <span class="dt">double</span> lat3,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>                         <span class="dt">double</span> <span class="op">*</span>xtd, <span class="dt">double</span> <span class="op">*</span>crs<span class="op">)</span>;</span></code></pre></div>
+<p><a href="https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Header/NavFunctions.h#L7C1-L27">Original
+code here</a>.</p>
+<h1 data-number="6" id="safety-features"><span class="header-section-number">6</span> Safety Features<a href="#safety-features" class="self-link"></a></h1>
+<p>This chapter will describe the features that enforce safety in our
+code bases. We will start with obvious things but then will move to
+probably less known benefits of using physical quantities and units
+libraries. This chapter also serves as a proof that it is not easy to
+implement such a library correctly, and there are many cases where lack
+of experience or time for the development of such a utility may lead to
+safety issues as well.</p>
+<p>Before we go through all the features, it is essential to note that
+they do not introduce any runtime overhead over the raw unsafe code
+doing the same thing. That is a massive benefit of C++ compared to other
+programming languages (e.g., Python, Java, etc.).</p>
+<h2 data-number="6.1" id="unit-conversions"><span class="header-section-number">6.1</span> Unit conversions<a href="#unit-conversions" class="self-link"></a></h2>
+<p>The first thing that comes to our mind when discussing the safety of
+such libraries is automated unit conversions. This is probably the most
+important subject here. We learned about its huge benefits long ago
+thanks to the
+<code class="sourceCode default">std::chrono::duration</code> that made
+conversions of time durations error-proof.</p>
+<p>Unit conversions are typically performed either via a converting
+constructor or a dedicated conversion function:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="dv">5</span> <span class="op">*</span> km;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> q1<span class="op">.</span>in<span class="op">(</span>m<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> q1;</span></code></pre></div>
+<p>Such a feature benefits from the fact that the library knows about
+the magnitudes of source and destination units at compile-time and may
+use that information to calculate and apply a conversion factor
+automatically for the user.</p>
+<p>In <code class="sourceCode default">std::chrono::duration</code>, the
+magnitude of a unit is always expressed with
+<code class="sourceCode default">std::ratio</code>. This is not enough
+for a general-purpose physical units library. Some of the derived units
+have great or tiny ratios. The difference from the base units is so huge
+that it cannot be expressed with
+<code class="sourceCode default">std::ratio</code>, which is implemented
+in terms of <code class="sourceCode default">std::intmax_t</code>. This
+makes it impossible to define units like electronvolt (eV) where 1eV =
+1.602176634×10<sup>−19</sup> J or Dalton where 1 Da =
+1.660539040(20)×10<sup>−27</sup> kg. Moreover, some conversions, such as
+radian to a degree, require a conversion factor based on an irrational
+number like pi.</p>
+<h2 data-number="6.2" id="preventing-truncation-of-data"><span class="header-section-number">6.2</span> Preventing truncation of data<a href="#preventing-truncation-of-data" class="self-link"></a></h2>
+<p>The second safety feature of such libraries is preventing truncation
+of quantity value. If we try similar, but this time opposite, operations
+to the above, both conversions should fail to compile:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="dv">5</span> <span class="op">*</span> m;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> q1<span class="op">.</span>in<span class="op">(</span>km<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span>, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> q1;</span></code></pre></div>
+<p>We can’t preserve the value of a source unit when we convert to a
+unit with a lower resolution while using an integral representation type
+for a quantity.</p>
+<p><em>Please note that it is always assumed that one can convert a
+quantity into another one with a unit of a higher resolution. There is
+no protection against overflow of the representation type. In case the
+target quantity ends up with a value bigger than the representation type
+can handle, we will be facing Undefined Behavior.</em></p>
+<p>The solution to make the above conversion is to use a floating-point
+representation type:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="fl">5.</span> <span class="op">*</span> m;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> q1<span class="op">.</span>in<span class="op">(</span>km<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;&gt;</span> q2 <span class="op">=</span> q1;</span></code></pre></div>
+<p>or:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="dv">5</span> <span class="op">*</span> m;</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> value_cast<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;(</span>q1<span class="op">).</span>in<span class="op">(</span>km<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;&gt;</span> q2 <span class="op">=</span> q1;  <span class="co">// double by default</span></span></code></pre></div>
+<p><em>The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+follows <code class="sourceCode default">std::chrono::duration</code>
+logic and treats floating-point types as value-preserving.</em></p>
+<p>Another possibility would be to force such a truncating conversion
+explicitly from the code:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="dv">5</span> <span class="op">*</span> m;</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> value_cast<span class="op">&lt;</span>km<span class="op">&gt;(</span>q1<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span>, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> value_cast<span class="op">&lt;</span>km<span class="op">&gt;(</span>q1<span class="op">)</span>;</span></code></pre></div>
+<p>The code above makes it clear that “something bad” may happen here if
+we are not extra careful.</p>
+<p>Another case for truncation happens when we assign a quantity with a
+floating-point representation type to the one using an integral
+representation type for its value:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="fl">2.5</span> <span class="op">*</span> m;</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> q1;</span></code></pre></div>
+<p>Such an operation should fail to compile as well. Again, to force
+such a truncation, we have to be explicit in the code:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="fl">2.5</span> <span class="op">*</span> m;</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>q1<span class="op">)</span>;</span></code></pre></div>
+<p>As we can see, it is essential not to allow such truncating
+conversions to happen implicitly and a good physical quantities and
+units library should fail at compile time in case a user makes such a
+mistake.</p>
+<h2 data-number="6.3" id="preventing-surprises-during-units-composition"><span class="header-section-number">6.3</span> Preventing surprises during
+units composition<a href="#preventing-surprises-during-units-composition" class="self-link"></a></h2>
+<p>One of the most important requirements for a good physical quantities
+and units library is to implement units in such a way that they compose.
+With that, one can easily create any derived unit using a simple unit
+equation on other base or derived units. For example:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> kmph <span class="op">=</span> km <span class="op">/</span> h;</span></code></pre></div>
+<p>This is a really nice and commonly used feature which often leads
+inexperienced users to a surprise when they write the following
+code:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> h;</span></code></pre></div>
+<p>The above and the following examples compile fine in <span class="citation" data-cites="BOOST-UNITS">[<a href="#ref-BOOST-UNITS" role="doc-biblioref">Boost.Units</a>]</span> and <span class="citation" data-cites="PINT">[<a href="#ref-PINT" role="doc-biblioref">Pint</a>]</span>. However, we believe this is an
+error, and there are good reasons for this.</p>
+<p>First, let’s consider the following expression:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;</span></code></pre></div>
+<p>This looks like like <code class="sourceCode default">30 km/h</code>,
+right? But it is not. If the above code was allowed, thanks to the
+operators’ associativity, it would result in
+<code class="sourceCode default">30 km⋅h</code>. In case we want to
+divide <code class="sourceCode default">60 * km</code> by
+<code class="sourceCode default">2 * h</code> a parenthesis is
+needed:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
+<p>Another surprising issue could result from the following code:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span>;</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
+<p>The above might look like a good idea, but let’s consider what would
+happen if the user provided an already existing quantity:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
+<p>Because of the above reasons, multiplying or dividing a quantity by a
+unit should not be supported. In a sound library, trying to do such an
+operation should be detected at compile-time.</p>
+<p>Coming back to our first example, as a side effect of the above
+rules, in order to create a quantity of
+<code class="sourceCode default">60 km/h</code>, we need to use
+parenthesis for the entire unit:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> <span class="op">(</span>km <span class="op">/</span> h<span class="op">)</span>;</span></code></pre></div>
+<h2 data-number="6.4" id="the-affine-space"><span class="header-section-number">6.4</span> The affine space<a href="#the-affine-space" class="self-link"></a></h2>
+<p>The affine space has two types of entities:</p>
+<ul>
+<li>point - a position specified with coordinate values (i.e., location,
+address, etc.)</li>
+<li>vector - the difference between two points (i.e., shift, offset,
+displacement, duration, etc.)</li>
+</ul>
+<p>One can do a limited set of operations in affine space on points and
+vectors. This greatly helps to prevent quantity equations that do not
+have physical sense.</p>
+<p>People often think that affine space is needed only to model
+temperatures and maybe time points (following <a href="https://en.cppreference.com/w/cpp/chrono/time_point"><code class="sourceCode default">std::chrono::time_point</code></a>).
+Still, the applicability of this domain is much wider.</p>
+<p>For example, if we would like to model a Mount Everest climbing
+expedition, we would deal with two kinds of altitude-related entities.
+The first would be absolute altitudes above the mean sea level (points)
+like base camp altitude, mount peak altitude, etc. The second one would
+be the heights of daily climbs (vectors). As long as it makes physical
+sense to add heights of daily climbs, there is no sense in adding
+altitudes. What does adding the altitude of a base camp and the mountain
+peak mean after all?</p>
+<p>Modeling such affine space entities with
+<code class="sourceCode default">quantity</code> (vector) and
+<code class="sourceCode default">quantity_point</code> (point) class
+templates improve overall project safety by eliminating accidental
+equations at compile time.</p>
+<h2 data-number="6.5" id="explicit-is-not-explicit-enough"><span class="header-section-number">6.5</span>
+<code class="sourceCode default">explicit</code> is not explicit
+enough<a href="#explicit-is-not-explicit-enough" class="self-link"></a></h2>
+<p>Consider the following structure and a code using it:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> X <span class="op">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>vector<span class="op">&lt;</span>std<span class="op">::</span>chrono<span class="op">::</span>milliseconds<span class="op">&gt;</span> vec;</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>X x;</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span><span class="op">)</span>;</span></code></pre></div>
+<p>Everything works fine for years until, at some point, someone changes
+the structure to:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> X <span class="op">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>vector<span class="op">&lt;</span>std<span class="op">::</span>chrono<span class="op">::</span>microseconds<span class="op">&gt;</span> vec;</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<p>The code continues to compile fine, but all the calculations are off
+now. This is why a good physical quantities and units library should not
+provide an explicit quantity constructor taking a raw value.</p>
+<p>To solve this issue, a quantity in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library always requires
+information about both a number and a unit during construction:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> X <span class="op">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>vector<span class="op">&lt;</span>quantity<span class="op">&lt;</span>si<span class="op">::</span>milli<span class="op">&lt;</span>si<span class="op">::</span>seconds<span class="op">&gt;&gt;&gt;</span> vec;</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>X x;</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span> <span class="op">*</span> ms<span class="op">)</span>;</span></code></pre></div>
+<p>For consistency and to prevent similar safety issues, the
+<code class="sourceCode default">quantity_point</code> in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library can’t be created from
+a standalone value of a
+<code class="sourceCode default">quantity</code>. Such a point has to
+always be associated with an explicit origin:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>quantity_point qp1 <span class="op">=</span> mean_sea_level <span class="op">+</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>quantity_point qp2 <span class="op">=</span> si<span class="op">::</span>ice_point <span class="op">+</span> <span class="dv">21</span> <span class="op">*</span> deg_C;</span></code></pre></div>
+<h2 data-number="6.6" id="obtaining-a-numerical-value-of-a-quantity"><span class="header-section-number">6.6</span> Obtaining a numerical value of
+a quantity<a href="#obtaining-a-numerical-value-of-a-quantity" class="self-link"></a></h2>
+<p>Continuing our previous example, let’s assume that we have an
+underlying “legacy” API that requires us to pass a raw numerical value
+of a quantity and that we do the following to use it:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> legacy_func<span class="op">(</span>std<span class="op">::</span><span class="dt">int64_t</span> seconds<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>X x;</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span><span class="bu">s</span><span class="op">)</span>;</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>x<span class="op">.</span>vec<span class="op">[</span><span class="dv">0</span><span class="op">].</span>count<span class="op">())</span>;</span></code></pre></div>
+<p>The following code is incorrect. Even though the duration stores a
+quantity equivalent to 42 s, it is not internally stored exactly in this
+unit (either microseconds or milliseconds, depending on which of the
+interfaces from the previous chapter is the current one at this moment).
+Such issues can be prevented with the usage of
+<code class="sourceCode default">std::chrono::duration_cast</code>:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>duration_cast<span class="op">&lt;</span>seconds<span class="op">&gt;(</span>x<span class="op">.</span>vec<span class="op">[</span><span class="dv">0</span><span class="op">]).</span>count<span class="op">())</span>;</span></code></pre></div>
+<p>However, users often forget about this step, especially when, at the
+moment of writing such code, the duration stores the underlying raw
+value in the expected unit. But as we know, the interface can be
+refactored at any point to use a different unit, and the code using an
+underlying numerical value without the usage of an explicit cast will
+become incorrect.</p>
+<p>To prevent such safety issues, the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library exposes only the
+interface that returns a quantity numerical value in the required unit
+to ensure that no data truncation happens:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>X x;</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span> <span class="op">*</span> s<span class="op">)</span>;</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>x<span class="op">.</span>vec<span class="op">[</span><span class="dv">0</span><span class="op">].</span>numerical_value_in<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span>;</span></code></pre></div>
+<p>or in case we are fine with data truncation:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>X x;</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span> <span class="op">*</span> s<span class="op">)</span>;</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>x<span class="op">.</span>vec<span class="op">[</span><span class="dv">0</span><span class="op">].</span>force_numerical_value_in<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span>;</span></code></pre></div>
+<p>As the above member functions may need to do a conversion to provide
+a value in the expected unit, their results are returned as
+prvalues.</p>
+<h2 data-number="6.7" id="preventing-dangling-references"><span class="header-section-number">6.7</span> Preventing dangling
+references<a href="#preventing-dangling-references" class="self-link"></a></h2>
+<p>Besides returning prvalues, sometimes users need to get an actual
+reference to the underlying numerical value stored in a
+<code class="sourceCode default">quantity</code>. For those cases <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library exposes <code class="sourceCode default">quantity::numerical_value_ref_in(Unit)</code>
+that participates in overload resolution only:</p>
+<ul>
+<li>for lvalues (rvalue reference qualified overload is explicitly
+deleted),</li>
+<li>when provided <code class="sourceCode default">Unit</code> has the
+same magnitude as the one currently used by the quantity.</li>
+</ul>
+<p>The first condition above removes the possibility of dangling
+references. We want to increase the chances that the reference/pointer
+provided to an underlying API remains valid for the time of its usage.
+Performance aspects for a
+<code class="sourceCode default">quantity</code> type are secondary here
+as we expect the majority (if not all) of representation types to be
+cheap to copy, so we do not need to optimize for moving the value out
+from the temporary object. With the condition satisfied, the following
+code doesn’t compile:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> legacy_func<span class="op">(</span><span class="kw">const</span> <span class="dt">int</span><span class="op">&amp;</span> seconds<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">((</span><span class="dv">4</span> <span class="op">*</span> s <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> s<span class="op">).</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span>;</span></code></pre></div>
+<p>The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+goes one step further by implementing all compound assignment,
+pre-increment, and pre-decrement operators as non-member functions that
+preserve the initial value category. Thanks to that, the following will
+also not compile:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>second, <span class="dt">int</span><span class="op">&gt;</span> get_duration<span class="op">()</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">((</span><span class="dv">4</span> <span class="op">*</span> s <span class="op">+=</span> <span class="dv">2</span> <span class="op">*</span> s<span class="op">).</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span>;</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">((++</span>get_duration<span class="op">()).</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span>;</span></code></pre></div>
+<p>The second condition above enables the usage of various equivalent
+units. For example, <code class="sourceCode default">J</code> is
+equivalent to <code class="sourceCode default">N * m</code>, and
+<code class="sourceCode default">kg * m2 / s2</code>. As those have the
+same magnitude, it does not matter exactly which one is being used here,
+as the same numerical value should be returned for all of them.</p>
+<p>Here are a few examples provided by our users where enabling quantity
+type to return a reference to its underlying numerical value is
+required:</p>
+<ul>
+<li><p>interoperability with the <a href="https://github.com/ocornut/imgui/blob/19ae142bdddf9fcb840549b4b1279739a36c3fa6/imgui.h#L551">Dear
+ImGui</a>:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>IMGUI_API <span class="dt">bool</span> DragInt<span class="op">(</span><span class="kw">const</span> <span class="dt">char</span><span class="op">*</span> label, <span class="dt">int</span><span class="op">*</span> v,</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>                       <span class="dt">float</span> v_speed <span class="op">=</span> <span class="fl">1.0</span><span class="bu">f</span>, <span class="dt">int</span> v_min <span class="op">=</span> <span class="dv">0</span>, <span class="dt">int</span> v_max <span class="op">=</span> <span class="dv">0</span>,</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>                       <span class="kw">const</span> <span class="dt">char</span><span class="op">*</span> format <span class="op">=</span> <span class="st">&quot;</span><span class="sc">%d</span><span class="st">&quot;</span>, ImGuiSliderFlags flags <span class="op">=</span> <span class="dv">0</span><span class="op">)</span>;  <span class="co">// If v_min &gt;= v_max we have no bound</span></span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>ImGui<span class="op">::</span>DragInt<span class="op">(</span><span class="st">&quot;Frames&quot;</span>, <span class="op">&amp;</span>frame_frequency<span class="op">.</span>value<span class="op">.</span>numerical_value_ref_in<span class="op">(</span>Hz<span class="op">)</span>, <span class="dv">1</span>,</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>               frame_frequency<span class="op">.</span>min<span class="op">.</span>numerical_value_in<span class="op">(</span>Hz<span class="op">)</span>, </span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>               frame_frequency<span class="op">.</span>max<span class="op">.</span>numerical_value_in<span class="op">(</span>Hz<span class="op">)</span>, </span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>               <span class="st">&quot;</span><span class="sc">%d</span><span class="st"> Hz&quot;</span><span class="op">)</span>;</span></code></pre></div></li>
+<li><p>obtaining a temperature via the C library:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">// read_temperature is in the BSP defined as </span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> read_temperature<span class="op">(</span><span class="dt">float</span><span class="op">*</span> temp_in_celsius<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> Celsius_point <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>Celsius_temperature<span class="op">[</span>deg_C<span class="op">]</span>, si<span class="op">::</span>ice_point, <span class="dt">float</span><span class="op">&gt;</span>;</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>Celsius_point temp;</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>read_temperature<span class="op">(&amp;</span>temp<span class="op">.</span>quantity_ref_from<span class="op">(</span>si<span class="op">::</span>ice_point<span class="op">).</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>degree_Celsius<span class="op">))</span>;</span></code></pre></div></li>
+</ul>
+<p>As we can see in the second example,
+<code class="sourceCode default">quantity_point</code> also provides
+lvalue-ref-qualified
+<code class="sourceCode default">quantity_ref_from(PointOrigin)</code>
+member function that returns a reference to the underlying
+<code class="sourceCode default">quantity</code> type stored inside.
+Also, for reasons similar to the ones described in the previous chapter,
+this function requires that the argument provided by the user is the
+same as the origin of a quantity point.</p>
+<h2 data-number="6.8" id="quantity-kinds"><span class="header-section-number">6.8</span> Quantity kinds<a href="#quantity-kinds" class="self-link"></a></h2>
+<h2 data-number="6.9" id="quantity-spec-conversions-and-common_quantity_spec"><span class="header-section-number">6.9</span> quantity spec conversions and
+common_quantity_spec<a href="#quantity-spec-conversions-and-common_quantity_spec" class="self-link"></a></h2>
+<h2 data-number="6.10" id="non-negative-quantities"><span class="header-section-number">6.10</span> non-negative quantities<a href="#non-negative-quantities" class="self-link"></a></h2>
+<h2 data-number="6.11" id="safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm"><span class="header-section-number">6.11</span> Safe equations (arithmetic,
+quantity character, multiplication, division, dot, cross, norm)<a href="#safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm" class="self-link"></a></h2>
+<p>https://github.com/mpusz/mp-units/issues/412#issuecomment-1412806744
+https://github.com/mpusz/mp-units/issues/412#issuecomment-1412828928</p>
+<h1 data-number="7" id="safety-pitfalls"><span class="header-section-number">7</span> Safety Pitfalls<a href="#safety-pitfalls" class="self-link"></a></h1>
+<h2 data-number="7.1" id="integer-division"><span class="header-section-number">7.1</span> Integer division<a href="#integer-division" class="self-link"></a></h2>
+<div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> h <span class="op">/</span> <span class="op">(</span><span class="dv">30</span> <span class="op">*</span> min<span class="op">)</span>;</span></code></pre></div>
+<p>Sometimes hidden in a ratio…</p>
+<h2 data-number="7.2" id="lack-of-safe-numeric-types"><span class="header-section-number">7.2</span> Lack of safe numeric types<a href="#lack-of-safe-numeric-types" class="self-link"></a></h2>
+<p>Integers can overflow on arithmetics. This has already caused some
+expensive failures in engineering <span class="citation" data-cites="ARIANE">[<a href="#ref-ARIANE" role="doc-biblioref">Ariane
+flight V88</a>]</span>.</p>
+<p>Integers can also be truncated during assignment to a narrower
+type.</p>
+<p>Floating-point types may lose precision during assignment to a
+narrower type. Conversion from
+<code class="sourceCode default">std::int64_t</code> to
+<code class="sourceCode default">double</code> may also be
+truncating.</p>
+<h1 data-number="8" id="acknowledgements"><span class="header-section-number">8</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
+membership in the ISO C++ Committee and the production of this
+proposal.</p>
+<!-- markdownlint-disable -->
+<h1 data-number="9" id="bibliography"><span class="header-section-number">9</span> References<a href="#bibliography" class="self-link"></a></h1>
+<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-ARIANE" class="csl-entry" role="doc-biblioentry">
+[Ariane flight V88] Ariane flight V88. <a href="https://en.wikipedia.org/wiki/Ariane_flight_V88"><div class="csl-block">https://en.wikipedia.org/wiki/Ariane_flight_V88</div></a>
+</div>
+<div id="ref-BOOST-UNITS" class="csl-entry" role="doc-biblioentry">
+[Boost.Units] Matthias C. Schabel and Steven Watanabe. Boost.Units. <a href="https://www.boost.org/doc/libs/1_83_0/doc/html/boost_units.html"><div class="csl-block">https://www.boost.org/doc/libs/1_83_0/doc/html/boost_units.html</div></a>
+</div>
+<div id="ref-CLARENCE" class="csl-entry" role="doc-biblioentry">
+[Clarence] Steve Chawkins. Mismeasure for Measure. <a href="https://www.latimes.com/archives/la-xpm-2001-feb-09-me-23253-story.html"><div class="csl-block">https://www.latimes.com/archives/la-xpm-2001-feb-09-me-23253-story.html</div></a>
+</div>
+<div id="ref-COLUMBUS" class="csl-entry" role="doc-biblioentry">
+[Columbus] Christopher Columbus. <a href="https://en.wikipedia.org/wiki/Christopher_Columbus"><div class="csl-block">https://en.wikipedia.org/wiki/Christopher_Columbus</div></a>
+</div>
+<div id="ref-DISNEY" class="csl-entry" role="doc-biblioentry">
+[Disney] Cause of the Space Mountain Incident Determined at Tokyo
+Disneyland Park. <a href="https://web.archive.org/web/20040209033827/http://www.olc.co.jp/news/20040121_01en.html"><div class="csl-block">https://web.archive.org/web/20040209033827/http://www.olc.co.jp/news/20040121_01en.html</div></a>
+</div>
+<div id="ref-FLIGHT_6316" class="csl-entry" role="doc-biblioentry">
+[Flight 6316] Korean Air Flight 6316 MD-11, Shanghai, China - April 15,
+1999. <a href="https://ntsb.gov/news/press-releases/Pages/Korean_Air_Flight_6316_MD-11_Shanghai_China_-_April_15_1999.aspx"><div class="csl-block">https://ntsb.gov/news/press-releases/Pages/Korean_Air_Flight_6316_MD-11_Shanghai_China_-_April_15_1999.aspx</div></a>
+</div>
+<div id="ref-GIMLI_GLIDER" class="csl-entry" role="doc-biblioentry">
+[Gimli Glider] Gimli Glider. <a href="https://en.wikipedia.org/wiki/Gimli_Glider"><div class="csl-block">https://en.wikipedia.org/wiki/Gimli_Glider</div></a>
+</div>
+<div id="ref-HOCHRHEINBRÜCKE" class="csl-entry" role="doc-biblioentry">
+[Hochrheinbrücke] An embarrassing discovery during the construction of a
+bridge. <a href="https://www.normaalamsterdamspeil.nl/wp-content/uploads/2015/03/website_bridge.pdf"><div class="csl-block">https://www.normaalamsterdamspeil.nl/wp-content/uploads/2015/03/website_bridge.pdf</div></a>
+</div>
+<div id="ref-MARS_ORBITER" class="csl-entry" role="doc-biblioentry">
+[Mars Orbiter] Mars Climate Orbiter. <a href="https://en.wikipedia.org/wiki/Mars_Climate_Orbiter"><div class="csl-block">https://en.wikipedia.org/wiki/Mars_Climate_Orbiter</div></a>
+</div>
+<div id="ref-MEDICATION_DOSE_ERRORS" class="csl-entry" role="doc-biblioentry">
+[Medication dose errors] Alma Mulac, Ellen Hagesaether, and Anne Gerd
+Granas. Medication dose calculation errors and other numeracy mishaps in
+hospitals: Analysis of the nature and enablers of incident reports. <a href="https://onlinelibrary.wiley.com/doi/10.1111/jan.15072"><div class="csl-block">https://onlinelibrary.wiley.com/doi/10.1111/jan.15072</div></a>
+</div>
+<div id="ref-MP-UNITS" class="csl-entry" role="doc-biblioentry">
+[mp-units] mp-units - A Physical Quantities and Units library for C++.
+<a href="https://mpusz.github.io/mp-units"><div class="csl-block">https://mpusz.github.io/mp-units</div></a>
+</div>
+<div id="ref-PINT" class="csl-entry" role="doc-biblioentry">
+[Pint] Pint: makes units easy. <a href="https://pint.readthedocs.io/en/stable/index.html"><div class="csl-block">https://pint.readthedocs.io/en/stable/index.html</div></a>
+</div>
+<div id="ref-STONEHENGE" class="csl-entry" role="doc-biblioentry">
+[Stonehenge] Tim Robey. Tiny stones, giant laughs: the story behind
+Spinal Tap’s Stonehenge. <a href="https://www.telegraph.co.uk/films/2020/05/01/tiny-stones-giant-laughs-story-behind-spinal-taps-stonehenge"><div class="csl-block">https://www.telegraph.co.uk/films/2020/05/01/tiny-stones-giant-laughs-story-behind-spinal-taps-stonehenge</div></a>
+</div>
+<div id="ref-VASA" class="csl-entry" role="doc-biblioentry">
+[Vasa] Rhitu Chatterjee and Lisa Mullins. New Clues Emerge in
+Centuries-Old Swedish Shipwreck. <a href="https://theworld.org/stories/2012-02-23/new-clues-emerge-centuries-old-swedish-shipwreck"><div class="csl-block">https://theworld.org/stories/2012-02-23/new-clues-emerge-centuries-old-swedish-shipwreck</div></a>
+</div>
+<div id="ref-WILD_RICE" class="csl-entry" role="doc-biblioentry">
+[Wild Rice] Manufacturers, exporters think metric. <a href="https://www.bizjournals.com/eastbay/stories/2001/07/09/focus3.html"><div class="csl-block">https://www.bizjournals.com/eastbay/stories/2001/07/09/focus3.html</div></a>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

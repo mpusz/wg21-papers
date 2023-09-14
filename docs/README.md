@@ -44,6 +44,7 @@ to this activity.
 ### Under Development
 
 - [A motivation, scope, and plan for a physical quantities and units library](papers/2XXXR0_a_motivation_scope_and_plan_for_a_physical_quantities_and_units_library.html)
+- [Improving our safety with a physical quantities and units library](papers/2XXXR0_improving_our_safety_with_a_physical_quantities_and_units_library.html)
 
 ## More Papers
 
