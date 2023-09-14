@@ -103,12 +103,12 @@ expensive failures and accidents happened because of using an invalid unit or a 
 
 The most famous and probably the most expensive example in the software engineering domain is
 the Mars Climate Orbiter that in 1999 failed to enter Mars orbit and crashed while entering
-its atmosphere [@MARS_ORBITER]. This is not the only example here. People tend to confuse units
+its atmosphere [@MARS_ORBITER]. This is one of many examples here. People tend to confuse units
 quite often. We see similar errors occurring in various domains over the years:
 
-- On October 12, 1492, Christopher Columbus unintentionally discovered America because during
+- On October 12, 1492, Christopher Columbus unintentionally discovered America because, during
   his travel preparations, he mixed the Arabic mile with a Roman mile, which led to the wrong estimation
-  of the equator and his expected travel distance [@COLUMBUS]
+  of the equator and his expected travel distance [@COLUMBUS].
 - In 1628, a new warship, Vasa, accidentally had an asymmetrical hull (being thicker on the port side
   than the starboard side), which was one of the reasons for her sinking less than a mile into her maiden
   voyage, with the death of 30 people on board. This asymmetry could be caused by the usage of
@@ -124,17 +124,17 @@ quite often. We see similar errors occurring in various domains over the years:
   didn't fit the scene. "It cost a fortune to make but there was not a building on earth that you could
   fit it into" [@STONEHENGE].
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a miscommunication between
-  pilots about desired flight altitude [@FLIGHT_6316]
+  pilots about the desired flight altitude [@FLIGHT_6316].
 - In February 2001, the Zoo crew built an enclosure for Clarence the Tortoise with a weight of
-  250 pounds instead of 250 kilograms [@CLARENCE]
+  250 pounds instead of 250 kilograms [@CLARENCE].
 - In December 2003, one of the roller coaster’s cars at Tokyo Disneyland’s Space Mountain attraction
-  suddenly derailed due to a broken axle caused by the confusion after upgrading the specification
-  from imperial to metric units [@DISNEY]
-- During construction of the Hochrheinbrücke bridge, to connect the small German town of Laufenburg
-  with Swiss Laufenburg, the construction team made a sign error that resulted in the discrepancy
-  of 54 cm between the two outer ends of the bridge [@HOCHRHEINBRÜCKE]
+  suddenly derailed due to a broken axle caused by confusion after upgrading the specification
+  from imperial to metric units [@DISNEY].
+- During the construction of the Hochrheinbrücke bridge to connect the small German town of Laufenburg
+  with Swiss Laufenburg, the construction team made a sign error that resulted in a discrepancy
+  of 54 cm between the two outer ends of the bridge [@HOCHRHEINBRÜCKE].
 - An American company sold a shipment of wild rice to a Japanese customer, quoting a price of
-  39 cents per pound, but the customer thought the quote was for 39 cents per kilogram [@WILD_RICE]
+  39 cents per pound, but the customer thought the quote was for 39 cents per kilogram [@WILD_RICE].
 - A whole set of [@MEDICATION_DOSE_ERRORS]...
 
 The safety subject is so vast and essential by itself that we dedicated a separate paper **P????**
