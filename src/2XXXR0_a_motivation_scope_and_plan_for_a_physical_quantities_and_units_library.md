@@ -42,6 +42,18 @@ the best we can get today in the C++ language.
 
 # About Authors
 
+## Dominik Berner
+
+Author of [@SI_LIB].
+
+## Johel Ernesto Guerrero Peña
+
+Contributor to [@MP-UNITS] and many other Open Source projects.
+
+## Charles Hogg
+
+Author of [@AU].
+
 ## Mateusz Pusz
 
 Mateusz got interested in the physical units subject while contributing to the [@LK8000]
@@ -62,18 +74,6 @@ units. He provided many talks and workshops on this subject at various C++ confe
 He also approached the authors of other actively maintained libraries to get their feedback
 and invited them to work together to find and agree on the best solution for the C++ language.
 This paper is the result of those actions.
-
-## Dominik Berner
-
-Author of [@SI_LIB].
-
-## Johel Ernesto Guerrero Peña
-
-Contributor to [@MP-UNITS] and many other Open Source projects.
-
-## Charles Hogg
-
-Author of [@AU].
 
 ## Vincent Reverdy
 

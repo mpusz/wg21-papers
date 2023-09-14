@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-09-12" />
+  <meta name="dcterms.date" content="2023-09-14" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-09-12</td>
+    <td>2023-09-14</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -461,12 +461,12 @@ Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateus
 <li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">1</span> Introduction<span></span></a></li>
 <li><a href="#about-authors" id="toc-about-authors"><span class="toc-section-number">2</span> About Authors<span></span></a>
 <ul>
-<li><a href="#mateusz-pusz" id="toc-mateusz-pusz"><span class="toc-section-number">2.1</span> Mateusz Pusz<span></span></a></li>
-<li><a href="#dominik-berner" id="toc-dominik-berner"><span class="toc-section-number">2.2</span> Dominik
+<li><a href="#dominik-berner" id="toc-dominik-berner"><span class="toc-section-number">2.1</span> Dominik
 Berner<span></span></a></li>
-<li><a href="#johel-ernesto-guerrero-peña" id="toc-johel-ernesto-guerrero-peña"><span class="toc-section-number">2.3</span> Johel Ernesto Guerrero
+<li><a href="#johel-ernesto-guerrero-peña" id="toc-johel-ernesto-guerrero-peña"><span class="toc-section-number">2.2</span> Johel Ernesto Guerrero
 Peña<span></span></a></li>
-<li><a href="#charles-hogg" id="toc-charles-hogg"><span class="toc-section-number">2.4</span> Charles Hogg<span></span></a></li>
+<li><a href="#charles-hogg" id="toc-charles-hogg"><span class="toc-section-number">2.3</span> Charles Hogg<span></span></a></li>
+<li><a href="#mateusz-pusz" id="toc-mateusz-pusz"><span class="toc-section-number">2.4</span> Mateusz Pusz<span></span></a></li>
 <li><a href="#vincent-reverdy" id="toc-vincent-reverdy"><span class="toc-section-number">2.5</span> Vincent
 Reverdy<span></span></a></li>
 </ul></li>
@@ -535,7 +535,14 @@ and broad experience in the subject, we agree that the interfaces we
 will provide in the upcoming proposals are the best we can get today in
 the C++ language.</p>
 <h1 data-number="2" id="about-authors"><span class="header-section-number">2</span> About Authors<a href="#about-authors" class="self-link"></a></h1>
-<h2 data-number="2.1" id="mateusz-pusz"><span class="header-section-number">2.1</span> Mateusz Pusz<a href="#mateusz-pusz" class="self-link"></a></h2>
+<h2 data-number="2.1" id="dominik-berner"><span class="header-section-number">2.1</span> Dominik Berner<a href="#dominik-berner" class="self-link"></a></h2>
+<p>Author of <span class="citation" data-cites="SI_LIB">[<a href="#ref-SI_LIB" role="doc-biblioref">SI library</a>]</span>.</p>
+<h2 data-number="2.2" id="johel-ernesto-guerrero-peña"><span class="header-section-number">2.2</span> Johel Ernesto Guerrero Peña<a href="#johel-ernesto-guerrero-peña" class="self-link"></a></h2>
+<p>Contributor to <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> and many
+other Open Source projects.</p>
+<h2 data-number="2.3" id="charles-hogg"><span class="header-section-number">2.3</span> Charles Hogg<a href="#charles-hogg" class="self-link"></a></h2>
+<p>Author of <span class="citation" data-cites="AU">[<a href="#ref-AU" role="doc-biblioref">Au</a>]</span>.</p>
+<h2 data-number="2.4" id="mateusz-pusz"><span class="header-section-number">2.4</span> Mateusz Pusz<a href="#mateusz-pusz" class="self-link"></a></h2>
 <p>Mateusz got interested in the physical units subject while
 contributing to the <span class="citation" data-cites="LK8000">[<a href="#ref-LK8000" role="doc-biblioref">LK8000</a>]</span> Tactical
 Flight Computer Open Source project over 10 years ago. The project’s
@@ -556,13 +563,6 @@ on this subject at various C++ conferences. He also approached the
 authors of other actively maintained libraries to get their feedback and
 invited them to work together to find and agree on the best solution for
 the C++ language. This paper is the result of those actions.</p>
-<h2 data-number="2.2" id="dominik-berner"><span class="header-section-number">2.2</span> Dominik Berner<a href="#dominik-berner" class="self-link"></a></h2>
-<p>Author of <span class="citation" data-cites="SI_LIB">[<a href="#ref-SI_LIB" role="doc-biblioref">SI library</a>]</span>.</p>
-<h2 data-number="2.3" id="johel-ernesto-guerrero-peña"><span class="header-section-number">2.3</span> Johel Ernesto Guerrero Peña<a href="#johel-ernesto-guerrero-peña" class="self-link"></a></h2>
-<p>Contributor to <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> and many
-other Open Source projects.</p>
-<h2 data-number="2.4" id="charles-hogg"><span class="header-section-number">2.4</span> Charles Hogg<a href="#charles-hogg" class="self-link"></a></h2>
-<p>Author of <span class="citation" data-cites="AU">[<a href="#ref-AU" role="doc-biblioref">Au</a>]</span>.</p>
 <h2 data-number="2.5" id="vincent-reverdy"><span class="header-section-number">2.5</span> Vincent Reverdy<a href="#vincent-reverdy" class="self-link"></a></h2>
 <p>Author of <span class="citation" data-cites="P1930R0">[<a href="#ref-P1930R0" role="doc-biblioref">P1930R0</a>]</span>.</p>
 <h1 data-number="3" id="motivation"><span class="header-section-number">3</span> Motivation<a href="#motivation" class="self-link"></a></h1>
