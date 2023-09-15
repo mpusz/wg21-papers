@@ -48,7 +48,21 @@ Author of [@SI_LIB].
 
 ## Johel Ernesto Guerrero Peña
 
-Contributor to [@MP-UNITS] and many other Open Source projects.
+Johel got interested in the units domain while writing his first hundred lines of game development.
+He got up to opening the game window, so this milestone was not reached until years later.
+Instead, he looked for the missing piece of abstraction,
+called "pixel" in the GUI framework, but modeled as an `int`.
+He found out about `nholthaus/units`, and
+got fascinated with the idea of a library that succinctly allows expressing his domain's units
+(<https://github.com/nholthaus/units/issues/124#issuecomment-390773279>).
+
+Computing systems engineer.
+(C++) programmer since 2014.
+Lives at HEAD with C++Next and good practices.
+Performs in-depth code reviews of familiarized code bases.
+Has an eye for identifying automation opportunities, and acts on them.
+Contributor to [@MP-UNITS], and previously `nholthaus/units` v3.
+Mostly at https://github.com/JohelEGP/.
 
 ## Charles Hogg
 
