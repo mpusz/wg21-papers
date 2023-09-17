@@ -1026,7 +1026,7 @@ references:
 - id: FLIGHT_6316
   citation-label: Flight 6316
   title: "Korean Air Flight 6316 MD-11, Shanghai, China - April 15, 1999"
-  URL: <https://ntsb.gov/news/press-releases/Pages/Korean_Air_Flight_6316_MD-11_Shanghai_China_-_April_15_1999.aspx>
+  URL: <https://web.archive.org/web/20210917190721/https://www.ntsb.gov/news/press-releases/Pages/Korean_Air_Flight_6316_MD-11_Shanghai_China_-_April_15_1999.aspx>
 - id: GIMLI_GLIDER
   citation-label: Gimli Glider
   title: "Gimli Glider"
