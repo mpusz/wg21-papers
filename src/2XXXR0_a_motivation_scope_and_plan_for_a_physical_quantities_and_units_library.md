@@ -121,9 +121,8 @@ It is no longer only the space industry or experienced pilots that benefit from 
 operations of some machines. We live in a world where more and more ordinary people trust
 machines with their lives daily. In the near future, we will be allowed to sleep while our
 car autonomously drives us home from a late party. As a result, much more C++ engineers are
-expected to write life-critical software today than it was a few years ago. Unfortunately,
-there is insufficient training and experience in that domain, and the C++ language does not
-change fast enough to enforce safe-by-construction code.
+expected to write life-critical software today than it was a few years ago. However writing safety-ciritical code requires extensive training and experiece, both which are in short demand. While there exists some standards and guidelines such as MISRA C++ [@MISRA_CPP] with the aim of enforcing the creation of safe code in C++, they are cumbersome to use and tend to shift the burden on the discipline of the programmers to enforce these. At the time of writing the C++ language does not change fast enough to enforce safe-by-construction code.
+
 
 One of the areas where C++ can significantly improve the safety of applications being written
 by thousands of developers is introducing a type-safe, well-tested, standardized way to handle
@@ -209,7 +208,7 @@ values representing the wrong quantity or having an incorrect unit.
 
 ## Standardizing existing practice
 
-Plenty of physical units libraries have been on the market for many years. Through the years,
+Plenty of physical units libraries have been available to the public for many years. Through the years,
 we have learned the best practices for handling specific cases in the domain. Various products
 may have different scopes and support different C++ versions. Still, taking that aside, they use
 really similar concepts, types, and operations under the hood. We know how to do those things already.
@@ -559,7 +558,7 @@ and early feedback, we encourage everyone to check the documentation of the [@MP
 ## Basic Framework
 
 | Feature                                | Priority | Description                                                                                                                    |
-|----------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------|
+| -------------------------------------- | :------: | ------------------------------------------------------------------------------------------------------------------------------ |
 | Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them         |
 | Quantity Kinds                         |    1     | `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities         |
 | Various quantities of the same kind    |    1     | `width`, `height`, `wavelength` (all of the kind `length`) should be distinct quantities                                       |
@@ -570,13 +569,13 @@ and early feedback, we encourage everyone to check the documentation of the [@MP
 ## The Affine Space
 
 | Feature          | Priority | Description                                                |
-|------------------|:--------:|------------------------------------------------------------|
+| ---------------- | :------: | ---------------------------------------------------------- |
 | The Affine Space |    1     | `std::quantity_point`, absolute and relative point origins |
 
 ## Text Output
 
 | Feature                | Priority | Description                                                           |
-|------------------------|:--------:|-----------------------------------------------------------------------|
+| ---------------------- | :------: | --------------------------------------------------------------------- |
 | `quantity` text output |    1     | Text output for quantity variables (number + unit)                    |
 | Units text output      |    2     | Text output for unit variables                                        |
 | Dimensions text output |    2     | Text output for dimension variables                                   |
@@ -593,7 +592,7 @@ plan to propose any support for doing that for physical quantities and their uni
 ## Systems of quantities
 
 | Feature                           | Priority | Description                                                                                                                                                                                                                      |
-|-----------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------- | :------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | The most important ISQ quantities |    1     | Specification of the most commonly used ISQ quantities                                                                                                                                                                           |
 | ISQ 3-6                           |    1     | Specification of the ISQ quantities specified in ISO/IEC 80000 parts 3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)                                                                                         |
 | ISQ 7-12                          |    3     | Specification of the ISQ quantities specified in ISO 80000 parts 7 - 12 (Light and radiation, Acoustics, Physical chemistry and molecular physics, Atomic and nuclear physics, Characteristic numbers, Condensed matter physics) |
@@ -602,7 +601,7 @@ plan to propose any support for doing that for physical quantities and their uni
 ## Systems of units
 
 | Feature       | Priority | Description                                                                  |
-|---------------|:--------:|------------------------------------------------------------------------------|
+| ------------- | :------: | ---------------------------------------------------------------------------- |
 | SI            |    1     | All the units, prefixes, and symbols (including prefixed versions) of the SI |
 | International |    1     | International yard and pound units system                                    |
 | Imperial      |    2     | Imperial units system                                                        |
@@ -614,7 +613,7 @@ plan to propose any support for doing that for physical quantities and their uni
 ## Utilities
 
 | Feature               | Priority | Description                                                                                                                   |
-|-----------------------|:--------:|-------------------------------------------------------------------------------------------------------------------------------|
+| --------------------- | :------: | ----------------------------------------------------------------------------------------------------------------------------- |
 | `std::chrono` support |    2     | Customization points that enable support for `std::chrono_duration` and `std::chrono_time_point` and other external libraries |
 | Math                  |    2     | Common mathematical functions on quantities                                                                                   |
 | Random                |    3     | Random number generators of quantities                                                                                        |
@@ -629,7 +628,7 @@ will miss the train and we will have to wait three more years. However, having a
 by LEWG will help to keep the efforts on track.
 
 | Meeting            | C++ Milestones                                     | Activities                                                                                                                                   |
-|--------------------|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------ | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG<br>Paper about safety benefits and concerns to SG23<br>Paper about quantity arithmetics to SG6  |
 | 2024.1 (Tokyo)     |                                                    | Paper on the Basic Framework (priority 1 features) to LEWG<br>Paper about text output to SG16<br>Paper about math utilities to SG6           |
 | 2024.2 (Stockholm) |                                                    | Paper on the Basic Framework (priority 2 features) to SG6<br>Paper about the Affine Space to LEWG<br>Move quantity arithmetics paper to LEWG |
@@ -740,4 +739,8 @@ references:
   citation-label: Wild Rice
   title: "Manufacturers, exporters think metric"
   URL: <https://www.bizjournals.com/eastbay/stories/2001/07/09/focus3.html>
+- id: MISRA_CPP
+  citation-label: MISRA C++
+  title: "MISRA C++:2008 Guidelines for the use of the C++ language in critical systems"
+  URL: <https://misra.org.uk/misra-c-plus-plus/>
 ---
