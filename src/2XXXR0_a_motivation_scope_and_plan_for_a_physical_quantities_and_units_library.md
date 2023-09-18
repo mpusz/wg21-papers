@@ -44,7 +44,7 @@ the best we can get today in the C++ language.
 
 ## Dominik Berner
 
-Dominik is a strong believer that the C++ language can provide very high safety guarantees when programming through strong typing - A type error catched during compilation saves hours of debugging. Since the last 15 years he mainly codes in C++ an actively follows its evolution through the new standards. 
+Dominik is a strong believer that the C++ language can provide very high safety guarantees when programming through strong typing; a type error catched during compilation saves hours of debugging. Since the last 15 years, he mainly codes in C++ and actively follows its evolution through the new standards. 
 
 When working in Med-Tech on regulated projects there usually where very close requirements on which datatypes were to be used for what, however these eventually were just lists of primitives to be memorized by each developer. However throughout his career Dominik spent way too many hours debugging and fixing issues caused by these types being incorrect. In an attempt to bring a closer semantic meaning to these list he eventually wrote [@SI_LIB] as a side project.
 
