@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-09-17" />
+  <meta name="dcterms.date" content="2023-09-18" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-09-17</td>
+    <td>2023-09-18</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -536,7 +536,28 @@ will provide in the upcoming proposals are the best we can get today in
 the C++ language.</p>
 <h1 data-number="2" id="about-authors"><span class="header-section-number">2</span> About Authors<a href="#about-authors" class="self-link"></a></h1>
 <h2 data-number="2.1" id="dominik-berner"><span class="header-section-number">2.1</span> Dominik Berner<a href="#dominik-berner" class="self-link"></a></h2>
-<p>Author of <span class="citation" data-cites="SI_LIB">[<a href="#ref-SI_LIB" role="doc-biblioref">SI library</a>]</span>.</p>
+<p>Dominik is a strong believer that the C++ language can provide very
+high safety guarantees when programming through strong typing; a type
+error caught during compilation saves hours of debugging. For the last
+15 years, he has mainly coded in C++ and actively follows its evolution
+through the new standards.</p>
+<p>When working on regulated projects at Med-Tech, there usually were
+very tight requirements on which datatypes were to be used for what,
+which turned out to be lists of primitives to be memorized by each
+developer. However, throughout his career, Dominik spent way too many
+hours debugging and fixing issues caused by these types being incorrect.
+In an attempt to bring a closer semantic meaning to these lists, he
+eventually wrote <span class="citation" data-cites="SI_LIB">[<a href="#ref-SI_LIB" role="doc-biblioref">SI library</a>]</span> as a side
+project.</p>
+<p>While <span class="citation" data-cites="SI_LIB">[<a href="#ref-SI_LIB" role="doc-biblioref">SI library</a>]</span> provides
+many useful features, such as type-safe conversion between physical
+quantities as well as zero-overhead computation for values of the same
+units, there are some shortcomings which would require major rework.
+Instead of creating yet another library, Dominik decided to join forces
+with the other authors of this paper to push for standardizing support
+for more type-safety for physical quantities. He hopes that this will
+eventually lead to a safer and more robust C++ and open many more
+opportunities for the language.</p>
 <h2 data-number="2.2" id="johel-ernesto-guerrero-peña"><span class="header-section-number">2.2</span> Johel Ernesto Guerrero Peña<a href="#johel-ernesto-guerrero-peña" class="self-link"></a></h2>
 <p>Johel got interested in the units domain while writing his first
 hundred lines of game development. He got up to opening the game window,

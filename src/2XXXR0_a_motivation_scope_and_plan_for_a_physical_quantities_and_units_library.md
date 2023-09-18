@@ -44,11 +44,24 @@ the best we can get today in the C++ language.
 
 ## Dominik Berner
 
-Dominik is a strong believer that the C++ language can provide very high safety guarantees when programming through strong typing; a type error catched during compilation saves hours of debugging. Since the last 15 years, he mainly codes in C++ and actively follows its evolution through the new standards. 
+Dominik is a strong believer that the C++ language can provide very high safety guarantees when
+programming through strong typing; a type error caught during compilation saves hours of
+debugging. For the last 15 years, he has mainly coded in C++ and actively follows its evolution
+through the new standards.
 
-When working on regulated projects at Med-Tech, there usually were very tight requirements on which datatypes were to be used for what, which turned out to be lists of primitives to be memorized by each developer. However, throughout his career, Dominik spent way too many hours debugging and fixing issues caused by these types being incorrect. In an attempt to bring a closer semantic meaning to these lists, he eventually wrote [@SI_LIB] as a side project.
+When working on regulated projects at Med-Tech, there usually were very tight requirements on
+which datatypes were to be used for what, which turned out to be lists of primitives to be
+memorized by each developer. However, throughout his career, Dominik spent way too many hours
+debugging and fixing issues caused by these types being incorrect. In an attempt to bring
+a closer semantic meaning to these lists, he eventually wrote [@SI_LIB] as a side project.
 
-While SI provides many useful features such as type safe conversion between physical quantities as well as zero-overhead computation for values of the same units, there are some shortcomings which would require major rework. Instead of creating yet another library, Dominik decided to join forces with the other authors of this paper to push for standardizing support for more type-safety for physical quantities. He hopes that this will eventually lead to a safer and more robust C++ and open many more opportunities for the language.
+While [@SI_LIB] provides many useful features, such as type-safe conversion between physical
+quantities as well as zero-overhead computation for values of the same units, there are some
+shortcomings which would require major rework. Instead of creating yet another library,
+Dominik decided to join forces with the other authors of this paper to push for standardizing
+support for more type-safety for physical quantities. He hopes that this will eventually lead
+to a safer and more robust C++ and open many more opportunities for the language.
+
 ## Johel Ernesto Guerrero Peña
 
 Johel got interested in the units domain while writing his first hundred lines of game development.
