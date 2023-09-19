@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-09-17" />
+  <meta name="dcterms.date" content="2023-09-19" />
   <title>Improving our safety with a physical quantities and units
 library</title>
   <style>
@@ -429,7 +429,7 @@ physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-09-17</td>
+    <td>2023-09-19</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -472,6 +472,8 @@ numbers<span></span></a></li>
 macros<span></span></a></li>
 <li><a href="#lack-of-consistency" id="toc-lack-of-consistency"><span class="toc-section-number">5.4</span> Lack of
 consistency<span></span></a></li>
+<li><a href="#lack-of-a-conceptual-framework" id="toc-lack-of-a-conceptual-framework"><span class="toc-section-number">5.5</span> Lack of a conceptual
+framework<span></span></a></li>
 </ul></li>
 <li><a href="#safety-features" id="toc-safety-features"><span class="toc-section-number">6</span> Safety Features<span></span></a>
 <ul>
@@ -563,7 +565,7 @@ autonomous cars, or embedded industries. That is all true, but there are
 many other potential users for such a library.</p>
 <p>Here is a list of some less obvious candidates:</p>
 <ul>
-<li>manufacturing,</li>
+<li>Manufacturing,</li>
 <li>maritime industry,</li>
 <li>freight transport,</li>
 <li>military,</li>
@@ -574,7 +576,7 @@ many other potential users for such a library.</p>
 <li>all kinds of navigation and charting,</li>
 <li>GUI frameworks,</li>
 <li>finance (including HFT),</li>
-<li>and many more…</li>
+<li>and many more.</li>
 </ul>
 <p>As we can see, the applications of such a library are so vast. Most
 users benefit from strong types and automated conversions for various
@@ -585,7 +587,7 @@ abstractions, which may also be used in many other domains.</p>
 mistakes in calculations involving different physical units. The most
 famous and probably the most expensive example in the software
 engineering domain is the Mars Climate Orbiter that in 1999 failed to
-enter Mars orbit and crashed while entering its atmosphere <span class="citation" data-cites="MARS_ORBITER">[<a href="#ref-MARS_ORBITER" role="doc-biblioref">Mars Orbiter</a>]</span>. This is one of many
+enter Mars’ orbit and crashed while entering its atmosphere <span class="citation" data-cites="MARS_ORBITER">[<a href="#ref-MARS_ORBITER" role="doc-biblioref">Mars Orbiter</a>]</span>. This is one of many
 examples here. People tend to confuse units quite often. We see similar
 errors occurring in various domains over the years:</p>
 <ul>
@@ -726,6 +728,20 @@ up in an awful place:</p>
 <span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>                         <span class="dt">double</span> <span class="op">*</span>xtd, <span class="dt">double</span> <span class="op">*</span>crs<span class="op">)</span>;</span></code></pre></div>
 <p><a href="https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Header/NavFunctions.h#L7C1-L27">Original
 code here</a>.</p>
+<h2 data-number="5.5" id="lack-of-a-conceptual-framework"><span class="header-section-number">5.5</span> Lack of a conceptual
+framework<a href="#lack-of-a-conceptual-framework" class="self-link"></a></h2>
+<p>The previous points mean that the type system isn’t leveraged to
+model the different concepts of quantities and units frameworks.</p>
+<p>There is no vocabulary between libraries. User-facing APIs use ad-hoc
+conventions. Even internal interfaces are inconsistent between
+themselves.</p>
+<p>Arithmetic types such as <code class="sourceCode default">int</code>
+and <code class="sourceCode default">double</code> are used to model
+different concepts. They are used to represent any quantity (be it a
+magnitude, difference, point, or kind), of any unit. These are weak
+types that make up weakly typed interfaces. The resulting interfaces and
+implementations built with these types easily allow mixing up parameters
+and using operations that are not part of the represented quantity.</p>
 <h1 data-number="6" id="safety-features"><span class="header-section-number">6</span> Safety Features<a href="#safety-features" class="self-link"></a></h1>
 <p>This chapter will describe the features that enforce safety in our
 code bases. We will start with obvious things but then will move to
@@ -1141,20 +1157,20 @@ of quantities of kind length.</p>
 <ol type="1">
 <li><p><strong>Implicit conversions</strong></p>
 <ul>
-<li>every <code class="sourceCode default">width</code> is a
-<code class="sourceCode default">length</code></li>
-<li>every <code class="sourceCode default">radius</code> is a
-<code class="sourceCode default">width</code></li>
+<li>Every <code class="sourceCode default">width</code> is a
+<code class="sourceCode default">length</code>.</li>
+<li>Every <code class="sourceCode default">radius</code> is a
+<code class="sourceCode default">width</code>.</li>
 </ul>
 <div class="sourceCode" id="cb41"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>width, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>radius, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>radius, isq<span class="op">::</span>width<span class="op">))</span>;</span></code></pre></div></li>
 <li><p><strong>Explicit conversions</strong></p>
 <ul>
-<li>not every <code class="sourceCode default">length</code> is a
-<code class="sourceCode default">width</code></li>
-<li>not every <code class="sourceCode default">width</code> is a
-<code class="sourceCode default">radius</code></li>
+<li>Not every <code class="sourceCode default">length</code> is a
+<code class="sourceCode default">width</code>.</li>
+<li>Not every <code class="sourceCode default">width</code> is a
+<code class="sourceCode default">radius</code>.</li>
 </ul>
 <div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>length, isq<span class="op">::</span>width<span class="op">))</span>;</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>length, isq<span class="op">::</span>radius<span class="op">))</span>;</span>
@@ -1171,10 +1187,10 @@ type:</p>
 <li><p><strong>Explicit casts</strong></p>
 <ul>
 <li><code class="sourceCode default">height</code> is not a
-<code class="sourceCode default">width</code></li>
-<li>both <code class="sourceCode default">height</code> and
+<code class="sourceCode default">width</code>.</li>
+<li>Both <code class="sourceCode default">height</code> and
 <code class="sourceCode default">width</code> are quantities of kind
-<code class="sourceCode default">length</code></li>
+<code class="sourceCode default">length</code>.</li>
 </ul>
 <div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>height, isq<span class="op">::</span>width<span class="op">))</span>;</span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>height, isq<span class="op">::</span>width<span class="op">))</span>;</span>
@@ -1187,7 +1203,7 @@ explicit casts are forced with a dedicated
 <li><p><strong>No conversion</strong></p>
 <ul>
 <li><code class="sourceCode default">time</code> has nothing in common
-with <code class="sourceCode default">length</code></li>
+with <code class="sourceCode default">length</code>.</li>
 </ul>
 <div class="sourceCode" id="cb46"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>time, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>time, isq<span class="op">::</span>length<span class="op">))</span>;</span>
@@ -1355,6 +1371,7 @@ just use simple mode for the remaining quantities. We can easily mix
 simple and strongly-typed quantities in our projects and the library
 will do its best to protect us based on the information provided.</p>
 <h2 data-number="6.10" id="non-negative-quantities"><span class="header-section-number">6.10</span> non-negative quantities<a href="#non-negative-quantities" class="self-link"></a></h2>
+<p>https://github.com/mpusz/mp-units/issues/468</p>
 <h2 data-number="6.11" id="safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm"><span class="header-section-number">6.11</span> Safe equations (arithmetic,
 quantity character, multiplication, division, dot, cross, norm)<a href="#safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm" class="self-link"></a></h2>
 <p>https://github.com/mpusz/mp-units/issues/432</p>
