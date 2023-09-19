@@ -54,7 +54,7 @@ is all true, but there are many other potential users for such a library.
 
 Here is a list of some less obvious candidates:
 
-- manufacturing,
+- Manufacturing,
 - maritime industry,
 - freight transport,
 - military,
@@ -65,7 +65,7 @@ Here is a list of some less obvious candidates:
 - all kinds of navigation and charting,
 - GUI frameworks,
 - finance (including HFT),
-- and many more...
+- and many more.
 
 As we can see, the applications of such a library are so vast. Most users benefit from strong
 types and automated conversions for various quantities and units. However, the library also provides
@@ -76,7 +76,7 @@ affine space abstractions, which may also be used in many other domains.
 
 Human history knows many expensive failures and accidents caused by mistakes in calculations involving
 different physical units. The most famous and probably the most expensive example in the software
-engineering domain is the Mars Climate Orbiter that in 1999 failed to enter Mars orbit and crashed
+engineering domain is the Mars Climate Orbiter that in 1999 failed to enter Mars' orbit and crashed
 while entering its atmosphere [@MARS_ORBITER]. This is one of many examples here. People tend to
 confuse units quite often. We see similar errors occurring in various domains over the years:
 
@@ -728,8 +728,8 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
 
 1. **Implicit conversions**
 
-    - every `width` is a `length`
-    - every `radius` is a `width`
+    - Every `width` is a `length`.
+    - Every `radius` is a `width`.
 
     ```cpp
     static_assert(implicitly_convertible(isq::width, isq::length));
@@ -739,8 +739,8 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
 
 2. **Explicit conversions**
 
-    - not every `length` is a `width`
-    - not every `width` is a `radius`
+    - Not every `length` is a `width`.
+    - Not every `width` is a `radius`.
 
     ```cpp
     static_assert(!implicitly_convertible(isq::length, isq::width));
@@ -761,8 +761,8 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
 
 3. **Explicit casts**
 
-    - `height` is not a `width`
-    - both `height` and `width` are quantities of kind `length`
+    - `height` is not a `width`.
+    - Both `height` and `width` are quantities of kind `length`.
 
     ```cpp
     static_assert(!implicitly_convertible(isq::height, isq::width));
@@ -779,7 +779,7 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
 
 4. **No conversion**
 
-    - `time` has nothing in common with `length`
+    - `time` has nothing in common with `length`.
 
     ```cpp
     static_assert(!implicitly_convertible(isq::time, isq::length));
@@ -970,6 +970,8 @@ the remaining quantities. We can easily mix simple and strongly-typed quantities
 and the library will do its best to protect us based on the information provided.
 
 ## non-negative quantities
+
+https://github.com/mpusz/mp-units/issues/468
 
 
 ## Safe equations (arithmetic, quantity character, multiplication, division, dot, cross, norm)
