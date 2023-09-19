@@ -132,7 +132,7 @@ communicating or using proper units both in the code and in daily life. Numerous
 expensive failures and accidents happened because of using an invalid unit or a quantity type.
 
 The most famous and probably the most expensive example in the software engineering domain is
-the Mars Climate Orbiter that in 1999 failed to enter Mars orbit and crashed while entering
+the Mars Climate Orbiter that in 1999 failed to enter Mars' orbit and crashed while entering
 its atmosphere [@MARS_ORBITER]. This is one of many examples here. People tend to confuse units
 quite often. We see similar errors occurring in various domains over the years:
 
