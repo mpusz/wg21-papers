@@ -222,6 +222,21 @@ double ProjectedDistance(double lon1, double lat1,
 
 [Original code here](https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Header/NavFunctions.h#L7C1-L27).
 
+## Lack of a conceptual framework
+
+The previous points mean that the type system isn't leveraged
+to model the different concepts of quantities and units frameworks.
+
+There is no vocabulary between libraries.
+User-facing APIs use ad-hoc conventions.
+Even internal interfaces are inconsistent between themselves.
+
+Arithmetic types such as `int` and `double` are used to model different concepts.
+They are used to represent any quantity (be it a magnitude, difference, point, or kind), of any unit.
+These are weak types that make up weakly typed interfaces.
+The resulting interfaces and implementations built with these types
+easily allow mixing up parameters and using operations that are not part of the represented quantity.
+
 
 # Safety Features
 
