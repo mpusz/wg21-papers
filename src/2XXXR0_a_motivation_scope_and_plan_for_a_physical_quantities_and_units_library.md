@@ -78,7 +78,7 @@ Lives at HEAD with C++Next and good practices.
 Performs in-depth code reviews of familiarized code bases.
 Has an eye for identifying automation opportunities, and acts on them.
 Contributor to [@MP-UNITS], and previously `nholthaus/units` v3.
-Mostly at https://github.com/JohelEGP/.
+Mostly at <https://github.com/JohelEGP/>.
 
 ## Charles Hogg
 
@@ -201,8 +201,8 @@ the above reasons. In that case, they are forced to write their own abstractions
 Besides being costly and time-consuming, it also happens that writing a physical quantities and
 units library by yourself is far from easy. Doing this is complex and complicated, especially for
 engineers who are not experts in the domain. There are many exceptional corner cases to cover
-that most developers do not even realize before falling into a trap in production. On the other 
-hand domain experts might find it difficult to put their knowledge into code and create a correct implementation in C++. 
+that most developers do not even realize before falling into a trap in production. On the other
+hand domain experts might find it difficult to put their knowledge into code and create a correct implementation in C++.
 As a result, companies either use really simple and unsafe numeric wrappers or abandon the effort totally
 and just use `double` to express quantity values which lead to safety issues by accidentally using
 values representing the wrong quantity or having an incorrect unit.
@@ -559,7 +559,7 @@ and early feedback, we encourage everyone to check the documentation of the [@MP
 ## Basic Framework
 
 | Feature                                | Priority | Description                                                                                                                    |
-| -------------------------------------- | :------: | ------------------------------------------------------------------------------------------------------------------------------ |
+|----------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------|
 | Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them         |
 | Quantity Kinds                         |    1     | `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities         |
 | Various quantities of the same kind    |    1     | `width`, `height`, `wavelength` (all of the kind `length`) should be distinct quantities                                       |
@@ -570,13 +570,13 @@ and early feedback, we encourage everyone to check the documentation of the [@MP
 ## The Affine Space
 
 | Feature          | Priority | Description                                                |
-| ---------------- | :------: | ---------------------------------------------------------- |
+|------------------|:--------:|------------------------------------------------------------|
 | The Affine Space |    1     | `std::quantity_point`, absolute and relative point origins |
 
 ## Text Output
 
 | Feature                | Priority | Description                                                           |
-| ---------------------- | :------: | --------------------------------------------------------------------- |
+|------------------------|:--------:|-----------------------------------------------------------------------|
 | `quantity` text output |    1     | Text output for quantity variables (number + unit)                    |
 | Units text output      |    2     | Text output for unit variables                                        |
 | Dimensions text output |    2     | Text output for dimension variables                                   |
@@ -593,7 +593,7 @@ plan to propose any support for doing that for physical quantities and their uni
 ## Systems of quantities
 
 | Feature                           | Priority | Description                                                                                                                                                                                                                      |
-| --------------------------------- | :------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | The most important ISQ quantities |    1     | Specification of the most commonly used ISQ quantities                                                                                                                                                                           |
 | ISQ 3-6                           |    1     | Specification of the ISQ quantities specified in ISO/IEC 80000 parts 3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)                                                                                         |
 | ISQ 7-12                          |    3     | Specification of the ISQ quantities specified in ISO 80000 parts 7 - 12 (Light and radiation, Acoustics, Physical chemistry and molecular physics, Atomic and nuclear physics, Characteristic numbers, Condensed matter physics) |
@@ -602,7 +602,7 @@ plan to propose any support for doing that for physical quantities and their uni
 ## Systems of units
 
 | Feature       | Priority | Description                                                                  |
-| ------------- | :------: | ---------------------------------------------------------------------------- |
+|---------------|:--------:|------------------------------------------------------------------------------|
 | SI            |    1     | All the units, prefixes, and symbols (including prefixed versions) of the SI |
 | International |    1     | International yard and pound units system                                    |
 | Imperial      |    2     | Imperial units system                                                        |
@@ -614,7 +614,7 @@ plan to propose any support for doing that for physical quantities and their uni
 ## Utilities
 
 | Feature               | Priority | Description                                                                                                                   |
-| --------------------- | :------: | ----------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------|:--------:|-------------------------------------------------------------------------------------------------------------------------------|
 | `std::chrono` support |    2     | Customization points that enable support for `std::chrono_duration` and `std::chrono_time_point` and other external libraries |
 | Math                  |    2     | Common mathematical functions on quantities                                                                                   |
 | Random                |    3     | Random number generators of quantities                                                                                        |
@@ -629,7 +629,7 @@ will miss the train and we will have to wait three more years. However, having a
 by LEWG will help to keep the efforts on track.
 
 | Meeting            | C++ Milestones                                     | Activities                                                                                                                                   |
-| ------------------ | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+|--------------------|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
 | 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG<br>Paper about safety benefits and concerns to SG23<br>Paper about quantity arithmetics to SG6  |
 | 2024.1 (Tokyo)     |                                                    | Paper on the Basic Framework (priority 1 features) to LEWG<br>Paper about text output to SG16<br>Paper about math utilities to SG6           |
 | 2024.2 (Stockholm) |                                                    | Paper on the Basic Framework (priority 2 features) to SG6<br>Paper about the Affine Space to LEWG<br>Move quantity arithmetics paper to LEWG |
