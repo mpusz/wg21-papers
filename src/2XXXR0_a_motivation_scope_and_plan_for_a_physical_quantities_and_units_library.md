@@ -78,7 +78,7 @@ Lives at HEAD with C++Next and good practices.
 Performs in-depth code reviews of familiarized code bases.
 Has an eye for identifying automation opportunities, and acts on them.
 Contributor to [@MP-UNITS], and previously `nholthaus/units` v3.
-Mostly at https://github.com/JohelEGP/.
+Mostly at <https://github.com/JohelEGP/>.
 
 ## Charles Hogg
 
@@ -121,9 +121,8 @@ It is no longer only the space industry or experienced pilots that benefit from 
 operations of some machines. We live in a world where more and more ordinary people trust
 machines with their lives daily. In the near future, we will be allowed to sleep while our
 car autonomously drives us home from a late party. As a result, much more C++ engineers are
-expected to write life-critical software today than it was a few years ago. Unfortunately,
-there is insufficient training and experience in that domain, and the C++ language does not
-change fast enough to enforce safe-by-construction code.
+expected to write life-critical software today than it was a few years ago. However writing safety-ciritical code requires extensive training and experiece, both which are in short demand. While there exists some standards and guidelines such as MISRA C++ [@MISRA_CPP] with the aim of enforcing the creation of safe code in C++, they are cumbersome to use and tend to shift the burden on the discipline of the programmers to enforce these. At the time of writing the C++ language does not change fast enough to enforce safe-by-construction code.
+
 
 One of the areas where C++ can significantly improve the safety of applications being written
 by thousands of developers is introducing a type-safe, well-tested, standardized way to handle
@@ -136,7 +135,7 @@ the Mars Climate Orbiter that in 1999 failed to enter Mars' orbit and crashed wh
 its atmosphere [@MARS_ORBITER]. This is one of many examples here. People tend to confuse units
 quite often. We see similar errors occurring in various domains over the years:
 
-- On October 12, 1492, Christopher Columbus unintentionally discovered America because, during
+- On October 12, 1492, Christopher Columbus unintentionally discovered the sea route from Europe to America because, during
   his travel preparations, he mixed the Arabic mile with a Roman mile, which led to the wrong estimation
   of the equator and his expected travel distance [@COLUMBUS].
 - In 1628, a new warship, Vasa, accidentally had an asymmetrical hull (being thicker on the port side
@@ -155,7 +154,7 @@ quite often. We see similar errors occurring in various domains over the years:
   fit it into" [@STONEHENGE].
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a miscommunication between
   pilots about the desired flight altitude [@FLIGHT_6316].
-- In February 2001, the Zoo crew built an enclosure for Clarence the Tortoise with a weight of
+- In February 2001, the crew of the Moorpark College Zoo built an enclosure for Clarence the Tortoise with a weight of
   250 pounds instead of 250 kilograms [@CLARENCE].
 - In December 2003, one of the roller coaster’s cars at Tokyo Disneyland’s Space Mountain attraction
   suddenly derailed due to a broken axle caused by confusion after upgrading the specification
@@ -199,17 +198,18 @@ physical quantities and units libraries.
 
 For example, suppose vendors can't use an Open Source library in a production project for
 the above reasons. In that case, they are forced to write their own abstractions by themselves.
-Besides being not cost and time-effective, it also happens that writing a physical quantities and
+Besides being costly and time-consuming, it also happens that writing a physical quantities and
 units library by yourself is far from easy. Doing this is complex and complicated, especially for
 engineers who are not experts in the domain. There are many exceptional corner cases to cover
-that most developers do not even realize before falling into a trap in production. As
-a result, companies either use really simple and unsafe numeric wrappers or abandon the effort totally
+that most developers do not even realize before falling into a trap in production. On the other
+hand domain experts might find it difficult to put their knowledge into code and create a correct implementation in C++.
+As a result, companies either use really simple and unsafe numeric wrappers or abandon the effort totally
 and just use `double` to express quantity values which lead to safety issues by accidentally using
 values representing the wrong quantity or having an incorrect unit.
 
 ## Standardizing existing practice
 
-Plenty of physical units libraries have been on the market for many years. Through the years,
+Plenty of physical units libraries have been available to the public for many years. Through the years,
 we have learned the best practices for handling specific cases in the domain. Various products
 may have different scopes and support different C++ versions. Still, taking that aside, they use
 really similar concepts, types, and operations under the hood. We know how to do those things already.
@@ -740,4 +740,8 @@ references:
   citation-label: Wild Rice
   title: "Manufacturers, exporters think metric"
   URL: <https://www.bizjournals.com/eastbay/stories/2001/07/09/focus3.html>
+- id: MISRA_CPP
+  citation-label: MISRA C++
+  title: "MISRA C++:2008 Guidelines for the use of the C++ language in critical systems"
+  URL: <https://misra.org.uk/misra-c-plus-plus/>
 ---
