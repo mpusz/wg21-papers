@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-09-19" />
+  <meta name="dcterms.date" content="2023-09-22" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-09-19</td>
+    <td>2023-09-22</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -572,8 +572,7 @@ his domain’s units (<a href="https://github.com/nholthaus/units/issues/124#iss
 HEAD with C++Next and good practices. Performs in-depth code reviews of
 familiarized code bases. Has an eye for identifying automation
 opportunities, and acts on them. Contributor to <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, and previously
-<code class="sourceCode default">nholthaus/units</code> v3. Mostly at
-https://github.com/JohelEGP/.</p>
+<code class="sourceCode default">nholthaus/units</code> v3. Mostly at <a href="https://github.com/JohelEGP/" class="uri">https://github.com/JohelEGP/</a>.</p>
 <h2 data-number="2.3" id="charles-hogg"><span class="header-section-number">2.3</span> Charles Hogg<a href="#charles-hogg" class="self-link"></a></h2>
 <p>Author of <span class="citation" data-cites="AU">[<a href="#ref-AU" role="doc-biblioref">Au</a>]</span>.</p>
 <h2 data-number="2.4" id="mateusz-pusz"><span class="header-section-number">2.4</span> Mateusz Pusz<a href="#mateusz-pusz" class="self-link"></a></h2>
@@ -609,9 +608,14 @@ world where more and more ordinary people trust machines with their
 lives daily. In the near future, we will be allowed to sleep while our
 car autonomously drives us home from a late party. As a result, much
 more C++ engineers are expected to write life-critical software today
-than it was a few years ago. Unfortunately, there is insufficient
-training and experience in that domain, and the C++ language does not
-change fast enough to enforce safe-by-construction code.</p>
+than it was a few years ago. However writing safety-ciritical code
+requires extensive training and experiece, both which are in short
+demand. While there exists some standards and guidelines such as MISRA
+C++ <span class="citation" data-cites="MISRA_CPP">[<a href="#ref-MISRA_CPP" role="doc-biblioref">MISRA C++</a>]</span> with
+the aim of enforcing the creation of safe code in C++, they are
+cumbersome to use and tend to shift the burden on the discipline of the
+programmers to enforce these. At the time of writing the C++ language
+does not change fast enough to enforce safe-by-construction code.</p>
 <p>One of the areas where C++ can significantly improve the safety of
 applications being written by thousands of developers is introducing a
 type-safe, well-tested, standardized way to handle physical quantities
@@ -628,9 +632,10 @@ often. We see similar errors occurring in various domains over the
 years:</p>
 <ul>
 <li>On October 12, 1492, Christopher Columbus unintentionally discovered
-America because, during his travel preparations, he mixed the Arabic
-mile with a Roman mile, which led to the wrong estimation of the equator
-and his expected travel distance <span class="citation" data-cites="COLUMBUS">[<a href="#ref-COLUMBUS" role="doc-biblioref">Columbus</a>]</span>.</li>
+the sea route from Europe to America because, during his travel
+preparations, he mixed the Arabic mile with a Roman mile, which led to
+the wrong estimation of the equator and his expected travel distance
+<span class="citation" data-cites="COLUMBUS">[<a href="#ref-COLUMBUS" role="doc-biblioref">Columbus</a>]</span>.</li>
 <li>In 1628, a new warship, Vasa, accidentally had an asymmetrical hull
 (being thicker on the port side than the starboard side), which was one
 of the reasons for her sinking less than a mile into her maiden voyage,
@@ -653,8 +658,9 @@ to make but there was not a building on earth that you could fit it
 into” <span class="citation" data-cites="STONEHENGE">[<a href="#ref-STONEHENGE" role="doc-biblioref">Stonehenge</a>]</span>.</li>
 <li>On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a
 miscommunication between pilots about the desired flight altitude <span class="citation" data-cites="FLIGHT_6316">[<a href="#ref-FLIGHT_6316" role="doc-biblioref">Flight 6316</a>]</span>.</li>
-<li>In February 2001, the Zoo crew built an enclosure for Clarence the
-Tortoise with a weight of 250 pounds instead of 250 kilograms <span class="citation" data-cites="CLARENCE">[<a href="#ref-CLARENCE" role="doc-biblioref">Clarence</a>]</span>.</li>
+<li>In February 2001, the crew of the Moorpark College Zoo built an
+enclosure for Clarence the Tortoise with a weight of 250 pounds instead
+of 250 kilograms <span class="citation" data-cites="CLARENCE">[<a href="#ref-CLARENCE" role="doc-biblioref">Clarence</a>]</span>.</li>
 <li>In December 2003, one of the roller coaster’s cars at Tokyo
 Disneyland’s Space Mountain attraction suddenly derailed due to a broken
 axle caused by confusion after upgrading the specification from imperial
@@ -703,22 +709,24 @@ physical quantities and units libraries.</p>
 <h2 data-number="3.4" id="complex-and-complicated"><span class="header-section-number">3.4</span> Complex and complicated<a href="#complex-and-complicated" class="self-link"></a></h2>
 <p>For example, suppose vendors can’t use an Open Source library in a
 production project for the above reasons. In that case, they are forced
-to write their own abstractions by themselves. Besides being not cost
-and time-effective, it also happens that writing a physical quantities
-and units library by yourself is far from easy. Doing this is complex
-and complicated, especially for engineers who are not experts in the
-domain. There are many exceptional corner cases to cover that most
-developers do not even realize before falling into a trap in production.
-As a result, companies either use really simple and unsafe numeric
-wrappers or abandon the effort totally and just use
+to write their own abstractions by themselves. Besides being costly and
+time-consuming, it also happens that writing a physical quantities and
+units library by yourself is far from easy. Doing this is complex and
+complicated, especially for engineers who are not experts in the domain.
+There are many exceptional corner cases to cover that most developers do
+not even realize before falling into a trap in production. On the other
+hand domain experts might find it difficult to put their knowledge into
+code and create a correct implementation in C++. As a result, companies
+either use really simple and unsafe numeric wrappers or abandon the
+effort totally and just use
 <code class="sourceCode default">double</code> to express quantity
 values which lead to safety issues by accidentally using values
 representing the wrong quantity or having an incorrect unit.</p>
 <h2 data-number="3.5" id="standardizing-existing-practice"><span class="header-section-number">3.5</span> Standardizing existing
 practice<a href="#standardizing-existing-practice" class="self-link"></a></h2>
-<p>Plenty of physical units libraries have been on the market for many
-years. Through the years, we have learned the best practices for
-handling specific cases in the domain. Various products may have
+<p>Plenty of physical units libraries have been available to the public
+for many years. Through the years, we have learned the best practices
+for handling specific cases in the domain. Various products may have
 different scopes and support different C++ versions. Still, taking that
 aside, they use really similar concepts, types, and operations under the
 hood. We know how to do those things already.</p>
@@ -1506,6 +1514,10 @@ bridge. <a href="https://www.normaalamsterdamspeil.nl/wp-content/uploads/2015/03
 [Medication dose errors] Alma Mulac, Ellen Hagesaether, and Anne Gerd
 Granas. Medication dose calculation errors and other numeracy mishaps in
 hospitals: Analysis of the nature and enablers of incident reports. <a href="https://onlinelibrary.wiley.com/doi/10.1111/jan.15072"><div class="csl-block">https://onlinelibrary.wiley.com/doi/10.1111/jan.15072</div></a>
+</div>
+<div id="ref-MISRA_CPP" class="csl-entry" role="doc-biblioentry">
+[MISRA C++] MISRA C++:2008 Guidelines for the use of the C++ language in
+critical systems. <a href="https://misra.org.uk/misra-c-plus-plus/"><div class="csl-block">https://misra.org.uk/misra-c-plus-plus/</div></a>
 </div>
 <div id="ref-MP-UNITS" class="csl-entry" role="doc-biblioentry">
 [mp-units] mp-units - A Physical Quantities and Units library for C++.
