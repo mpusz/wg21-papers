@@ -80,9 +80,9 @@ engineering domain is the Mars Climate Orbiter that in 1999 failed to enter Mars
 while entering its atmosphere [@MARS_ORBITER]. This is one of many examples here. People tend to
 confuse units quite often. We see similar errors occurring in various domains over the years:
 
-- On October 12, 1492, Christopher Columbus unintentionally discovered America because, during
-  his travel preparations, he mixed the Arabic mile with a Roman mile, which led to the wrong estimation
-  of the equator and his expected travel distance [@COLUMBUS].
+- On October 12, 1492, Christopher Columbus unintentionally discovered the sea route from Europe to
+  America because, during his travel preparations, he mixed the Arabic mile with a Roman mile, which
+  led to the wrong estimation of the equator and his expected travel distance [@COLUMBUS].
 - In 1628, a new warship, Vasa, accidentally had an asymmetrical hull (being thicker on the port side
   than the starboard side), which was one of the reasons for her sinking less than a mile into her maiden
   voyage, with the death of 30 people on board. This asymmetry could be caused by the usage of
@@ -99,8 +99,8 @@ confuse units quite often. We see similar errors occurring in various domains ov
   fit it into" [@STONEHENGE].
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a miscommunication between
   pilots about the desired flight altitude [@FLIGHT_6316].
-- In February 2001, the Zoo crew built an enclosure for Clarence the Tortoise with a weight of
-  250 pounds instead of 250 kilograms [@CLARENCE].
+- In February 2001, the crew of the Moorpark College Zoo built an enclosure for Clarence the Tortoise
+  with a weight of 250 pounds instead of 250 kilograms [@CLARENCE].
 - In December 2003, one of the roller coaster’s cars at Tokyo Disneyland’s Space Mountain attraction
   suddenly derailed due to a broken axle caused by confusion after upgrading the specification
   from imperial to metric units [@DISNEY].
