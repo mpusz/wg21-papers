@@ -262,7 +262,7 @@ static_assert(10 * km / (5 * km) == 2 * one);
 static_assert(1000 / (1 * s) == 1 * kHz);
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/81Ev7qhTd).
+Try it in [the Compiler Explorer](https://godbolt.org/z/jh6MTaPW8).
 
 ## Hello Units
 
@@ -307,7 +307,7 @@ int main()
 }
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/Tsesa1Pvq).
+Try it in [the Compiler Explorer](https://godbolt.org/z/odebvTxaY).
 
 ## Bridge across the Rhine
 
@@ -338,13 +338,13 @@ using altitude_CH = quantity_point<isq::altitude[m], mediterranean_sea_level>;
 template<auto R, typename Rep>
 std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_DE::point_origin, Rep> alt)
 {
-  return os << alt.quantity_from_origin() << " AMSL(DE)";
+  return os << alt.quantity_ref_from(alt.point_origin) << " AMSL(DE)";
 }
 
 template<auto R, typename Rep>
 std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_CH::point_origin, Rep> alt)
 {
-  return os << alt.quantity_from_origin() << " AMSL(CH)";
+  return os << alt.quantity_ref_from(alt.point_origin) << " AMSL(CH)";
 }
 
 int main()
@@ -401,7 +401,7 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 - Switzerland: 33000 cm
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/197s4jcvs).
+Try it in [the Compiler Explorer](https://godbolt.org/z/c17TWGhc5).
 
 ## Storage Tank
 
@@ -545,7 +545,7 @@ float rise rate = 0.0002 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/bPf98s5qn).
+Try it in [the Compiler Explorer](https://godbolt.org/z/1c9Wvdsa1).
 
 
 # Scope

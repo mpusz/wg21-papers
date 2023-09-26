@@ -771,7 +771,7 @@ that every physical quantities and units library should provide:</p>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">10</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> km<span class="op">)</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> one<span class="op">)</span>;</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1000</span> <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> s<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> kHz<span class="op">)</span>;</span></code></pre></div>
-<p>Try it in <a href="https://godbolt.org/z/81Ev7qhTd">the Compiler
+<p>Try it in <a href="https://godbolt.org/z/jh6MTaPW8">the Compiler
 Explorer</a>.</p>
 <h2 data-number="4.2" id="hello-units"><span class="header-section-number">4.2</span> Hello Units<a href="#hello-units" class="self-link"></a></h2>
 <p>The next example serves as a showcase of various features available
@@ -813,7 +813,7 @@ library.</p>
 <span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{0:%Q} in {0:%q}&quot;</span>, v6<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;  <span class="co">// 31.2928 in m/s</span></span>
 <span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:%Q}&quot;</span>, v7<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;             <span class="co">// 31</span></span>
 <span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>Try it in <a href="https://godbolt.org/z/Tsesa1Pvq">the Compiler
+<p>Try it in <a href="https://godbolt.org/z/odebvTxaY">the Compiler
 Explorer</a>.</p>
 <h2 data-number="4.3" id="bridge-across-the-rhine"><span class="header-section-number">4.3</span> Bridge across the Rhine<a href="#bridge-across-the-rhine" class="self-link"></a></h2>
 <p>The following example codifies the history of a famous accident
@@ -842,13 +842,13 @@ Affine Space is being modeled in the library</a>.</p>
 <span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">auto</span> R, <span class="kw">typename</span> Rep<span class="op">&gt;</span></span>
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>ostream<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>std<span class="op">::</span>ostream<span class="op">&amp;</span> os, quantity_point<span class="op">&lt;</span>R, altitude_DE<span class="op">::</span>point_origin, Rep<span class="op">&gt;</span> alt<span class="op">)</span></span>
 <span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(DE)&quot;</span>;</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_ref_from<span class="op">(</span>alt<span class="op">.</span>point_origin<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(DE)&quot;</span>;</span>
 <span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
 <span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">auto</span> R, <span class="kw">typename</span> Rep<span class="op">&gt;</span></span>
 <span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>ostream<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>std<span class="op">::</span>ostream<span class="op">&amp;</span> os, quantity_point<span class="op">&lt;</span>R, altitude_CH<span class="op">::</span>point_origin, Rep<span class="op">&gt;</span> alt<span class="op">)</span></span>
 <span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(CH)&quot;</span>;</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_ref_from<span class="op">(</span>alt<span class="op">.</span>point_origin<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(CH)&quot;</span>;</span>
 <span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
 <span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
@@ -899,7 +899,7 @@ Bridge road altitude:
 Bridge road altitude relative to the Amsterdam Sea Level:
 - Germany:     330 m
 - Switzerland: 33000 cm</code></pre>
-<p>Try it in <a href="https://godbolt.org/z/197s4jcvs">the Compiler
+<p>Try it in <a href="https://godbolt.org/z/c17TWGhc5">the Compiler
 Explorer</a>.</p>
 <h2 data-number="4.4" id="storage-tank"><span class="header-section-number">4.4</span> Storage Tank<a href="#storage-tank" class="self-link"></a></h2>
 <p>Our last example estimates the process of filling a storage tank with
@@ -1040,7 +1040,7 @@ spare capacity at 200 s = 0.08 m³
 input flow rate = 0.1 kg/s
 float rise rate = 0.0002 m/s
 tank full E.T.A. at current flow rate = 800 s</code></pre>
-<p>Try it in <a href="https://godbolt.org/z/bPf98s5qn">the Compiler
+<p>Try it in <a href="https://godbolt.org/z/1c9Wvdsa1">the Compiler
 Explorer</a>.</p>
 <h1 data-number="5" id="scope"><span class="header-section-number">5</span> Scope<a href="#scope" class="self-link"></a></h1>
 <p>The tables below briefly highlight the expected scope and feature
