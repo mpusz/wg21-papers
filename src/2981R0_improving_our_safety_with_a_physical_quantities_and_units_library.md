@@ -1,6 +1,6 @@
 ---
 title: "Improving our safety with a physical quantities and units library"
-document: DXXXXR0
+document: P2981R0
 date: today
 audience:
   - SG23 Safety and Security

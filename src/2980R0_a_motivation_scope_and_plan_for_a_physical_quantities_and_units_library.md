@@ -1,6 +1,6 @@
 ---
 title: "A motivation, scope, and plan for a physical quantities and units library"
-document: DXXXXR0
+document: P2980R0
 date: today
 audience:
   - Library Evolution Working Group
