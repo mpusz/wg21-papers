@@ -121,7 +121,12 @@ It is no longer only the space industry or experienced pilots that benefit from 
 operations of some machines. We live in a world where more and more ordinary people trust
 machines with their lives daily. In the near future, we will be allowed to sleep while our
 car autonomously drives us home from a late party. As a result, much more C++ engineers are
-expected to write life-critical software today than it was a few years ago. However writing safety-ciritical code requires extensive training and experiece, both which are in short demand. While there exists some standards and guidelines such as MISRA C++ [@MISRA_CPP] with the aim of enforcing the creation of safe code in C++, they are cumbersome to use and tend to shift the burden on the discipline of the programmers to enforce these. At the time of writing the C++ language does not change fast enough to enforce safe-by-construction code.
+expected to write life-critical software today than it was a few years ago. However writing
+safety-ciritical code requires extensive training and experiece, both which are in short demand.
+While there exists some standards and guidelines such as MISRA C++ [@MISRA_CPP] with the aim of
+enforcing the creation of safe code in C++, they are cumbersome to use and tend to shift the burden
+on the discipline of the programmers to enforce these. At the time of writing the C++ language
+does not change fast enough to enforce safe-by-construction code.
 
 
 One of the areas where C++ can significantly improve the safety of applications being written
@@ -135,9 +140,9 @@ the Mars Climate Orbiter that in 1999 failed to enter Mars' orbit and crashed wh
 its atmosphere [@MARS_ORBITER]. This is one of many examples here. People tend to confuse units
 quite often. We see similar errors occurring in various domains over the years:
 
-- On October 12, 1492, Christopher Columbus unintentionally discovered the sea route from Europe to America because, during
-  his travel preparations, he mixed the Arabic mile with a Roman mile, which led to the wrong estimation
-  of the equator and his expected travel distance [@COLUMBUS].
+- On October 12, 1492, Christopher Columbus unintentionally discovered the sea route from Europe
+  to America because, during his travel preparations, he mixed the Arabic mile with a Roman mile,
+  which led to the wrong estimation of the equator and his expected travel distance [@COLUMBUS].
 - In 1628, a new warship, Vasa, accidentally had an asymmetrical hull (being thicker on the port side
   than the starboard side), which was one of the reasons for her sinking less than a mile into her maiden
   voyage, with the death of 30 people on board. This asymmetry could be caused by the usage of
@@ -154,8 +159,8 @@ quite often. We see similar errors occurring in various domains over the years:
   fit it into" [@STONEHENGE].
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a miscommunication between
   pilots about the desired flight altitude [@FLIGHT_6316].
-- In February 2001, the crew of the Moorpark College Zoo built an enclosure for Clarence the Tortoise with a weight of
-  250 pounds instead of 250 kilograms [@CLARENCE].
+- In February 2001, the crew of the Moorpark College Zoo built an enclosure for Clarence the Tortoise
+  with a weight of 250 pounds instead of 250 kilograms [@CLARENCE].
 - In December 2003, one of the roller coaster’s cars at Tokyo Disneyland’s Space Mountain attraction
   suddenly derailed due to a broken axle caused by confusion after upgrading the specification
   from imperial to metric units [@DISNEY].
@@ -166,7 +171,7 @@ quite often. We see similar errors occurring in various domains over the years:
   39 cents per pound, but the customer thought the quote was for 39 cents per kilogram [@WILD_RICE].
 - A whole set of [@MEDICATION_DOSE_ERRORS]...
 
-The safety subject is so vast and essential by itself that we dedicated a separate paper **P????**
+The safety subject is so vast and essential by itself that we dedicated a separate paper [@P2981_PRE]
 that discusses all the nuances in detail.
 
 ## Vocabulary types
@@ -202,7 +207,8 @@ Besides being costly and time-consuming, it also happens that writing a physical
 units library by yourself is far from easy. Doing this is complex and complicated, especially for
 engineers who are not experts in the domain. There are many exceptional corner cases to cover
 that most developers do not even realize before falling into a trap in production. On the other
-hand domain experts might find it difficult to put their knowledge into code and create a correct implementation in C++.
+hand domain experts might find it difficult to put their knowledge into code and create a correct
+implementation in C++.
 As a result, companies either use really simple and unsafe numeric wrappers or abandon the effort totally
 and just use `double` to express quantity values which lead to safety issues by accidentally using
 values representing the wrong quantity or having an incorrect unit.
@@ -712,10 +718,21 @@ references:
       given: Anne Gerd
   title: "Medication dose calculation errors and other numeracy mishaps in hospitals: Analysis of the nature and enablers of incident reports"
   URL: <https://onlinelibrary.wiley.com/doi/10.1111/jan.15072>
+- id: MISRA_CPP
+  citation-label: MISRA C++
+  title: "MISRA C++:2008 Guidelines for the use of the C++ language in critical systems"
+  URL: <https://misra.org.uk/misra-c-plus-plus/>
 - id: MP-UNITS
   citation-label: mp-units
   title: "mp-units - A Physical Quantities and Units library for C++"
   URL: <https://mpusz.github.io/mp-units>
+- id: P2981_PRE
+  citation-label: P2981
+  author:
+    - family: Pusz
+      given: Mateusz
+  title: "Improving our safety with a physical quantities and units library"
+  URL: <https://wg21.link/p2981>
 - id: SI_LIB
   citation-label: SI library
   title: SI - Type safety for physical units"
@@ -740,8 +757,4 @@ references:
   citation-label: Wild Rice
   title: "Manufacturers, exporters think metric"
   URL: <https://www.bizjournals.com/eastbay/stories/2001/07/09/focus3.html>
-- id: MISRA_CPP
-  citation-label: MISRA C++
-  title: "MISRA C++:2008 Guidelines for the use of the C++ language in critical systems"
-  URL: <https://misra.org.uk/misra-c-plus-plus/>
 ---

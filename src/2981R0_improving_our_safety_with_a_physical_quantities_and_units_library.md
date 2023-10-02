@@ -662,7 +662,7 @@ that a dimension is not enough to express a quantity type.
 
 The [@MP-UNITS] library goes beyond that and properly models quantity kinds. We believe that it is
 a significant feature that improves the safety of the library, and that is why we also plan to propose
-quantity kinds for standardization as specified in **P????**.
+quantity kinds for standardization as specified in [@P2980_PRE].
 
 ## Various quantities of the same kind
 
@@ -1091,6 +1091,21 @@ references:
   citation-label: Pint
   title: "Pint: makes units easy"
   URL: <https://pint.readthedocs.io/en/stable/index.html>
+- id: P2980_PRE
+  citation-label: P2980
+  author:
+    - family: Pusz
+      given: Mateusz
+    - family: Berner
+      given: Dominik
+    - family: Guerrero Peña
+      given: Johel Ernesto
+    - family: Hogg
+      given: Charles
+    - family: Reverdy
+      given: Vincent
+  title: "A motivation, scope, and plan for a physical quantities and units library"
+  URL: <https://wg21.link/p2980>
 - id: STONEHENGE
   citation-label: Stonehenge
   author:

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-09-26" />
+  <meta name="dcterms.date" content="2023-10-02" />
   <title>Improving our safety with a physical quantities and units
 library</title>
   <style>
@@ -429,7 +429,7 @@ physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-09-26</td>
+    <td>2023-10-02</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -1100,7 +1100,7 @@ dimension is not enough to express a quantity type.</p>
 goes beyond that and properly models quantity kinds. We believe that it
 is a significant feature that improves the safety of the library, and
 that is why we also plan to propose quantity kinds for standardization
-as specified in <strong>P????</strong>.</p>
+as specified in <span class="citation" data-cites="P2980_PRE">[<a href="#ref-P2980_PRE" role="doc-biblioref">P2980</a>]</span>.</p>
 <h2 data-number="6.9" id="various-quantities-of-the-same-kind"><span class="header-section-number">6.9</span> Various quantities of the same
 kind<a href="#various-quantities-of-the-same-kind" class="self-link"></a></h2>
 <p>Proper modeling of distinct kinds for quantities of the same
@@ -1379,25 +1379,8 @@ quantity character, multiplication, division, dot, cross, norm)<a href="#safe-eq
 <p>https://github.com/mpusz/mp-units/issues/432</p>
 <h1 data-number="7" id="safety-pitfalls"><span class="header-section-number">7</span> Safety Pitfalls<a href="#safety-pitfalls" class="self-link"></a></h1>
 <h2 data-number="7.1" id="integer-division"><span class="header-section-number">7.1</span> Integer division<a href="#integer-division" class="self-link"></a></h2>
-<p>The physical units library can’t do any runtime branching logic for
-the division operator. All logic has to be done at compile-time when the
-actual values are not known, and the quantity types can’t change at
-runtime.</p>
-<p>If we expect
-<code class="sourceCode default">120 * km / (2 * h)</code> to return
-<code class="sourceCode default">60 km / h</code>, we have to agree with
-the fact that <code class="sourceCode default">5 * km / (24 * h)</code>
-returns <code class="sourceCode default">0 km/h</code>. We can’t do a
-range check at runtime to dynamically adjust scales and types based on
-the values of provided function arguments.</p>
-<p>The same applies to:</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h <span class="op">/</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">==</span> <span class="dv">0</span> <span class="op">*</span> one<span class="op">)</span>;</span></code></pre></div>
-<p><strong>This is why we often prefer floating-point representation
-types when dealing with units.</strong> Some popular physical units
-libraries even <a href="https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden">forbid
-integer division at all</a>.</p>
-<div class="sourceCode" id="cb59"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> h <span class="op">/</span> <span class="op">(</span><span class="dv">30</span> <span class="op">*</span> min<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> h <span class="op">/</span> <span class="op">(</span><span class="dv">30</span> <span class="op">*</span> min<span class="op">)</span>;</span></code></pre></div>
 <p>Sometimes hidden in a ratio…</p>
 <h2 data-number="7.2" id="lack-of-safe-numeric-types"><span class="header-section-number">7.2</span> Lack of safe numeric types<a href="#lack-of-safe-numeric-types" class="self-link"></a></h2>
 <p>Integers can overflow on arithmetics. This has already caused some
@@ -1410,10 +1393,6 @@ narrower type. Conversion from
 <code class="sourceCode default">std::int64_t</code> to
 <code class="sourceCode default">double</code> may also be
 truncating.</p>
-<p>If we had safe numeric types in the C++ Standard Library they could
-easily be used as a <code class="sourceCode default">quantity</code>
-representation type in the physical quantities and units library which
-would address those safety concerns.</p>
 <h1 data-number="8" id="acknowledgements"><span class="header-section-number">8</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
@@ -1468,6 +1447,11 @@ hospitals: Analysis of the nature and enablers of incident reports. <a href="htt
 </div>
 <div id="ref-NIC-UNITS" class="csl-entry" role="doc-biblioentry">
 [nholthaus/units] UNITS. <a href="https://github.com/nholthaus/units"><div class="csl-block">https://github.com/nholthaus/units</div></a>
+</div>
+<div id="ref-P2980_PRE" class="csl-entry" role="doc-biblioentry">
+[P2980] Mateusz Pusz, Dominik Berner, Johel Ernesto Guerrero Peña,
+Charles Hogg, and Vincent Reverdy. A motivation, scope, and plan for a
+physical quantities and units library. <a href="https://wg21.link/p2980"><div class="csl-block">https://wg21.link/p2980</div></a>
 </div>
 <div id="ref-PINT" class="csl-entry" role="doc-biblioentry">
 [Pint] Pint: makes units easy. <a href="https://pint.readthedocs.io/en/stable/index.html"><div class="csl-block">https://pint.readthedocs.io/en/stable/index.html</div></a>
