@@ -220,7 +220,6 @@ source C++ code bases reveals that for example the `RAD_TO_DEG` macro is defined
 of different ways -- sometimes even within the same repository:
 
 ```cpp
-
 #define RAD_TO_DEG (180 / PI)
 #define RAD_TO_DEG 57.2957795131
 #define RAD_TO_DEG ( radians ) ((radians ) * 180.0 / M_PI)
@@ -229,6 +228,7 @@ of different ways -- sometimes even within the same repository:
 ```
 
 [Example search across multiple repositories](https://github.com/search?q=lang%3AC%2B%2B++%22%23define+RAD_TO_DEG%22&type=code)
+
 [Multiple redefinitions in the same repository](https://github.com/search?q=repo%3ALK8000%2FLK8000%20rad_to_deg&type=code)
 
 ## Lack of consistency
