@@ -69,6 +69,7 @@ Here is a list of some less obvious candidates:
 - military,
 - 3D design,
 - robotics,
+- audio,
 - medical devices,
 - national laboratories,
 - scientific institutions and universities,
