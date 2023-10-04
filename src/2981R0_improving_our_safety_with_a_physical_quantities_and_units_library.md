@@ -15,7 +15,9 @@ author:
 One of the areas where C++ can significantly improve the safety of applications being written
 by thousands of developers is introducing a type-safe, well-tested, standardized way to handle
 physical quantities and their units. The rationale is that people tend to have problems
-communicating or using proper units in code and daily life.
+communicating or using proper units in code and daily life. Another benefit of adding strongly
+typed quantities and units to the language is that it will allow catching some mistakes already
+at compile time instead of relying on runtime checks which might have spotty coverage.
 
 This paper scopes on the security aspects of introducing such a library to the C++ language.
 In the following chapters, we will describe which industries are desperately looking for such
@@ -32,18 +34,21 @@ the library._
 
 # The Future Is Here
 
-Not that long ago, we watched SciFi movies about the future Earth where people were entering
-a car with no driver inside, and it autonomously drove them to the required destination.
-Then, it was something so futuristic and hard to imagine. Today, it slowly becomes a reality
-of our daily life.
+Not that long ago, self-driving cars were a thing from SciFi movies. It was something so
+futuristic and hard to imagine that it only appeared in movies set in the very far future.
+Today, autonomous cars are becoming a reality on our streets even if they are not (yet) widely
+adopted.
 
 It is no longer only the space industry or airline pilots that benefit from the autonomous
 operations of some machines. We live in a world where more and more ordinary people trust
-machines with their lives daily. Soon, we will be allowed to sleep while our
-car autonomously drives us home from a late party. As a result, many more C++ engineers are
-expected to write life-critical software today than a few years ago.
-Unfortunately, there is insufficient training and experience in this domain and the C++ language
-does not change fast enough to enforce a safe-by-construction code.
+machines with their lives daily. The autonmous car is just one example which will affect our 
+daily life. Medical devices such as surgical robots and smart health care devices are already
+a thing and will see wider adoption in the future. And there will be more machines with safety- 
+or even life-critical tasks in the future.
+As a result, many more C++ engineers are expected to write life-critical software today than a
+few years ago. Unfortunately, experience in this domain is hard to come by and training alone might
+not solve the issue of off-by-one-quantity mistakes. Additionally the C++ language does not change
+fast enough to enforce a safe-by-construction code.
 
 
 # Affected Industries
@@ -60,6 +65,7 @@ Here is a list of some less obvious candidates:
 - military,
 - 3D design,
 - robotics,
+- medical devices,
 - national laboratories,
 - scientific institutions and universities,
 - all kinds of navigation and charting,
@@ -112,7 +118,7 @@ confuse units quite often. We see similar errors occurring in various domains ov
 - A whole set of [@MEDICATION_DOSE_ERRORS]...
 
 
-# When a Library Is Not Used
+# Common smells when there is library for physical quantities
 
 In this chapter, we are going to review typical safety issues related to physical quantities and units
 in the C++ code when a proper library is not used. Even though all the examples come from the
@@ -140,6 +146,11 @@ double GlidePolar::MacCreadyAltitude(double MCREADY,
 
 [Original code here](https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Header/McReady.h#L7-L21).
 
+There are several problems with such an approach: The abundance of `double` parameters
+makes it easy to accidentially switch values and there is no way of noticing such a mistake 
+at compile time. The code is not self-documenting in what units the parameters are expected. Is
+`Distance` in meters or kilometers? Is `WindSpeed` in meters per second or knots? 
+A strong type system would help answering these questions at compile time.
 
 ## The proliferation of magic numbers
 
@@ -154,6 +165,10 @@ double AirDensity(double hr, double temp, double abs_press)
 ```
 
 [Original code here](https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Source/Library/PressureFunctions.cpp#L134-L136).
+
+Apart from the obvious readability issues, such code is hard to maintain and needs a lot of domain
+knowledge on the side of the developer. While it would be easy to replace these numbers with named constants
+the question of which unit the constant is in remains. Is `287.06` in pounds per square inch (psi) or millibars (mbar)?
 
 
 ## The proliferation of conversion macros
@@ -190,6 +205,10 @@ static const double PI = (4*atan(1));
 
 [Original code here](https://github.com/LK8000/LK8000/blob/052bbc20a106fda4db41874e788e39020fb86512/Common/Header/Defines.h#L901-L924).
 
+Again the question of which unit the constant is in remains. Without looking at the code 
+it is impossible to tell from which unit `TOMETER` converts. Also macros have the problem that 
+they are not in scoped to a namespace and thus can easily clash with other macros or functions -
+especially if they have such common names like `PI` or `RAD_TO_DEG`.
 
 ## Lack of consistency
 
@@ -227,7 +246,7 @@ double ProjectedDistance(double lon1, double lat1,
 The previous points mean that the type system isn't leveraged
 to model the different concepts of quantities and units frameworks.
 
-There is no vocabulary between libraries.
+There is no common vocabulary between different libraries.
 User-facing APIs use ad-hoc conventions.
 Even internal interfaces are inconsistent between themselves.
 
@@ -253,7 +272,8 @@ to other programming languages (e.g., Python, Java, etc.).
 ## Unit conversions
 
 The first thing that comes to our mind when discussing the safety of such libraries is
-automated unit conversions. This is probably the most important subject here. We learned
+automated unit conversions between values of the same physical quantity.
+This is probably the most important subject here. We learned
 about its huge benefits long ago thanks to the `std::chrono::duration` that made conversions of
 time durations error-proof.
 
