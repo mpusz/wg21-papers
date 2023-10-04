@@ -7,6 +7,8 @@ audience:
 author:
   - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
     email: <mateusz.pusz@gmail.com>
+  - name: Dominik Berner
+    email: <dominik.berner@gmail.com>    
 ---
 
 
@@ -47,8 +49,10 @@ a thing and will see wider adoption in the future. And there will be more machin
 or even life-critical tasks in the future.
 As a result, many more C++ engineers are expected to write life-critical software today than a
 few years ago. Unfortunately, experience in this domain is hard to come by and training alone might
-not solve the issue of off-by-one-quantity mistakes. Additionally, the C++ language does not change
-fast enough to enforce a safe-by-construction code.
+not solve the issue of mistakes caused by confusing units or quantities with each other.
+Additionally, the C++ language does not change fast enough to enforce a safe-by-construction code, 
+which becomes even more critical if the code handling the physical computation is written by domain
+experts such as physicists that are not necessarily fluent in C++.
 
 
 # Affected Industries
@@ -209,8 +213,22 @@ static const double PI = (4*atan(1));
 
 Again, the question of which unit the constant is in remains. Without looking at the code 
 it is impossible to tell from which unit `TOMETER` converts. Also, macros have the problem that 
-they are not scoped to a namespace and thus can easily clash with other macros or functions --
-especially if they have such common names like `PI` or `RAD_TO_DEG`.
+they are not scoped to a namespace and thus can easily clash with other macros or functions,
+especially if they have such common names like `PI` or `RAD_TO_DEG`. A quick search through open 
+source C++ code bases reveals that for example the `RAD_TO_DEG` macro is defined in a multitude 
+of different ways -- sometimes even within the same repository:
+
+```cpp
+
+#define RAD_TO_DEG (180 / PI)
+#define RAD_TO_DEG 57.2957795131
+#define RAD_TO_DEG ( radians ) ((radians ) * 180.0 / M_PI)
+#define RAD_TO_DEG 57.2957805f
+...
+```
+
+[Example search across multiple repositories](https://github.com/search?q=lang%3AC%2B%2B++%22%23define+RAD_TO_DEG%22&type=code)
+[Multiple redefinitions in the same repository](https://github.com/search?q=repo%3ALK8000%2FLK8000%20rad_to_deg&type=code)
 
 ## Lack of consistency
 
