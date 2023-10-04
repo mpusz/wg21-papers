@@ -47,7 +47,7 @@ a thing and will see wider adoption in the future. And there will be more machin
 or even life-critical tasks in the future.
 As a result, many more C++ engineers are expected to write life-critical software today than a
 few years ago. Unfortunately, experience in this domain is hard to come by and training alone might
-not solve the issue of off-by-one-quantity mistakes. Additionally the C++ language does not change
+not solve the issue of off-by-one-quantity mistakes. Additionally, the C++ language does not change
 fast enough to enforce a safe-by-construction code.
 
 
@@ -118,7 +118,7 @@ confuse units quite often. We see similar errors occurring in various domains ov
 - A whole set of [@MEDICATION_DOSE_ERRORS]...
 
 
-# Common smells when there is library for physical quantities
+# Common smells when there is no library for physical quantities
 
 In this chapter, we are going to review typical safety issues related to physical quantities and units
 in the C++ code when a proper library is not used. Even though all the examples come from the
@@ -150,6 +150,8 @@ There are several problems with such an approach: The abundance of `double` para
 makes it easy to accidentially switch values and there is no way of noticing such a mistake 
 at compile time. The code is not self-documenting in what units the parameters are expected. Is
 `Distance` in meters or kilometers? Is `WindSpeed` in meters per second or knots? 
+Different code bases choose different ways to encode this information,
+which may be internally inconsistent.
 A strong type system would help answering these questions at compile time.
 
 ## The proliferation of magic numbers
@@ -167,7 +169,7 @@ double AirDensity(double hr, double temp, double abs_press)
 [Original code here](https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Source/Library/PressureFunctions.cpp#L134-L136).
 
 Apart from the obvious readability issues, such code is hard to maintain and needs a lot of domain
-knowledge on the side of the developer. While it would be easy to replace these numbers with named constants
+knowledge on the side of the developer. While it would be easy to replace these numbers with named constants,
 the question of which unit the constant is in remains. Is `287.06` in pounds per square inch (psi) or millibars (mbar)?
 
 
@@ -205,9 +207,9 @@ static const double PI = (4*atan(1));
 
 [Original code here](https://github.com/LK8000/LK8000/blob/052bbc20a106fda4db41874e788e39020fb86512/Common/Header/Defines.h#L901-L924).
 
-Again the question of which unit the constant is in remains. Without looking at the code 
-it is impossible to tell from which unit `TOMETER` converts. Also macros have the problem that 
-they are not in scoped to a namespace and thus can easily clash with other macros or functions -
+Again, the question of which unit the constant is in remains. Without looking at the code 
+it is impossible to tell from which unit `TOMETER` converts. Also, macros have the problem that 
+they are not scoped to a namespace and thus can easily clash with other macros or functions --
 especially if they have such common names like `PI` or `RAD_TO_DEG`.
 
 ## Lack of consistency
@@ -246,7 +248,7 @@ double ProjectedDistance(double lon1, double lat1,
 The previous points mean that the type system isn't leveraged
 to model the different concepts of quantities and units frameworks.
 
-There is no common vocabulary between different libraries.
+There is no shared vocabulary between different libraries.
 User-facing APIs use ad-hoc conventions.
 Even internal interfaces are inconsistent between themselves.
 
