@@ -387,68 +387,6 @@ As we can see, it is essential not to allow such truncating conversions to happe
 and a good physical quantities and units library should fail at compile time in case a user makes
 such a mistake.
 
-## Preventing surprises during units composition
-
-One of the most important requirements for a good physical quantities and units library is to implement
-units in such a way that they compose. With that, one can easily create any derived unit using
-a simple unit equation on other base or derived units. For example:
-
-```cpp
-constexpr auto kmph = km / h;
-```
-
-This is a really nice and commonly used feature which often leads inexperienced users to a surprise
-when they write the following code:
-
-```cpp
-quantity q = 60 * km / h;
-```
-
-The above and the following examples compile fine in [@BOOST-UNITS] and [@PINT]. However, we
-believe this is an error, and there are good reasons for this.
-
-First, let's consider the following expression:
-
-```cpp
-auto q = 60 * km / 2 * h;
-```
-
-This looks like like `30 km/h`, right? But it is not. If the above code was allowed, thanks to the
-operators' associativity, it would result in `30 km⋅h`. In case we want to divide `60 * km` by `2 * h`
-a parenthesis is needed:
-
-```cpp
-auto q = 60 * km / (2 * h);
-```
-
-Another surprising issue could result from the following code:
-
-```cpp
-template<typename T>
-auto make_length(T v) { return v * si::metre; }
-
-auto v = 42;
-auto q = make_length(v);
-```
-
-The above might look like a good idea, but let's consider what would happen if the user provided
-an already existing quantity:
-
-```cpp
-auto v = 42 * m;
-auto q = make_length(v);
-```
-
-Because of the above reasons, multiplying or dividing a quantity by a unit should not be supported.
-In a sound library, trying to do such an operation should be detected at compile-time.
-
-Coming back to our first example, as a side effect of the above rules, in order to create
-a quantity of `60 km/h`, we need to use parenthesis for the entire unit:
-
-```cpp
-quantity q = 60 * (km / h);
-```
-
 ## The affine space
 
 The affine space has two types of entities:
@@ -1025,6 +963,25 @@ https://github.com/mpusz/mp-units/issues/432
 
 ## Integer division
 
+The physical units library can't do any runtime branching logic for the division operator.
+All logic has to be done at compile-time when the actual values are not known, and the quantity types
+can't change at runtime.
+
+If we expect `120 * km / (2 * h)` to return `60 km / h`, we have to agree with the fact that
+`5 * km / (24 * h)` returns `0 km/h`. We can't do a range check at runtime to dynamically adjust scales
+and types based on the values of provided function arguments.
+
+The same applies to:
+
+```cpp
+static_assert(5 * h / (120 * min) == 0 * one);
+```
+
+**This is why we often prefer floating-point representation types when dealing with units.**
+Some popular physical units libraries even
+[forbid integer division at all](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden).
+
+
 ```cpp
 quantity q1 = 2 * km / (5 * h);
 quantity q2 = 2 * h / (30 * min);
@@ -1042,6 +999,113 @@ Integers can also be truncated during assignment to a narrower type.
 
 Floating-point types may lose precision during assignment to a narrower type.
 Conversion from `std::int64_t` to `double` may also be truncating.
+
+If we had safe numeric types in the C++ Standard Library they could easily be used as a `quantity`
+representation type in the physical quantities and units library which would address those safety
+concerns.
+
+## Potential surprises during units composition
+
+One of the most essential requirements for a good physical quantities and units library is to implement
+units in such a way that they compose. With that, one can easily create any derived unit using
+a simple unit equation on other base or derived units. For example:
+
+```cpp
+constexpr Unit auto kmph = km / h;
+```
+
+We can also easily obtain a quantity with:
+
+```cpp
+quantity q = 60 * km / h;
+```
+
+Such a solution is an industry standard and is implemented not only in [@MP-UNITS], but also is available
+for many years now in both [@BOOST-UNITS] and [@PINT].
+
+We believe that is the correct thing to do. However, we want to make it straight in this paper that some
+potential issues are associated with such a syntax. Inexperienced users are often surprised by the
+results of the following expression:
+
+```cpp
+quantity q = 60 * km / 2 * h;
+```
+
+This looks like like `30 km/h`, right? But it is not. Thanks to the operators' associativity, it results
+in `30 km⋅h`. In case we want to divide `60 km` by `2 h` a parenthesis is needed:
+
+```cpp
+quantity q = 60 * km / (2 * h);
+```
+
+Another surprising issue may result from the following code:
+
+```cpp
+template<typename T>
+auto make_length(T v) { return v * si::metre; }
+
+auto v = 42;
+quantity q = make_length(v);
+```
+
+This might look like a good idea, but let's consider what would happen if the user provided an
+already existing quantity:
+
+```cpp
+auto v = 42 * m;
+quantity q = make_length(v);
+```
+
+The above function invocation will result with a quantity of area instead of expected quantity
+of length.
+
+The issues mentioned above could be turned into compilation errors by disallowing multiplying or
+dividing a quantity by a unit. The [@MP-UNITS] library initially provided such an approach, but with
+time, we decided this to be not user-friendly. Forcing the user to put the parenthesis around all
+derived units in quantity equations like the one below, was too verbose and confusing:
+
+```cpp
+quantity q = 60 * (km / h);
+```
+
+It is important to notice that the problems mentioned above will always surface with a compile-time
+error at some point in the users code when they assign the resulting quantity to the one with
+explicitly provided quantity type.
+
+Below, we provide a few examples that correctly detect such issues at compile-time:
+
+```cpp
+quantity<si::kilo<si::metre> / non_si::hour, int> q1 = 60 * km / 2 * h;             // ERROR
+quantity<isq::speed[si::kilo<si::metre> / non_si::hour], int> q2 = 60 * km / 2 * h; // ERROR
+QuantityOf<isq::speed> auto q3 = 60 * km / 2 * h;                                   // ERROR
+```
+
+```cpp
+template<typename T>
+auto make_length(T v) { return v * si::metre; }
+
+auto v = 42 * m;
+quantity<si::metre, int> q1 = make_length(v);           // ERROR
+quantity<isq::length[si::metre]> q2 = make_length(v);   // ERROR
+QuantityOf<isq::length> q3 = make_length(v);            // ERROR
+```
+
+```cpp
+template<typename T>
+QuantityOf<isq::length> auto make_length(T v) { return v * si::metre; }
+
+auto v = 42 * m;
+quantity q = make_length(v);  // ERROR
+```
+
+```cpp
+template<Representation T>
+auto make_length(T v) { return v * si::metre; }
+
+auto v = 42 * m;
+quantity q = make_length(v);  // ERROR
+```
+
 
 # Acknowledgements
 

@@ -256,10 +256,9 @@ static_assert(1 * h == 3600 * s);
 static_assert(1 * km + 1 * m == 1001 * m);
 
 // derived quantities
-inline constexpr auto kmph = km / h;
-static_assert(1 * km / (1 * s) == 1000 * (m / s));
-static_assert(2 * kmph * (2 * h) == 4 * km);
-static_assert(2 * km / (2 * kmph) == 1 * h);
+static_assert(1 * km / (1 * s) == 1000 * m / s);
+static_assert(2 * km / h * (2 * h) == 4 * km);
+static_assert(2 * km / (2 * km / h) == 1 * h);
 
 static_assert(2 * m * (3 * m) == 6 * m2);
 
@@ -268,7 +267,7 @@ static_assert(10 * km / (5 * km) == 2 * one);
 static_assert(1000 / (1 * s) == 1 * kHz);
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/jh6MTaPW8).
+Try it in [the Compiler Explorer](https://godbolt.org/z/sYfoPzTvT).
 
 ## Hello Units
 
@@ -295,7 +294,7 @@ int main()
   using namespace mp_units::si::unit_symbols;
   using namespace mp_units::international::unit_symbols;
 
-  constexpr quantity v1 = 110 * (km / h);
+  constexpr quantity v1 = 110 * km / h;
   constexpr quantity v2 = 70 * mph;
   constexpr quantity v3 = avg_speed(220. * km, 2 * h);
   constexpr quantity v4 = avg_speed(isq::distance(140. * mi), 2 * isq::duration[h]);
@@ -313,7 +312,7 @@ int main()
 }
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/odebvTxaY).
+Try it in [the Compiler Explorer](https://godbolt.org/z/badno8rcW).
 
 ## Bridge across the Rhine
 
@@ -452,7 +451,7 @@ inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizo
 inline constexpr struct horizontal_area : quantity_spec<isq::area, horizontal_length * isq::width> {} horizontal_area;
 
 inline constexpr auto g = 1 * si::standard_gravity;
-inline constexpr auto air_density = isq::mass_density(1.225 * (kg / m3));
+inline constexpr auto air_density = isq::mass_density(1.225 * kg / m3);
 
 class StorageTank {
   quantity<horizontal_area[m2]> base_;
@@ -515,7 +514,7 @@ int main()
 {
   const auto height = isq::height(200 * mm);
   auto tank = RectangularStorageTank(horizontal_length(1'000 * mm), isq::width(500 * mm), height);
-  tank.set_contents_density(1'000 * isq::mass_density[kg / m3]);
+  tank.set_contents_density(1'000 * kg / m3);
 
   const auto duration = std::chrono::seconds{200};
   const quantity fill_time = value_cast<int>(quantity{duration});  // time since starting fill
@@ -551,7 +550,7 @@ float rise rate = 0.0002 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/1c9Wvdsa1).
+Try it in [the Compiler Explorer](https://godbolt.org/z/s5xaPv887).
 
 
 # Scope
