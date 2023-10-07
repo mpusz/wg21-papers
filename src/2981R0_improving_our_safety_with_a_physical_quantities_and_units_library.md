@@ -977,17 +977,9 @@ The same applies to:
 static_assert(5 * h / (120 * min) == 0 * one);
 ```
 
-**This is why we often prefer floating-point representation types when dealing with units.**
-Some popular physical units libraries even
+This is why floating point representation types are recommended as a default to store the numerical
+value of a quantity. Some popular physical units libraries even
 [forbid integer division at all](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden).
-
-
-```cpp
-quantity q1 = 2 * km / (5 * h);
-quantity q2 = 2 * h / (30 * min);
-```
-
-Sometimes hidden in a ratio...
 
 ## Lack of safe numeric types
 
@@ -995,7 +987,6 @@ Integers can overflow on arithmetics. This has already caused some expensive fai
 [@ARIANE].
 
 Integers can also be truncated during assignment to a narrower type.
-
 
 Floating-point types may lose precision during assignment to a narrower type.
 Conversion from `std::int64_t` to `double` may also be truncating.
