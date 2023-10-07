@@ -953,10 +953,49 @@ and the library will do its best to protect us based on the information provided
 https://github.com/mpusz/mp-units/issues/468
 
 
-## Safe equations (arithmetic, quantity character, multiplication, division, dot, cross, norm)
+## Vector and tensor quantities
 
-https://github.com/mpusz/mp-units/issues/432
+While talking about physical quantities and units libraries everyone expects that the library will
+protect (preferably at compile-time) from accidental replacing multiplication with division operations
+or vice versa. Everyone knows and expects that the multiplication of length and time should not result
+with speed. It does not mean that such operation is invalid, it just results with a quantity of
+a different type.
 
+If we expect the above protection for scalar quantities we should also strive to provide similar
+guarantees for vector and tensor quantities. First it is good to mention, that the multiplication
+or division of two vectors or tensors is even not mathematically defined. Such operationd should
+be impossible on quantities using vector or tensor representation types.
+
+What multiplication and division is for scalars, the dot and cross products is for vector quantities.
+The result of the first one is a scalar. The second one results in a vector that is perpendicular
+to both vectors passed as arguments. A good physical quantities and units library should protect
+the user from making such an error of accidentally replacing those operations.
+
+Vector and tensor quantities can be implemented in two ways:
+
+1. Encapsulating multiple quantities into a homogeneous vector or tensor representation type
+
+    This solution is the most common on the C++ market. It requires the quantities library to provide
+    only basic arithmetic operations (addition, subtraction, multiplication, and division) which
+    are being used to calculate the result of linear algebra math. However, this solution can't
+    provide any compile-time safety described above and will also crash when someone will pass
+    a proper vector and tensor representation type to a quantity, expecting it to work.
+
+2. Encapsulating a vector or tensor as a representation type of a quantity
+
+    This provides all the required type safety, but requires the library to implement more operations
+    on quantities and properly constrain them so they are selectively enabled when needed. Besides
+    [@MP-UNITS], the only library that supports such an approach is [@PINT]. Such a solution requires
+    the following operations to be exposed for quantity types:
+
+    - `a + b` - addition where both arguments should be of the same quantity kind and character
+    - `a - b` - subtraction where both arguments should be of the same quantity kind and character
+    - `a * b` - multiplication where one of the arguments has to be scalar
+    - `a / b` - division where the divisor has to be scalar
+    - `a ⋅ b` - dot product of two vectors
+    - `a × b` - cross product of two vectors
+    - `|a|` - magnitude of a vector
+    - `a ⊗ b` - tensor product of two vectors or tensors
 
 
 # Safety Pitfalls

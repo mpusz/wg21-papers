@@ -507,9 +507,8 @@ quantity kinds<span></span></a></li>
 </ul></li>
 <li><a href="#non-negative-quantities" id="toc-non-negative-quantities"><span class="toc-section-number">6.9</span> non-negative
 quantities<span></span></a></li>
-<li><a href="#safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm" id="toc-safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm"><span class="toc-section-number">6.10</span> Safe equations (arithmetic,
-quantity character, multiplication, division, dot, cross,
-norm)<span></span></a></li>
+<li><a href="#vector-and-tensor-quantities" id="toc-vector-and-tensor-quantities"><span class="toc-section-number">6.10</span> Vector and tensor
+quantities<span></span></a></li>
 </ul></li>
 <li><a href="#safety-pitfalls" id="toc-safety-pitfalls"><span class="toc-section-number">7</span> Safety Pitfalls<span></span></a>
 <ul>
@@ -1385,9 +1384,62 @@ simple and strongly-typed quantities in our projects and the library
 will do its best to protect us based on the information provided.</p>
 <h2 data-number="6.9" id="non-negative-quantities"><span class="header-section-number">6.9</span> non-negative quantities<a href="#non-negative-quantities" class="self-link"></a></h2>
 <p>https://github.com/mpusz/mp-units/issues/468</p>
-<h2 data-number="6.10" id="safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm"><span class="header-section-number">6.10</span> Safe equations (arithmetic,
-quantity character, multiplication, division, dot, cross, norm)<a href="#safe-equations-arithmetic-quantity-character-multiplication-division-dot-cross-norm" class="self-link"></a></h2>
-<p>https://github.com/mpusz/mp-units/issues/432</p>
+<h2 data-number="6.10" id="vector-and-tensor-quantities"><span class="header-section-number">6.10</span> Vector and tensor quantities<a href="#vector-and-tensor-quantities" class="self-link"></a></h2>
+<p>While talking about physical quantities and units libraries everyone
+expects that the library will protect (preferably at compile-time) from
+accidental replacing multiplication with division operations or vice
+versa. Everyone knows and expects that the multiplication of length and
+time should not result with speed. It does not mean that such operation
+is invalid, it just results with a quantity of a different type.</p>
+<p>If we expect the above protection for scalar quantities we should
+also strive to provide similar guarantees for vector and tensor
+quantities. First it is good to mention, that the multiplication or
+division of two vectors or tensors is even not mathematically defined.
+Such operationd should be impossible on quantities using vector or
+tensor representation types.</p>
+<p>What multiplication and division is for scalars, the dot and cross
+products is for vector quantities. The result of the first one is a
+scalar. The second one results in a vector that is perpendicular to both
+vectors passed as arguments. A good physical quantities and units
+library should protect the user from making such an error of
+accidentally replacing those operations.</p>
+<p>Vector and tensor quantities can be implemented in two ways:</p>
+<ol type="1">
+<li><p>Encapsulating multiple quantities into a homogeneous vector or
+tensor representation type</p>
+<p>This solution is the most common on the C++ market. It requires the
+quantities library to provide only basic arithmetic operations
+(addition, subtraction, multiplication, and division) which are being
+used to calculate the result of linear algebra math. However, this
+solution can’t provide any compile-time safety described above and will
+also crash when someone will pass a proper vector and tensor
+representation type to a quantity, expecting it to work.</p></li>
+<li><p>Encapsulating a vector or tensor as a representation type of a
+quantity</p>
+<p>This provides all the required type safety, but requires the library
+to implement more operations on quantities and properly constrain them
+so they are selectively enabled when needed. Besides <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, the only library that
+supports such an approach is <span class="citation" data-cites="PINT">[<a href="#ref-PINT" role="doc-biblioref">Pint</a>]</span>. Such a solution requires the
+following operations to be exposed for quantity types:</p>
+<ul>
+<li><code class="sourceCode default">a + b</code> - addition where both
+arguments should be of the same quantity kind and character</li>
+<li><code class="sourceCode default">a - b</code> - subtraction where
+both arguments should be of the same quantity kind and character</li>
+<li><code class="sourceCode default">a * b</code> - multiplication where
+one of the arguments has to be scalar</li>
+<li><code class="sourceCode default">a / b</code> - division where the
+divisor has to be scalar</li>
+<li><code class="sourceCode default">a ⋅ b</code> - dot product of two
+vectors</li>
+<li><code class="sourceCode default">a × b</code> - cross product of two
+vectors</li>
+<li><code class="sourceCode default">|a|</code> - magnitude of a
+vector</li>
+<li><code class="sourceCode default">a ⊗ b</code> - tensor product of
+two vectors or tensors</li>
+</ul></li>
+</ol>
 <h1 data-number="7" id="safety-pitfalls"><span class="header-section-number">7</span> Safety Pitfalls<a href="#safety-pitfalls" class="self-link"></a></h1>
 <h2 data-number="7.1" id="integer-division"><span class="header-section-number">7.1</span> Integer division<a href="#integer-division" class="self-link"></a></h2>
 <p>The physical units library can’t do any runtime branching logic for
@@ -1403,13 +1455,10 @@ range check at runtime to dynamically adjust scales and types based on
 the values of provided function arguments.</p>
 <p>The same applies to:</p>
 <div class="sourceCode" id="cb52"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h <span class="op">/</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">==</span> <span class="dv">0</span> <span class="op">*</span> one<span class="op">)</span>;</span></code></pre></div>
-<p><strong>This is why we often prefer floating-point representation
-types when dealing with units.</strong> Some popular physical units
-libraries even <a href="https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden">forbid
+<p>This is why floating point representation types are recommended as a
+default to store the numerical value of a quantity. Some popular
+physical units libraries even <a href="https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden">forbid
 integer division at all</a>.</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> h <span class="op">/</span> <span class="op">(</span><span class="dv">30</span> <span class="op">*</span> min<span class="op">)</span>;</span></code></pre></div>
-<p>Sometimes hidden in a ratio…</p>
 <h2 data-number="7.2" id="lack-of-safe-numeric-types"><span class="header-section-number">7.2</span> Lack of safe numeric types<a href="#lack-of-safe-numeric-types" class="self-link"></a></h2>
 <p>Integers can overflow on arithmetics. This has already caused some
 expensive failures in engineering <span class="citation" data-cites="ARIANE">[<a href="#ref-ARIANE" role="doc-biblioref">Ariane
@@ -1431,9 +1480,9 @@ units composition<a href="#potential-surprises-during-units-composition" class="
 and units library is to implement units in such a way that they compose.
 With that, one can easily create any derived unit using a simple unit
 equation on other base or derived units. For example:</p>
-<div class="sourceCode" id="cb54"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> Unit <span class="kw">auto</span> kmph <span class="op">=</span> km <span class="op">/</span> h;</span></code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> Unit <span class="kw">auto</span> kmph <span class="op">=</span> km <span class="op">/</span> h;</span></code></pre></div>
 <p>We can also easily obtain a quantity with:</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> h;</span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> h;</span></code></pre></div>
 <p>Such a solution is an industry standard and is implemented not only
 in <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, but also is available for
 many years now in both <span class="citation" data-cites="BOOST-UNITS">[<a href="#ref-BOOST-UNITS" role="doc-biblioref">Boost.Units</a>]</span> and <span class="citation" data-cites="PINT">[<a href="#ref-PINT" role="doc-biblioref">Pint</a>]</span>.</p>
@@ -1441,23 +1490,23 @@ many years now in both <span class="citation" data-cites="BOOST-UNITS">[<a href=
 it straight in this paper that some potential issues are associated with
 such a syntax. Inexperienced users are often surprised by the results of
 the following expression:</p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;</span></code></pre></div>
+<div class="sourceCode" id="cb55"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;</span></code></pre></div>
 <p>This looks like like <code class="sourceCode default">30 km/h</code>,
 right? But it is not. Thanks to the operators’ associativity, it results
 in <code class="sourceCode default">30 km⋅h</code>. In case we want to
 divide <code class="sourceCode default">60 km</code> by
 <code class="sourceCode default">2 h</code> a parenthesis is needed:</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
 <p>Another surprising issue may result from the following code:</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span>;</span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span>;</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
 <p>This might look like a good idea, but let’s consider what would
 happen if the user provided an already existing quantity:</p>
-<div class="sourceCode" id="cb59"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
 <p>The above function invocation will result with a quantity of area
 instead of expected quantity of length.</p>
 <p>The issues mentioned above could be turned into compilation errors by
@@ -1466,33 +1515,33 @@ such an approach, but with time, we decided this to be not
 user-friendly. Forcing the user to put the parenthesis around all
 derived units in quantity equations like the one below, was too verbose
 and confusing:</p>
-<div class="sourceCode" id="cb60"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> <span class="op">(</span>km <span class="op">/</span> h<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> <span class="op">(</span>km <span class="op">/</span> h<span class="op">)</span>;</span></code></pre></div>
 <p>It is important to notice that the problems mentioned above will
 always surface with a compile-time error at some point in the users code
 when they assign the resulting quantity to the one with explicitly
 provided quantity type.</p>
 <p>Below, we provide a few examples that correctly detect such issues at
 compile-time:</p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> <span class="op">/</span> non_si<span class="op">::</span>hour, <span class="dt">int</span><span class="op">&gt;</span> q1 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;             <span class="co">// ERROR</span></span>
-<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> <span class="op">/</span> non_si<span class="op">::</span>hour<span class="op">]</span>, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h; <span class="co">// ERROR</span></span>
-<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> q3 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;                                   <span class="co">// ERROR</span></span></code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> <span class="op">/</span> non_si<span class="op">::</span>hour, <span class="dt">int</span><span class="op">&gt;</span> q1 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;             <span class="co">// ERROR</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> <span class="op">/</span> non_si<span class="op">::</span>hour<span class="op">]</span>, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h; <span class="co">// ERROR</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> q3 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;                                   <span class="co">// ERROR</span></span></code></pre></div>
+<div class="sourceCode" id="cb61"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre, <span class="dt">int</span><span class="op">&gt;</span> q1 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;           <span class="co">// ERROR</span></span>
+<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">[</span>si<span class="op">::</span>metre<span class="op">]&gt;</span> q2 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;   <span class="co">// ERROR</span></span>
+<span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> q3 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;            <span class="co">// ERROR</span></span></code></pre></div>
 <div class="sourceCode" id="cb62"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
 <span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre, <span class="dt">int</span><span class="op">&gt;</span> q1 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;           <span class="co">// ERROR</span></span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">[</span>si<span class="op">::</span>metre<span class="op">]&gt;</span> q2 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;   <span class="co">// ERROR</span></span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> q3 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;            <span class="co">// ERROR</span></span></code></pre></div>
-<div class="sourceCode" id="cb63"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// ERROR</span></span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>Representation T<span class="op">&gt;</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
 <span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
 <span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// ERROR</span></span></code></pre></div>
-<div class="sourceCode" id="cb64"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>Representation T<span class="op">&gt;</span></span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
-<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
-<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// ERROR</span></span></code></pre></div>
 <h1 data-number="8" id="acknowledgements"><span class="header-section-number">8</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
