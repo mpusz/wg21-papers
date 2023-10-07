@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-09-27" />
+  <meta name="dcterms.date" content="2023-10-06" />
   <title>`std::quantity` as a numeric type</title>
   <style>
       code{white-space: pre-wrap;}
@@ -428,7 +428,7 @@ as a numeric type</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-09-27</td>
+    <td>2023-10-06</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -459,16 +459,25 @@ Acknowledgements<span></span></a></li>
 </ul>
 </div>
 <h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
-<p>identities (dimension_one, dimensionless, one) magnitude (ratio on
-steroids) quantity_spec vs units/dimension equations quantity_spec
-conversions and common_quantity_spec quantity constructors and
-conversions (value preserving approach) exceptions and special cases for
-dimensionless quantities quantity arithmetics + quirks of modulo
-arithmetic and integral division custom representation types (improve
-safety, provide additional info like measurement, linear algebra,
-minimal requirements) representation type constraints vector quantities
-and their operations affine space and operations Math CPOs</p>
-<p>some units should not simplify (hubble constant)</p>
+<ul>
+<li><p>identities (dimension_one, dimensionless, one)</p></li>
+<li><p>magnitude (ratio on steroids)</p></li>
+<li><p>quantity_spec vs units/dimension equations</p></li>
+<li><p>quantity_spec conversions and common_quantity_spec</p></li>
+<li><p>quantity constructors and conversions (value preserving
+approach)</p></li>
+<li><p>exceptions and special cases for dimensionless
+quantities</p></li>
+<li><p>quantity arithmetics + quirks of modulo arithmetic and integral
+division</p></li>
+<li><p>custom representation types (improve safety, provide additional
+info like measurement, linear algebra, minimal requirements)</p></li>
+<li><p>representation type constraints</p></li>
+<li><p>vector quantities and their operations</p></li>
+<li><p>affine space and operations</p></li>
+<li><p>Math CPOs</p></li>
+<li><p>some units should not simplify (hubble constant)</p></li>
+</ul>
 <h1 data-number="2" id="acknowledgements"><span class="header-section-number">2</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
