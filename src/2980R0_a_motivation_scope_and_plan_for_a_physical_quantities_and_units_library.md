@@ -82,7 +82,29 @@ Mostly at <https://github.com/JohelEGP/>.
 
 ## Charles Hogg
 
-Author of [@AU].
+Chip Hogg is a Staff Software Engineer on the Motion Planning Team at Aurora Innovation, the
+self-driving vehicle company that is developing the Aurora Driver.  After obtaining his PhD in
+Physics from Carnegie Mellon in 2010, he was a postdoctoral researcher and then staff scientist at
+the National Institute of Standards and Technology (NIST), doing Bayesian data analysis. He joined
+Google in 2012 as a software engineer, leaving in 2016 to work on autonomous vehicles at Uber's
+Advanced Technologies Group (ATG), where he stayed until their acquisition by Aurora in 2021.
+
+Chip built his first C++ units library at Uber ATG in 2018, where he first developed the concept of
+unit-safe interfaces.  At Aurora in 2021, he ported over only the test cases, writing a new and more
+powerful units library from scratch.  This included novel features such as vector space magnitudes,
+and an adaptive conversion policy which guards against overflow in integers.
+
+He soon realized that there was a much broader need for Aurora's units library.  No publicly
+available units library for C++14 or C++17 could match its ergonomics, developer experience, and
+performance.  This motivated him to create [@AU] in 2022: a new, zero-dependency units library,
+which was a drop-in replacement for Aurora's original units library, but offered far more composable
+interfaces, and was built on simpler, stronger foundations.  Once Au proved its value internally,
+Chip migrated it to a separate repository and led the open-sourcing process, culminating in its
+public release in 2023.
+
+While Au provides excellent ergonomics and robustness for pre-C++20 users, Chip also believes the
+C++ community would benefit from a standard units library.  For that reason, he has joined forces
+with the mp-units project, contributing code and design ideas.
 
 ## Mateusz Pusz
 
