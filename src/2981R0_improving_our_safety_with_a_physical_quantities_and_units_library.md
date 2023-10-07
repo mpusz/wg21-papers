@@ -997,6 +997,12 @@ Vector and tensor quantities can be implemented in two ways:
     - `|a|` - magnitude of a vector
     - `a ⊗ b` - tensor product of two vectors or tensors
 
+Additionally, the [@MP-UNITS] library knows the expected quantity character for each quantity.
+Thanks to that, it prevents the user, for example, from providing a scalar representation type for
+force or a vector representation for power quantities.
+This additionally improves the compile-time safety of the library by ensuring that quantities are
+created with proper quantity equations.
+
 
 # Safety Pitfalls
 

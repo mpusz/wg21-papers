@@ -1441,6 +1441,13 @@ vector</li>
 two vectors or tensors</li>
 </ul></li>
 </ol>
+<p>Additionally, the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+knows the expected quantity character for each quantity. Thanks to that,
+it prevents the user, for example, from providing a scalar
+representation type for force or a vector representation for power
+quantities. This additionally improves the compile-time safety of the
+library by ensuring that quantities are created with proper quantity
+equations.</p>
 <h1 data-number="7" id="safety-pitfalls"><span class="header-section-number">7</span> Safety Pitfalls<a href="#safety-pitfalls" class="self-link"></a></h1>
 <h2 data-number="7.1" id="integer-division"><span class="header-section-number">7.1</span> Integer division<a href="#integer-division" class="self-link"></a></h2>
 <p>The physical units library can’t do any runtime branching logic for
