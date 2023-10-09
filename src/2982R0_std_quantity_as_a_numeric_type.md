@@ -422,9 +422,13 @@ E = 8.01088e-10 J
 Units, dimensions, and quantity types can be checked for equivalence with `operator==`. However,
 what it means to be an equivalent entity means something different for each case here.
 
-...
+### Dimensions
 
-### Ordering
+### Units
+
+### Quantity types
+
+## Ordering
 
 Please note that ordering for dimensions and quantity types has no physical sense.
 
@@ -446,7 +450,7 @@ if constexpr (my_unit > si::nano(si::second)) {
 }
 ```
 
-The first check is useful for some use cases in the above code. However, the second
+In the above code, the first check could useful for some use cases. However, the second
 one is impossible to implement and should not compile. The third one could be considered useful,
 but the current version of [@MP-UNITS] does not expose such an interface to limit
 potential confusion.
@@ -462,7 +466,7 @@ potential confusion.
 
 #### `common_quantity_spec`
 
-# References
+# Quantity References
 
 ## Associated Units
 

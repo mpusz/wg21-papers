@@ -481,11 +481,23 @@ helpers<span></span></a></li>
 units<span></span></a></li>
 </ul></li>
 <li><a href="#faster-than-lightspeed-constants" id="toc-faster-than-lightspeed-constants"><span class="toc-section-number">3.3</span> Faster than lightspeed
-constants<span></span></a></li>
+constants<span></span></a>
+<ul>
+<li><a href="#simplifying-constants-in-an-equation" id="toc-simplifying-constants-in-an-equation"><span class="toc-section-number">3.3.1</span> Simplifying constants in an
+equation<span></span></a></li>
+<li><a href="#physical-constants-as-units" id="toc-physical-constants-as-units"><span class="toc-section-number">3.3.2</span> Physical constants as
+units<span></span></a></li>
+<li><a href="#usage-examples" id="toc-usage-examples"><span class="toc-section-number">3.3.3</span> Usage
+examples<span></span></a></li>
+</ul></li>
 <li><a href="#equivalence" id="toc-equivalence"><span class="toc-section-number">3.4</span> Equivalence<span></span></a>
 <ul>
-<li><a href="#ordering" id="toc-ordering"><span class="toc-section-number">3.4.1</span> Ordering<span></span></a></li>
+<li><a href="#dimensions" id="toc-dimensions"><span class="toc-section-number">3.4.1</span> Dimensions<span></span></a></li>
+<li><a href="#units" id="toc-units"><span class="toc-section-number">3.4.2</span> Units<span></span></a></li>
+<li><a href="#quantity-types" id="toc-quantity-types"><span class="toc-section-number">3.4.3</span> Quantity
+types<span></span></a></li>
 </ul></li>
+<li><a href="#ordering" id="toc-ordering"><span class="toc-section-number">3.5</span> Ordering<span></span></a></li>
 </ul></li>
 <li><a href="#quantity-specifications" id="toc-quantity-specifications"><span class="toc-section-number">4</span> Quantity
 specifications<span></span></a>
@@ -498,7 +510,7 @@ Conversions<span></span></a></li>
 quantities<span></span></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#references" id="toc-references"><span class="toc-section-number">5</span> References<span></span></a>
+<li><a href="#quantity-references" id="toc-quantity-references"><span class="toc-section-number">5</span> Quantity References<span></span></a>
 <ul>
 <li><a href="#associated-units" id="toc-associated-units"><span class="toc-section-number">5.1</span> Associated
 Units<span></span></a></li>
@@ -970,30 +982,147 @@ brevity):</p>
 <h3 data-number="3.2.3" id="common-units"><span class="header-section-number">3.2.3</span> Common units<a href="#common-units" class="self-link"></a></h3>
 <h2 data-number="3.3" id="faster-than-lightspeed-constants"><span class="header-section-number">3.3</span> Faster than lightspeed
 constants<a href="#faster-than-lightspeed-constants" class="self-link"></a></h2>
+<p>In most libraries, physical constants are implemented as constant
+(possibly <code class="sourceCode default">constexpr</code>) quantity
+values. Such an approach has some disadvantages, often resulting in
+longer compilation times and a loss of precision.</p>
+<h3 data-number="3.3.1" id="simplifying-constants-in-an-equation"><span class="header-section-number">3.3.1</span> Simplifying constants in an
+equation<a href="#simplifying-constants-in-an-equation" class="self-link"></a></h3>
+<p>When dealing with equations involving physical constants, they often
+occur more than once in an expression. Such a constant may appear both
+in a numerator and denominator of a quantity equation. As we know from
+fundamental physics, we can simplify such an expression by striking a
+constant out of the equation. Supporting such behavior allows a faster
+runtime performance and often a better precision of the resulting
+value.</p>
+<h3 data-number="3.3.2" id="physical-constants-as-units"><span class="header-section-number">3.3.2</span> Physical constants as units<a href="#physical-constants-as-units" class="self-link"></a></h3>
+<p>The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+allows and encourages implementing physical constants as regular units.
+With that, the constant’s value is handled at compile-time, and under
+favorable circumstances, it can be simplified in the same way as all
+other repeated units do. If it is not simplified, the value is stored in
+a type, and the expensive multiplication or division operations can be
+delayed in time until a user selects a specific unit to represent/print
+the data.</p>
+<p>Such a feature often also allows using simpler or faster
+representation types in the equation. For example, instead of always
+having to multiply a small integral value with a big floating-point
+constant number, we can just use the integral type all the way. Only in
+case a constant will not simplify in the equation, and the user will
+require a specific unit, such a multiplication will be lazily invoked,
+and the representation type will need to be expanded to facilitate that.
+With that, addition, subtractions, multiplications, and divisions will
+always be the fastest - compiled away or done in out-of-order
+execution.</p>
+<p>To benefit from all of the above, in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library, SI defining and other
+constants are implemented as units in the following way:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> si <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> si2019 <span class="op">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> speed_of_light_in_vacuum <span class="op">:</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  named_unit<span class="op">&lt;</span><span class="st">&quot;c&quot;</span>, mag<span class="op">&lt;</span><span class="dv">299&#39;792&#39;458</span><span class="op">&gt;</span> <span class="op">*</span> metre <span class="op">/</span> second<span class="op">&gt;</span> <span class="op">{}</span> speed_of_light_in_vacuum;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>  <span class="co">// namespace si2019</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> magnetic_constant <span class="op">:</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  named_unit<span class="op">&lt;</span>basic_symbol_text<span class="op">{</span><span class="st">&quot;μ₀&quot;</span>, <span class="st">&quot;u_0&quot;</span><span class="op">}</span>, mag<span class="op">&lt;</span><span class="dv">4</span><span class="op">&gt;</span> <span class="op">*</span> mag_pi <span class="op">*</span> mag_power<span class="op">&lt;</span><span class="dv">10</span>, <span class="op">-</span><span class="dv">7</span><span class="op">&gt;</span> <span class="op">*</span> henry <span class="op">/</span> metre<span class="op">&gt;</span> <span class="op">{}</span> magnetic_constant;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>  <span class="co">// namespace mp_units::si</span></span></code></pre></div>
+<h3 data-number="3.3.3" id="usage-examples"><span class="header-section-number">3.3.3</span> Usage examples<a href="#usage-examples" class="self-link"></a></h3>
+<p>With the above definitions, we can calculate vacuum permittivity
+as:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> permeability_of_vacuum <span class="op">=</span> <span class="fl">1.</span> <span class="op">*</span> si<span class="op">::</span>magnetic_constant;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> speed_of_light_in_vacuum <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> si<span class="op">::</span>si2019<span class="op">::</span>speed_of_light_in_vacuum;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>permittivity_of_vacuum<span class="op">&gt;</span> <span class="kw">auto</span> q <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> <span class="op">(</span>permeability_of_vacuum <span class="op">*</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>speed_of_light_in_vacuum<span class="op">))</span>;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;permittivity of vacuum = &quot;</span> <span class="op">&lt;&lt;</span> q <span class="op">&lt;&lt;</span> <span class="st">&quot; = &quot;</span> <span class="op">&lt;&lt;</span> q<span class="op">.</span>in<span class="op">(</span>F <span class="op">/</span> m<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span></code></pre></div>
+<p>The above first prints the following:</p>
+<pre class="text"><code>permittivity of vacuum = 1  μ₀⁻¹ c⁻² = 8.85419e-12 F/m</code></pre>
+<p>As we can clearly see, all the calculations above were just about
+multiplying and dividing the number
+<code class="sourceCode default">1</code> with the rest of the
+information provided as a compile-time type. Only when a user wants a
+specific SI unit as a result the unit ratios are lazily resolved.</p>
+<p>Another similar example can be an equation for total energy:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>mechanical_energy<span class="op">&gt;</span> <span class="kw">auto</span> total_energy<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>momentum<span class="op">&gt;</span> <span class="kw">auto</span> p,</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                                                     QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">&gt;</span> <span class="kw">auto</span> m,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                                                     QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> c<span class="op">)</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> isq<span class="op">::</span>mechanical_energy<span class="op">(</span>sqrt<span class="op">(</span>pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>p <span class="op">*</span> c<span class="op">)</span> <span class="op">+</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>m <span class="op">*</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>c<span class="op">))))</span>;</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> GeV <span class="op">=</span> si<span class="op">::</span>giga<span class="op">&lt;</span>si<span class="op">::</span>electronvolt<span class="op">&gt;</span>;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> c <span class="op">=</span> <span class="fl">1.</span> <span class="op">*</span> si<span class="op">::</span>si2019<span class="op">::</span>speed_of_light_in_vacuum;</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> c2 <span class="op">=</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>c<span class="op">)</span>;</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> <span class="kw">auto</span> p1 <span class="op">=</span> isq<span class="op">::</span>momentum<span class="op">(</span><span class="fl">4.</span> <span class="op">*</span> GeV <span class="op">/</span> c<span class="op">)</span>;</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">&gt;</span> <span class="kw">auto</span> m1 <span class="op">=</span> <span class="fl">3.</span> <span class="op">*</span> GeV <span class="op">/</span> c2;</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> <span class="kw">auto</span> E <span class="op">=</span> total_energy<span class="op">(</span>p1, m1, c<span class="op">)</span>;</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;in `GeV` and `c`:</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;&lt;</span> <span class="st">&quot;p = &quot;</span> <span class="op">&lt;&lt;</span> p1 <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;&lt;</span> <span class="st">&quot;m = &quot;</span> <span class="op">&lt;&lt;</span> m1 <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;&lt;</span> <span class="st">&quot;E = &quot;</span> <span class="op">&lt;&lt;</span> E <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> <span class="kw">auto</span> p2 <span class="op">=</span> p1<span class="op">.</span>in<span class="op">(</span>GeV <span class="op">/</span> <span class="op">(</span>m <span class="op">/</span> s<span class="op">))</span>;</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> <span class="kw">auto</span> m2 <span class="op">=</span> m1<span class="op">.</span>in<span class="op">(</span>GeV <span class="op">/</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>m <span class="op">/</span> s<span class="op">))</span>;</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> <span class="kw">auto</span> E2 <span class="op">=</span> total_energy<span class="op">(</span>p2, m2, c<span class="op">).</span>in<span class="op">(</span>GeV<span class="op">)</span>;</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">in `GeV`:</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;&lt;</span> <span class="st">&quot;p = &quot;</span> <span class="op">&lt;&lt;</span> p2 <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;&lt;</span> <span class="st">&quot;m = &quot;</span> <span class="op">&lt;&lt;</span> m2 <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;&lt;</span> <span class="st">&quot;E = &quot;</span> <span class="op">&lt;&lt;</span> E2 <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> <span class="kw">auto</span> p3 <span class="op">=</span> p1<span class="op">.</span>in<span class="op">(</span>kg <span class="op">*</span> m <span class="op">/</span> s<span class="op">)</span>;</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> <span class="kw">auto</span> m3 <span class="op">=</span> m1<span class="op">.</span>in<span class="op">(</span>kg<span class="op">)</span>;</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> <span class="kw">auto</span> E3 <span class="op">=</span> total_energy<span class="op">(</span>p3, m3, c<span class="op">).</span>in<span class="op">(</span>J<span class="op">)</span>;</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">in SI base units:</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;&lt;</span> <span class="st">&quot;p = &quot;</span> <span class="op">&lt;&lt;</span> p3 <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;&lt;</span> <span class="st">&quot;m = &quot;</span> <span class="op">&lt;&lt;</span> m3 <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;&lt;</span> <span class="st">&quot;E = &quot;</span> <span class="op">&lt;&lt;</span> E3 <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span></code></pre></div>
+<p>The above prints the following:</p>
+<pre class="text"><code>in `GeV` and `c`:
+p = 4 GeV/c
+m = 3 GeV/c²
+E = 5 GeV
+
+in `GeV`:
+p = 1.33426e-08 GeV s/m
+m = 3.33795e-17 GeV s²/m²
+E = 5 GeV
+
+in SI base units:
+p = 2.13771e-18 kg m/s
+m = 5.34799e-27 kg
+E = 8.01088e-10 J</code></pre>
 <h2 data-number="3.4" id="equivalence"><span class="header-section-number">3.4</span> Equivalence<a href="#equivalence" class="self-link"></a></h2>
 <p>Units, dimensions, and quantity types can be checked for equivalence
 with <code class="sourceCode default">operator==</code>. However, what
 it means to be an equivalent entity means something different for each
 case here.</p>
-<p>…</p>
-<h3 data-number="3.4.1" id="ordering"><span class="header-section-number">3.4.1</span> Ordering<a href="#ordering" class="self-link"></a></h3>
+<h3 data-number="3.4.1" id="dimensions"><span class="header-section-number">3.4.1</span> Dimensions<a href="#dimensions" class="self-link"></a></h3>
+<h3 data-number="3.4.2" id="units"><span class="header-section-number">3.4.2</span> Units<a href="#units" class="self-link"></a></h3>
+<h3 data-number="3.4.3" id="quantity-types"><span class="header-section-number">3.4.3</span> Quantity types<a href="#quantity-types" class="self-link"></a></h3>
+<h2 data-number="3.5" id="ordering"><span class="header-section-number">3.5</span> Ordering<a href="#ordering" class="self-link"></a></h2>
 <p>Please note that ordering for dimensions and quantity types has no
 physical sense.</p>
 <p>We could entertain adding ordering for units, but this would work
 only for quantities having the same reference unit, which would be
 inconsistent with how equivalence works.</p>
 <p>Let’s see the following example:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> Unit <span class="kw">auto</span> my_unit <span class="op">=</span> si<span class="op">::</span>second;</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>my_unit <span class="op">==</span> si<span class="op">::</span>metre<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>my_unit <span class="op">&gt;</span> si<span class="op">::</span>metre<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>my_unit <span class="op">&gt;</span> si<span class="op">::</span>nano<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>The first check is useful for some use cases in the above code.
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> Unit <span class="kw">auto</span> my_unit <span class="op">=</span> si<span class="op">::</span>second;</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>my_unit <span class="op">==</span> si<span class="op">::</span>metre<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>my_unit <span class="op">&gt;</span> si<span class="op">::</span>metre<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>my_unit <span class="op">&gt;</span> si<span class="op">::</span>nano<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>In the above code, the first check could useful for some use cases.
 However, the second one is impossible to implement and should not
 compile. The third one could be considered useful, but the current
 version of <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> does not
@@ -1005,7 +1134,7 @@ expose such an interface to limit potential confusion.</p>
 quantities<a href="#mutually-comparable-quantities" class="self-link"></a></h3>
 <h4 data-number="4.1.2.1" id="common_quantity_spec"><span class="header-section-number">4.1.2.1</span>
 <code class="sourceCode default">common_quantity_spec</code><a href="#common_quantity_spec" class="self-link"></a></h4>
-<h1 data-number="5" id="references"><span class="header-section-number">5</span> References<a href="#references" class="self-link"></a></h1>
+<h1 data-number="5" id="quantity-references"><span class="header-section-number">5</span> Quantity References<a href="#quantity-references" class="self-link"></a></h1>
 <h2 data-number="5.1" id="associated-units"><span class="header-section-number">5.1</span> Associated Units<a href="#associated-units" class="self-link"></a></h2>
 <h1 data-number="6" id="quantities"><span class="header-section-number">6</span> Quantities<a href="#quantities" class="self-link"></a></h1>
 <ul>
