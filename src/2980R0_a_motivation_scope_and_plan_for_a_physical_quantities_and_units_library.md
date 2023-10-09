@@ -129,7 +129,18 @@ This paper is the result of those actions.
 
 ## Vincent Reverdy
 
-Author of [@P1930R0].
+Vincent is an astrophysicist, computer scientist, and a member of the French delegation to
+the ISO C++ Committee, currently working as a full researcher at the French National Centre
+for Scientific Research (CNRS). He has been interested for years in units and quantities
+for programming languages to ensure higher levels of both expressivity and safety in computational
+physics codes. Back in 2019, he authored [@P1930R0] to provide some context of what could
+be a quantity and unit library for C++.
+
+After designing and implementing several Domain Specific Language (DSL) demonstrators dedicated
+to units of measurements in C++, he became more interested in the theoretical side of
+the problem. Today, one of his research activities is dedicated to the mathematical formalization
+of systems of quantities and systems of units as an interdisciplinary problem between physics,
+mathematics, and computer science.
 
 
 # Motivation
