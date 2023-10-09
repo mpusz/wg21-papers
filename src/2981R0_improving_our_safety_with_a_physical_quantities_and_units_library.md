@@ -321,7 +321,7 @@ require a conversion factor based on an irrational number like pi.
 
 ## Preventing truncation of data
 
-The second safety feature of such libraries is preventing accidential truncation of quantity value. If we try
+The second safety feature of such libraries is preventing accidental truncation of quantity value. If we try
 similar, but this time opposite, operations to the above, both conversions should fail to compile:
 
 ```cpp
@@ -332,11 +332,11 @@ quantity<si::kilo<si::metre>, int> q2 = q1;
 
 We can't preserve the value of a source unit when we convert
 to a unit with a lower resolution while using an integral representation type for a quantity. 
-In the example above converting 5 metre would result in 0 kilometre if internal conversion is 
-done using regular integer handling. While this could be valid behavior the problem arises when the 
-user expect to be able to convert the quantity back to the original unit without loss of information. 
-So the library should prevent such conversions from happening implicitly, wether the library 
-should offer explicitely marked unsafe conversions for cases is yet to be discussed.
+In the example above, converting 5 metres would result in 0 kilometres if internal conversion is 
+done using regular integer handling. While this could be valid behavior, the problem arises when the 
+user expects to be able to convert the quantity back to the original unit without loss of information. 
+So the library should prevent such conversions from happening implicitly; whether the library 
+should offer explicitly marked unsafe conversions for these cases is yet to be discussed.
 
 _Please note that it is always assumed that one can convert a quantity into another one with a unit
 of a higher resolution. There is no protection against overflow of the representation type.
@@ -1031,13 +1031,13 @@ This is why floating point representation types are recommended as a default to 
 value of a quantity. Some popular physical units libraries even
 [forbid integer division at all](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden). 
 
-The problem is similar to the one described in the section about accidential truncation of values 
-through conversion. While the consequent use of floating point representation types may be a good idea,
-it is not always possible. Especially in close-to-the-metal applications and small embedded sytem the 
-use floating point types is sometimes not an option, either for performance reason or lack of hardware support.
-Other than with cast operations offering an explicitely marked unsafe operator mathematical operator is more 
-diffcult as it would force users to use different symbols for quantities using floating point or integral values. 
-As such the need to explicitely enabling such unsafe operations through a compiler flag could be an option. 
+The problem is similar to the one described in the section about accidental truncation of values 
+through conversion. While the consequent use of floating-point representation types may be a good idea,
+it is not always possible. Especially in close-to-the-metal applications and small embedded systems, the 
+use floating-point types is sometimes not an option, either for performance reasons or lack of hardware support.
+Other than with cast operations offering an explicitly marked unsafe operator mathematical operator is more 
+difficult as it would force users to use different symbols for quantities using floating-point or integral values. 
+As such, the need of explicitly enabling such unsafe operations through a compiler flag could be an option. 
 
 ## Lack of safe numeric types
 
