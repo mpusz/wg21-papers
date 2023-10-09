@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-06" />
+  <meta name="dcterms.date" content="2023-10-08" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-06</td>
+    <td>2023-10-08</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -574,7 +574,35 @@ familiarized code bases. Has an eye for identifying automation
 opportunities, and acts on them. Contributor to <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, and previously
 <code class="sourceCode default">nholthaus/units</code> v3. Mostly at <a href="https://github.com/JohelEGP/" class="uri">https://github.com/JohelEGP/</a>.</p>
 <h2 data-number="2.3" id="charles-hogg"><span class="header-section-number">2.3</span> Charles Hogg<a href="#charles-hogg" class="self-link"></a></h2>
-<p>Author of <span class="citation" data-cites="AU">[<a href="#ref-AU" role="doc-biblioref">Au</a>]</span>.</p>
+<p>Chip Hogg is a Staff Software Engineer on the Motion Planning Team at
+Aurora Innovation, the self-driving vehicle company that is developing
+the Aurora Driver. After obtaining his PhD in Physics from Carnegie
+Mellon in 2010, he was a postdoctoral researcher and then staff
+scientist at the National Institute of Standards and Technology (NIST),
+doing Bayesian data analysis. He joined Google in 2012 as a software
+engineer, leaving in 2016 to work on autonomous vehicles at Uber’s
+Advanced Technologies Group (ATG), where he stayed until their
+acquisition by Aurora in 2021.</p>
+<p>Chip built his first C++ units library at Uber ATG in 2018, where he
+first developed the concept of unit-safe interfaces. At Aurora in 2021,
+he ported over only the test cases, writing a new and more powerful
+units library from scratch. This included novel features such as vector
+space magnitudes, and an adaptive conversion policy which guards against
+overflow in integers.</p>
+<p>He soon realized that there was a much broader need for Aurora’s
+units library. No publicly available units library for C++14 or C++17
+could match its ergonomics, developer experience, and performance. This
+motivated him to create <span class="citation" data-cites="AU">[<a href="#ref-AU" role="doc-biblioref">Au</a>]</span> in 2022: a new,
+zero-dependency units library, which was a drop-in replacement for
+Aurora’s original units library, but offered far more composable
+interfaces, and was built on simpler, stronger foundations. Once Au
+proved its value internally, Chip migrated it to a separate repository
+and led the open-sourcing process, culminating in its public release in
+2023.</p>
+<p>While Au provides excellent ergonomics and robustness for pre-C++20
+users, Chip also believes the C++ community would benefit from a
+standard units library. For that reason, he has joined forces with the
+mp-units project, contributing code and design ideas.</p>
 <h2 data-number="2.4" id="mateusz-pusz"><span class="header-section-number">2.4</span> Mateusz Pusz<a href="#mateusz-pusz" class="self-link"></a></h2>
 <p>Mateusz got interested in the physical units subject while
 contributing to the <span class="citation" data-cites="LK8000">[<a href="#ref-LK8000" role="doc-biblioref">LK8000</a>]</span> Tactical
@@ -597,7 +625,19 @@ authors of other actively maintained libraries to get their feedback and
 invited them to work together to find and agree on the best solution for
 the C++ language. This paper is the result of those actions.</p>
 <h2 data-number="2.5" id="vincent-reverdy"><span class="header-section-number">2.5</span> Vincent Reverdy<a href="#vincent-reverdy" class="self-link"></a></h2>
-<p>Author of <span class="citation" data-cites="P1930R0">[<a href="#ref-P1930R0" role="doc-biblioref">P1930R0</a>]</span>.</p>
+<p>Vincent is an astrophysicist, computer scientist, and a member of the
+French delegation to the ISO C++ Committee, currently working as a full
+researcher at the French National Centre for Scientific Research (CNRS).
+He has been interested for years in units and quantities for programming
+languages to ensure higher levels of both expressivity and safety in
+computational physics codes. Back in 2019, he authored <span class="citation" data-cites="P1930R0">[<a href="#ref-P1930R0" role="doc-biblioref">P1930R0</a>]</span> to provide some context of what
+could be a quantity and unit library for C++.</p>
+<p>After designing and implementing several Domain Specific Language
+(DSL) demonstrators dedicated to units of measurements in C++, he became
+more interested in the theoretical side of the problem. Today, one of
+his research activities is dedicated to the mathematical formalization
+of systems of quantities and systems of units as an interdisciplinary
+problem between physics, mathematics, and computer science.</p>
 <h1 data-number="3" id="motivation"><span class="header-section-number">3</span> Motivation<a href="#motivation" class="self-link"></a></h1>
 <p>This chapter describes why we believe that physical quantities and
 units should be part of a C++ Standard Library.</p>
