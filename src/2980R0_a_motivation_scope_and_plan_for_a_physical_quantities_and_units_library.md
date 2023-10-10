@@ -410,17 +410,17 @@ int main()
   constexpr quantity v6 = value_cast<m / s>(v4);
   constexpr quantity v7 = value_cast<int>(v6);
 
-  std::cout << v1 << '\n';                                   // 110 km/h
-  std::cout << v2 << '\n';                                   // 70 mi/h
-  std::cout << std::format("{}", v3) << '\n';                // 110 km/h
-  std::cout << std::format("{:*^14}", v4) << '\n';           // ***70 mi/h****
-  std::cout << std::format("{:%Q in %q}", v5) << '\n';       // 30.5556 in m/s
-  std::cout << std::format("{0:%Q} in {0:%q}", v6) << '\n';  // 31.2928 in m/s
-  std::cout << std::format("{:%Q}", v7) << '\n';             // 31
+  std::cout << v1 << '\n';                // 110 km/h
+  std::cout << v2 << '\n';                // 70 mi/h
+  std::println("{}", v3);                 // 110 km/h
+  std::println("{:*^14}", v4);            // ***70 mi/h****
+  std::println("{:%Q in %q}", v5);        // 30.5556 in m/s
+  std::println("{0:%Q} in {0:%q}", v6);   // 31.2928 in m/s
+  std::println("{:%Q}", v7);              // 31
 }
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/badno8rcW).
+Try it in [the Compiler Explorer](https://godbolt.org/z/3E7q5P6jq).
 
 ## Bridge across the Rhine
 
@@ -638,12 +638,12 @@ int main()
 
   const auto fill_ratio = fill_level / height;
 
-  std::cout << std::format("fill height at {} = {} ({} full)\n", fill_time, fill_level, fill_ratio.in(percent));
-  std::cout << std::format("fill weight at {} = {} ({})\n", fill_time, filled_weight, filled_weight.in(N));
-  std::cout << std::format("spare capacity at {} = {}\n", fill_time, spare_capacity);
-  std::cout << std::format("input flow rate = {}\n", input_flow_rate);
-  std::cout << std::format("float rise rate = {}\n", float_rise_rate);
-  std::cout << std::format("tank full E.T.A. at current flow rate = {}\n", fill_time_left.in(s));
+  std::println("fill height at {} = {} ({} full)", fill_time, fill_level, fill_ratio.in(percent));
+  std::println("fill weight at {} = {} ({})", fill_time, filled_weight, filled_weight.in(N));
+  std::println("spare capacity at {} = {}", fill_time, spare_capacity);
+  std::println("input flow rate = {}", input_flow_rate);
+  std::println("float rise rate = {}", float_rise_rate);
+  std::println("tank full E.T.A. at current flow rate = {}", fill_time_left.in(s));
 }
 ```
 
@@ -658,7 +658,7 @@ float rise rate = 0.0002 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/s5xaPv887).
+Try it in [the Compiler Explorer](https://godbolt.org/z/h75cjM3jo).
 
 ## User defined quantities and units
 
@@ -679,15 +679,11 @@ namespace dsp_dsq {
 
 using namespace mp_units;
 
-inline constexpr struct SampleCount : quantity_spec<SampleCount, dimensionless, is_kind> {
-} SampleCount;
-inline constexpr struct SampleDuration : quantity_spec<SampleDuration, isq::time> {
-} SampleDuration;
-inline constexpr struct SamplingRate : quantity_spec<SamplingRate, isq::frequency, SampleCount / isq::time> {
-} SamplingRate;
+inline constexpr struct SampleCount : quantity_spec<dimensionless, is_kind> {} SampleCount;
+inline constexpr struct SampleDuration : quantity_spec<isq::time> {} SampleDuration;
+inline constexpr struct SamplingRate : quantity_spec<isq::frequency, SampleCount / isq::time> {} SamplingRate;
 
-inline constexpr struct Sample : named_unit<"Smpl", one, kind_of<SampleCount>> {
-} Sample;
+inline constexpr struct Sample : named_unit<"Smpl", one, kind_of<SampleCount>> {} Sample;
 
 namespace unit_symbols {
 inline constexpr auto Smpl = Sample;
@@ -695,12 +691,13 @@ inline constexpr auto Smpl = Sample;
 
 }
 
-int main() {
+int main()
+{
   using namespace dsp_dsq::unit_symbols;
   using namespace mp_units::si::unit_symbols;
 
   const auto sr1 = 44100.f * Hz;
-  const auto sr2 = 48000.f * (Smpl / s);
+  const auto sr2 = 48000.f * Smpl / s;
 
   const auto bufferSize = 512 * Smpl;
 
@@ -714,17 +711,17 @@ int main() {
   const auto rampSamples1 = value_cast<int>((rampTime * sr1).in(Smpl));
   const auto rampSamples2 = value_cast<int>((rampTime * sr2).in(Smpl));
 
-  std::cout << std::format("Sample rate 1 is: {}\n", sr1);
-  std::cout << std::format("Sample rate 2 is: {}\n", sr2);
+  std::println("Sample rate 1 is: {}", sr1);
+  std::println("Sample rate 2 is: {}", sr2);
 
-  std::cout << std::format("{} @ {} is {}\n", bufferSize, sr1, sampleTime1);
-  std::cout << std::format("{} @ {} is {}\n", bufferSize, sr2, sampleTime2);
+  std::println("{} @ {} is {}", bufferSize, sr1, sampleTime1);
+  std::println("{} @ {} is {}", bufferSize, sr2, sampleTime2);
 
-  std::cout << std::format("One sample @ {} is {}\n", sr1, sampleDuration1);
-  std::cout << std::format("One sample @ {} is {}\n", sr2, sampleDuration2);
+  std::println("One sample @ {} is {}", sr1, sampleDuration1);
+  std::println("One sample @ {} is {}", sr2, sampleDuration2);
 
-  std::cout << std::format("{} is {} @ {}\n", rampTime, rampSamples1, sr1);
-  std::cout << std::format("{} is {} @ {}\n", rampTime, rampSamples2, sr2);
+  std::println("{} is {} @ {}", rampTime, rampSamples1, sr1);
+  std::println("{} is {} @ {}", rampTime, rampSamples2, sr2);
 }
 
 ```
@@ -742,7 +739,8 @@ One sample @ 48000 Smpl/s is 0.0208333 ms
 35 ms is 1680 Smpl @ 48000 Smpl/s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/cTheanoWE).
+Try it in [the Compiler Explorer](https://godbolt.org/z/fz1PEPK3h).
+
 
 # Scope
 
