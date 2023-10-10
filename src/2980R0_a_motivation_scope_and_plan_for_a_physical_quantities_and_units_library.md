@@ -235,6 +235,21 @@ As a result, companies either use really simple and unsafe numeric wrappers or a
 and just use `double` to express quantity values which lead to safety issues by accidentally using
 values representing the wrong quantity or having an incorrect unit.
 
+## Extensibility
+
+Many applications of a quantity and units library may need to operate on
+a combination of standard (e.g. time in seconds or distance in metres)
+and domain-specific quantities and units.  The complexity of developing
+domain-specific solutions highlights the value in being able to define
+new quantities and units that have all the expressivity and safety as
+those provided by the library.
+
+Experience with writing ad hoc typed quantities without library support
+that can be combined with or converted to `std::chrono::duration` has
+shown the downside of bespoke solutions: if not all operations
+or conversions are handled users will need to leave the safety of typed
+quantities to operate on primitive types.
+
 ## Standardizing existing practice
 
 Plenty of physical units libraries have been available to the public for many years. Through the years,
@@ -432,7 +447,7 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/c17TWGhc5).
 
 ## Storage Tank
 
-Our last example estimates the process of filling a storage tank with some contents. It presents:
+This example estimates the process of filling a storage tank with some contents. It presents:
 
 - [the importance of supporting more than one distinct quantity for the same kind](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds),
 - [faster-than-lightspeed constants](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/),
@@ -574,6 +589,89 @@ tank full E.T.A. at current flow rate = 800 s
 
 Try it in [the Compiler Explorer](https://godbolt.org/z/s5xaPv887).
 
+## User defined quantities and units
+
+Users can easily define new quantities and units for domain specific
+use-cases.  This example from digital signal processing will show how to
+define custom units for counting
+[digital samples](https://en.wikipedia.org/wiki/Sampling_(signal_processing))
+and how they can be converted to time measured in milliseconds:
+
+```cpp
+#include <mp-units/format.h>
+#include <mp-units/systems/isq/isq.h>
+#include <mp-units/systems/si/si.h>
+#include <format>
+#include <iostream>
+
+namespace dsp_dsq {
+
+using namespace mp_units;
+
+inline constexpr struct SampleCount : quantity_spec<SampleCount, dimensionless, is_kind> {
+} SampleCount;
+inline constexpr struct SampleDuration : quantity_spec<SampleDuration, isq::time> {
+} SampleDuration;
+inline constexpr struct SamplingRate : quantity_spec<SamplingRate, isq::frequency, SampleCount / isq::time> {
+} SamplingRate;
+
+inline constexpr struct Sample : named_unit<"Smpl", one, kind_of<SampleCount>> {
+} Sample;
+
+namespace unit_symbols {
+inline constexpr auto Smpl = Sample;
+}
+
+}
+
+int main() {
+  using namespace dsp_dsq::unit_symbols;
+  using namespace mp_units::si::unit_symbols;
+
+  const auto sr1 = 44100.f * Hz;
+  const auto sr2 = 48000.f * (Smpl / s);
+
+  const auto bufferSize = 512 * Smpl;
+
+  const auto sampleTime1 = (bufferSize / sr1).in(s);
+  const auto sampleTime2 = (bufferSize / sr2).in(ms);
+
+  const auto sampleDuration1 = (1 / sr1).in(ms);
+  const auto sampleDuration2 = dsp_dsq::SampleDuration(1 / sr2).in(ms);
+
+  const auto rampTime = 35.f * ms;
+  const auto rampSamples1 = value_cast<int>((rampTime * sr1).in(Smpl));
+  const auto rampSamples2 = value_cast<int>((rampTime * sr2).in(Smpl));
+
+  std::cout << std::format("Sample rate 1 is: {}\n", sr1);
+  std::cout << std::format("Sample rate 2 is: {}\n", sr2);
+
+  std::cout << std::format("{} @ {} is {}\n", bufferSize, sr1, sampleTime1);
+  std::cout << std::format("{} @ {} is {}\n", bufferSize, sr2, sampleTime2);
+
+  std::cout << std::format("One sample @ {} is {}\n", sr1, sampleDuration1);
+  std::cout << std::format("One sample @ {} is {}\n", sr2, sampleDuration2);
+
+  std::cout << std::format("{} is {} @ {}\n", rampTime, rampSamples1, sr1);
+  std::cout << std::format("{} is {} @ {}\n", rampTime, rampSamples2, sr2);
+}
+
+```
+
+The above code outputs:
+
+```text
+Sample rate 1 is: 44100 Hz
+Sample rate 2 is: 48000 Smpl/s
+512 Smpl @ 44100 Hz is 0.01161 s
+512 Smpl @ 48000 Smpl/s is 10.6667 ms
+One sample @ 44100 Hz is 0.0226757 ms
+One sample @ 48000 Smpl/s is 0.0208333 ms
+35 ms is 1543 Smpl @ 44100 Hz
+35 ms is 1680 Smpl @ 48000 Smpl/s
+```
+
+Try it in [the Compiler Explorer](https://godbolt.org/z/cTheanoWE).
 
 # Scope
 
