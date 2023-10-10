@@ -235,6 +235,36 @@ As a result, companies either use really simple and unsafe numeric wrappers or a
 and just use `double` to express quantity values which lead to safety issues by accidentally using
 values representing the wrong quantity or having an incorrect unit.
 
+## Broad industry value
+
+When people think about industries that could use physical quantities
+and unit libraries, they think of a few companies related to aerospace,
+autonomous cars, or embedded industries. That is all true, but there are
+many other potential users for such a library.
+
+Here is a list of some less obvious candidates:
+
+- Manufacturing,
+- maritime industry,
+- freight transport,
+- military,
+- 3D design,
+- robotics,
+- audio,
+- medical devices,
+- national laboratories,
+- scientific institutions and universities,
+- all kinds of navigation and charting,
+- GUI frameworks,
+- finance (including HFT),
+- and many more.
+
+As we can see, the applications of such a library are vast and are not
+limited to applications involving specifically physical units.  Any
+software that involves measurements, or operations on counts of some
+standard or domain-specific quantities, could benefit from a zero-cost
+abstraction for operating on quantity values and their units.
+
 ## Standardizing existing practice
 
 Plenty of physical units libraries have been available to the public for many years. Through the years,
