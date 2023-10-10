@@ -15,6 +15,8 @@ author:
     email: <charles.r.hogg@gmail.com>
   - name: Vincent Reverdy
     email: <vince.rev@gmail.com>
+  - name: Roth Michaels ([Native Instruments](https://www.native-instruments.com))
+    email: <isocxx@rothmichaels.us>
 ---
 
 
@@ -131,6 +133,33 @@ This paper is the result of those actions.
 
 Author of [@P1930R0].
 
+## Roth Michaels
+
+Roth Michaels is a Principal Software Engineer at
+[Native Instruments](https://www.native-instruments.com), a leading
+manufacturer of audio, and music, software and hardware.  Working in
+this domain he has been involved with the creation of ad hoc typed
+quantities/units for digital signal processing and GUI library
+use-cases.  Seeing both the complexity of development and practical uses
+where developers need to leave the safety of these simple wrappers
+encouraged Roth to explore various quantity/units libraries to see if
+they would apply to this domain.  He has been doing research into
+defining and using digital audio and music domain specific quantities
+and units using first [@MP-UNITS] as proposed in [@P1935R2] and the new
+V2 library described in this paper.
+
+Before working for Native Instruments Roth worked as a consultant in
+multiple industries using a variety of programming languages.  He was
+involved with the Swift Evolution community in its early days before
+focusing primarily on C++ after joining
+[iZotope](https://www.izotope.com) and now Native Instruments.
+
+Holding a degree in music composition, Roth has over a decade of
+experience working with quantities and units of measure related to
+music, digital signal processing, analog audio, and acoustics.  He has
+joined the [@MP-UNITS] project as a domain expert in these areas and to
+provide perspective on logarithmic and non-linear quantity/unit
+relationships.
 
 # Motivation
 
