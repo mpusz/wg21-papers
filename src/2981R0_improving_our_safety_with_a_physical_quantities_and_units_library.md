@@ -990,7 +990,8 @@ Vector and tensor quantities can be implemented in two ways:
 
     - `a + b` - addition where both arguments should be of the same quantity kind and character
     - `a - b` - subtraction where both arguments should be of the same quantity kind and character
-    - `a * b` - multiplication where one of the arguments has to be scalar
+    - `a % b` - reminder/modulo where both arguments should be of the same quantity kind and character
+    - `a * b` - multiplication where one of the arguments has to be a scalar
     - `a / b` - division where the divisor has to be scalar
     - `a ⋅ b` - dot product of two vectors
     - `a × b` - cross product of two vectors
@@ -1022,7 +1023,7 @@ The same applies to:
 static_assert(5 * h / (120 * min) == 0 * one);
 ```
 
-This is why floating point representation types are recommended as a default to store the numerical
+This is why floating-point representation types are recommended as a default to store the numerical
 value of a quantity. Some popular physical units libraries even
 [forbid integer division at all](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden).
 

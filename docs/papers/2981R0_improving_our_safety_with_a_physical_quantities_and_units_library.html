@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-06" />
+  <meta name="dcterms.date" content="2023-10-10" />
   <title>Improving our safety with a physical quantities and units
 library</title>
   <style>
@@ -429,7 +429,7 @@ physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-06</td>
+    <td>2023-10-10</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -1427,8 +1427,11 @@ following operations to be exposed for quantity types:</p>
 arguments should be of the same quantity kind and character</li>
 <li><code class="sourceCode default">a - b</code> - subtraction where
 both arguments should be of the same quantity kind and character</li>
+<li><code class="sourceCode default">a % b</code> - reminder/modulo
+where both arguments should be of the same quantity kind and
+character</li>
 <li><code class="sourceCode default">a * b</code> - multiplication where
-one of the arguments has to be scalar</li>
+one of the arguments has to be a scalar</li>
 <li><code class="sourceCode default">a / b</code> - division where the
 divisor has to be scalar</li>
 <li><code class="sourceCode default">a ⋅ b</code> - dot product of two
@@ -1463,7 +1466,7 @@ range check at runtime to dynamically adjust scales and types based on
 the values of provided function arguments.</p>
 <p>The same applies to:</p>
 <div class="sourceCode" id="cb52"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h <span class="op">/</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">==</span> <span class="dv">0</span> <span class="op">*</span> one<span class="op">)</span>;</span></code></pre></div>
-<p>This is why floating point representation types are recommended as a
+<p>This is why floating-point representation types are recommended as a
 default to store the numerical value of a quantity. Some popular
 physical units libraries even <a href="https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden">forbid
 integer division at all</a>.</p>
