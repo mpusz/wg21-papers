@@ -530,14 +530,11 @@ when needed, and
 #include <mp-units/chrono.h>
 #include <mp-units/format.h>
 #include <mp-units/math.h>
-#include <mp-units/systems/isq/mechanics.h>
-#include <mp-units/systems/isq/space_and_time.h>
-#include <mp-units/systems/si/constants.h>
-#include <mp-units/systems/si/unit_symbols.h>
-#include <mp-units/systems/si/units.h>
+#include <mp-units/systems/isq/isq.h>
+#include <mp-units/systems/si/si.h>
 #include <cassert>
 #include <chrono>
-#include <iostream>
+#include <format>
 #include <numbers>
 #include <utility>
 
@@ -658,7 +655,7 @@ float rise rate = 0.0002 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/h75cjM3jo).
+Try it in [the Compiler Explorer](https://godbolt.org/z/cx8Pr6ne9).
 
 ## User defined quantities and units
 
@@ -673,7 +670,6 @@ and how they can be converted to time measured in milliseconds:
 #include <mp-units/systems/isq/isq.h>
 #include <mp-units/systems/si/si.h>
 #include <format>
-#include <iostream>
 
 namespace dsp_dsq {
 
@@ -723,7 +719,6 @@ int main()
   std::println("{} is {} @ {}", rampTime, rampSamples1, sr1);
   std::println("{} is {} @ {}", rampTime, rampSamples2, sr2);
 }
-
 ```
 
 The above code outputs:
@@ -739,7 +734,7 @@ One sample @ 48000 Smpl/s is 0.0208333 ms
 35 ms is 1680 Smpl @ 48000 Smpl/s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/fz1PEPK3h).
+Try it in [the Compiler Explorer](https://godbolt.org/z/KeT3MsfcG).
 
 
 # Scope
