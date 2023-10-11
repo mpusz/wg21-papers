@@ -257,10 +257,18 @@ different libraries get means to communicate with each other.
 
 Mission/life-critical projects or those for embedded devices often have to obey the safety norms
 that care about software for safety-critical systems (e.g., ISO 61508 is a basic functional safety
-standard applicable to all industries and ISO 26262 for automotive). As a result, such companies
-often forbid third-party tooling that lacks official certification or does not obey all the
-rules provided by MISRA. This is a huge issue as those companies typically are natural users of
-physical quantities and units libraries.
+standard applicable to all industries, and ISO 26262 for automotive). As a result, such companies
+often forbid third-party tooling that lacks official certification. Such certification requires
+a specification to be certified against, and those tools often do not have one. The risk and cost
+of self-certifying an Open Source project is too high for many as well.
+
+Companies often have a policy that the software they use must obey all the rules MISRA provides.
+This is a common misconception as many of those rules are intended to be deviated from.
+However, those deviations require rationale and documentation, which is also considered to be risky
+and expensive by many.
+
+All of those reasons often prevent the usage of an Open Source product in a company, which is a huge
+issue as those companies typically are natural users of physical quantities and units libraries.
 
 ## Complex and complicated
 
@@ -270,20 +278,20 @@ Besides being costly and time-consuming, it also happens that writing a physical
 units library by yourself is far from easy. Doing this is complex and complicated, especially for
 engineers who are not experts in the domain. There are many exceptional corner cases to cover
 that most developers do not even realize before falling into a trap in production. On the other
-hand domain experts might find it difficult to put their knowledge into code and create a correct
+hand, domain experts might find it difficult to put their knowledge into code and create a correct
 implementation in C++.
-As a result, companies either use really simple and unsafe numeric wrappers or abandon the effort totally
-and just use `double` to express quantity values which lead to safety issues by accidentally using
-values representing the wrong quantity or having an incorrect unit.
+As a result, companies either use really simple and unsafe numeric wrappers or abandon the effort
+totally and just use built-in types, such as `float` or `int`, to express quantity values losing
+all semantic categorization. This often leads to safety issues by accidentally using values
+representing the wrong quantity or having an incorrect unit.
 
 ## Extensibility
 
-Many applications of a quantity and units library may need to operate on
-a combination of standard (e.g. time in seconds or distance in metres)
-and domain-specific quantities and units.  The complexity of developing
-domain-specific solutions highlights the value in being able to define
-new quantities and units that have all the expressivity and safety as
-those provided by the library.
+Many applications of a quantity and units library may need to operate on a combination of
+domain-specific and standard quantities and units, e.g., time in seconds, distance in metres,
+consumption in litres of gas per `100` kilometers.
+The complexity of developing domain-specific solutions highlights the value in being able to define
+new quantities and units that have all the expressivity and safety as those provided by the library.
 
 Experience with writing ad hoc typed quantities without library support
 that can be combined with or converted to `std::chrono::duration` has

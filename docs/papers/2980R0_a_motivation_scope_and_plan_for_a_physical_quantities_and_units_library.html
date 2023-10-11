@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-10" />
+  <meta name="dcterms.date" content="2023-10-11" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-10</td>
+    <td>2023-10-11</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -775,11 +775,20 @@ different libraries get means to communicate with each other.</p>
 <p>Mission/life-critical projects or those for embedded devices often
 have to obey the safety norms that care about software for
 safety-critical systems (e.g., ISO 61508 is a basic functional safety
-standard applicable to all industries and ISO 26262 for automotive). As
+standard applicable to all industries, and ISO 26262 for automotive). As
 a result, such companies often forbid third-party tooling that lacks
-official certification or does not obey all the rules provided by MISRA.
-This is a huge issue as those companies typically are natural users of
-physical quantities and units libraries.</p>
+official certification. Such certification requires a specification to
+be certified against, and those tools often do not have one. The risk
+and cost of self-certifying an Open Source project is too high for many
+as well.</p>
+<p>Companies often have a policy that the software they use must obey
+all the rules MISRA provides. This is a common misconception as many of
+those rules are intended to be deviated from. However, those deviations
+require rationale and documentation, which is also considered to be
+risky and expensive by many.</p>
+<p>All of those reasons often prevent the usage of an Open Source
+product in a company, which is a huge issue as those companies typically
+are natural users of physical quantities and units libraries.</p>
 <h2 data-number="3.4" id="complex-and-complicated"><span class="header-section-number">3.4</span> Complex and complicated<a href="#complex-and-complicated" class="self-link"></a></h2>
 <p>For example, suppose vendors can’t use an Open Source library in a
 production project for the above reasons. In that case, they are forced
@@ -789,20 +798,22 @@ units library by yourself is far from easy. Doing this is complex and
 complicated, especially for engineers who are not experts in the domain.
 There are many exceptional corner cases to cover that most developers do
 not even realize before falling into a trap in production. On the other
-hand domain experts might find it difficult to put their knowledge into
+hand, domain experts might find it difficult to put their knowledge into
 code and create a correct implementation in C++. As a result, companies
 either use really simple and unsafe numeric wrappers or abandon the
-effort totally and just use
-<code class="sourceCode default">double</code> to express quantity
-values which lead to safety issues by accidentally using values
-representing the wrong quantity or having an incorrect unit.</p>
+effort totally and just use built-in types, such as
+<code class="sourceCode default">float</code> or
+<code class="sourceCode default">int</code>, to express quantity values
+losing all semantic categorization. This often leads to safety issues by
+accidentally using values representing the wrong quantity or having an
+incorrect unit.</p>
 <h2 data-number="3.5" id="extensibility"><span class="header-section-number">3.5</span> Extensibility<a href="#extensibility" class="self-link"></a></h2>
 <p>Many applications of a quantity and units library may need to operate
-on a combination of standard (e.g. time in seconds or distance in
-metres) and domain-specific quantities and units. The complexity of
-developing domain-specific solutions highlights the value in being able
-to define new quantities and units that have all the expressivity and
-safety as those provided by the library.</p>
+on a combination of standard (e.g. SI) and domain-specific quantities
+and units. The complexity of developing domain-specific solutions
+highlights the value in being able to define new quantities and units
+that have all the expressivity and safety as those provided by the
+library.</p>
 <p>Experience with writing ad hoc typed quantities without library
 support that can be combined with or converted to
 <code class="sourceCode default">std::chrono::duration</code> has shown
