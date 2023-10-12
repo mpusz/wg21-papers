@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-10" />
+  <meta name="dcterms.date" content="2023-10-12" />
   <title>`std::quantity` as a numeric type</title>
   <style>
       code{white-space: pre-wrap;}
@@ -428,7 +428,7 @@ as a numeric type</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-10</td>
+    <td>2023-10-12</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -921,7 +921,8 @@ explicitly expressed with predefined SI prefixes. Those include units
 like minute, hour, or electronvolt:</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> minute <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;min&quot;</span>, mag<span class="op">&lt;</span><span class="dv">60</span><span class="op">&gt;</span> <span class="op">*</span> si<span class="op">::</span>second<span class="op">&gt;</span> <span class="op">{}</span> minute;</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> hour <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;h&quot;</span>, mag<span class="op">&lt;</span><span class="dv">60</span><span class="op">&gt;</span> <span class="op">*</span> minute<span class="op">&gt;</span> <span class="op">{}</span> hour;</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> electronvolt <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;eV&quot;</span>, mag<span class="op">&lt;</span>ratio<span class="op">{</span><span class="dv">1&#39;602&#39;176&#39;634</span>, <span class="dv">1&#39;000&#39;000&#39;000</span><span class="op">}&gt;</span> <span class="op">*</span> mag_power<span class="op">&lt;</span><span class="dv">10</span>, <span class="op">-</span><span class="dv">19</span><span class="op">&gt;</span> <span class="op">*</span> si<span class="op">::</span>joule<span class="op">&gt;</span> <span class="op">{}</span> electronvolt;</span></code></pre></div>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> electronvolt <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;eV&quot;</span>,</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    mag<span class="op">&lt;</span>ratio<span class="op">{</span><span class="dv">1&#39;602&#39;176&#39;634</span>, <span class="dv">1&#39;000&#39;000&#39;000</span><span class="op">}&gt;</span> <span class="op">*</span> mag_power<span class="op">&lt;</span><span class="dv">10</span>, <span class="op">-</span><span class="dv">19</span><span class="op">&gt;</span> <span class="op">*</span> si<span class="op">::</span>joule<span class="op">&gt;</span> <span class="op">{}</span> electronvolt;</span></code></pre></div>
 <p>Also, units of other systems of units are often defined in terms of
 scaled versions of the SI units. For example, the international yard is
 defined as:</p>
@@ -1027,6 +1028,7 @@ simplified expression template into some container for that. There are
 various possibilities here. The table below presents the types generated
 from unit expressions by two leading products on the market in this
 subject:</p>
+<!-- markdownlint-disable MD013 -->
 <table style="width:100%;">
 <colgroup>
 <col style="width: 9%" />
@@ -1084,6 +1086,7 @@ subject:</p>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <p>It is a matter of taste which solution is better. While discussing
 the pros and cons here, we should remember that our users often do not
 have a scientific background. This is why the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library decided to use syntax
@@ -1206,8 +1209,20 @@ by the fact that such symbols use a lot of characters that are not
 available with the Unicode encoding. Most of the limitations correspond
 to Unicode providing only a minimal set of characters available as
 subscripts, which are often used to differentiate various quantities of
-the same kind. This is why the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library uses type name
-identifiers in such cases.</p></li>
+the same kind. For example, it is impossible to encode the symbols of
+the following quantities:</p>
+<ul>
+<li><em>c</em><sub>sat</sub> - specific heat capacity at saturated
+vapour pressure,</li>
+<li><em>μ</em><sub>JT</sub> - Joule-Thomson coefficient,</li>
+<li><em>w</em><sub>H<sub>2</sub>O</sub> - mass fraction of water,</li>
+<li><em>σ</em><sub>Ω,E</sub> - direction and energy distribution of
+cross section,</li>
+<li><em>d</em><sub>1/2</sub> - half-value thickness,</li>
+<li><em>Φ</em><sub>e,λ</sub> - spectral radiant flux.</li>
+</ul>
+<p>This is why the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+uses type name identifiers in such cases.</p></li>
 <li><p><strong>Aggregation</strong></p>
 <p>In case two of the same type identifiers are found next to each other
 on the argument list, they will be aggregated in one entry:</p>
@@ -1366,7 +1381,9 @@ like this one:</p>
 result of the above code, has the following type (after stripping the
 <code class="sourceCode default">mp_units</code> namespace for
 brevity):</p>
-<pre class="text"><code>quantity&lt;reference&lt;derived_quantity_spec&lt;isq::speed, per&lt;isq::time&gt;&gt;{}, derived_unit&lt;si::kilo_&lt;si::metre{}&gt;, per&lt;non_si::hour, si::second&gt;&gt;{}&gt;{}, int&gt;</code></pre>
+<pre class="text"><code>quantity&lt;reference&lt;derived_quantity_spec&lt;isq::speed, per&lt;isq::time&gt;&gt;{}, 
+                   derived_unit&lt;si::kilo_&lt;si::metre{}&gt;, per&lt;non_si::hour, si::second&gt;&gt;{}&gt;{},
+         int&gt;</code></pre>
 <p>and the text output provides:</p>
 <pre class="text"><code>acceleration: 7.5 km h⁻¹ s⁻¹ (2.08333 m/s²)</code></pre>
 <h2 data-number="5.2" id="scaled-units-1"><span class="header-section-number">5.2</span> Scaled units<a href="#scaled-units-1" class="self-link"></a></h2>
@@ -1564,6 +1581,8 @@ like measurement, linear algebra, minimal requirements)</li>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
 proposal.</p>
+<p>We would also like to thank Peter Sommerlad for providing valuable
+feedback that helped us shape the final version of this document.</p>
 <!-- markdownlint-disable -->
 <h1 data-number="11" id="bibliography"><span class="header-section-number">11</span> References<a href="#bibliography" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">

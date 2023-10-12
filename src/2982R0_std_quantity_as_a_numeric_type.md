@@ -623,7 +623,16 @@ the resulting expression template.
     such symbols use a lot of characters that are not available with the Unicode encoding.
     Most of the limitations correspond to Unicode providing only a minimal set of characters
     available as subscripts, which are often used to differentiate various quantities of the same
-    kind. This is why the [@MP-UNITS] library uses type name identifiers in such cases.
+    kind. For example, it is impossible to encode the symbols of the following quantities:
+
+    - _c_<sub>sat</sub> - specific heat capacity at saturated vapour pressure,
+    - _μ_<sub>JT</sub> - Joule-Thomson coefficient,
+    - _w_<sub>H<sub>2</sub>O</sub> - mass fraction of water,
+    - _σ_<sub>Ω,E</sub> - direction and energy distribution of cross section,
+    - _d_<sub>1/2</sub> - half-value thickness,
+    - _Φ_<sub>e,λ</sub> - spectral radiant flux.
+
+    This is why the [@MP-UNITS] library uses type name identifiers in such cases.
 
 2. **Aggregation**
 
@@ -957,6 +966,9 @@ potential confusion.
 
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
+
+We would also like to thank Peter Sommerlad for providing valuable feedback that helped us shape
+the final version of this document.
 
 <!-- markdownlint-disable -->
 

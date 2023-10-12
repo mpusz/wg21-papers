@@ -81,9 +81,13 @@ Here is a list of some less obvious candidates:
 - finance (including HFT),
 - and many more.
 
-As we can see, the applications of such a library are so vast. Most users benefit from strong
-types and automated conversions for various quantities and units. However, the library also provides
-affine space abstractions, which may also be used in many other domains.
+As we can see, the applications of such a library are vast and are not
+limited to applications involving specifically physical units. Any
+software that involves measurements, or operations on counts of some
+standard or domain-specific quantities, could benefit from a zero-cost
+abstraction for operating on quantity values and their units. The library
+also provides affine space abstractions, which may prove useful in many
+other domains.
 
 
 # Mismeasure for Measure
@@ -234,6 +238,14 @@ of different ways -- sometimes even within the same repository:
 [Example search across multiple repositories](https://github.com/search?q=lang%3AC%2B%2B++%22%23define+RAD_TO_DEG%22&type=code)
 
 [Multiple redefinitions in the same repository](https://github.com/search?q=repo%3ALK8000%2FLK8000%20rad_to_deg&type=code)
+
+Another safety issue occurring here is the fact that macro values can be deliberately tainted
+by compiler settings at built time and can acquire values that are not present in the source code.
+Human reviews won't catch such issues.
+
+Also, most of the macros do not follow best practices. Often, necessary parentheses are missing,
+processing in a preprocessor ends up with redundant casts, or some compile-time constants use too
+many digits for a value to be exact for a specific type (e.g. `float`).
 
 ## Lack of consistency
 
@@ -770,6 +782,35 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
     static_assert(!castable(isq::time, isq::length));
     ```
 
+With the above rules one can write a following short application to calculate the fuel consumption:
+
+```cpp
+inline constexpr struct fuel_volume : quantity_spec<isq::volume> {} fuel_volume;
+inline constexpr struct fuel_consumption  : quantity_spec<fuel_volume / isq::distance> {} fuel_consumption;
+
+const quantity fuel = fuel_volume(40. * l);
+const quantity distance = isq::distance(550. * km);
+const quantity<fuel_consumption[l / (mag<100> * km)]> q = fuel / distance;
+std::cout << "Fuel consumption: " << q << "\n";
+```
+
+The above code prints:
+
+```text
+Fuel consumption: 7.27273 × 10⁻² l/km
+```
+
+Please note that despite the dimensions of `fuel_consumption` and `isq::area` are the same (`L²`),
+the constructor of a quantity `q` below will fail to compile when we pass an argument being the
+quantity of area:
+
+```cpp
+static_assert(fuel_consumption.dimension == isq::area.dimension);
+
+const quantity<isq::area[m2]> football_field = isq::length(105 * m) * isq::width(68 * m);
+const quantity<fuel_consumption[l / (mag<100> * km)]> q = football_field;  // Compile-time error
+```
+
 ### Comparing, adding, and subtracting quantities of the same kind
 
 [@ISO80000] explicitly states that `width` and `height` are quantities of the same kind and as such
@@ -1168,6 +1209,8 @@ quantity q = make_length(v);  // ERROR
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
 
+We would also like to thank Peter Sommerlad for providing valuable feedback that helped us shape
+the final version of this document.
 
 <!-- markdownlint-disable -->
 

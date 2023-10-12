@@ -325,10 +325,12 @@ Here is a list of some less obvious candidates:
 - and many more.
 
 As we can see, the applications of such a library are vast and are not
-limited to applications involving specifically physical units.  Any
+limited to applications involving specifically physical units. Any
 software that involves measurements, or operations on counts of some
 standard or domain-specific quantities, could benefit from a zero-cost
-abstraction for operating on quantity values and their units.
+abstraction for operating on quantity values and their units. The library
+also provides affine space abstractions, which may prove useful in many
+other domains.
 
 ## Standardizing existing practice
 
