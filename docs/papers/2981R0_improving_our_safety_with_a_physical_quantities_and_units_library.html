@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-10" />
+  <meta name="dcterms.date" content="2023-10-12" />
   <title>Improving our safety with a physical quantities and units
 library</title>
   <style>
@@ -429,7 +429,7 @@ physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-10</td>
+    <td>2023-10-12</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -447,6 +447,7 @@ physical quantities and units library</h1>
       Mateusz Pusz (<a href="http://www.epam.com">Epam
 Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateusz.pusz@gmail.com</a>&gt;<br>
       Dominik Berner<br>&lt;<a href="mailto:dominik.berner@gmail.com" class="email">dominik.berner@gmail.com</a>&gt;<br>
+      Johel Ernesto Guerrero Peña<br>&lt;<a href="mailto:johelegp@gmail.com" class="email">johelegp@gmail.com</a>&gt;<br>
     </td>
   </tr>
 </table>
@@ -505,7 +506,7 @@ kind<span></span></a></li>
 <li><a href="#restricting-units-to-specific-quantity-kinds" id="toc-restricting-units-to-specific-quantity-kinds"><span class="toc-section-number">6.8.4</span> Restricting units to specific
 quantity kinds<span></span></a></li>
 </ul></li>
-<li><a href="#non-negative-quantities" id="toc-non-negative-quantities"><span class="toc-section-number">6.9</span> non-negative
+<li><a href="#non-negative-quantities" id="toc-non-negative-quantities"><span class="toc-section-number">6.9</span> Non-negative
 quantities<span></span></a></li>
 <li><a href="#vector-and-tensor-quantities" id="toc-vector-and-tensor-quantities"><span class="toc-section-number">6.10</span> Vector and tensor
 quantities<span></span></a></li>
@@ -556,8 +557,8 @@ adopted.</p>
 <p>It is no longer only the space industry or airline pilots that
 benefit from the autonomous operations of some machines. We live in a
 world where more and more ordinary people trust machines with their
-lives daily. The autonmous car is just one example which will affect our
-daily life. Medical devices such as surgical robots and smart health
+lives daily. The autonomous car is just one example which will affect
+our daily life. Medical devices such as surgical robots and smart health
 care devices are already a thing and will see wider adoption in the
 future. And there will be more machines with safety- or even
 life-critical tasks in the future. As a result, many more C++ engineers
@@ -580,6 +581,7 @@ many other potential users for such a library.</p>
 <li>maritime industry,</li>
 <li>freight transport,</li>
 <li>military,</li>
+<li>astronomy,</li>
 <li>3D design,</li>
 <li>robotics,</li>
 <li>audio,</li>
@@ -677,7 +679,7 @@ below is a typical example here:</p>
 code here</a>.</p>
 <p>There are several problems with such an approach: The abundance of
 <code class="sourceCode default">double</code> parameters makes it easy
-to accidentially switch values and there is no way of noticing such a
+to accidentally switch values and there is no way of noticing such a
 mistake at compile time. The code is not self-documenting in what units
 the parameters are expected. Is
 <code class="sourceCode default">Distance</code> in meters or
@@ -1247,7 +1249,7 @@ with the requirements of <span class="citation" data-cites="ISO80000">[<a href="
 operations and requiring an explicit cast to a common quantity in every
 single place makes the code so cluttered with casts that it nearly
 renders the library unusable.</p>
-<p>Fortunately, the abovementioned conversion rules make the code safe
+<p>Fortunately, the above-mentioned conversion rules make the code safe
 by construction anyway. Let’s analyze the following example:</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> horizontal_length <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="op">{}</span> horizontal_length;</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1382,8 +1384,26 @@ quantities to bring additional safety for those cases. Otherwise, we can
 just use simple mode for the remaining quantities. We can easily mix
 simple and strongly-typed quantities in our projects and the library
 will do its best to protect us based on the information provided.</p>
-<h2 data-number="6.9" id="non-negative-quantities"><span class="header-section-number">6.9</span> non-negative quantities<a href="#non-negative-quantities" class="self-link"></a></h2>
-<p>https://github.com/mpusz/mp-units/issues/468</p>
+<h2 data-number="6.9" id="non-negative-quantities"><span class="header-section-number">6.9</span> Non-negative quantities<a href="#non-negative-quantities" class="self-link"></a></h2>
+<p>Some quantities are defined by ISO/IEC 80000 as explicitly
+non-negative. Others are implicitly non-negative from their definition.
+For example, those specified as magnitudes of a vector, like speed,
+defined as the magnitude of velocity.</p>
+<p>It is possible to have negative values of quantities defined as
+non-negative. For example,
+<code class="sourceCode default">-1 * speed[m/s]</code> could represent
+a change in average speed between two events. It is also possible to
+require non-negative values of quantities not defined as non-negative.
+For example, when height is the measure of an object, a negative value
+is physically meaningless.</p>
+<p><code class="sourceCode default">quantity</code> is parametrized on
+the representation type. So it is possible to specify one that prevents
+negative values, e.g., a contract-checked type. This means that
+<code class="sourceCode default">-1 * speed[m/s]</code> works by default
+(the representation type is
+<code class="sourceCode default">int</code>). And also that <code class="sourceCode default">height(mylib::non_negative(obj.top - obj.bottom));</code>
+will catch logic errors in the formula.</p>
+<!-- Lots of exciting discussion at https://github.com/mpusz/mp-units/issues/468 -->
 <h2 data-number="6.10" id="vector-and-tensor-quantities"><span class="header-section-number">6.10</span> Vector and tensor quantities<a href="#vector-and-tensor-quantities" class="self-link"></a></h2>
 <p>While talking about physical quantities and units libraries, everyone
 expects that the library will protect (preferably at compile-time) from
@@ -1610,8 +1630,8 @@ hospitals: Analysis of the nature and enablers of incident reports. <a href="htt
 </div>
 <div id="ref-P2980_PRE" class="csl-entry" role="doc-biblioentry">
 [P2980] Mateusz Pusz, Dominik Berner, Johel Ernesto Guerrero Peña,
-Charles Hogg, and Vincent Reverdy. A motivation, scope, and plan for a
-physical quantities and units library. <a href="https://wg21.link/p2980"><div class="csl-block">https://wg21.link/p2980</div></a>
+Charles Hogg, Roth Michaels, and Vincent Reverdy. A motivation, scope,
+and plan for a physical quantities and units library. <a href="https://wg21.link/p2980"><div class="csl-block">https://wg21.link/p2980</div></a>
 </div>
 <div id="ref-PINT" class="csl-entry" role="doc-biblioentry">
 [Pint] Pint: makes units easy. <a href="https://pint.readthedocs.io/en/stable/index.html"><div class="csl-block">https://pint.readthedocs.io/en/stable/index.html</div></a>

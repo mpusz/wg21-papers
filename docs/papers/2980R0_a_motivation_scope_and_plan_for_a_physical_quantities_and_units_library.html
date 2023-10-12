@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-11" />
+  <meta name="dcterms.date" content="2023-10-12" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-11</td>
+    <td>2023-10-12</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -552,7 +552,7 @@ error caught during compilation saves hours of debugging. For the last
 15 years, he has mainly coded in C++ and actively follows its evolution
 through the new standards.</p>
 <p>When working on regulated projects at Med-Tech, there usually were
-very tight requirements on which datatypes were to be used for what,
+very tight requirements on which data types were to be used for what,
 which turned out to be lists of primitives to be memorized by each
 developer. However, throughout his career, Dominik spent way too many
 hours debugging and fixing issues caused by these types being incorrect.
@@ -622,7 +622,7 @@ use-cases. Seeing both the complexity of development and practical uses
 where developers need to leave the safety of these simple wrappers
 encouraged Roth to explore various quantity/units libraries to see if
 they would apply to this domain. He has been doing research into
-defining and using digital audio and music domain specific quantities
+defining and using digital audio and music domain-specific quantities
 and units using first <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> as
 proposed in <span class="citation" data-cites="P1935R2">[<a href="#ref-P1935R2" role="doc-biblioref">P1935R2</a>]</span> and the new
 V2 library described in this paper.</p>
@@ -666,7 +666,7 @@ He has been interested for years in units and quantities for programming
 languages to ensure higher levels of both expressivity and safety in
 computational physics codes. Back in 2019, he authored <span class="citation" data-cites="P1930R0">[<a href="#ref-P1930R0" role="doc-biblioref">P1930R0</a>]</span> to provide some context of what
 could be a quantity and unit library for C++.</p>
-<p>After designing and implementing several Domain Specific Language
+<p>After designing and implementing several Domain-Specific Language
 (DSL) demonstrators dedicated to units of measurements in C++, he became
 more interested in the theoretical side of the problem. Today, one of
 his research activities is dedicated to the mathematical formalization
@@ -682,8 +682,8 @@ world where more and more ordinary people trust machines with their
 lives daily. In the near future, we will be allowed to sleep while our
 car autonomously drives us home from a late party. As a result, much
 more C++ engineers are expected to write life-critical software today
-than it was a few years ago. However writing safety-ciritical code
-requires extensive training and experiece, both which are in short
+than it was a few years ago. However writing safety-critical code
+requires extensive training and experience, both which are in short
 demand. While there exists some standards and guidelines such as MISRA
 C++ <span class="citation" data-cites="MISRA_CPP">[<a href="#ref-MISRA_CPP" role="doc-biblioref">MISRA C++</a>]</span> with
 the aim of enforcing the creation of safe code in C++, they are
@@ -809,16 +809,18 @@ accidentally using values representing the wrong quantity or having an
 incorrect unit.</p>
 <h2 data-number="3.5" id="extensibility"><span class="header-section-number">3.5</span> Extensibility<a href="#extensibility" class="self-link"></a></h2>
 <p>Many applications of a quantity and units library may need to operate
-on a combination of standard (e.g. SI) and domain-specific quantities
-and units. The complexity of developing domain-specific solutions
+on a combination of quantities and units that are standard (e.g. time in
+seconds, distance in metres, consumption in litres of gas per
+<code class="sourceCode default">100</code> kilometers) and
+domain-specific. The complexity of developing domain-specific solutions
 highlights the value in being able to define new quantities and units
 that have all the expressivity and safety as those provided by the
 library.</p>
 <p>Experience with writing ad hoc typed quantities without library
 support that can be combined with or converted to
 <code class="sourceCode default">std::chrono::duration</code> has shown
-the downside of bespoke solutions: if not all operations or conversions
-are handled users will need to leave the safety of typed quantities to
+the downside of bespoke solutions: If not all operations or conversions
+are handled, users will need to leave the safety of typed quantities to
 operate on primitive types.</p>
 <h2 data-number="3.6" id="broad-industry-value"><span class="header-section-number">3.6</span> Broad industry value<a href="#broad-industry-value" class="self-link"></a></h2>
 <p>When people think about industries that could use physical quantities
@@ -831,6 +833,7 @@ many other potential users for such a library.</p>
 <li>maritime industry,</li>
 <li>freight transport,</li>
 <li>military,</li>
+<li>astronomy,</li>
 <li>3D design,</li>
 <li>robotics,</li>
 <li>audio,</li>
@@ -1165,7 +1168,7 @@ tank full E.T.A. at current flow rate = 800 s</code></pre>
 Explorer</a>.</p>
 <h2 data-number="4.5" id="user-defined-quantities-and-units"><span class="header-section-number">4.5</span> User defined quantities and
 units<a href="#user-defined-quantities-and-units" class="self-link"></a></h2>
-<p>Users can easily define new quantities and units for domain specific
+<p>Users can easily define new quantities and units for domain-specific
 use-cases. This example from digital signal processing will show how to
 define custom units for counting <a href="https://en.wikipedia.org/wiki/Sampling_(signal_processing)">digital
 samples</a> and how they can be converted to time measured in

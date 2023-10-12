@@ -52,7 +52,7 @@ debugging. For the last 15 years, he has mainly coded in C++ and actively follow
 through the new standards.
 
 When working on regulated projects at Med-Tech, there usually were very tight requirements on
-which datatypes were to be used for what, which turned out to be lists of primitives to be
+which data types were to be used for what, which turned out to be lists of primitives to be
 memorized by each developer. However, throughout his career, Dominik spent way too many hours
 debugging and fixing issues caused by these types being incorrect. In an attempt to bring
 a closer semantic meaning to these lists, he eventually wrote [@SI_LIB] as a side project.
@@ -185,7 +185,7 @@ operations of some machines. We live in a world where more and more ordinary peo
 machines with their lives daily. In the near future, we will be allowed to sleep while our
 car autonomously drives us home from a late party. As a result, much more C++ engineers are
 expected to write life-critical software today than it was a few years ago. However writing
-safety-ciritical code requires extensive training and experiece, both which are in short demand.
+safety-critical code requires extensive training and experience, both which are in short demand.
 While there exists some standards and guidelines such as MISRA C++ [@MISRA_CPP] with the aim of
 enforcing the creation of safe code in C++, they are cumbersome to use and tend to shift the burden
 on the discipline of the programmers to enforce these. At the time of writing the C++ language
@@ -312,6 +312,7 @@ Here is a list of some less obvious candidates:
 - maritime industry,
 - freight transport,
 - military,
+- astronomy,
 - 3D design,
 - robotics,
 - audio,

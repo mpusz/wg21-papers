@@ -45,7 +45,7 @@ adopted.
 
 It is no longer only the space industry or airline pilots that benefit from the autonomous
 operations of some machines. We live in a world where more and more ordinary people trust
-machines with their lives daily. The autonmous car is just one example which will affect our 
+machines with their lives daily. The autonomous car is just one example which will affect our 
 daily life. Medical devices such as surgical robots and smart health care devices are already
 a thing and will see wider adoption in the future. And there will be more machines with safety- 
 or even life-critical tasks in the future.
@@ -69,6 +69,7 @@ Here is a list of some less obvious candidates:
 - maritime industry,
 - freight transport,
 - military,
+- astronomy,
 - 3D design,
 - robotics,
 - audio,
@@ -154,7 +155,7 @@ double GlidePolar::MacCreadyAltitude(double MCREADY,
 [Original code here](https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Header/McReady.h#L7-L21).
 
 There are several problems with such an approach: The abundance of `double` parameters
-makes it easy to accidentially switch values and there is no way of noticing such a mistake 
+makes it easy to accidentally switch values and there is no way of noticing such a mistake 
 at compile time. The code is not self-documenting in what units the parameters are expected. Is
 `Distance` in meters or kilometers? Is `WindSpeed` in meters per second or knots? 
 Different code bases choose different ways to encode this information,
@@ -792,7 +793,7 @@ experience, disallowing such operations and requiring an explicit cast to a comm
 in every single place makes the code so cluttered with casts that it nearly renders the library
 unusable.
 
-Fortunately, the abovementioned conversion rules make the code safe by construction anyway.
+Fortunately, the above-mentioned conversion rules make the code safe by construction anyway.
 Let's analyze the following example:
 
 ```cpp
