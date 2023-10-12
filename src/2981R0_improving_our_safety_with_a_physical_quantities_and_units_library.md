@@ -9,6 +9,8 @@ author:
     email: <mateusz.pusz@gmail.com>
   - name: Dominik Berner
     email: <dominik.berner@gmail.com>    
+  - name: Johel Ernesto Guerrero Peña
+    email: <johelegp@gmail.com>
 ---
 
 
@@ -948,9 +950,24 @@ quantities to bring additional safety for those cases. Otherwise, we can just us
 the remaining quantities. We can easily mix simple and strongly-typed quantities in our projects
 and the library will do its best to protect us based on the information provided.
 
-## non-negative quantities
+## Non-negative quantities
 
-https://github.com/mpusz/mp-units/issues/468
+Some quantities are defined by ISO/IEC 80000 as explicitly non-negative.
+Others are implicitly non-negative from their definition.
+For example, those specified as magnitudes of a vector,
+like speed, defined as the magnitude of velocity.
+
+It is possible to have negative values of quantities defined as non-negative.
+For example, `-1 * speed[m/s]` could represent a change in average speed between two events.
+It is also possible to require non-negative values of quantities not defined as non-negative.
+For example, when height is the measure of an object, a negative value is physically meaningless.
+
+`quantity` is parametrized on the representation type.
+So it is possible to specify one that prevents negative values, e.g., a contract-checked type.
+This means that `-1 * speed[m/s]` works by default (the representation type is `int`).
+And also that `height(mylib::non_negative(obj.top - obj.bottom));` will catch logic errors in the formula.
+
+<!-- Lots of exciting discussion at https://github.com/mpusz/mp-units/issues/468 -->
 
 
 ## Vector and tensor quantities
@@ -1244,6 +1261,8 @@ references:
       given: Johel Ernesto
     - family: Hogg
       given: Charles
+    - family: Michaels
+      given: Roth
     - family: Reverdy
       given: Vincent
   title: "A motivation, scope, and plan for a physical quantities and units library"
