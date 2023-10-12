@@ -449,7 +449,8 @@ predefined SI prefixes. Those include units like minute, hour, or electronvolt:
 ```cpp
 inline constexpr struct minute : named_unit<"min", mag<60> * si::second> {} minute;
 inline constexpr struct hour : named_unit<"h", mag<60> * minute> {} hour;
-inline constexpr struct electronvolt : named_unit<"eV", mag<ratio{1'602'176'634, 1'000'000'000}> * mag_power<10, -19> * si::joule> {} electronvolt;
+inline constexpr struct electronvolt : named_unit<"eV",
+    mag<ratio{1'602'176'634, 1'000'000'000}> * mag_power<10, -19> * si::joule> {} electronvolt;
 ```
 
 Also, units of other systems of units are often defined in terms of scaled versions of
@@ -542,6 +543,8 @@ describes what we are dealing with. We need to pack a simplified expression
 template into some container for that. There are various possibilities here. The table below presents
 the types generated from unit expressions by two leading products on the market in this subject:
 
+<!-- markdownlint-disable MD013 -->
+
 | Unit           | [@MP-UNITS]                                                            | [@AU]                                                                          |
 |----------------|------------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | `N⋅m`          | `derived_unit<metre, newton>`                                          | `UnitProduct<Meters, Newtons>`                                                 |
@@ -551,6 +554,8 @@ the types generated from unit expressions by two leading products on the market 
 | `m²/m`         | `metre`                                                                | `Meters`                                                                       |
 | `km/m`         | `derived_unit<kilo_<metre>, per<metre>>`                               | `UnitProduct<Pow<Meters, -1>, Kilo<Meters>>`                                   |
 | `m/m`          | `one`                                                                  | `UnitProduct<>`                                                                |
+
+<!-- markdownlint-enable MD013 -->
 
 It is a matter of taste which solution is better. While discussing the pros and cons here, we
 should remember that our users often do not have a scientific background. This is why
@@ -704,7 +709,9 @@ The `acceleration`, being the result of the above code, has the following type
 (after stripping the `mp_units` namespace for brevity):
 
 ```text
-quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>{}, derived_unit<si::kilo_<si::metre{}>, per<non_si::hour, si::second>>{}>{}, int>
+quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>{}, 
+                   derived_unit<si::kilo_<si::metre{}>, per<non_si::hour, si::second>>{}>{},
+         int>
 ```
 
 and the text output provides:
@@ -871,8 +878,8 @@ what it means to be an equivalent entity means something different for each case
 
 ### Dimensions
 
-Equivalence is the simplest to reason about in the case of dimensions. The only thing to account for here
-is the point when a user would like to derive its own strong type from the library-provided one.
+Equivalence is the simplest to reason about in the case of dimensions. The only thing to account for
+here is the point when a user would like to derive its own strong type from the library-provided one.
 
 Please note that the library never provides strong types for derived dimensions besides
 the `dimension_one`. For example, ISQ defines length (`L`) and time (`T`) dimensions, but there is

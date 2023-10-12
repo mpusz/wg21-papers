@@ -45,14 +45,14 @@ adopted.
 
 It is no longer only the space industry or airline pilots that benefit from the autonomous
 operations of some machines. We live in a world where more and more ordinary people trust
-machines with their lives daily. The autonomous car is just one example which will affect our 
+machines with their lives daily. The autonomous car is just one example which will affect our
 daily life. Medical devices such as surgical robots and smart health care devices are already
-a thing and will see wider adoption in the future. And there will be more machines with safety- 
+a thing and will see wider adoption in the future. And there will be more machines with safety-
 or even life-critical tasks in the future.
 As a result, many more C++ engineers are expected to write life-critical software today than a
 few years ago. Unfortunately, experience in this domain is hard to come by and training alone might
 not solve the issue of mistakes caused by confusing units or quantities with each other.
-Additionally, the C++ language does not change fast enough to enforce a safe-by-construction code, 
+Additionally, the C++ language does not change fast enough to enforce a safe-by-construction code,
 which becomes even more critical if the code handling the physical computation is written by domain
 experts such as physicists that are not necessarily fluent in C++.
 
@@ -155,9 +155,9 @@ double GlidePolar::MacCreadyAltitude(double MCREADY,
 [Original code here](https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Header/McReady.h#L7-L21).
 
 There are several problems with such an approach: The abundance of `double` parameters
-makes it easy to accidentally switch values and there is no way of noticing such a mistake 
+makes it easy to accidentally switch values and there is no way of noticing such a mistake
 at compile time. The code is not self-documenting in what units the parameters are expected. Is
-`Distance` in meters or kilometers? Is `WindSpeed` in meters per second or knots? 
+`Distance` in meters or kilometers? Is `WindSpeed` in meters per second or knots?
 Different code bases choose different ways to encode this information,
 which may be internally inconsistent.
 A strong type system would help answering these questions at compile time.
@@ -178,7 +178,8 @@ double AirDensity(double hr, double temp, double abs_press)
 
 Apart from the obvious readability issues, such code is hard to maintain and needs a lot of domain
 knowledge on the side of the developer. While it would be easy to replace these numbers with named constants,
-the question of which unit the constant is in remains. Is `287.06` in pounds per square inch (psi) or millibars (mbar)?
+the question of which unit the constant is in remains. Is `287.06` in pounds per square inch (psi)
+or millibars (mbar)?
 
 
 ## The proliferation of conversion macros
@@ -215,11 +216,11 @@ static const double PI = (4*atan(1));
 
 [Original code here](https://github.com/LK8000/LK8000/blob/052bbc20a106fda4db41874e788e39020fb86512/Common/Header/Defines.h#L901-L924).
 
-Again, the question of which unit the constant is in remains. Without looking at the code 
-it is impossible to tell from which unit `TOMETER` converts. Also, macros have the problem that 
+Again, the question of which unit the constant is in remains. Without looking at the code
+it is impossible to tell from which unit `TOMETER` converts. Also, macros have the problem that
 they are not scoped to a namespace and thus can easily clash with other macros or functions,
-especially if they have such common names like `PI` or `RAD_TO_DEG`. A quick search through open 
-source C++ code bases reveals that for example the `RAD_TO_DEG` macro is defined in a multitude 
+especially if they have such common names like `PI` or `RAD_TO_DEG`. A quick search through open
+source C++ code bases reveals that for example the `RAD_TO_DEG` macro is defined in a multitude
 of different ways -- sometimes even within the same repository:
 
 ```cpp
@@ -581,7 +582,7 @@ a reference to its underlying numerical value is required:
     // read_temperature is in the BSP defined as 
     void read_temperature(float* temp_in_celsius);
     ```
-    
+
     ```cpp
     using Celsius_point = quantity_point<isq::Celsius_temperature[deg_C], si::ice_point, float>;
 
