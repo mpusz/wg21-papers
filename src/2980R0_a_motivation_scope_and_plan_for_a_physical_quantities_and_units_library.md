@@ -119,7 +119,7 @@ use-cases.  Seeing both the complexity of development and practical uses
 where developers need to leave the safety of these simple wrappers
 encouraged Roth to explore various quantity/units libraries to see if
 they would apply to this domain.  He has been doing research into
-defining and using digital audio and music domain specific quantities
+defining and using digital audio and music domain-specific quantities
 and units using first [@MP-UNITS] as proposed in [@P1935R2] and the new
 V2 library described in this paper.
 
@@ -166,7 +166,7 @@ for programming languages to ensure higher levels of both expressivity and safet
 physics codes. Back in 2019, he authored [@P1930R0] to provide some context of what could
 be a quantity and unit library for C++.
 
-After designing and implementing several Domain Specific Language (DSL) demonstrators dedicated
+After designing and implementing several Domain-Specific Language (DSL) demonstrators dedicated
 to units of measurements in C++, he became more interested in the theoretical side of
 the problem. Today, one of his research activities is dedicated to the mathematical formalization
 of systems of quantities and systems of units as an interdisciplinary problem between physics,
@@ -287,16 +287,16 @@ representing the wrong quantity or having an incorrect unit.
 
 ## Extensibility
 
-Many applications of a quantity and units library may need to operate on a combination of
-domain-specific and standard quantities and units, e.g., time in seconds, distance in metres,
-consumption in litres of gas per `100` kilometers.
-The complexity of developing domain-specific solutions highlights the value in being able to define
-new quantities and units that have all the expressivity and safety as those provided by the library.
+Many applications of a quantity and units library may need to operate on a combination of quantities
+and units that are standard (e.g. time in seconds, distance in metres, consumption in litres of gas
+per `100` kilometers) and domain-specific.  The complexity of developing domain-specific solutions
+highlights the value in being able to define new quantities and units that have all the expressivity
+and safety as those provided by the library.
 
 Experience with writing ad hoc typed quantities without library support
 that can be combined with or converted to `std::chrono::duration` has
-shown the downside of bespoke solutions: if not all operations
-or conversions are handled users will need to leave the safety of typed
+shown the downside of bespoke solutions: If not all operations
+or conversions are handled, users will need to leave the safety of typed
 quantities to operate on primitive types.
 
 ## Broad industry value
@@ -667,7 +667,7 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/cx8Pr6ne9).
 
 ## User defined quantities and units
 
-Users can easily define new quantities and units for domain specific
+Users can easily define new quantities and units for domain-specific
 use-cases.  This example from digital signal processing will show how to
 define custom units for counting
 [digital samples](https://en.wikipedia.org/wiki/Sampling_(signal_processing))
