@@ -17,13 +17,14 @@ author:
 # Introduction
 
 One of the areas where C++ can significantly improve the safety of applications being written
-by thousands of developers is introducing a type-safe, well-tested, standardized way to handle
-physical quantities and their units. The rationale is that people tend to have problems
-communicating or using proper units in code and daily life. Another benefit of adding strongly
-typed quantities and units to the language is that it will allow catching some mistakes already
-at compile time instead of relying on runtime checks which might have spotty coverage.
+by thousands of developers is introducing a type-safe, well-tested, proven in production,
+standardized way to handle physical quantities and their units.
+The rationale is that people tend to have problems communicating or using proper units in code
+and daily life. Another benefit of adding strongly typed quantities and units to the language
+is that it will allow catching some mistakes already at compile time instead of relying on
+runtime checks which might have spotty coverage.
 
-This paper scopes on the security aspects of introducing such a library to the C++ language.
+This paper scopes on the safety aspects of introducing such a library to the C++ language.
 In the following chapters, we will describe which industries are desperately looking for such
 standardized solutions, enumerate some failures and accidents caused by misinterpretation of
 quantities and units in human history, review all the features of such a library that improve
@@ -180,11 +181,10 @@ double AirDensity(double hr, double temp, double abs_press)
 
 [Original code here](https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Source/Library/PressureFunctions.cpp#L134-L136).
 
-Apart from the obvious readability issues, such code is hard to maintain and needs a lot of domain
-knowledge on the side of the developer. While it would be easy to replace these numbers with named constants,
-the question of which unit the constant is in remains. Is `287.06` in pounds per square inch (psi)
-or millibars (mbar)?
-
+Apart from the obvious readability issues, such code is hard to maintain, and it needs a lot of
+domain knowledge on the developer's side. While it would be easy to replace these numbers with
+named constants, the question of which unit the constant is in remains. Is `287.06` in
+pounds per square inch (psi) or millibars (mbar)?
 
 ## The proliferation of conversion macros
 
@@ -278,32 +278,34 @@ double ProjectedDistance(double lon1, double lat1,
 
 [Original code here](https://github.com/LK8000/LK8000/blob/af404168ff5f92b03ab0c5db336ed8f01a792cda/Common/Header/NavFunctions.h#L7C1-L27).
 
+Users can easily make errors if the interface designers are not consistent in ordering parameters.
+It is really hard to remember which function takes latitude or `Bearing` first and when a latitude
+or `Distance` is in the front.
+
 ## Lack of a conceptual framework
 
-The previous points mean that the type system isn't leveraged
-to model the different concepts of quantities and units frameworks.
-
-There is no shared vocabulary between different libraries.
-User-facing APIs use ad-hoc conventions.
-Even internal interfaces are inconsistent between themselves.
+The previous points mean that the fundamental types aren't leveraged to model the different concepts
+of quantities and units frameworks. There is no shared vocabulary between different libraries.
+User-facing APIs use ad-hoc conventions. Even internal interfaces are inconsistent between themselves.
 
 Arithmetic types such as `int` and `double` are used to model different concepts.
-They are used to represent any quantity (be it a magnitude, difference, point, or kind), of any unit.
-These are weak types that make up weakly typed interfaces.
+They are used to represent any abstraction (be it a magnitude, difference, point, or kind) of any
+quantity type of any unit.
+These are weak types that make up weakly-typed interfaces.
 The resulting interfaces and implementations built with these types
 easily allow mixing up parameters and using operations that are not part of the represented quantity.
 
 
 # Safety Features
 
-This chapter will describe the features that enforce safety in our code bases. We will start
-with obvious things but then will move to probably less known benefits of using physical quantities
+This chapter describes the features that enforce safety in our code bases. It starts with obvious
+things but then it moves to probably less known benefits of using physical quantities
 and units libraries. This chapter also serves as a proof that it is not easy to implement such a
-library correctly, and there are many cases where lack of experience or time for the development of
-such a utility may lead to safety issues as well.
+library correctly, and that there are many cases where lack of experience or time for the development
+of such a utility may easily lead to safety issues as well.
 
 Before we go through all the features, it is essential to note that they do not introduce any runtime
-overhead over the raw unsafe code doing the same thing. That is a massive benefit of C++ compared
+overhead over the raw unsafe code doing the same thing. This is a massive benefit of C++ compared
 to other programming languages (e.g., Python, Java, etc.).
 
 ## Unit conversions
@@ -337,21 +339,23 @@ require a conversion factor based on an irrational number like pi.
 
 ## Preventing truncation of data
 
-The second safety feature of such libraries is preventing accidental truncation of quantity value. If we try
-similar, but this time opposite, operations to the above, both conversions should fail to compile:
+The second safety feature of such libraries is preventing accidental truncation of quantity value.
+If we try similar, but this time opposite, operations to the above, both conversions should fail
+to compile:
 
 ```cpp
 auto q1 = 5 * m;
-std::cout << q1.in(km) << '\n';
-quantity<si::kilo<si::metre>, int> q2 = q1;
+std::cout << q1.in(km) << '\n';              // Compile-time error
+quantity<si::kilo<si::metre>, int> q2 = q1;  // Compile-time error
 ```
 
-We can't preserve the value of a source unit when we convert
-to a unit with a lower resolution while using an integral representation type for a quantity. 
-In the example above, converting 5 metres would result in 0 kilometres if internal conversion is 
-done using regular integer handling. While this could be valid behavior, the problem arises when the 
-user expects to be able to convert the quantity back to the original unit without loss of information. 
-So the library should prevent such conversions from happening implicitly; whether the library 
+We can't preserve the value of a source quantity when we convert it to a one using the unit of
+a lower resolution while dealing with an integral representation type for a quantity.
+In the example above, converting `5` meters would result in `0` kilometers if internal conversion
+is performed using regular integer arithmetic.
+While this could be a valid behavior, the problem arises when the user expects to be able to convert
+the quantity back to the original unit without loss of information.
+So the library should prevent such conversions from happening implicitly; whether the library
 should offer explicitly marked unsafe conversions for these cases is yet to be discussed.
 
 _Please note that it is always assumed that one can convert a quantity into another one with a unit
@@ -359,10 +363,10 @@ of a higher resolution. There is no protection against overflow of the represent
 In case the target quantity ends up with a value bigger than the representation type can handle,
 we will be facing Undefined Behavior._
 
-The solution to make the above conversion is to use a floating-point representation type:
+To make the above conversions compile, we could use a floating-point representation type:
 
 ```cpp
-auto q1 = 5. * m;
+auto q1 = 5. * m;    // source quantity uses `double` as a representation type
 std::cout << q1.in(km) << '\n';
 quantity<si::kilo<si::metre>> q2 = q1;
 ```
@@ -370,7 +374,7 @@ quantity<si::kilo<si::metre>> q2 = q1;
 or:
 
 ```cpp
-auto q1 = 5 * m;
+auto q1 = 5 * m;     // source quantity uses `int` as a representation type
 std::cout << value_cast<double>(q1).in(km) << '\n';
 quantity<si::kilo<si::metre>> q2 = q1;  // double by default
 ```
@@ -381,8 +385,8 @@ value-preserving._
 Another possibility would be to force such a truncating conversion explicitly from the code:
 
 ```cpp
-auto q1 = 5 * m;
-std::cout << value_cast<km>(q1) << '\n';
+auto q1 = 5 * m;     // source quantity uses `int` as a representation type
+std::cout << q1.force_in(km) << '\n';
 quantity<si::kilo<si::metre>, int> q2 = value_cast<km>(q1);
 ```
 
@@ -419,7 +423,7 @@ One can do a limited set of operations in affine space on points and vectors. Th
 helps to prevent quantity equations that do not have physical sense.
 
 People often think that affine space is needed only to model temperatures and maybe time points
-(following [`std::chrono::time_point`](https://en.cppreference.com/w/cpp/chrono/time_point)).
+(following [`std::chrono::time_point`](https://en.cppreference.com/w/cpp/chrono/time_point) example).
 Still, the applicability of this domain is much wider.
 
 For example, if we would like to model a Mount Everest climbing expedition, we would deal with
@@ -430,7 +434,7 @@ there is no sense in adding altitudes. What does adding the altitude of a base c
 the mountain peak mean after all?
 
 Modeling such affine space entities with `quantity` (vector) and `quantity_point` (point) class
-templates improve overall project safety by eliminating accidental equations at compile time.
+templates improve overall project's safety by eliminating accidental equations at compile time.
 
 ## `explicit` is not explicit enough
 
@@ -473,12 +477,13 @@ struct X {
 
 ```cpp
 X x;
-x.vec.emplace_back(42 * ms);
+x.vec.emplace_back(42);       // Compile-time error
+x.vec.emplace_back(42 * ms);  // OK
 ```
 
-For consistency and to prevent similar safety issues, the `quantity_point` in the [@MP-UNITS] library
-can't be created from a standalone value of a `quantity`. Such a point has to always
-be associated with an explicit origin:
+For consistency and to prevent similar safety issues, the `quantity_point` in the [@MP-UNITS] library0
+can't be created from a standalone value of a `quantity` (contrary to the `std::chrono::time_point`
+design). Such a point has to always be associated with an explicit origin:
 
 ```cpp
 quantity_point qp1 = mean_sea_level + 42 * m;
@@ -543,18 +548,19 @@ numerical value stored in a `quantity`. For those cases [@MP-UNITS] library expo
 - for lvalues (rvalue reference qualified overload is explicitly deleted),
 - when provided `Unit` has the same magnitude as the one currently used by the quantity.
 
-The first condition above removes the possibility of dangling references. We want to increase the
+The first condition above limits the possibility of dangling references. We want to increase the
 chances that the reference/pointer provided to an underlying API remains valid for the time of its
 usage. Performance aspects for a `quantity` type are secondary here as we expect the majority
 (if not all) of representation types to be cheap to copy, so we do not need to optimize for moving
-the value out from the temporary object. With the condition satisfied, the following code doesn't compile:
+the value out from the temporary object. With this condition unsatisfied, the following code doesn't
+compile:
 
 ```cpp
 void legacy_func(const int& seconds);
 ```
 
 ```cpp
-legacy_func((4 * s + 2 * s).numerical_value_ref_in(si::second));
+legacy_func((4 * s + 2 * s).numerical_value_ref_in(si::second));  // Compile-time error
 ```
 
 The [@MP-UNITS] library goes one step further by implementing all compound assignment,
@@ -566,14 +572,28 @@ quantity<si::second, int> get_duration();
 ```
 
 ```cpp
-legacy_func((4 * s += 2 * s).numerical_value_ref_in(si::second));
-legacy_func((++get_duration()).numerical_value_ref_in(si::second));
+legacy_func((4 * s += 2 * s).numerical_value_ref_in(si::second));    // Compile-time error
+legacy_func((++get_duration()).numerical_value_ref_in(si::second));  // Compile-time error
 ```
 
 The second condition above enables the usage of various equivalent units. For example, `J` is
 equivalent to `N * m`, and `kg * m2 / s2`. As those have the same magnitude, it does not
 matter exactly which one is being used here, as the same numerical value
 should be returned for all of them.
+
+```cpp
+void legacy_func(const int& joules);
+```
+
+```cpp
+quantity q1 = 42 * J;
+quantity q2 = 42 * N * (2 * m);
+quantity q3 = 42 * kJ;
+legacy_func(q1.numerical_value_ref_in(si::joule)); // OK
+legacy_func(q2.numerical_value_ref_in(si::joule)); // OK
+legacy_func(q3.numerical_value_ref_in(si::joule)); // Compile-time error
+```
+
 
 Here are a few examples provided by our users where enabling quantity type to return
 a reference to its underlying numerical value is required:
@@ -735,6 +755,18 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
     static_assert(implicitly_convertible(isq::width, isq::length));
     static_assert(implicitly_convertible(isq::radius, isq::length));
     static_assert(implicitly_convertible(isq::radius, isq::width));
+    ```
+
+    In the [@MP-UNITS] library implicit conversions are allowed on copy-initialization:
+
+    ```cpp
+    void foo(quantity<isq::length<m>> q);
+    ```
+
+    ```cpp
+    quantity<isq::width<m>> q1 = 42 * m;
+    quantity<isq::length<m>> q2 = q1;  // implicit quantity conversion
+    foo(q1);                           // implicit quantity conversion
     ```
 
 2. **Explicit conversions**
@@ -1063,11 +1095,26 @@ Vector and tensor quantities can be implemented in two ways:
     - `|a|` - magnitude of a vector
     - `a ⊗ b` - tensor product of two vectors or tensors
 
-Additionally, the [@MP-UNITS] library knows the expected quantity character for each quantity.
+Additionally, the [@MP-UNITS] library knows the expected quantity character which is provided
+(implicitly or explicitly) in the definition of each quantity type.
 Thanks to that, it prevents the user, for example, from providing a scalar representation type for
 force or a vector representation for power quantities.
-This additionally improves the compile-time safety of the library by ensuring that quantities are
-created with proper quantity equations.
+
+```cpp
+QuantityOf<isq::velocity> q1 = 60 * km / h;                             // Compile-time error
+QuantityOf<isq::velocity> q2 = la_vector{0, 0, -60} * km / h;           // OK
+QuantityOf<isq::force> q3 = 80 * kg * (10 * m / s2);                    // Compile-time error
+QuantityOf<isq::force> q4 = 80 * kg * (la_vector{0, 0, -10} * m / s2);  // OK
+QuantityOf<isq::power> q5 = q2 * q4;                                    // Compile-time error
+QuantityOf<isq::power> q5 = dot(q2, q4);                                // OK
+```
+
+_Note: `q1` and `q3` could be allowed to compile with an explicit opt-in via the partial
+specialization of `is_vector<T>` trait for fundamental types._
+
+As we can see above, such features additionally improves the compile-time safety of the library
+by ensuring that quantities are created with proper quantity equations and are using correct
+representation types.
 
 
 # Safety Pitfalls
@@ -1092,13 +1139,16 @@ This is why floating-point representation types are recommended as a default to 
 value of a quantity. Some popular physical units libraries even
 [forbid integer division at all](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden). 
 
-The problem is similar to the one described in the section about accidental truncation of values 
+The problem is similar to the one described in the section about accidental truncation of values
 through conversion. While the consequent use of floating-point representation types may be a good idea,
-it is not always possible. Especially in close-to-the-metal applications and small embedded systems, the 
-use of floating-point types is sometimes not an option, either for performance reasons or lack of hardware support.
-Having different operators for safe floating point operations and unsafe integer operations would force users to
-use different symbols for quantities using floating-point or integral values which decreases usability significantly. 
-As such, the need of explicitly enabling such unsafe operations for integers only through a compiler flag could be an option. 
+it is not always possible. Especially in close-to-the-metal applications and small embedded systems,
+the use of floating-point types is sometimes not an option, either for performance reasons or lack
+of hardware support.
+Having different operators for safe-floating point operations and unsafe integer operations would
+force users to use different symbols for quantities using floating-point or integral values which
+decreases usability significantly.
+As such, the need of explicitly enabling such unsafe operations for integers only through a compiler
+flag could be an option. 
 
 ## Lack of safe numeric types
 
@@ -1110,7 +1160,7 @@ Integers can also be truncated during assignment to a narrower type.
 Floating-point types may lose precision during assignment to a narrower type.
 Conversion from `std::int64_t` to `double` may also be truncating.
 
-If we had safe numeric types in the C++ Standard Library they could easily be used as a `quantity`
+If we had safe numeric types in the C++ standard library they could easily be used as a `quantity`
 representation type in the physical quantities and units library which would address those safety
 concerns.
 
@@ -1185,9 +1235,9 @@ explicitly provided quantity type.
 Below, we provide a few examples that correctly detect such issues at compile-time:
 
 ```cpp
-quantity<si::kilo<si::metre> / non_si::hour, int> q1 = 60 * km / 2 * h;             // ERROR
-quantity<isq::speed[si::kilo<si::metre> / non_si::hour], int> q2 = 60 * km / 2 * h; // ERROR
-QuantityOf<isq::speed> auto q3 = 60 * km / 2 * h;                                   // ERROR
+quantity<si::kilo<si::metre> / non_si::hour, int> q1 = 60 * km / 2 * h;             // Compile-time error
+quantity<isq::speed[si::kilo<si::metre> / non_si::hour], int> q2 = 60 * km / 2 * h; // Compile-time error
+QuantityOf<isq::speed> auto q3 = 60 * km / 2 * h;                                   // Compile-time error
 ```
 
 ```cpp
@@ -1195,9 +1245,9 @@ template<typename T>
 auto make_length(T v) { return v * si::metre; }
 
 auto v = 42 * m;
-quantity<si::metre, int> q1 = make_length(v);           // ERROR
-quantity<isq::length[si::metre]> q2 = make_length(v);   // ERROR
-QuantityOf<isq::length> q3 = make_length(v);            // ERROR
+quantity<si::metre, int> q1 = make_length(v);           // Compile-time error
+quantity<isq::length[si::metre]> q2 = make_length(v);   // Compile-time error
+QuantityOf<isq::length> q3 = make_length(v);            // Compile-time error
 ```
 
 ```cpp
@@ -1205,7 +1255,7 @@ template<typename T>
 QuantityOf<isq::length> auto make_length(T v) { return v * si::metre; }
 
 auto v = 42 * m;
-quantity q = make_length(v);  // ERROR
+quantity q = make_length(v);  // Compile-time error
 ```
 
 ```cpp
@@ -1213,7 +1263,7 @@ template<Representation T>
 auto make_length(T v) { return v * si::metre; }
 
 auto v = 42 * m;
-quantity q = make_length(v);  // ERROR
+quantity q = make_length(v);  // Compile-time error
 ```
 
 
