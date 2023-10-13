@@ -1034,10 +1034,10 @@ value of a quantity. Some popular physical units libraries even
 The problem is similar to the one described in the section about accidental truncation of values 
 through conversion. While the consequent use of floating-point representation types may be a good idea,
 it is not always possible. Especially in close-to-the-metal applications and small embedded systems, the 
-use floating-point types is sometimes not an option, either for performance reasons or lack of hardware support.
-Other than with cast operations offering an explicitly marked unsafe operator mathematical operator is more 
-difficult as it would force users to use different symbols for quantities using floating-point or integral values. 
-As such, the need of explicitly enabling such unsafe operations through a compiler flag could be an option. 
+use of floating-point types is sometimes not an option, either for performance reasons or lack of hardware support.
+Having different operators for safe floating point operations and unsafe integer operations would force users to
+use different symbols for quantities using floating-point or integral values which decreases usability significantly. 
+As such, the need of explicitly enabling such unsafe operations for integers only through a compiler flag could be an option. 
 
 ## Lack of safe numeric types
 
