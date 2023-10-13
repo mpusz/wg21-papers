@@ -42,6 +42,12 @@ the subject, we agree that the interfaces we will provide in the upcoming propos
 the best we can get today in the C++ language.
 
 
+# Terms and definitions
+
+This document consistently uses the official metrology vocabulary defined in the [@ISO-GUIDE]
+and [@BIPM-VIM].
+
+
 # About Authors
 
 ## Dominik Berner
@@ -884,6 +890,10 @@ references:
   citation-label: Au
   title: "The Au Units library"
   URL: <https://aurora-opensource.github.io/au>
+- id: BIPM-VIM
+  citation-label: JCGM 200:2012
+  title: "International vocabulary of metrology - Basic and general concepts and associated terms (VIM) (JCGM 200:2012, 3rd edition)"
+  URL: <https://jcgm.bipm.org/vim/en>
 - id: CLARENCE
   citation-label: Clarence
   author:
@@ -911,6 +921,10 @@ references:
   citation-label: Hochrheinbrücke
   title: "An embarrassing discovery during the construction of a bridge"
   URL: <https://www.normaalamsterdamspeil.nl/wp-content/uploads/2015/03/website_bridge.pdf>
+- id: ISO-GUIDE
+  citation-label: ISO/IEC Guide 99
+  title: "ISO/IEC Guide 99: International vocabulary of metrology — Basic and general concepts and associated terms (VIM)"
+  URL: <https://www.iso.org/obp/ui#iso:std:iso-iec:guide:99>
 - id: LK8000
   citation-label: LK8000
   title: "LK8000 - Tactical Flight Computer"

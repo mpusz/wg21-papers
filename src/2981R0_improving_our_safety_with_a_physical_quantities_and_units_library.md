@@ -37,6 +37,12 @@ to be proposed in the follow-up papers. We are still doing some small fine-tunin
 the library._
 
 
+# Terms and definitions
+
+This document consistently uses the official metrology vocabulary defined in the [@ISO-GUIDE]
+and [@BIPM-VIM].
+
+
 # The Future Is Here
 
 Not that long ago, self-driving cars were a thing from SciFi movies. It was something so
@@ -1283,6 +1289,10 @@ references:
   citation-label: Ariane flight V88
   title: "Ariane flight V88"
   URL: <https://en.wikipedia.org/wiki/Ariane_flight_V88>
+- id: BIPM-VIM
+  citation-label: JCGM 200:2012
+  title: "International vocabulary of metrology - Basic and general concepts and associated terms (VIM) (JCGM 200:2012, 3rd edition)"
+  URL: <https://jcgm.bipm.org/vim/en>
 - id: BOOST-UNITS
   citation-label: Boost.Units
   author:
@@ -1319,6 +1329,10 @@ references:
   citation-label: Hochrheinbrücke
   title: "An embarrassing discovery during the construction of a bridge"
   URL: <https://www.normaalamsterdamspeil.nl/wp-content/uploads/2015/03/website_bridge.pdf>
+- id: ISO-GUIDE
+  citation-label: ISO/IEC Guide 99
+  title: "ISO/IEC Guide 99: International vocabulary of metrology — Basic and general concepts and associated terms (VIM)"
+  URL: <https://www.iso.org/obp/ui#iso:std:iso-iec:guide:99>
 - id: ISO80000
   citation-label: ISO 80000
   title: "ISO80000: Quantities and units"
