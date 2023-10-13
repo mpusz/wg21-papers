@@ -814,19 +814,20 @@ plan to propose any support for doing that for physical quantities and their uni
 | The most important ISQ quantities |    1     | Specification of the most commonly used ISQ quantities                                                                                                                                                                           |
 | ISQ 3-6                           |    1     | Specification of the ISQ quantities specified in ISO/IEC 80000 parts 3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)                                                                                         |
 | ISQ 7-12                          |    3     | Specification of the ISQ quantities specified in ISO 80000 parts 7 - 12 (Light and radiation, Acoustics, Physical chemistry and molecular physics, Atomic and nuclear physics, Characteristic numbers, Condensed matter physics) |
-| ISQ 13                            |    2     | Specification of the ISQ quantities specified in IEC 80000-13 (Information science and technology) + units                                                                                                                       |
+| ISQ 13                            |    2     | Specification of the ISQ quantities specified in IEC 80000-13 (Information science and technology)                                                                                                                               |
 
 ## Systems of units
 
-| Feature       | Priority | Description                                                                  |
-|---------------|:--------:|------------------------------------------------------------------------------|
-| SI            |    1     | All the units, prefixes, and symbols (including prefixed versions) of the SI |
-| International |    1     | International yard and pound units system                                    |
-| Imperial      |    2     | Imperial units system                                                        |
-| USC system    |    2     | United States Customary system                                               |
-| CGS system    |    2     | Centimetre-Gram-Second system                                                |
-| Angular       |    3     | Strong angular quantities and units system                                   |
-| IAU system    |    3     | International Astronomical Union units system                                |
+| Feature       | Priority | Description                                                                        |
+|---------------|:--------:|------------------------------------------------------------------------------------|
+| SI            |    1     | All the units, prefixes, and symbols (including prefixed versions) of the SI       |
+| IEC 80000-13  |    1     | All the units, prefixes, and symbols (including prefixed versions) of IEC 80000-13 |
+| International |    1     | International yard and pound units system                                          |
+| Imperial      |    2     | Imperial units system                                                              |
+| USC system    |    2     | United States Customary system                                                     |
+| CGS system    |    2     | Centimetre-Gram-Second system                                                      |
+| Angular       |    3     | Strong angular quantities and units system                                         |
+| IAU system    |    3     | International Astronomical Union units system                                      |
 
 ## Utilities
 
