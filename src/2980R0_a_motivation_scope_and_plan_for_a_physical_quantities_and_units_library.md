@@ -253,6 +253,10 @@ but time is only one of many quantities that we deal with in our software on a d
 We desperately need to be able to express more quantities and units in a standardized way so
 different libraries get means to communicate with each other.
 
+If Lockheed Martin and NASA could use standardized vocabulary types in their interfaces, maybe
+they would not interpret pound-force seconds as newton seconds, and the [@MARS_ORBITER] would
+not crash during the Mars orbital insertion maneuver.
+
 ## Certification
 
 Mission/life-critical projects or those for embedded devices often have to obey the safety norms
@@ -269,6 +273,10 @@ and expensive by many.
 
 All of those reasons often prevent the usage of an Open Source product in a company, which is a huge
 issue as those companies typically are natural users of physical quantities and units libraries.
+
+Having the physical quantities and units library standardized would solve those issues for many
+customers and would allow them to produce safer code for projects on which human life depends every
+single day.
 
 ## Complex and complicated
 
@@ -287,17 +295,27 @@ representing the wrong quantity or having an incorrect unit.
 
 ## Extensibility
 
-Many applications of a quantity and units library may need to operate on a combination of quantities
-and units that are standard (e.g. time in seconds, distance in metres, consumption in litres of gas
-per `100` kilometers) and domain-specific.  The complexity of developing domain-specific solutions
-highlights the value in being able to define new quantities and units that have all the expressivity
-and safety as those provided by the library.
+Many applications of a quantity and units library may need to operate on a combination of
+standard (e.g. SI) and domain-specific quantities and units. The complexity of developing
+domain-specific solutions highlights the value in being able to define new quantities
+and units that have all the expressivity and safety as those provided by the library.
 
 Experience with writing ad hoc typed quantities without library support
 that can be combined with or converted to `std::chrono::duration` has
 shown the downside of bespoke solutions: If not all operations
 or conversions are handled, users will need to leave the safety of typed
 quantities to operate on primitive types.
+
+The interfaces of the [@MP-UNITS] library were designed with an easy extensibility in mind.
+Each definition of a dimension, quantity type, or unit typically takes only a single line of
+code. This is possible thanks to the extensive usage of C++20 class types as Non-Type Template
+Parameters (NTTP). For example, the following code presents how second (a unit of time in the [@SI])
+and hertz (a unit of frequency in the [@SI]) can be defined in the code:
+
+```cpp
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct hertz : named_unit<"Hz", 1 / second, kind_of<isq::frequency>> {} hertz;
+```
 
 ## Broad industry value
 
@@ -435,7 +453,7 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/3E7q5P6jq).
 
 ## Bridge across the Rhine
 
-The following example codifies the history of a famous accident during the construction of a bridge across
+The following example codifies the history of a famous issue during the construction of a bridge across
 the Rhine River between the German and Swiss parts of the town Laufenburg [@HOCHRHEINBRÜCKE].
 It also nicely presents how [the Affine Space is being modeled in the library](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/).
 
@@ -535,7 +553,7 @@ This example estimates the process of filling a storage tank with some contents.
 - [faster-than-lightspeed constants](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/),
 - how easy it is to [add custom quantity types](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#defining-quantities)
 when needed, and
-- interoperability with `std::chrono::duration`.
+- [interoperability with `std::chrono::duration`](https://mpusz.github.io/mp-units/2.1/users_guide/framework_basics/basic_concepts/#QuantityLike).
 
 ```cpp
 #include <mp-units/chrono.h>
@@ -752,7 +770,7 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/KeT3MsfcG).
 
 The tables below briefly highlight the expected scope and feature set. Each of the features will
 be described in detail in the upcoming papers. To learn more right away and to be able to provide
-and early feedback, we encourage everyone to check the documentation of the [@MP-UNITS].
+and early feedback, we encourage everyone to check the documentation of the [@MP-UNITS] project.
 
 <!-- markdownlint-disable MD013 -->
 
@@ -927,6 +945,10 @@ references:
       given: Mateusz
   title: "Improving our safety with a physical quantities and units library"
   URL: <https://wg21.link/p2981>
+- id: SI
+  citation-label: SI
+  title: "SI Brochure: The International System of Units (SI)"
+  URL: <https://www.bipm.org/en/publications/si-brochure>
 - id: SI_LIB
   citation-label: SI library
   title: SI - Type safety for physical units"

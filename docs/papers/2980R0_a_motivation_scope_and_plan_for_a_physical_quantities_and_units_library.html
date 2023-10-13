@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-12" />
+  <meta name="dcterms.date" content="2023-10-13" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-12</td>
+    <td>2023-10-13</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -771,6 +771,10 @@ the interfaces a lot, but time is only one of many quantities that we
 deal with in our software on a daily basis. We desperately need to be
 able to express more quantities and units in a standardized way so
 different libraries get means to communicate with each other.</p>
+<p>If Lockheed Martin and NASA could use standardized vocabulary types
+in their interfaces, maybe they would not interpret pound-force seconds
+as newton seconds, and the <span class="citation" data-cites="MARS_ORBITER">[<a href="#ref-MARS_ORBITER" role="doc-biblioref">Mars Orbiter</a>]</span> would not crash during the
+Mars orbital insertion maneuver.</p>
 <h2 data-number="3.3" id="certification"><span class="header-section-number">3.3</span> Certification<a href="#certification" class="self-link"></a></h2>
 <p>Mission/life-critical projects or those for embedded devices often
 have to obey the safety norms that care about software for
@@ -789,6 +793,10 @@ risky and expensive by many.</p>
 <p>All of those reasons often prevent the usage of an Open Source
 product in a company, which is a huge issue as those companies typically
 are natural users of physical quantities and units libraries.</p>
+<p>Having the physical quantities and units library standardized would
+solve those issues for many customers and would allow them to produce
+safer code for projects on which human life depends every single
+day.</p>
 <h2 data-number="3.4" id="complex-and-complicated"><span class="header-section-number">3.4</span> Complex and complicated<a href="#complex-and-complicated" class="self-link"></a></h2>
 <p>For example, suppose vendors can’t use an Open Source library in a
 production project for the above reasons. In that case, they are forced
@@ -809,10 +817,8 @@ accidentally using values representing the wrong quantity or having an
 incorrect unit.</p>
 <h2 data-number="3.5" id="extensibility"><span class="header-section-number">3.5</span> Extensibility<a href="#extensibility" class="self-link"></a></h2>
 <p>Many applications of a quantity and units library may need to operate
-on a combination of quantities and units that are standard (e.g. time in
-seconds, distance in metres, consumption in litres of gas per
-<code class="sourceCode default">100</code> kilometers) and
-domain-specific. The complexity of developing domain-specific solutions
+on a combination of standard (e.g. SI) and domain-specific quantities
+and units. The complexity of developing domain-specific solutions
 highlights the value in being able to define new quantities and units
 that have all the expressivity and safety as those provided by the
 library.</p>
@@ -822,6 +828,16 @@ support that can be combined with or converted to
 the downside of bespoke solutions: If not all operations or conversions
 are handled, users will need to leave the safety of typed quantities to
 operate on primitive types.</p>
+<p>The interfaces of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library were designed with an
+easy extensibility in mind. Each definition of a dimension, quantity
+type, or unit typically takes only a single line of code. This is
+possible thanks to the extensive usage of C++20 class types as Non-Type
+Template Parameters (NTTP). For example, the following code presents how
+second (a unit of time in the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>) and hertz (a unit of
+frequency in the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>) can be defined in
+the code:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> second <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;s&quot;</span>, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;&gt;</span> <span class="op">{}</span> second;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> hertz <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;Hz&quot;</span>, <span class="dv">1</span> <span class="op">/</span> second, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>frequency<span class="op">&gt;&gt;</span> <span class="op">{}</span> hertz;</span></code></pre></div>
 <h2 data-number="3.6" id="broad-industry-value"><span class="header-section-number">3.6</span> Broad industry value<a href="#broad-industry-value" class="self-link"></a></h2>
 <p>When people think about industries that could use physical quantities
 and unit libraries, they think of a few companies related to aerospace,
@@ -878,146 +894,146 @@ examples.</p>
 <h2 data-number="4.1" id="basic-quantity-equations"><span class="header-section-number">4.1</span> Basic quantity equations<a href="#basic-quantity-equations" class="self-link"></a></h2>
 <p>Let’s start with a really simple example presenting basic operations
 that every physical quantities and units library should provide:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// simple numeric operations</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">10</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">5</span> <span class="op">*</span> km<span class="op">)</span>;</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">// unit conversions</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h <span class="op">==</span> <span class="dv">3600</span> <span class="op">*</span> s<span class="op">)</span>;</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">==</span> <span class="dv">1001</span> <span class="op">*</span> m<span class="op">)</span>;</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">// derived quantities</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> s<span class="op">)</span> <span class="op">==</span> <span class="dv">1000</span> <span class="op">*</span> m <span class="op">/</span> s<span class="op">)</span>;</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> h <span class="op">*</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">==</span> <span class="dv">4</span> <span class="op">*</span> km<span class="op">)</span>;</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> h<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">2</span> <span class="op">*</span> m <span class="op">*</span> <span class="op">(</span><span class="dv">3</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">==</span> <span class="dv">6</span> <span class="op">*</span> m2<span class="op">)</span>;</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">10</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> km<span class="op">)</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> one<span class="op">)</span>;</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1000</span> <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> s<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> kHz<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">// simple numeric operations</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">10</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">5</span> <span class="op">*</span> km<span class="op">)</span>;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">// unit conversions</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h <span class="op">==</span> <span class="dv">3600</span> <span class="op">*</span> s<span class="op">)</span>;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">==</span> <span class="dv">1001</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">// derived quantities</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> s<span class="op">)</span> <span class="op">==</span> <span class="dv">1000</span> <span class="op">*</span> m <span class="op">/</span> s<span class="op">)</span>;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> h <span class="op">*</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">==</span> <span class="dv">4</span> <span class="op">*</span> km<span class="op">)</span>;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> h<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">2</span> <span class="op">*</span> m <span class="op">*</span> <span class="op">(</span><span class="dv">3</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">==</span> <span class="dv">6</span> <span class="op">*</span> m2<span class="op">)</span>;</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">10</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> km<span class="op">)</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> one<span class="op">)</span>;</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1000</span> <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> s<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> kHz<span class="op">)</span>;</span></code></pre></div>
 <p>Try it in <a href="https://godbolt.org/z/sYfoPzTvT">the Compiler
 Explorer</a>.</p>
 <h2 data-number="4.2" id="hello-units"><span class="header-section-number">4.2</span> Hello Units<a href="#hello-units" class="self-link"></a></h2>
 <p>The next example serves as a showcase of various features available
 in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>
 library.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/format.h&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/ostream.h&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/international/international.h&gt;</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/isq.h&gt;</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> avg_speed<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> d,</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                                                QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> t<span class="op">)</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> d <span class="op">/</span> t;</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>international<span class="op">::</span>unit_symbols;</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v1 <span class="op">=</span> <span class="dv">110</span> <span class="op">*</span> km <span class="op">/</span> h;</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v2 <span class="op">=</span> <span class="dv">70</span> <span class="op">*</span> mph;</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v3 <span class="op">=</span> avg_speed<span class="op">(</span><span class="fl">220.</span> <span class="op">*</span> km, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v4 <span class="op">=</span> avg_speed<span class="op">(</span>isq<span class="op">::</span>distance<span class="op">(</span><span class="fl">140.</span> <span class="op">*</span> mi<span class="op">)</span>, <span class="dv">2</span> <span class="op">*</span> isq<span class="op">::</span>duration<span class="op">[</span>h<span class="op">])</span>;</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v5 <span class="op">=</span> v3<span class="op">.</span>in<span class="op">(</span>m <span class="op">/</span> s<span class="op">)</span>;</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v6 <span class="op">=</span> value_cast<span class="op">&lt;</span>m <span class="op">/</span> s<span class="op">&gt;(</span>v4<span class="op">)</span>;</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v7 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>v6<span class="op">)</span>;</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> v1 <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;                <span class="co">// 110 km/h</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> v2 <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;                <span class="co">// 70 mi/h</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{}&quot;</span>, v3<span class="op">)</span>;                 <span class="co">// 110 km/h</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{:*^14}&quot;</span>, v4<span class="op">)</span>;            <span class="co">// ***70 mi/h****</span></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{:%Q in %q}&quot;</span>, v5<span class="op">)</span>;        <span class="co">// 30.5556 in m/s</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{0:%Q} in {0:%q}&quot;</span>, v6<span class="op">)</span>;   <span class="co">// 31.2928 in m/s</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{:%Q}&quot;</span>, v7<span class="op">)</span>;              <span class="co">// 31</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/format.h&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/ostream.h&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/international/international.h&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/isq.h&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> avg_speed<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> d,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                                                QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> t<span class="op">)</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> d <span class="op">/</span> t;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>international<span class="op">::</span>unit_symbols;</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v1 <span class="op">=</span> <span class="dv">110</span> <span class="op">*</span> km <span class="op">/</span> h;</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v2 <span class="op">=</span> <span class="dv">70</span> <span class="op">*</span> mph;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v3 <span class="op">=</span> avg_speed<span class="op">(</span><span class="fl">220.</span> <span class="op">*</span> km, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v4 <span class="op">=</span> avg_speed<span class="op">(</span>isq<span class="op">::</span>distance<span class="op">(</span><span class="fl">140.</span> <span class="op">*</span> mi<span class="op">)</span>, <span class="dv">2</span> <span class="op">*</span> isq<span class="op">::</span>duration<span class="op">[</span>h<span class="op">])</span>;</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v5 <span class="op">=</span> v3<span class="op">.</span>in<span class="op">(</span>m <span class="op">/</span> s<span class="op">)</span>;</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v6 <span class="op">=</span> value_cast<span class="op">&lt;</span>m <span class="op">/</span> s<span class="op">&gt;(</span>v4<span class="op">)</span>;</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v7 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>v6<span class="op">)</span>;</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> v1 <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;                <span class="co">// 110 km/h</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> v2 <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;                <span class="co">// 70 mi/h</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{}&quot;</span>, v3<span class="op">)</span>;                 <span class="co">// 110 km/h</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{:*^14}&quot;</span>, v4<span class="op">)</span>;            <span class="co">// ***70 mi/h****</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{:%Q in %q}&quot;</span>, v5<span class="op">)</span>;        <span class="co">// 30.5556 in m/s</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{0:%Q} in {0:%q}&quot;</span>, v6<span class="op">)</span>;   <span class="co">// 31.2928 in m/s</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{:%Q}&quot;</span>, v7<span class="op">)</span>;              <span class="co">// 31</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Try it in <a href="https://godbolt.org/z/3E7q5P6jq">the Compiler
 Explorer</a>.</p>
 <h2 data-number="4.3" id="bridge-across-the-rhine"><span class="header-section-number">4.3</span> Bridge across the Rhine<a href="#bridge-across-the-rhine" class="self-link"></a></h2>
-<p>The following example codifies the history of a famous accident
-during the construction of a bridge across the Rhine River between the
-German and Swiss parts of the town Laufenburg <span class="citation" data-cites="HOCHRHEINBRÜCKE">[<a href="#ref-HOCHRHEINBRÜCKE" role="doc-biblioref">Hochrheinbrücke</a>]</span>. It also nicely
+<p>The following example codifies the history of a famous issue during
+the construction of a bridge across the Rhine River between the German
+and Swiss parts of the town Laufenburg <span class="citation" data-cites="HOCHRHEINBRÜCKE">[<a href="#ref-HOCHRHEINBRÜCKE" role="doc-biblioref">Hochrheinbrücke</a>]</span>. It also nicely
 presents how <a href="https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/">the
 Affine Space is being modeled in the library</a>.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/ostream.h&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/quantity_point.h&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/space_and_time.h&gt;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> amsterdam_sea_level <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> amsterdam_sea_level;</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> mediterranean_sea_level <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>amsterdam_sea_level <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(-</span><span class="dv">27</span> <span class="op">*</span> cm<span class="op">)&gt;</span> <span class="op">{</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> mediterranean_sea_level;</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> altitude_DE <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, amsterdam_sea_level<span class="op">&gt;</span>;</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> altitude_CH <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, mediterranean_sea_level<span class="op">&gt;</span>;</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">auto</span> R, <span class="kw">typename</span> Rep<span class="op">&gt;</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>ostream<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>std<span class="op">::</span>ostream<span class="op">&amp;</span> os, quantity_point<span class="op">&lt;</span>R, altitude_DE<span class="op">::</span>point_origin, Rep<span class="op">&gt;</span> alt<span class="op">)</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_ref_from<span class="op">(</span>alt<span class="op">.</span>point_origin<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(DE)&quot;</span>;</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">auto</span> R, <span class="kw">typename</span> Rep<span class="op">&gt;</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>ostream<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>std<span class="op">::</span>ostream<span class="op">&amp;</span> os, quantity_point<span class="op">&lt;</span>R, altitude_CH<span class="op">::</span>point_origin, Rep<span class="op">&gt;</span> alt<span class="op">)</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_ref_from<span class="op">(</span>alt<span class="op">.</span>point_origin<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(CH)&quot;</span>;</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  <span class="co">// expected bridge altitude in a specific reference system</span></span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  quantity_point expected_bridge_alt <span class="op">=</span> amsterdam_sea_level <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(</span><span class="dv">330</span> <span class="op">*</span> m<span class="op">)</span>;</span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  <span class="co">// some nearest landmark altitudes on both sides of the river</span></span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  <span class="co">// equal but not equal ;-)</span></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  altitude_DE landmark_alt_DE <span class="op">=</span> altitude_DE<span class="op">::</span>point_origin <span class="op">+</span> <span class="dv">300</span> <span class="op">*</span> m;</span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>  altitude_CH landmark_alt_CH <span class="op">=</span> altitude_CH<span class="op">::</span>point_origin <span class="op">+</span> <span class="dv">300</span> <span class="op">*</span> m;</span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artifical deltas from landmarks of the bridge base on both sides of the river</span></span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>  quantity delta_DE <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span><span class="dv">3</span> <span class="op">*</span> m<span class="op">)</span>;</span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  quantity delta_CH <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(-</span><span class="dv">2</span> <span class="op">*</span> m<span class="op">)</span>;</span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artificial altitude of the bridge base on both sides of the river</span></span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_base_alt_DE <span class="op">=</span> landmark_alt_DE <span class="op">+</span> delta_DE;</span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_base_alt_CH <span class="op">=</span> landmark_alt_CH <span class="op">+</span> delta_CH;</span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artificial height of the required bridge pilar height on both sides of the river</span></span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>  quantity bridge_pilar_height_DE <span class="op">=</span> expected_bridge_alt <span class="op">-</span> bridge_base_alt_DE;</span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>  quantity bridge_pilar_height_CH <span class="op">=</span> expected_bridge_alt <span class="op">-</span> bridge_base_alt_CH;</span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Bridge pillars height:</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Germany:     &quot;</span> <span class="op">&lt;&lt;</span> bridge_pilar_height_DE <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Switzerland: &quot;</span> <span class="op">&lt;&lt;</span> bridge_pilar_height_CH <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artificial bridge altitude on both sides of the river in both systems</span></span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_road_alt_DE <span class="op">=</span> bridge_base_alt_DE <span class="op">+</span> bridge_pilar_height_DE;</span>
-<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_road_alt_CH <span class="op">=</span> bridge_base_alt_CH <span class="op">+</span> bridge_pilar_height_CH;</span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Bridge road altitude:</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Germany:     &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_DE <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Switzerland: &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_CH <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Bridge road altitude relative to the Amsterdam Sea Level:</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Germany:     &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_DE <span class="op">-</span> amsterdam_sea_level <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Switzerland: &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_CH <span class="op">-</span> amsterdam_sea_level <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
-<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/ostream.h&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/quantity_point.h&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/space_and_time.h&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> amsterdam_sea_level <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> amsterdam_sea_level;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> mediterranean_sea_level <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>amsterdam_sea_level <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(-</span><span class="dv">27</span> <span class="op">*</span> cm<span class="op">)&gt;</span> <span class="op">{</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> mediterranean_sea_level;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> altitude_DE <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, amsterdam_sea_level<span class="op">&gt;</span>;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> altitude_CH <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, mediterranean_sea_level<span class="op">&gt;</span>;</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">auto</span> R, <span class="kw">typename</span> Rep<span class="op">&gt;</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>ostream<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>std<span class="op">::</span>ostream<span class="op">&amp;</span> os, quantity_point<span class="op">&lt;</span>R, altitude_DE<span class="op">::</span>point_origin, Rep<span class="op">&gt;</span> alt<span class="op">)</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_ref_from<span class="op">(</span>alt<span class="op">.</span>point_origin<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(DE)&quot;</span>;</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">auto</span> R, <span class="kw">typename</span> Rep<span class="op">&gt;</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>ostream<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>std<span class="op">::</span>ostream<span class="op">&amp;</span> os, quantity_point<span class="op">&lt;</span>R, altitude_CH<span class="op">::</span>point_origin, Rep<span class="op">&gt;</span> alt<span class="op">)</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_ref_from<span class="op">(</span>alt<span class="op">.</span>point_origin<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(CH)&quot;</span>;</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  <span class="co">// expected bridge altitude in a specific reference system</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  quantity_point expected_bridge_alt <span class="op">=</span> amsterdam_sea_level <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(</span><span class="dv">330</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  <span class="co">// some nearest landmark altitudes on both sides of the river</span></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="co">// equal but not equal ;-)</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  altitude_DE landmark_alt_DE <span class="op">=</span> altitude_DE<span class="op">::</span>point_origin <span class="op">+</span> <span class="dv">300</span> <span class="op">*</span> m;</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>  altitude_CH landmark_alt_CH <span class="op">=</span> altitude_CH<span class="op">::</span>point_origin <span class="op">+</span> <span class="dv">300</span> <span class="op">*</span> m;</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artifical deltas from landmarks of the bridge base on both sides of the river</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  quantity delta_DE <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span><span class="dv">3</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>  quantity delta_CH <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(-</span><span class="dv">2</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artificial altitude of the bridge base on both sides of the river</span></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_base_alt_DE <span class="op">=</span> landmark_alt_DE <span class="op">+</span> delta_DE;</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_base_alt_CH <span class="op">=</span> landmark_alt_CH <span class="op">+</span> delta_CH;</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artificial height of the required bridge pilar height on both sides of the river</span></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>  quantity bridge_pilar_height_DE <span class="op">=</span> expected_bridge_alt <span class="op">-</span> bridge_base_alt_DE;</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>  quantity bridge_pilar_height_CH <span class="op">=</span> expected_bridge_alt <span class="op">-</span> bridge_base_alt_CH;</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Bridge pillars height:</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Germany:     &quot;</span> <span class="op">&lt;&lt;</span> bridge_pilar_height_DE <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Switzerland: &quot;</span> <span class="op">&lt;&lt;</span> bridge_pilar_height_CH <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artificial bridge altitude on both sides of the river in both systems</span></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_road_alt_DE <span class="op">=</span> bridge_base_alt_DE <span class="op">+</span> bridge_pilar_height_DE;</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_road_alt_CH <span class="op">=</span> bridge_base_alt_CH <span class="op">+</span> bridge_pilar_height_CH;</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Bridge road altitude:</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Germany:     &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_DE <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Switzerland: &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_CH <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Bridge road altitude relative to the Amsterdam Sea Level:</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Germany:     &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_DE <span class="op">-</span> amsterdam_sea_level <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Switzerland: &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_CH <span class="op">-</span> amsterdam_sea_level <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The above provides the following text output:</p>
 <pre class="text"><code>Bridge pillars height:
 - Germany:     27 m
@@ -1041,124 +1057,125 @@ kind</a>,</li>
 constants</a>,</li>
 <li>how easy it is to <a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#defining-quantities">add
 custom quantity types</a> when needed, and</li>
-<li>interoperability with
-<code class="sourceCode default">std::chrono::duration</code>.</li>
+<li><a href="https://mpusz.github.io/mp-units/2.1/users_guide/framework_basics/basic_concepts/#QuantityLike">interoperability
+with
+<code class="sourceCode default">std::chrono::duration</code></a>.</li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/chrono.h&gt;</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/format.h&gt;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/math.h&gt;</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/isq.h&gt;</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;chrono&gt;</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;format&gt;</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;numbers&gt;</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;utility&gt;</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">// allows standard gravity (acceleration) and weight (force) to be expressed with scalar representation</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">// types instead of requiring the usage of Linear Algebra library for this simple example</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> mp_units<span class="op">::</span>is_scalar<span class="op">&lt;</span>T<span class="op">&gt;</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="dt">bool</span> mp_units<span class="op">::</span>is_vector<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> <span class="op">{</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="co">// add a custom quantity type of kind isq::length</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> horizontal_length <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="op">{}</span> horizontal_length;</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="co">// add a custom derived quantity type of kind isq::area with a constrained quantity equation</span></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> horizontal_area <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>area, horizontal_length <span class="op">*</span> isq<span class="op">::</span>width<span class="op">&gt;</span> <span class="op">{}</span> horizontal_area;</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> g <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> si<span class="op">::</span>standard_gravity;</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> air_density <span class="op">=</span> isq<span class="op">::</span>mass_density<span class="op">(</span><span class="fl">1.225</span> <span class="op">*</span> kg <span class="op">/</span> m3<span class="op">)</span>;</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StorageTank <span class="op">{</span></span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;</span> base_;</span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;</span> height_;</span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass_density<span class="op">[</span>kg <span class="op">/</span> m3<span class="op">]&gt;</span> density_ <span class="op">=</span> air_density;</span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> StorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;&amp;</span> base, <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>      base_<span class="op">(</span>base<span class="op">)</span>, height_<span class="op">(</span>height<span class="op">)</span></span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">void</span> set_contents_density<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass_density<span class="op">[</span>kg <span class="op">/</span> m3<span class="op">]&gt;&amp;</span> density<span class="op">)</span></span>
-<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>density <span class="op">&gt;</span> air_density<span class="op">)</span>;</span>
-<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>    density_ <span class="op">=</span> density;</span>
-<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">constexpr</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>weight<span class="op">&gt;</span> <span class="kw">auto</span> filled_weight<span class="op">()</span> <span class="kw">const</span></span>
-<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> <span class="kw">auto</span> volume <span class="op">=</span> isq<span class="op">::</span>volume<span class="op">(</span>base_ <span class="op">*</span> height_<span class="op">)</span>;</span>
-<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">&gt;</span> <span class="kw">auto</span> mass <span class="op">=</span> density_ <span class="op">*</span> volume;</span>
-<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> isq<span class="op">::</span>weight<span class="op">(</span>mass <span class="op">*</span> g<span class="op">)</span>;</span>
-<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">constexpr</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;</span> fill_level<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&amp;</span> measured_mass<span class="op">)</span> <span class="kw">const</span></span>
-<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> height_ <span class="op">*</span> measured_mass <span class="op">*</span> g <span class="op">/</span> filled_weight<span class="op">()</span>;</span>
-<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">constexpr</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>volume<span class="op">[</span>m3<span class="op">]&gt;</span> spare_capacity<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&amp;</span> measured_mass<span class="op">)</span> <span class="kw">const</span></span>
-<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">(</span>height_ <span class="op">-</span> fill_level<span class="op">(</span>measured_mass<span class="op">))</span> <span class="op">*</span> base_;</span>
-<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CylindricalStorageTank <span class="op">:</span> <span class="kw">public</span> StorageTank <span class="op">{</span></span>
-<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> CylindricalStorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>radius<span class="op">[</span>m<span class="op">]&gt;&amp;</span> radius,</span>
-<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
-<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>      StorageTank<span class="op">(</span>quantity_cast<span class="op">&lt;</span>horizontal_area<span class="op">&gt;(</span>std<span class="op">::</span>numbers<span class="op">::</span>pi <span class="op">*</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>radius<span class="op">))</span>, height<span class="op">)</span></span>
-<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> RectangularStorageTank <span class="op">:</span> <span class="kw">public</span> StorageTank <span class="op">{</span></span>
-<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> RectangularStorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>horizontal_length<span class="op">[</span>m<span class="op">]&gt;&amp;</span> length,</span>
-<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>width<span class="op">[</span>m<span class="op">]&gt;&amp;</span> width,</span>
-<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
-<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>      StorageTank<span class="op">(</span>length <span class="op">*</span> width, height<span class="op">)</span></span>
-<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>  <span class="co">// namespace</span></span>
-<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
-<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> height <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span><span class="dv">200</span> <span class="op">*</span> mm<span class="op">)</span>;</span>
-<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> tank <span class="op">=</span> RectangularStorageTank<span class="op">(</span>horizontal_length<span class="op">(</span><span class="dv">1&#39;000</span> <span class="op">*</span> mm<span class="op">)</span>, isq<span class="op">::</span>width<span class="op">(</span><span class="dv">500</span> <span class="op">*</span> mm<span class="op">)</span>, height<span class="op">)</span>;</span>
-<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>  tank<span class="op">.</span>set_contents_density<span class="op">(</span><span class="dv">1&#39;000</span> <span class="op">*</span> kg <span class="op">/</span> m3<span class="op">)</span>;</span>
-<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> duration <span class="op">=</span> std<span class="op">::</span>chrono<span class="op">::</span>seconds<span class="op">{</span><span class="dv">200</span><span class="op">}</span>;</span>
-<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> quantity fill_time <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>quantity<span class="op">{</span>duration<span class="op">})</span>;  <span class="co">// time since starting fill</span></span>
-<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> quantity measured_mass <span class="op">=</span> <span class="fl">20.</span> <span class="op">*</span> kg;                         <span class="co">// measured mass at fill_time</span></span>
-<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> fill_level <span class="op">=</span> tank<span class="op">.</span>fill_level<span class="op">(</span>measured_mass<span class="op">)</span>;</span>
-<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> spare_capacity <span class="op">=</span> tank<span class="op">.</span>spare_capacity<span class="op">(</span>measured_mass<span class="op">)</span>;</span>
-<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> filled_weight <span class="op">=</span> tank<span class="op">.</span>filled_weight<span class="op">()</span>;</span>
-<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>mass_change_rate<span class="op">&gt;</span> <span class="kw">auto</span> input_flow_rate <span class="op">=</span> measured_mass <span class="op">/</span> fill_time;</span>
-<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> float_rise_rate <span class="op">=</span> fill_level <span class="op">/</span> fill_time;</span>
-<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> fill_time_left <span class="op">=</span> <span class="op">(</span>height <span class="op">/</span> fill_level <span class="op">-</span> <span class="dv">1</span> <span class="op">*</span> one<span class="op">)</span> <span class="op">*</span> fill_time;</span>
-<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> fill_ratio <span class="op">=</span> fill_level <span class="op">/</span> height;</span>
-<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;fill height at {} = {} ({} full)&quot;</span>, fill_time, fill_level, fill_ratio<span class="op">.</span>in<span class="op">(</span>percent<span class="op">))</span>;</span>
-<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;fill weight at {} = {} ({})&quot;</span>, fill_time, filled_weight, filled_weight<span class="op">.</span>in<span class="op">(</span>N<span class="op">))</span>;</span>
-<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;spare capacity at {} = {}&quot;</span>, fill_time, spare_capacity<span class="op">)</span>;</span>
-<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;input flow rate = {}&quot;</span>, input_flow_rate<span class="op">)</span>;</span>
-<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;float rise rate = {}&quot;</span>, float_rise_rate<span class="op">)</span>;</span>
-<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;tank full E.T.A. at current flow rate = {}&quot;</span>, fill_time_left<span class="op">.</span>in<span class="op">(</span>s<span class="op">))</span>;</span>
-<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/chrono.h&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/format.h&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/math.h&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/isq.h&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;chrono&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;format&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;numbers&gt;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;utility&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">// allows standard gravity (acceleration) and weight (force) to be expressed with scalar representation</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">// types instead of requiring the usage of Linear Algebra library for this simple example</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> mp_units<span class="op">::</span>is_scalar<span class="op">&lt;</span>T<span class="op">&gt;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="dt">bool</span> mp_units<span class="op">::</span>is_vector<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> <span class="op">{</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co">// add a custom quantity type of kind isq::length</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> horizontal_length <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="op">{}</span> horizontal_length;</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co">// add a custom derived quantity type of kind isq::area with a constrained quantity equation</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> horizontal_area <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>area, horizontal_length <span class="op">*</span> isq<span class="op">::</span>width<span class="op">&gt;</span> <span class="op">{}</span> horizontal_area;</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> g <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> si<span class="op">::</span>standard_gravity;</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> air_density <span class="op">=</span> isq<span class="op">::</span>mass_density<span class="op">(</span><span class="fl">1.225</span> <span class="op">*</span> kg <span class="op">/</span> m3<span class="op">)</span>;</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StorageTank <span class="op">{</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;</span> base_;</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;</span> height_;</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass_density<span class="op">[</span>kg <span class="op">/</span> m3<span class="op">]&gt;</span> density_ <span class="op">=</span> air_density;</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> StorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;&amp;</span> base, <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>      base_<span class="op">(</span>base<span class="op">)</span>, height_<span class="op">(</span>height<span class="op">)</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">void</span> set_contents_density<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass_density<span class="op">[</span>kg <span class="op">/</span> m3<span class="op">]&gt;&amp;</span> density<span class="op">)</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>density <span class="op">&gt;</span> air_density<span class="op">)</span>;</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    density_ <span class="op">=</span> density;</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">constexpr</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>weight<span class="op">&gt;</span> <span class="kw">auto</span> filled_weight<span class="op">()</span> <span class="kw">const</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> <span class="kw">auto</span> volume <span class="op">=</span> isq<span class="op">::</span>volume<span class="op">(</span>base_ <span class="op">*</span> height_<span class="op">)</span>;</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">&gt;</span> <span class="kw">auto</span> mass <span class="op">=</span> density_ <span class="op">*</span> volume;</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> isq<span class="op">::</span>weight<span class="op">(</span>mass <span class="op">*</span> g<span class="op">)</span>;</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">constexpr</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;</span> fill_level<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&amp;</span> measured_mass<span class="op">)</span> <span class="kw">const</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> height_ <span class="op">*</span> measured_mass <span class="op">*</span> g <span class="op">/</span> filled_weight<span class="op">()</span>;</span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">constexpr</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>volume<span class="op">[</span>m3<span class="op">]&gt;</span> spare_capacity<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&amp;</span> measured_mass<span class="op">)</span> <span class="kw">const</span></span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">(</span>height_ <span class="op">-</span> fill_level<span class="op">(</span>measured_mass<span class="op">))</span> <span class="op">*</span> base_;</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CylindricalStorageTank <span class="op">:</span> <span class="kw">public</span> StorageTank <span class="op">{</span></span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> CylindricalStorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>radius<span class="op">[</span>m<span class="op">]&gt;&amp;</span> radius,</span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>      StorageTank<span class="op">(</span>quantity_cast<span class="op">&lt;</span>horizontal_area<span class="op">&gt;(</span>std<span class="op">::</span>numbers<span class="op">::</span>pi <span class="op">*</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>radius<span class="op">))</span>, height<span class="op">)</span></span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> RectangularStorageTank <span class="op">:</span> <span class="kw">public</span> StorageTank <span class="op">{</span></span>
+<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-78"><a href="#cb5-78" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> RectangularStorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>horizontal_length<span class="op">[</span>m<span class="op">]&gt;&amp;</span> length,</span>
+<span id="cb5-79"><a href="#cb5-79" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>width<span class="op">[</span>m<span class="op">]&gt;&amp;</span> width,</span>
+<span id="cb5-80"><a href="#cb5-80" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb5-81"><a href="#cb5-81" aria-hidden="true" tabindex="-1"></a>      StorageTank<span class="op">(</span>length <span class="op">*</span> width, height<span class="op">)</span></span>
+<span id="cb5-82"><a href="#cb5-82" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-83"><a href="#cb5-83" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-84"><a href="#cb5-84" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb5-85"><a href="#cb5-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-86"><a href="#cb5-86" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>  <span class="co">// namespace</span></span>
+<span id="cb5-87"><a href="#cb5-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-88"><a href="#cb5-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-89"><a href="#cb5-89" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb5-90"><a href="#cb5-90" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-91"><a href="#cb5-91" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> height <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span><span class="dv">200</span> <span class="op">*</span> mm<span class="op">)</span>;</span>
+<span id="cb5-92"><a href="#cb5-92" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> tank <span class="op">=</span> RectangularStorageTank<span class="op">(</span>horizontal_length<span class="op">(</span><span class="dv">1&#39;000</span> <span class="op">*</span> mm<span class="op">)</span>, isq<span class="op">::</span>width<span class="op">(</span><span class="dv">500</span> <span class="op">*</span> mm<span class="op">)</span>, height<span class="op">)</span>;</span>
+<span id="cb5-93"><a href="#cb5-93" aria-hidden="true" tabindex="-1"></a>  tank<span class="op">.</span>set_contents_density<span class="op">(</span><span class="dv">1&#39;000</span> <span class="op">*</span> kg <span class="op">/</span> m3<span class="op">)</span>;</span>
+<span id="cb5-94"><a href="#cb5-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-95"><a href="#cb5-95" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> duration <span class="op">=</span> std<span class="op">::</span>chrono<span class="op">::</span>seconds<span class="op">{</span><span class="dv">200</span><span class="op">}</span>;</span>
+<span id="cb5-96"><a href="#cb5-96" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> quantity fill_time <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>quantity<span class="op">{</span>duration<span class="op">})</span>;  <span class="co">// time since starting fill</span></span>
+<span id="cb5-97"><a href="#cb5-97" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> quantity measured_mass <span class="op">=</span> <span class="fl">20.</span> <span class="op">*</span> kg;                         <span class="co">// measured mass at fill_time</span></span>
+<span id="cb5-98"><a href="#cb5-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-99"><a href="#cb5-99" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> fill_level <span class="op">=</span> tank<span class="op">.</span>fill_level<span class="op">(</span>measured_mass<span class="op">)</span>;</span>
+<span id="cb5-100"><a href="#cb5-100" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> spare_capacity <span class="op">=</span> tank<span class="op">.</span>spare_capacity<span class="op">(</span>measured_mass<span class="op">)</span>;</span>
+<span id="cb5-101"><a href="#cb5-101" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> filled_weight <span class="op">=</span> tank<span class="op">.</span>filled_weight<span class="op">()</span>;</span>
+<span id="cb5-102"><a href="#cb5-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-103"><a href="#cb5-103" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>mass_change_rate<span class="op">&gt;</span> <span class="kw">auto</span> input_flow_rate <span class="op">=</span> measured_mass <span class="op">/</span> fill_time;</span>
+<span id="cb5-104"><a href="#cb5-104" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> float_rise_rate <span class="op">=</span> fill_level <span class="op">/</span> fill_time;</span>
+<span id="cb5-105"><a href="#cb5-105" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> fill_time_left <span class="op">=</span> <span class="op">(</span>height <span class="op">/</span> fill_level <span class="op">-</span> <span class="dv">1</span> <span class="op">*</span> one<span class="op">)</span> <span class="op">*</span> fill_time;</span>
+<span id="cb5-106"><a href="#cb5-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-107"><a href="#cb5-107" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> fill_ratio <span class="op">=</span> fill_level <span class="op">/</span> height;</span>
+<span id="cb5-108"><a href="#cb5-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-109"><a href="#cb5-109" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;fill height at {} = {} ({} full)&quot;</span>, fill_time, fill_level, fill_ratio<span class="op">.</span>in<span class="op">(</span>percent<span class="op">))</span>;</span>
+<span id="cb5-110"><a href="#cb5-110" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;fill weight at {} = {} ({})&quot;</span>, fill_time, filled_weight, filled_weight<span class="op">.</span>in<span class="op">(</span>N<span class="op">))</span>;</span>
+<span id="cb5-111"><a href="#cb5-111" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;spare capacity at {} = {}&quot;</span>, fill_time, spare_capacity<span class="op">)</span>;</span>
+<span id="cb5-112"><a href="#cb5-112" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;input flow rate = {}&quot;</span>, input_flow_rate<span class="op">)</span>;</span>
+<span id="cb5-113"><a href="#cb5-113" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;float rise rate = {}&quot;</span>, float_rise_rate<span class="op">)</span>;</span>
+<span id="cb5-114"><a href="#cb5-114" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;tank full E.T.A. at current flow rate = {}&quot;</span>, fill_time_left<span class="op">.</span>in<span class="op">(</span>s<span class="op">))</span>;</span>
+<span id="cb5-115"><a href="#cb5-115" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The above code outputs:</p>
 <pre class="text"><code>fill height at 200 s = 0.04 m (20 % full)
 fill weight at 200 s = 100 g₀ kg (980.665 N)
@@ -1175,59 +1192,59 @@ use-cases. This example from digital signal processing will show how to
 define custom units for counting <a href="https://en.wikipedia.org/wiki/Sampling_(signal_processing)">digital
 samples</a> and how they can be converted to time measured in
 milliseconds:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/format.h&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/isq.h&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;format&gt;</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> dsp_dsq <span class="op">{</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> SampleCount <span class="op">:</span> quantity_spec<span class="op">&lt;</span>dimensionless, is_kind<span class="op">&gt;</span> <span class="op">{}</span> SampleCount;</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> SampleDuration <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="op">{}</span> SampleDuration;</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> SamplingRate <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>frequency, SampleCount <span class="op">/</span> isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="op">{}</span> SamplingRate;</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> Sample <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;Smpl&quot;</span>, one, kind_of<span class="op">&lt;</span>SampleCount<span class="op">&gt;&gt;</span> <span class="op">{}</span> Sample;</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> unit_symbols <span class="op">{</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> Smpl <span class="op">=</span> Sample;</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> dsp_dsq<span class="op">::</span>unit_symbols;</span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sr1 <span class="op">=</span> <span class="fl">44100.</span><span class="bu">f</span> <span class="op">*</span> Hz;</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sr2 <span class="op">=</span> <span class="fl">48000.</span><span class="bu">f</span> <span class="op">*</span> Smpl <span class="op">/</span> s;</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> bufferSize <span class="op">=</span> <span class="dv">512</span> <span class="op">*</span> Smpl;</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleTime1 <span class="op">=</span> <span class="op">(</span>bufferSize <span class="op">/</span> sr1<span class="op">).</span>in<span class="op">(</span>s<span class="op">)</span>;</span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleTime2 <span class="op">=</span> <span class="op">(</span>bufferSize <span class="op">/</span> sr2<span class="op">).</span>in<span class="op">(</span>ms<span class="op">)</span>;</span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleDuration1 <span class="op">=</span> <span class="op">(</span><span class="dv">1</span> <span class="op">/</span> sr1<span class="op">).</span>in<span class="op">(</span>ms<span class="op">)</span>;</span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleDuration2 <span class="op">=</span> dsp_dsq<span class="op">::</span>SampleDuration<span class="op">(</span><span class="dv">1</span> <span class="op">/</span> sr2<span class="op">).</span>in<span class="op">(</span>ms<span class="op">)</span>;</span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> rampTime <span class="op">=</span> <span class="fl">35.</span><span class="bu">f</span> <span class="op">*</span> ms;</span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> rampSamples1 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;((</span>rampTime <span class="op">*</span> sr1<span class="op">).</span>in<span class="op">(</span>Smpl<span class="op">))</span>;</span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> rampSamples2 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;((</span>rampTime <span class="op">*</span> sr2<span class="op">).</span>in<span class="op">(</span>Smpl<span class="op">))</span>;</span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;Sample rate 1 is: {}&quot;</span>, sr1<span class="op">)</span>;</span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;Sample rate 2 is: {}&quot;</span>, sr2<span class="op">)</span>;</span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} @ {} is {}&quot;</span>, bufferSize, sr1, sampleTime1<span class="op">)</span>;</span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} @ {} is {}&quot;</span>, bufferSize, sr2, sampleTime2<span class="op">)</span>;</span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;One sample @ {} is {}&quot;</span>, sr1, sampleDuration1<span class="op">)</span>;</span>
-<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;One sample @ {} is {}&quot;</span>, sr2, sampleDuration2<span class="op">)</span>;</span>
-<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} is {} @ {}&quot;</span>, rampTime, rampSamples1, sr1<span class="op">)</span>;</span>
-<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} is {} @ {}&quot;</span>, rampTime, rampSamples2, sr2<span class="op">)</span>;</span>
-<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/format.h&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/isq.h&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;format&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> dsp_dsq <span class="op">{</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> SampleCount <span class="op">:</span> quantity_spec<span class="op">&lt;</span>dimensionless, is_kind<span class="op">&gt;</span> <span class="op">{}</span> SampleCount;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> SampleDuration <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="op">{}</span> SampleDuration;</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> SamplingRate <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>frequency, SampleCount <span class="op">/</span> isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="op">{}</span> SamplingRate;</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> Sample <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;Smpl&quot;</span>, one, kind_of<span class="op">&lt;</span>SampleCount<span class="op">&gt;&gt;</span> <span class="op">{}</span> Sample;</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> unit_symbols <span class="op">{</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> Smpl <span class="op">=</span> Sample;</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> dsp_dsq<span class="op">::</span>unit_symbols;</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sr1 <span class="op">=</span> <span class="fl">44100.</span><span class="bu">f</span> <span class="op">*</span> Hz;</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sr2 <span class="op">=</span> <span class="fl">48000.</span><span class="bu">f</span> <span class="op">*</span> Smpl <span class="op">/</span> s;</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> bufferSize <span class="op">=</span> <span class="dv">512</span> <span class="op">*</span> Smpl;</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleTime1 <span class="op">=</span> <span class="op">(</span>bufferSize <span class="op">/</span> sr1<span class="op">).</span>in<span class="op">(</span>s<span class="op">)</span>;</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleTime2 <span class="op">=</span> <span class="op">(</span>bufferSize <span class="op">/</span> sr2<span class="op">).</span>in<span class="op">(</span>ms<span class="op">)</span>;</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleDuration1 <span class="op">=</span> <span class="op">(</span><span class="dv">1</span> <span class="op">/</span> sr1<span class="op">).</span>in<span class="op">(</span>ms<span class="op">)</span>;</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleDuration2 <span class="op">=</span> dsp_dsq<span class="op">::</span>SampleDuration<span class="op">(</span><span class="dv">1</span> <span class="op">/</span> sr2<span class="op">).</span>in<span class="op">(</span>ms<span class="op">)</span>;</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> rampTime <span class="op">=</span> <span class="fl">35.</span><span class="bu">f</span> <span class="op">*</span> ms;</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> rampSamples1 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;((</span>rampTime <span class="op">*</span> sr1<span class="op">).</span>in<span class="op">(</span>Smpl<span class="op">))</span>;</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> rampSamples2 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;((</span>rampTime <span class="op">*</span> sr2<span class="op">).</span>in<span class="op">(</span>Smpl<span class="op">))</span>;</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;Sample rate 1 is: {}&quot;</span>, sr1<span class="op">)</span>;</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;Sample rate 2 is: {}&quot;</span>, sr2<span class="op">)</span>;</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} @ {} is {}&quot;</span>, bufferSize, sr1, sampleTime1<span class="op">)</span>;</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} @ {} is {}&quot;</span>, bufferSize, sr2, sampleTime2<span class="op">)</span>;</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;One sample @ {} is {}&quot;</span>, sr1, sampleDuration1<span class="op">)</span>;</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;One sample @ {} is {}&quot;</span>, sr2, sampleDuration2<span class="op">)</span>;</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} is {} @ {}&quot;</span>, rampTime, rampSamples1, sr1<span class="op">)</span>;</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} is {} @ {}&quot;</span>, rampTime, rampSamples2, sr2<span class="op">)</span>;</span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The above code outputs:</p>
 <pre class="text"><code>Sample rate 1 is: 44100 Hz
 Sample rate 2 is: 48000 Smpl/s
@@ -1243,7 +1260,7 @@ Explorer</a>.</p>
 <p>The tables below briefly highlight the expected scope and feature
 set. Each of the features will be described in detail in the upcoming
 papers. To learn more right away and to be able to provide and early
-feedback, we encourage everyone to check the documentation of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>.</p>
+feedback, we encourage everyone to check the documentation of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> project.</p>
 <!-- markdownlint-disable MD013 -->
 <h2 data-number="5.1" id="basic-framework"><span class="header-section-number">5.1</span> Basic Framework<a href="#basic-framework" class="self-link"></a></h2>
 <table>
@@ -1730,6 +1747,9 @@ library. <a href="https://wg21.link/p1930r0"><div class="csl-block">https://wg21
 <div id="ref-P2981_PRE" class="csl-entry" role="doc-biblioentry">
 [P2981] Mateusz Pusz. Improving our safety with a physical quantities
 and units library. <a href="https://wg21.link/p2981"><div class="csl-block">https://wg21.link/p2981</div></a>
+</div>
+<div id="ref-SI" class="csl-entry" role="doc-biblioentry">
+[SI] SI Brochure: The International System of Units (SI). <a href="https://www.bipm.org/en/publications/si-brochure"><div class="csl-block">https://www.bipm.org/en/publications/si-brochure</div></a>
 </div>
 <div id="ref-SI_LIB" class="csl-entry" role="doc-biblioentry">
 [SI library] SI - Type safety for physical units”. <a href="https://si.dominikberner.ch/doc"><div class="csl-block">https://si.dominikberner.ch/doc</div></a>
