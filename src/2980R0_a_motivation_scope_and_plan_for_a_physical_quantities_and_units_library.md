@@ -113,7 +113,7 @@ with the mp-units project, contributing code and design ideas.
 Roth Michaels is a Principal Software Engineer at
 [Native Instruments](https://www.native-instruments.com), a leading
 manufacturer of audio, and music, software and hardware.  Working in
-this domain he has been involved with the creation of ad hoc typed
+this domain, he has been involved with the creation of ad hoc typed
 quantities/units for digital signal processing and GUI library
 use-cases.  Seeing both the complexity of development and practical uses
 where developers need to leave the safety of these simple wrappers
@@ -123,7 +123,7 @@ defining and using digital audio and music domain-specific quantities
 and units using first [@MP-UNITS] as proposed in [@P1935R2] and the new
 V2 library described in this paper.
 
-Before working for Native Instruments Roth worked as a consultant in
+Before working for Native Instruments, Roth worked as a consultant in
 multiple industries using a variety of programming languages.  He was
 involved with the Swift Evolution community in its early days before
 focusing primarily on C++ after joining
@@ -183,12 +183,12 @@ a C++ Standard Library.
 It is no longer only the space industry or experienced pilots that benefit from the autonomous
 operations of some machines. We live in a world where more and more ordinary people trust
 machines with their lives daily. In the near future, we will be allowed to sleep while our
-car autonomously drives us home from a late party. As a result, much more C++ engineers are
-expected to write life-critical software today than it was a few years ago. However writing
-safety-critical code requires extensive training and experience, both which are in short demand.
+car autonomously drives us home from a late party. As a result, many more C++ engineers are
+expected to write life-critical software today than it was a few years ago. However, writing
+safety-critical code requires extensive training and experience, both of which are in short demand.
 While there exists some standards and guidelines such as MISRA C++ [@MISRA_CPP] with the aim of
 enforcing the creation of safe code in C++, they are cumbersome to use and tend to shift the burden
-on the discipline of the programmers to enforce these. At the time of writing the C++ language
+on the discipline of the programmers to enforce these. At the time of writing, the C++ language
 does not change fast enough to enforce safe-by-construction code.
 
 
@@ -196,7 +196,7 @@ One of the areas where C++ can significantly improve the safety of applications 
 by thousands of developers is introducing a type-safe, well-tested, standardized way to handle
 physical quantities and their units. The rationale for this is that people tend to have problems
 communicating or using proper units both in the code and in daily life. Numerous
-expensive failures and accidents happened because of using an invalid unit or a quantity type.
+expensive failures and accidents happened due to using an invalid unit or a quantity type.
 
 The most famous and probably the most expensive example in the software engineering domain is
 the Mars Climate Orbiter that in 1999 failed to enter Mars' orbit and crashed while entering
@@ -208,7 +208,7 @@ quite often. We see similar errors occurring in various domains over the years:
   which led to the wrong estimation of the equator and his expected travel distance [@COLUMBUS].
 - In 1628, a new warship, Vasa, accidentally had an asymmetrical hull (being thicker on the port side
   than the starboard side), which was one of the reasons for her sinking less than a mile into her maiden
-  voyage, with the death of 30 people on board. This asymmetry could be caused by the usage of
+  voyage, resulting in the death of 30 people on board. This asymmetry could have been caused by the use of
   different systems of measurement, as archaeologists have found four rulers used by the workers who
   built the ship. Two were calibrated in Swedish feet, which had 12 inches, while the other two
   measured Amsterdam feet, which had 11 inches [@VASA].
@@ -216,9 +216,9 @@ quite often. We see similar errors occurring in various domains over the years:
   (12 000 metres), midway through the flight because the fuel had been calculated in pounds
   instead of kilograms by the ground crew [@GIMLI_GLIDER].
 - The British rock band Black Sabbath, during its Born Again tour in 1983, ordered a replica of Stonehenge
-  as props for the scene, but unfortunately, they had to leave them in the storage area because, while
-  submitting the order, their manager wrote dimensions down in meters when he meant feet, and the stones
-  didn't fit the scene. "It cost a fortune to make but there was not a building on earth that you could
+  as props for the scene. Unfortunately, they had to leave them in the storage area because, while
+  submitting the order, their manager wrote dimensions down in meters when he meant feet, and so the stones
+  didn't fit the scene. "It cost a fortune to make, but there was not a building on Earth that you could
   fit it into" [@STONEHENGE].
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a miscommunication between
   pilots about the desired flight altitude [@FLIGHT_6316].
@@ -245,52 +245,52 @@ role of the C++ Standard is to provide a standardized way of communication betwe
 vendors.
 
 Let's imagine a world without `std::string` or `std::vector`. Every vendor has their version
-of it, and of course, they are completely incompatible with each other. As a result, when someone
-needs to integrate software from different vendors, it turns out to be nearly impossible.
+of it, and of course, they are highly incompatible with each other. As a result, when someone
+needs to integrate software from different vendors, it turns out to be an unnecessarily arduous task.
 
 Introducing `std::chrono::duration` and `std::chrono::time_point` improved the interfaces a lot,
 but time is only one of many quantities that we deal with in our software on a daily basis.
 We desperately need to be able to express more quantities and units in a standardized way so
 different libraries get means to communicate with each other.
 
-If Lockheed Martin and NASA could use standardized vocabulary types in their interfaces, maybe
+If Lockheed Martin and NASA could have used standardized vocabulary types in their interfaces, maybe
 they would not interpret pound-force seconds as newton seconds, and the [@MARS_ORBITER] would
-not crash during the Mars orbital insertion maneuver.
+not have crashed during the Mars orbital insertion maneuver.
 
 ## Certification
 
-Mission/life-critical projects or those for embedded devices often have to obey the safety norms
+Mission and life-critical projects, or those for embedded devices, often have to obey the safety norms
 that care about software for safety-critical systems (e.g., ISO 61508 is a basic functional safety
-standard applicable to all industries, and ISO 26262 for automotive). As a result, such companies
+standard applicable to all industries, and ISO 26262 for automotive). As a result, their company policy
 often forbid third-party tooling that lacks official certification. Such certification requires
 a specification to be certified against, and those tools often do not have one. The risk and cost
 of self-certifying an Open Source project is too high for many as well.
 
 Companies often have a policy that the software they use must obey all the rules MISRA provides.
-This is a common misconception as many of those rules are intended to be deviated from.
+This is a common misconception, as many of those rules are intended to be deviated from.
 However, those deviations require rationale and documentation, which is also considered to be risky
 and expensive by many.
 
 All of those reasons often prevent the usage of an Open Source product in a company, which is a huge
-issue as those companies typically are natural users of physical quantities and units libraries.
+issue, as those companies typically are natural users of physical quantities and units libraries.
 
 Having the physical quantities and units library standardized would solve those issues for many
-customers and would allow them to produce safer code for projects on which human life depends every
+customers, and would allow them to produce safer code for projects on which human life depends every
 single day.
 
 ## Complex and complicated
 
-For example, suppose vendors can't use an Open Source library in a production project for
-the above reasons. In that case, they are forced to write their own abstractions by themselves.
+Suppose vendors can't use an Open Source library in a production project for
+the above reasons. They are forced to write their own abstractions by themselves.
 Besides being costly and time-consuming, it also happens that writing a physical quantities and
 units library by yourself is far from easy. Doing this is complex and complicated, especially for
 engineers who are not experts in the domain. There are many exceptional corner cases to cover
 that most developers do not even realize before falling into a trap in production. On the other
 hand, domain experts might find it difficult to put their knowledge into code and create a correct
 implementation in C++.
-As a result, companies either use really simple and unsafe numeric wrappers or abandon the effort
-totally and just use built-in types, such as `float` or `int`, to express quantity values losing
-all semantic categorization. This often leads to safety issues by accidentally using values
+As a result, companies either use really simple and unsafe numeric wrappers, or abandon the effort
+entirely and just use built-in types, such as `float` or `int`, to express quantity values, thus losing
+all semantic categorization. This often leads to safety issues caused by accidentally using values
 representing the wrong quantity or having an incorrect unit.
 
 ## Extensibility
@@ -306,11 +306,11 @@ shown the downside of bespoke solutions: If not all operations
 or conversions are handled, users will need to leave the safety of typed
 quantities to operate on primitive types.
 
-The interfaces of the [@MP-UNITS] library were designed with an easy extensibility in mind.
+The interfaces of the [@MP-UNITS] library were designed with ease of extensibility in mind.
 Each definition of a dimension, quantity type, or unit typically takes only a single line of
 code. This is possible thanks to the extensive usage of C++20 class types as Non-Type Template
 Parameters (NTTP). For example, the following code presents how second (a unit of time in the [@SI])
-and hertz (a unit of frequency in the [@SI]) can be defined in the code:
+and hertz (a unit of frequency in the [@SI]) can be defined:
 
 ```cpp
 inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
@@ -339,20 +339,19 @@ Here is a list of some less obvious candidates:
 - scientific institutions and universities,
 - all kinds of navigation and charting,
 - GUI frameworks,
-- finance (including HFT),
-- and many more.
+- finance (including HFT).
 
-As we can see, the applications of such a library are vast and are not
+As we can see, the range of domains for such a library is vast and not
 limited to applications involving specifically physical units. Any
 software that involves measurements, or operations on counts of some
 standard or domain-specific quantities, could benefit from a zero-cost
 abstraction for operating on quantity values and their units. The library
 also provides affine space abstractions, which may prove useful in many
-other domains.
+applications.
 
 ## Standardizing existing practice
 
-Plenty of physical units libraries have been available to the public for many years. Through the years,
+Plenty of physical units libraries have been available to the public for many years. Throughout the years,
 we have learned the best practices for handling specific cases in the domain. Various products
 may have different scopes and support different C++ versions. Still, taking that aside, they use
 really similar concepts, types, and operations under the hood. We know how to do those things already.
@@ -361,7 +360,7 @@ The authors of this paper developed and delivered multiple successful C++ librar
 They joined forces and are working together to propose the best physical quantities and units
 library we can get with the latest version of the C++ language. They spend their private time and
 efforts hoping that the ISO C++ Committee will be willing to include such a feature in
-the C++ Standard Library.
+the C++ standard library.
 
 
 # Look and Feel
@@ -370,8 +369,8 @@ _Note: The code examples presented in this paper may not exactly reflect the fin
 design that is going to be proposed in the follow-up papers. We are still doing some small
 fine-tuning to improve the library._
 
-As no papers on the physical quantities and units interfaces have been submitted so far,
-to allow the reader to better understand the features and scope of the library, this chapter
+So far, no papers have been submitted on a working interface of physical quantities and units.
+To allow the reader to better understand the features and scope of the library, this chapter
 presents a few simple examples.
 
 ## Basic quantity equations
@@ -549,7 +548,7 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/c17TWGhc5).
 
 This example estimates the process of filling a storage tank with some contents. It presents:
 
-- [the importance of supporting more than one distinct quantity for the same kind](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds),
+- [The importance of supporting more than one distinct quantity of the same kind](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds),
 - [faster-than-lightspeed constants](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/),
 - how easy it is to [add custom quantity types](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#defining-quantities)
 when needed, and
@@ -770,7 +769,7 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/KeT3MsfcG).
 
 The tables below briefly highlight the expected scope and feature set. Each of the features will
 be described in detail in the upcoming papers. To learn more right away and to be able to provide
-and early feedback, we encourage everyone to check the documentation of the [@MP-UNITS] project.
+early feedback, we encourage everyone to check out the documentation of the [@MP-UNITS] project.
 
 <!-- markdownlint-disable MD013 -->
 
@@ -779,7 +778,7 @@ and early feedback, we encourage everyone to check the documentation of the [@MP
 | Feature                                | Priority | Description                                                                                                                    |
 |----------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------|
 | Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them         |
-| Quantity Kinds                         |    1     | `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities         |
+| Quantity kinds                         |    1     | `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities         |
 | Various quantities of the same kind    |    1     | `width`, `height`, `wavelength` (all of the kind `length`) should be distinct quantities                                       |
 | Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities) |
 | Logarithmic units support              |    2     | Support for logarithmic units (e.g., decibel)                                                                                  |
@@ -801,7 +800,7 @@ and early feedback, we encourage everyone to check the documentation of the [@MP
 | `std::format` support  |    1     | Custom grammar and support for all the standard formatting facilities |
 | `std::ostream` support |    2     | Stream insertion operators support                                    |
 
-_Note:_ No built-in support for text output of `quantity_point`.
+_Note:_ There is no built-in support to output `quantity_point` as text.
 
 ## Text Input
 
