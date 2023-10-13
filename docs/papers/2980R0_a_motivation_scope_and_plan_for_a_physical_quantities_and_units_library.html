@@ -616,7 +616,7 @@ mp-units project, contributing code and design ideas.</p>
 <h2 data-number="2.4" id="roth-michaels"><span class="header-section-number">2.4</span> Roth Michaels<a href="#roth-michaels" class="self-link"></a></h2>
 <p>Roth Michaels is a Principal Software Engineer at <a href="https://www.native-instruments.com">Native Instruments</a>, a
 leading manufacturer of audio, and music, software and hardware. Working
-in this domain he has been involved with the creation of ad hoc typed
+in this domain, he has been involved with the creation of ad hoc typed
 quantities/units for digital signal processing and GUI library
 use-cases. Seeing both the complexity of development and practical uses
 where developers need to leave the safety of these simple wrappers
@@ -626,7 +626,7 @@ defining and using digital audio and music domain-specific quantities
 and units using first <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> as
 proposed in <span class="citation" data-cites="P1935R2">[<a href="#ref-P1935R2" role="doc-biblioref">P1935R2</a>]</span> and the new
 V2 library described in this paper.</p>
-<p>Before working for Native Instruments Roth worked as a consultant in
+<p>Before working for Native Instruments, Roth worked as a consultant in
 multiple industries using a variety of programming languages. He was
 involved with the Swift Evolution community in its early days before
 focusing primarily on C++ after joining <a href="https://www.izotope.com">iZotope</a> and now Native
@@ -680,23 +680,23 @@ units should be part of a C++ Standard Library.</p>
 benefit from the autonomous operations of some machines. We live in a
 world where more and more ordinary people trust machines with their
 lives daily. In the near future, we will be allowed to sleep while our
-car autonomously drives us home from a late party. As a result, much
+car autonomously drives us home from a late party. As a result, many
 more C++ engineers are expected to write life-critical software today
-than it was a few years ago. However writing safety-critical code
-requires extensive training and experience, both which are in short
+than it was a few years ago. However, writing safety-critical code
+requires extensive training and experience, both of which are in short
 demand. While there exists some standards and guidelines such as MISRA
 C++ <span class="citation" data-cites="MISRA_CPP">[<a href="#ref-MISRA_CPP" role="doc-biblioref">MISRA C++</a>]</span> with
 the aim of enforcing the creation of safe code in C++, they are
 cumbersome to use and tend to shift the burden on the discipline of the
-programmers to enforce these. At the time of writing the C++ language
+programmers to enforce these. At the time of writing, the C++ language
 does not change fast enough to enforce safe-by-construction code.</p>
 <p>One of the areas where C++ can significantly improve the safety of
 applications being written by thousands of developers is introducing a
 type-safe, well-tested, standardized way to handle physical quantities
 and their units. The rationale for this is that people tend to have
 problems communicating or using proper units both in the code and in
-daily life. Numerous expensive failures and accidents happened because
-of using an invalid unit or a quantity type.</p>
+daily life. Numerous expensive failures and accidents happened due to
+using an invalid unit or a quantity type.</p>
 <p>The most famous and probably the most expensive example in the
 software engineering domain is the Mars Climate Orbiter that in 1999
 failed to enter Mars’ orbit and crashed while entering its atmosphere
@@ -713,23 +713,23 @@ the wrong estimation of the equator and his expected travel distance
 <li>In 1628, a new warship, Vasa, accidentally had an asymmetrical hull
 (being thicker on the port side than the starboard side), which was one
 of the reasons for her sinking less than a mile into her maiden voyage,
-with the death of 30 people on board. This asymmetry could be caused by
-the usage of different systems of measurement, as archaeologists have
-found four rulers used by the workers who built the ship. Two were
-calibrated in Swedish feet, which had 12 inches, while the other two
-measured Amsterdam feet, which had 11 inches <span class="citation" data-cites="VASA">[<a href="#ref-VASA" role="doc-biblioref">Vasa</a>]</span>.</li>
+resulting in the death of 30 people on board. This asymmetry could have
+been caused by the use of different systems of measurement, as
+archaeologists have found four rulers used by the workers who built the
+ship. Two were calibrated in Swedish feet, which had 12 inches, while
+the other two measured Amsterdam feet, which had 11 inches <span class="citation" data-cites="VASA">[<a href="#ref-VASA" role="doc-biblioref">Vasa</a>]</span>.</li>
 <li>Air Canada Flight 143 ran out of fuel on July 23, 1983, at an
 altitude of 41 000 feet (12 000 metres), midway through the flight
 because the fuel had been calculated in pounds instead of kilograms by
 the ground crew <span class="citation" data-cites="GIMLI_GLIDER">[<a href="#ref-GIMLI_GLIDER" role="doc-biblioref">Gimli
 Glider</a>]</span>.</li>
 <li>The British rock band Black Sabbath, during its Born Again tour in
-1983, ordered a replica of Stonehenge as props for the scene, but
-unfortunately, they had to leave them in the storage area because, while
+1983, ordered a replica of Stonehenge as props for the scene.
+Unfortunately, they had to leave them in the storage area because, while
 submitting the order, their manager wrote dimensions down in meters when
-he meant feet, and the stones didn’t fit the scene. “It cost a fortune
-to make but there was not a building on earth that you could fit it
-into” <span class="citation" data-cites="STONEHENGE">[<a href="#ref-STONEHENGE" role="doc-biblioref">Stonehenge</a>]</span>.</li>
+he meant feet, and so the stones didn’t fit the scene. “It cost a
+fortune to make, but there was not a building on Earth that you could
+fit it into” <span class="citation" data-cites="STONEHENGE">[<a href="#ref-STONEHENGE" role="doc-biblioref">Stonehenge</a>]</span>.</li>
 <li>On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a
 miscommunication between pilots about the desired flight altitude <span class="citation" data-cites="FLIGHT_6316">[<a href="#ref-FLIGHT_6316" role="doc-biblioref">Flight 6316</a>]</span>.</li>
 <li>In February 2001, the crew of the Moorpark College Zoo built an
@@ -761,9 +761,9 @@ vendors.</p>
 <p>Let’s imagine a world without
 <code class="sourceCode default">std::string</code> or
 <code class="sourceCode default">std::vector</code>. Every vendor has
-their version of it, and of course, they are completely incompatible
-with each other. As a result, when someone needs to integrate software
-from different vendors, it turns out to be nearly impossible.</p>
+their version of it, and of course, they are highly incompatible with
+each other. As a result, when someone needs to integrate software from
+different vendors, it turns out to be an unnecessarily arduous task.</p>
 <p>Introducing
 <code class="sourceCode default">std::chrono::duration</code> and
 <code class="sourceCode default">std::chrono::time_point</code> improved
@@ -771,50 +771,51 @@ the interfaces a lot, but time is only one of many quantities that we
 deal with in our software on a daily basis. We desperately need to be
 able to express more quantities and units in a standardized way so
 different libraries get means to communicate with each other.</p>
-<p>If Lockheed Martin and NASA could use standardized vocabulary types
-in their interfaces, maybe they would not interpret pound-force seconds
-as newton seconds, and the <span class="citation" data-cites="MARS_ORBITER">[<a href="#ref-MARS_ORBITER" role="doc-biblioref">Mars Orbiter</a>]</span> would not crash during the
-Mars orbital insertion maneuver.</p>
+<p>If Lockheed Martin and NASA could have used standardized vocabulary
+types in their interfaces, maybe they would not interpret pound-force
+seconds as newton seconds, and the <span class="citation" data-cites="MARS_ORBITER">[<a href="#ref-MARS_ORBITER" role="doc-biblioref">Mars Orbiter</a>]</span> would not have crashed
+during the Mars orbital insertion maneuver.</p>
 <h2 data-number="3.3" id="certification"><span class="header-section-number">3.3</span> Certification<a href="#certification" class="self-link"></a></h2>
-<p>Mission/life-critical projects or those for embedded devices often
-have to obey the safety norms that care about software for
+<p>Mission and life-critical projects, or those for embedded devices,
+often have to obey the safety norms that care about software for
 safety-critical systems (e.g., ISO 61508 is a basic functional safety
 standard applicable to all industries, and ISO 26262 for automotive). As
-a result, such companies often forbid third-party tooling that lacks
-official certification. Such certification requires a specification to
-be certified against, and those tools often do not have one. The risk
-and cost of self-certifying an Open Source project is too high for many
-as well.</p>
+a result, their company policy often forbid third-party tooling that
+lacks official certification. Such certification requires a
+specification to be certified against, and those tools often do not have
+one. The risk and cost of self-certifying an Open Source project is too
+high for many as well.</p>
 <p>Companies often have a policy that the software they use must obey
-all the rules MISRA provides. This is a common misconception as many of
+all the rules MISRA provides. This is a common misconception, as many of
 those rules are intended to be deviated from. However, those deviations
 require rationale and documentation, which is also considered to be
 risky and expensive by many.</p>
 <p>All of those reasons often prevent the usage of an Open Source
-product in a company, which is a huge issue as those companies typically
-are natural users of physical quantities and units libraries.</p>
+product in a company, which is a huge issue, as those companies
+typically are natural users of physical quantities and units
+libraries.</p>
 <p>Having the physical quantities and units library standardized would
-solve those issues for many customers and would allow them to produce
+solve those issues for many customers, and would allow them to produce
 safer code for projects on which human life depends every single
 day.</p>
 <h2 data-number="3.4" id="complex-and-complicated"><span class="header-section-number">3.4</span> Complex and complicated<a href="#complex-and-complicated" class="self-link"></a></h2>
-<p>For example, suppose vendors can’t use an Open Source library in a
-production project for the above reasons. In that case, they are forced
-to write their own abstractions by themselves. Besides being costly and
-time-consuming, it also happens that writing a physical quantities and
-units library by yourself is far from easy. Doing this is complex and
-complicated, especially for engineers who are not experts in the domain.
-There are many exceptional corner cases to cover that most developers do
-not even realize before falling into a trap in production. On the other
-hand, domain experts might find it difficult to put their knowledge into
-code and create a correct implementation in C++. As a result, companies
-either use really simple and unsafe numeric wrappers or abandon the
-effort totally and just use built-in types, such as
+<p>Suppose vendors can’t use an Open Source library in a production
+project for the above reasons. They are forced to write their own
+abstractions by themselves. Besides being costly and time-consuming, it
+also happens that writing a physical quantities and units library by
+yourself is far from easy. Doing this is complex and complicated,
+especially for engineers who are not experts in the domain. There are
+many exceptional corner cases to cover that most developers do not even
+realize before falling into a trap in production. On the other hand,
+domain experts might find it difficult to put their knowledge into code
+and create a correct implementation in C++. As a result, companies
+either use really simple and unsafe numeric wrappers, or abandon the
+effort entirely and just use built-in types, such as
 <code class="sourceCode default">float</code> or
-<code class="sourceCode default">int</code>, to express quantity values
-losing all semantic categorization. This often leads to safety issues by
-accidentally using values representing the wrong quantity or having an
-incorrect unit.</p>
+<code class="sourceCode default">int</code>, to express quantity values,
+thus losing all semantic categorization. This often leads to safety
+issues caused by accidentally using values representing the wrong
+quantity or having an incorrect unit.</p>
 <h2 data-number="3.5" id="extensibility"><span class="header-section-number">3.5</span> Extensibility<a href="#extensibility" class="self-link"></a></h2>
 <p>Many applications of a quantity and units library may need to operate
 on a combination of standard (e.g. SI) and domain-specific quantities
@@ -828,14 +829,13 @@ support that can be combined with or converted to
 the downside of bespoke solutions: If not all operations or conversions
 are handled, users will need to leave the safety of typed quantities to
 operate on primitive types.</p>
-<p>The interfaces of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library were designed with an
-easy extensibility in mind. Each definition of a dimension, quantity
+<p>The interfaces of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library were designed with
+ease of extensibility in mind. Each definition of a dimension, quantity
 type, or unit typically takes only a single line of code. This is
 possible thanks to the extensive usage of C++20 class types as Non-Type
 Template Parameters (NTTP). For example, the following code presents how
 second (a unit of time in the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>) and hertz (a unit of
-frequency in the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>) can be defined in
-the code:</p>
+frequency in the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>) can be defined:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> second <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;s&quot;</span>, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;&gt;</span> <span class="op">{}</span> second;</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> hertz <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;Hz&quot;</span>, <span class="dv">1</span> <span class="op">/</span> second, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>frequency<span class="op">&gt;&gt;</span> <span class="op">{}</span> hertz;</span></code></pre></div>
 <h2 data-number="3.6" id="broad-industry-value"><span class="header-section-number">3.6</span> Broad industry value<a href="#broad-industry-value" class="self-link"></a></h2>
@@ -858,20 +858,19 @@ many other potential users for such a library.</p>
 <li>scientific institutions and universities,</li>
 <li>all kinds of navigation and charting,</li>
 <li>GUI frameworks,</li>
-<li>finance (including HFT),</li>
-<li>and many more.</li>
+<li>finance (including HFT).</li>
 </ul>
-<p>As we can see, the applications of such a library are vast and are
+<p>As we can see, the range of domains for such a library is vast and
 not limited to applications involving specifically physical units. Any
 software that involves measurements, or operations on counts of some
 standard or domain-specific quantities, could benefit from a zero-cost
 abstraction for operating on quantity values and their units. The
 library also provides affine space abstractions, which may prove useful
-in many other domains.</p>
+in many applications.</p>
 <h2 data-number="3.7" id="standardizing-existing-practice"><span class="header-section-number">3.7</span> Standardizing existing
 practice<a href="#standardizing-existing-practice" class="self-link"></a></h2>
 <p>Plenty of physical units libraries have been available to the public
-for many years. Through the years, we have learned the best practices
+for many years. Throughout the years, we have learned the best practices
 for handling specific cases in the domain. Various products may have
 different scopes and support different C++ versions. Still, taking that
 aside, they use really similar concepts, types, and operations under the
@@ -881,16 +880,16 @@ C++ libraries for this domain. They joined forces and are working
 together to propose the best physical quantities and units library we
 can get with the latest version of the C++ language. They spend their
 private time and efforts hoping that the ISO C++ Committee will be
-willing to include such a feature in the C++ Standard Library.</p>
+willing to include such a feature in the C++ standard library.</p>
 <h1 data-number="4" id="look-and-feel"><span class="header-section-number">4</span> Look and Feel<a href="#look-and-feel" class="self-link"></a></h1>
 <p><em>Note: The code examples presented in this paper may not exactly
 reflect the final interface design that is going to be proposed in the
 follow-up papers. We are still doing some small fine-tuning to improve
 the library.</em></p>
-<p>As no papers on the physical quantities and units interfaces have
-been submitted so far, to allow the reader to better understand the
-features and scope of the library, this chapter presents a few simple
-examples.</p>
+<p>So far, no papers have been submitted on a working interface of
+physical quantities and units. To allow the reader to better understand
+the features and scope of the library, this chapter presents a few
+simple examples.</p>
 <h2 data-number="4.1" id="basic-quantity-equations"><span class="header-section-number">4.1</span> Basic quantity equations<a href="#basic-quantity-equations" class="self-link"></a></h2>
 <p>Let’s start with a really simple example presenting basic operations
 that every physical quantities and units library should provide:</p>
@@ -1050,8 +1049,8 @@ Explorer</a>.</p>
 <p>This example estimates the process of filling a storage tank with
 some contents. It presents:</p>
 <ul>
-<li><a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds">the
-importance of supporting more than one distinct quantity for the same
+<li><a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds">The
+importance of supporting more than one distinct quantity of the same
 kind</a>,</li>
 <li><a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/">faster-than-lightspeed
 constants</a>,</li>
@@ -1259,8 +1258,9 @@ Explorer</a>.</p>
 <h1 data-number="5" id="scope"><span class="header-section-number">5</span> Scope<a href="#scope" class="self-link"></a></h1>
 <p>The tables below briefly highlight the expected scope and feature
 set. Each of the features will be described in detail in the upcoming
-papers. To learn more right away and to be able to provide and early
-feedback, we encourage everyone to check the documentation of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> project.</p>
+papers. To learn more right away and to be able to provide early
+feedback, we encourage everyone to check out the documentation of the
+<span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> project.</p>
 <!-- markdownlint-disable MD013 -->
 <h2 data-number="5.1" id="basic-framework"><span class="header-section-number">5.1</span> Basic Framework<a href="#basic-framework" class="self-link"></a></h2>
 <table>
@@ -1291,7 +1291,7 @@ templates, dimensions, quantity specifications, units,
 <em>references</em>, and concepts for them</td>
 </tr>
 <tr class="even">
-<td>Quantity Kinds</td>
+<td>Quantity kinds</td>
 <td style="text-align: center;">1</td>
 <td><code class="sourceCode default">frequency</code>,
 <code class="sourceCode default">activity</code>, and
@@ -1405,8 +1405,8 @@ facilities</td>
 </tr>
 </tbody>
 </table>
-<p><em>Note:</em> No built-in support for text output of
-<code class="sourceCode default">quantity_point</code>.</p>
+<p><em>Note:</em> There is no built-in support to output
+<code class="sourceCode default">quantity_point</code> as text.</p>
 <h2 data-number="5.4" id="text-input"><span class="header-section-number">5.4</span> Text Input<a href="#text-input" class="self-link"></a></h2>
 <p>As long as the C++ Standard doesn’t provide a generic facility to
 parse localized text, we do not plan to propose any support for doing
@@ -1455,16 +1455,16 @@ matter physics)</td>
 <td>ISQ 13</td>
 <td style="text-align: center;">2</td>
 <td>Specification of the ISQ quantities specified in IEC 80000-13
-(Information science and technology) + units</td>
+(Information science and technology)</td>
 </tr>
 </tbody>
 </table>
 <h2 data-number="5.6" id="systems-of-units"><span class="header-section-number">5.6</span> Systems of units<a href="#systems-of-units" class="self-link"></a></h2>
 <table>
 <colgroup>
-<col style="width: 14%" />
+<col style="width: 13%" />
 <col style="width: 9%" />
-<col style="width: 75%" />
+<col style="width: 77%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1487,31 +1487,37 @@ matter physics)</td>
 of the SI</td>
 </tr>
 <tr class="even">
+<td>IEC 80000-13</td>
+<td style="text-align: center;">1</td>
+<td>All the units, prefixes, and symbols (including prefixed versions)
+of IEC 80000-13</td>
+</tr>
+<tr class="odd">
 <td>International</td>
 <td style="text-align: center;">1</td>
 <td>International yard and pound units system</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Imperial</td>
 <td style="text-align: center;">2</td>
 <td>Imperial units system</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>USC system</td>
 <td style="text-align: center;">2</td>
 <td>United States Customary system</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>CGS system</td>
 <td style="text-align: center;">2</td>
 <td>Centimetre-Gram-Second system</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Angular</td>
 <td style="text-align: center;">3</td>
 <td>Strong angular quantities and units system</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>IAU system</td>
 <td style="text-align: center;">3</td>
 <td>International Astronomical Union units system</td>
