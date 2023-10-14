@@ -126,10 +126,11 @@ Technology Research).
 
 Nicolas became obsessed with dimensional analysis as a high school JETS team member after learning
 the $125M Mars Climate Orbiter was destroyed due to a simple feet-to-meters miscalculation. He
-developed the widely adopted C++ `units` library based on the findings of the 2002 white paper
-"Dimensional Analysis in C++" by Scott Meyers. Astounded that no one smarter had already written
-such a library, he continued with `units` 2.0 and 3.0 based on modern C++. Those libraries have
-been extensively adopted in many fields, including modeling & simulation, agriculture, and geodesy.
+developed the widely adopted C++ [@NHOLTHAUS-UNITS] library based on the findings of the 2002 white
+paper "Dimensional Analysis in C++" by Scott Meyers. Astounded that no one smarter had already
+written such a library, he continued with `units` 2.0 and 3.0 based on modern C++. Those libraries
+have been extensively adopted in many fields, including modeling & simulation, agriculture, and
+geodesy.
 
 In 2023, recognizing the limits of `units`, he joined forces with Mateusz Pusz in his effort to
 standardize his evolutionary dimensional analysis library, with the goal of providing the
@@ -994,6 +995,10 @@ references:
   citation-label: mp-units
   title: "mp-units - A Physical Quantities and Units library for C++"
   URL: <https://mpusz.github.io/mp-units>
+- id: NHOLTHAUS-UNITS
+  citation-label: nholthaus/units
+  title: "UNITS - A compile-time, header-only, dimensional analysis and unit conversion library built on c++14 with no dependencies."
+  URL: <https://github.com/nholthaus/units>
 - id: P2981_PRE
   citation-label: P2981
   author:
