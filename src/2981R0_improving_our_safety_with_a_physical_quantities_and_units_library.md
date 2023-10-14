@@ -1275,6 +1275,30 @@ auto v = 42 * m;
 quantity q = make_length(v);  // Compile-time error
 ```
 
+## Structural types
+
+`quantity` and `quantity_point` class templates are structural types to allow them to be passed
+as Non-Type Template Parameters (NTTPs). For example we can write the following:
+
+```cpp
+constexpr struct amsterdam_sea_level : absolute_point_origin<isq::altitude> {
+} amsterdam_sea_level;
+
+constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level + isq::altitude(-27 * cm)> {
+} mediterranean_sea_level;
+
+using altitude_DE = quantity_point<isq::altitude[m], amsterdam_sea_level>;
+using altitude_CH = quantity_point<isq::altitude[m], mediterranean_sea_level>;
+```
+
+Unfortunately, current language rules require that all member data of a structural type are public.
+This could be considered a safety issue. We try really hard to provide unit-safe interfaces but
+at the same time expose the public "naked" data member that can be freely read or manipulated by
+anyone.
+
+Hopefully, the requirements for structural types with be improved before the library gets
+standardized.
+
 
 # Acknowledgements
 

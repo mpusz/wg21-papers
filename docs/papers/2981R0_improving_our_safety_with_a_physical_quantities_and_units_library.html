@@ -521,6 +521,8 @@ division<span></span></a></li>
 types<span></span></a></li>
 <li><a href="#potential-surprises-during-units-composition" id="toc-potential-surprises-during-units-composition"><span class="toc-section-number">8.3</span> Potential surprises during units
 composition<span></span></a></li>
+<li><a href="#structural-types" id="toc-structural-types"><span class="toc-section-number">8.4</span> Structural
+types<span></span></a></li>
 </ul></li>
 <li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">9</span>
 Acknowledgements<span></span></a></li>
@@ -1657,6 +1659,26 @@ compile-time:</p>
 <span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
 <span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// Compile-time error</span></span></code></pre></div>
+<h2 data-number="8.4" id="structural-types"><span class="header-section-number">8.4</span> Structural types<a href="#structural-types" class="self-link"></a></h2>
+<p><code class="sourceCode default">quantity</code> and
+<code class="sourceCode default">quantity_point</code> class templates
+are structural types to allow them to be passed as Non-Type Template
+Parameters (NTTPs). For example we can write the following:</p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> amsterdam_sea_level <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> amsterdam_sea_level;</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> mediterranean_sea_level <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>amsterdam_sea_level <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(-</span><span class="dv">27</span> <span class="op">*</span> cm<span class="op">)&gt;</span> <span class="op">{</span></span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> mediterranean_sea_level;</span>
+<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> altitude_DE <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, amsterdam_sea_level<span class="op">&gt;</span>;</span>
+<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> altitude_CH <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, mediterranean_sea_level<span class="op">&gt;</span>;</span></code></pre></div>
+<p>Unfortunately, current language rules require that all member data of
+a structural type are public. This could be considered a safety issue.
+We try really hard to provide unit-safe interfaces but at the same time
+expose the public “naked” data member that can be freely read or
+manipulated by anyone.</p>
+<p>Hopefully, the requirements for structural types with be improved
+before the library gets standardized.</p>
 <h1 data-number="9" id="acknowledgements"><span class="header-section-number">9</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
