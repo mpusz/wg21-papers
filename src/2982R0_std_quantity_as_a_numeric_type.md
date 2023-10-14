@@ -25,14 +25,16 @@ fine-tuning to improve the library._
 
 # Terms and definitions
 
-This document consistently uses the official metrology vocabulary defined in the [@ISO-GUIDE] and [@BIPM-VIM].
+This document consistently uses the official metrology vocabulary defined in the [@ISO-GUIDE]
+and [@BIPM-VIM].
 
 
 # Systems of Quantities
 
 The physical units libraries on the market typically only focus on modeling one or more
 systems of units. However, this is not the only system kind to model. Another, and maybe
-even more important, system kind is a system of quantities.
+even more important is a system of quantities. The most important example here is
+the International System of Quantities (ISQ) defined by the series of [@ISO80000] documents.
 
 ## Dimension is not enough to describe a quantity
 
@@ -77,21 +79,34 @@ The above interface is far from being ideal. It does not provide any type-safety
 potentially severe errors caused by accidental reordering of the constructor's arguments.
 
 It turns out that the above issues can't be solved correctly without proper modeling of
-the system of quantities.
+systems of quantities.
 
 ## Quantities of the same kind
 
 The [@ISO-GUIDE] says:
 
-> - Quantities may be grouped together into categories of quantities that are mutually comparable
-> - Mutually comparable quantities are called quantities of the same kind
-> - Two or more quantities cannot be added or subtracted unless they belong to the same category
->   of mutually comparable quantities
-> - Quantities of the same kind within a given system of quantities have the same quantity dimension
-> - Quantities of the same dimension are not necessarily of the same kind
+- Quantities may be grouped together into categories of quantities that are **mutually comparable**
+- Mutually comparable quantities are called **quantities of the same kind**
+- Two or more quantities **cannot be added or subtracted unless they belong to the same category
+  of mutually comparable quantities**
+- Quantities of the **same kind** within a given system of quantities **have the same quantity
+  dimension**
+- Quantities of the **same dimension are not necessarily of the same kind**
 
-Those provide answers to all the issues above. More than one quantity may be defined for the same
-dimension:
+[@ISO80000] also explicitly notes:
+
+> **Measurement units of quantities of the same quantity dimension may be designated by the same name
+> and symbol even when the quantities are not of the same kind**. For example, joule per kelvin and J/K
+> are respectively the name and symbol of both a measurement unit of heat capacity and a measurement
+> unit of entropy, which are generally not considered to be quantities of the same kind. **However,
+> in some cases special measurement unit names are restricted to be used with quantities of specific
+> kind only**. For example, the measurement unit ‘second to the power minus one’ (1/s) is called hertz
+> (Hz) when used for frequencies and becquerel (Bq) when used for activities of radionuclides. As
+> another example, the joule (J) is used as a unit of energy, but never as a unit of moment of force,
+> i.e. the newton metre (N · m).
+
+Those provide answers to all the issues mentioned above. More than one quantity may be defined for
+the same dimension:
 
 - quantities of different kinds (e.g. frequency, modulation rate, activity, ...)
 - quantities of the same kind (e.g. length, width, altitude, distance, radius, wavelength,
@@ -103,26 +118,14 @@ Two quantities can't be added, subtracted, or compared unless they belong to the
 
 The [@ISO80000] specifies hundreds of different quantities. Plenty of various kinds
 are provided, and often, each kind contains more than one quantity. It turns out that such quantities
-form a [hierarchy of quantities of the same kind](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds).
+form a hierarchy of quantities of the same kind.
 
 For example, here are all quantities of the kind length provided in the [@ISO80000]:
 
-- length,
-- width, breadth,
-- height, depth, altitude,
-- thickness,
-- diameter,
-- radius,
-- path length,
-- distance,
-- radial distance,
-- wavelength,
-- position vector,
-- displacement,
-- radius of curvature.
+![](img/quantities_of_length.svg)
 
-Each of the above quantities expresses some kind of length, and each can be measured with meters,
-the unit defined by the [@SI] for quantities of length. However, each has different
+Each of the above quantities expresses some kind of length, and each can be measured with meters
+which is the unit defined by the [@SI] for quantities of length. However, each has different
 properties, usage, and sometimes even a different character (position vector and displacement
 are vector quantities).
 
@@ -161,82 +164,218 @@ In the above code:
 Please note that some quantities (e.g. `displacement`) may be specified by the [@ISO80000] as
 vector or tensor quantities.
 
-## Comparing, adding, and subtracting quantities
+## Converting between quantities of the same kind
 
-The [@ISO-GUIDE] explicitly states that width and height are quantities of the same kind,
-and as such, they:
+Quantity conversion rules can be defined based on the same hierarchy of quantities of kind length.
+
+1. **Implicit conversions**
+
+    - Every `width` is a `length`.
+    - Every `radius` is a `width`.
+
+    ```cpp
+    static_assert(implicitly_convertible(isq::width, isq::length));
+    static_assert(implicitly_convertible(isq::radius, isq::length));
+    static_assert(implicitly_convertible(isq::radius, isq::width));
+    ```
+
+    In the [@MP-UNITS] library implicit conversions are allowed on copy-initialization:
+
+    ```cpp
+    void foo(quantity<isq::length<m>> q);
+    ```
+
+    ```cpp
+    quantity<isq::width<m>> q1 = 42 * m;
+    quantity<isq::length<m>> q2 = q1;  // implicit quantity conversion
+    foo(q1);                           // implicit quantity conversion
+    ```
+
+2. **Explicit conversions**
+
+    - Not every `length` is a `width`.
+    - Not every `width` is a `radius`.
+
+    ```cpp
+    static_assert(!implicitly_convertible(isq::length, isq::width));
+    static_assert(!implicitly_convertible(isq::length, isq::radius));
+    static_assert(!implicitly_convertible(isq::width, isq::radius));
+    static_assert(explicitly_convertible(isq::length, isq::width));
+    static_assert(explicitly_convertible(isq::length, isq::radius));
+    static_assert(explicitly_convertible(isq::width, isq::radius));
+    ```
+
+    In the [@MP-UNITS] library explicit conversions are forced by passing the quantity to a call
+    operator of a `quantity_spec` type:
+
+    ```cpp
+    quantity<isq::length<m>> q1 = 42 * m;
+    quantity<isq::height<m>> q2 = isq::height(q1);  // explicit quantity conversion
+    ```
+
+3. **Explicit casts**
+
+    - `height` is not a `width`.
+    - Both `height` and `width` are quantities of kind `length`.
+
+    ```cpp
+    static_assert(!implicitly_convertible(isq::height, isq::width));
+    static_assert(!explicitly_convertible(isq::height, isq::width));
+    static_assert(castable(isq::height, isq::width));
+    ```
+
+    In the [@MP-UNITS] library explicit casts are forced with a dedicated `quantity_cast` function:
+
+    ```cpp
+    quantity<isq::width<m>> q1 = 42 * m;
+    quantity<isq::height<m>> q2 = quantity_cast<isq::height>(q1);  // explicit quantity cast
+    ```
+
+4. **No conversion**
+
+    - `time` has nothing in common with `length`.
+
+    ```cpp
+    static_assert(!implicitly_convertible(isq::time, isq::length));
+    static_assert(!explicitly_convertible(isq::time, isq::length));
+    static_assert(!castable(isq::time, isq::length));
+    ```
+
+    In the [@MP-UNITS] library even the explicit casts will not force such a conversion:
+
+    ```cpp
+    void foo(quantity<isq::length[m]>);
+    ```
+
+    ```cpp
+    foo(quantity_cast<isq::length>(42 * s)); // Compile-time error
+    ```
+
+
+With the above rules one can write a following short application to calculate the fuel consumption:
+
+```cpp
+inline constexpr struct fuel_volume : quantity_spec<isq::volume> {} fuel_volume;
+inline constexpr struct fuel_consumption  : quantity_spec<fuel_volume / isq::distance> {} fuel_consumption;
+
+const quantity fuel = fuel_volume(40. * l);
+const quantity distance = isq::distance(550. * km);
+const quantity<fuel_consumption[l / (mag<100> * km)]> q = fuel / distance;
+std::cout << "Fuel consumption: " << q << "\n";
+```
+
+The above code prints:
+
+```text
+Fuel consumption: 7.27273 × 10⁻² l/km
+```
+
+Please note that despite the dimensions of `fuel_consumption` and `isq::area` are the same (`L²`),
+the constructor of a quantity `q` below will fail to compile when we pass an argument being the
+quantity of area:
+
+```cpp
+static_assert(fuel_consumption.dimension == isq::area.dimension);
+
+const quantity<isq::area[m2]> football_field = isq::length(105 * m) * isq::width(68 * m);
+const quantity<fuel_consumption[l / (mag<100> * km)]> q = football_field;  // Compile-time error
+```
+
+## Comparing, adding, and subtracting quantities of the same kind
+
+[@ISO-GUIDE] explicitly states that `width` and `height` are quantities of the same kind and as such
+they:
 
 - are mutually comparable,
 - can be added and subtracted.
 
-If we take the above for granted, the common quantity type being the result of the addition of two
-quantities of width and height is a quantity of length.
+If we take the above for granted, the only reasonable result of `1 * width + 1 * height` is `2 * length`,
+where the result of `length` is known as a common quantity type. A result of such an equation is always
+the first common branch in a hierarchy tree of the same kind. For example:
 
-A result of such an equation is always the first common branch in a hierarchy tree of the same
-kind. For example:
+```cpp
+static_assert(common_quantity_spec(isq::width, isq::height) == isq::length);
+static_assert(common_quantity_spec(isq::thickness, isq::radius) == isq::width);
+static_assert(common_quantity_spec(isq::distance, isq::path_length) == isq::path_length);
+```
 
 ```cpp
 quantity q = isq::thickness(1 * m) + isq::radius(1 * m);
 static_assert(q.quantity_spec == isq::width);
 ```
 
-## Converting between quantities
+One could argue that allowing adding or comparing quantities of height and width might be a safety
+issue, but we need to be consistent with the requirements of the [@ISO-GUIDE]. Moreover, from our
+experience, disallowing such operations and requiring an explicit cast to a common quantity
+in every single place makes the code so cluttered with casts that it nearly renders the library
+unusable.
 
-Based on the same hierarchy of quantities of kind length, we can define quantity conversion rules.
+Fortunately, the above-mentioned conversion rules make the code safe by construction anyway.
+Let's analyze the following example:
 
-1. Implicit conversions
+```cpp
+inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
 
-    - every width is a length
-    - every radius is a width
+namespace christmas {
 
-    ```cpp
-    void foo(quantity<isq::length[m]>);
-    ```
+struct gift {
+  quantity<horizontal_length[m]> length;
+  quantity<isq::width[m]> width;
+  quantity<isq::height[m]> height;
+};
 
-    ```cpp
-    quantity<isq::height[m]> q = 42 * m;
-    foo(q);
-    ```
+std::array<quantity<isq::length[m]>, 2> gift_wrapping_paper_size(const gift& g)
+{
+  const auto dim1 = 2 * g.width + 2 * g.height + 0.5 * g.width;
+  const auto dim2 = g.length + 2 * 0.75 * g.height;
+  return { dim1, dim2 };
+}
 
-2. Explicit conversions
+}  // namespace christmas
 
-    - not every length is a width
-    - not every width is a radius
+int main()
+{
+  const christmas::gift lego = { horizontal_length(40 * cm), isq::width(30 * cm), isq::height(15 * cm) };
+  auto paper = christmas::gift_wrapping_paper_size(lego);
 
-    ```cpp
-    void foo(quantity<isq::height[m]>);
-    ```
+  std::cout << "Paper needed to pack a lego box:\n";
+  std::cout << "- " << paper[0] << " X " << paper[1] << "\n";  // - 1.05 m X 0.625 m
+  std::cout << "- area = " << paper[0] * paper[1] << "\n";     // - area = 0.65625 m²
+}
+```
 
-    ```cpp
-    quantity<isq::length[m]> q = 42 * m;
-    foo(isq::height(q));
-    ```
+In the beginning, we introduce a custom quantity `horizontal_length` of a kind length, which then,
+together with `isq::width` and `isq::height` are used to define the dimensions of a Christmas gift.
+Next, we provide a function that calculates the dimensions of a gift wrapping paper with some
+wraparound. The result of both those expressions is a quantity of `isq::length` as this is
+the closest common quantity for the arguments used in this quantity equation.
 
-3. Explicit casts
+Regarding safety, it is important to mention here, that thanks to the conversion rules provided above,
+it would be impossible to accidentally do the following:
 
-    - height is not a width
-    - both height and width are quantities of kind length
+```cpp
+void foo(quantity<horizontal_length[m]> q);
 
-    ```cpp
-    void foo(quantity<isq::height[m]>);
-    ```
+quantity<isq::width[m]> q1 = dim1;  // Compile-time error
+quantity<isq::height[m]> q2{dim1};  // Compile-time error
+foo(dim1);                          // Compile-time error
+```
 
-    ```cpp
-    quantity<isq::width[m]> q = 42 * m;
-    foo(quantity_cast<isq::height>(q));
-    ```
+The reason of compilation errors above is the fact that `isq::length` is not implicitly convertible
+to the quantities defined based on it. To make the above code compile, an explicit conversion of
+a quantity type is needed:
 
-4. No conversion
+```cpp
+void foo(quantity<horizontal_length[m]> q);
 
-    - time has nothing in common with length
+quantity<isq::width[m]> q1 = isq::width(dim1);
+quantity<isq::height[m]> q2{isq::height(dim1)};
+foo(horizontal_length(dim1));
+```
 
-    ```cpp
-    void foo(quantity<isq::length[m]>);
-    ```
-
-    ```cpp
-    foo(quantity_cast<isq::length>(42 * s)); // ERROR
-    ```
+To summarize, rules for addition, subtraction, and comparison of quantities improve the library
+usability, while the conversion rules enhance the safety of the library compared to the
+libraries that do not model quantity kinds.
 
 ## Hierarchies of derived quantities
 
@@ -269,6 +408,53 @@ static_assert(implicitly_convertible(horizontal_length * isq::width, isq::area))
 static_assert(implicitly_convertible(horizontal_length * isq::width, horizontal_area));
 ```
 
+Unfortunately, derived quantity equations often do not automatically form a hierarchy tree.
+This is why it is sometimes not obvious what such a tree should look like. Also, the [@ISO-GUIDE]
+explicitly states:
+
+> The division of ‘quantity’ according to ‘kind of quantity’ is, to some extent, arbitrary.
+
+The below presents some arbitrary hierarchy of derived quantities of kind energy:
+
+![](img/quantities_of_energy.svg)
+
+Notice, that even though all of those quantities have the same dimension and can be expressed
+in the same units, they have different quantity equations used to create them implicitly:
+
+- `energy` is the most generic one and thus can be created from base quantities of `mass`, `length`,
+  and `time`. As those are also the roots of quantities of their kinds and all other quantities are
+  implicitly convertible to them, it means that an `energy` can be implicitly constructed from any
+  quantity having proper powers of mass, length, and time.
+
+    ```cpp
+    static_assert(implicitly_convertible(isq::mass * pow<2>(isq::length) / pow<2>(isq::time), isq::energy));
+    static_assert(implicitly_convertible(isq::mass * pow<2>(isq::height) / pow<2>(isq::time), isq::energy));
+    ```
+
+- `mechanical_energy` is a more "specialized" quantity than `energy` (not every `energy` is
+  a `mechanical_energy`). It is why an explicit cast is needed to convert from either `energy` or
+  the results of its quantity equation.
+
+    ```cpp
+    static_assert(!implicitly_convertible(isq::energy, isq::mechanical_energy));
+    static_assert(explicitly_convertible(isq::energy, isq::mechanical_energy));
+    static_assert(!implicitly_convertible(isq::mass * pow<2>(isq::length) / pow<2>(isq::time), isq::mechanical_energy));
+    static_assert(explicitly_convertible(isq::mass * pow<2>(isq::length) / pow<2>(isq::time), isq::mechanical_energy));
+    ```
+
+- `gravitational_potential_energy` is not only even more specialized one but additionally,
+  it is special in a way that it provides its own "constrained" quantity equation. Maybe not every
+  `mass * pow<2>(length) / pow<2>(time)` is a `gravitational_potential_energy`, but every
+  `mass * acceleration_of_free_fall * height` is.
+
+    ```cpp
+    static_assert(!implicitly_convertible(isq::energy, gravitational_potential_energy));
+    static_assert(explicitly_convertible(isq::energy, gravitational_potential_energy));
+    static_assert(!implicitly_convertible(isq::mass * pow<2>(isq::length) / pow<2>(isq::time), gravitational_potential_energy));
+    static_assert(explicitly_convertible(isq::mass * pow<2>(isq::length) / pow<2>(isq::time), gravitational_potential_energy));
+    static_assert(implicitly_convertible(isq::mass * isq::acceleration_of_free_fall * isq::height, gravitational_potential_energy));
+    ```
+
 ## Modeling a quantity kind
 
 In the physical units library, we also need an abstraction describing an entire family of
@@ -277,10 +463,8 @@ can be expressed in the same units.
 
 To annotate a quantity to represent its kind (and not just a hierarchy tree's root quantity)
 in [@MP-UNITS] we introduced a `kind_of<>` specifier. For example, to express any quantity
-of length, we need to type `kind_of<isq::length>`.
-
-Such an entity behaves as any quantity of its kind. This means that it is implicitly
-convertible to any quantity in a tree:
+of length, we need to type `kind_of<isq::length>`. Such an entity behaves as any quantity of
+its kind. This means that it is implicitly convertible to any quantity in a tree:
 
 ```cpp
 static_assert(!implicitly_convertible(isq::length, isq::height));
@@ -315,7 +499,7 @@ operations on quantities and provide automated conversion factors between variou
 Probably all the libraries in the wild model the [@SI], and many of them provide support for
 additional units belonging to various other systems (e.g. imperial).
 
-## Systems of Units are based on Systems of Quantities
+## Systems of units are based on systems of quantities
 
 Systems of quantities specify a set of quantities and equations relating to those quantities.
 Those equations do not take any unit or a numerical representation into account at all. In order
@@ -383,7 +567,7 @@ All of the above quantities are equivalent and mean exactly the same.
 ## Constraining a derived unit to work only with a specific derived quantity
 
 Some derived units are valid only for specific derived quantities. For example, [@SI] specifies
-both `hertz` and `becquerel` derived units with the same unit equation `1 / s`. However, it also
+both `hertz` and `becquerel` derived units with the same unit equation `1/s`. However, it also
 explicitly states:
 
 > The hertz shall only be used for periodic phenomena and the becquerel shall only be used for
@@ -453,11 +637,17 @@ inline constexpr struct electronvolt : named_unit<"eV",
     mag<ratio{1'602'176'634, 1'000'000'000}> * mag_power<10, -19> * si::joule> {} electronvolt;
 ```
 
-Also, units of other systems of units are often defined in terms of scaled versions of
-the SI units. For example, the international yard is defined as:
+Also, units of other systems of units are often defined in terms of scaled versions of other
+(often SI) units. For example, the international yard is defined as:
 
 ```cpp
 inline constexpr struct yard : named_unit<"yd", mag<ratio{9'144, 10'000}> * si::metre> {} yard;
+```
+
+and then a `foot` can be defined as:
+
+```cpp
+inline constexpr struct foot : named_unit<"ft", mag<ratio{1, 3}> * yard> {} foot;
 ```
 
 For some units, a magnitude might also be irrational. The best example here is a `degree` which
@@ -477,7 +667,7 @@ inline constexpr struct degree : named_unit<basic_symbol_text{"°", "deg"}, mag_
 Modern C++ physical quantities and units library should expose compile-time constants for units,
 dimensions, and quantity types. Each of such constants should be of a different type. Said otherwise,
 every unit, dimension, and quantity type has a unique type and a compile-time instance.
-This allows us to do regular algebra on such identifiers and get proper types results of such
+This allows us to do regular algebra on such identifiers and get proper types as results of such
 operations.
 
 The operations exposed by such a library should include at least:
@@ -514,7 +704,7 @@ entities, and they also should be easy to understand and correlate with the code
 This is where expression templates come into play.
 
 The library should use the same unified approach to represent the results of arithmetics on all
-kinds of entities. It is worth mentioning that a generic purpose regular expression library
+kinds of entities. It is worth mentioning that a generic purpose expression templates library
 is not a good solution for a physical quantities and units library.
 
 Let's assume that we want to represent the results of the following two unit equations:
@@ -534,9 +724,10 @@ a dedicated solution here.
 
 In a physical quantities and units library, we need expression templates to express the results of:
 
-- dimension equations
-- quantity equations
-- unit equations
+- dimension equations,
+- quantity type equations,
+- unit equations,
+- unit magnitude equations.
 
 If the above equation results in a derived entity, we must create a type that clearly
 describes what we are dealing with. We need to pack a simplified expression
@@ -561,13 +752,13 @@ It is a matter of taste which solution is better. While discussing the pros and 
 should remember that our users often do not have a scientific background. This is why
 the [@MP-UNITS] library decided to use syntax that is as similar to the correct English language
 as possible. It consistently uses the `derived_` prefix for types representing derived units,
-dimensions, and quantity specifications. It always first lists the contents of the numerator
-followed by the entities of the denominator (if present) enclosed in the `per<...>` expression
-template.
+dimensions, and quantity specifications. Those are instantiated first with the contents of
+the numerator followed by the entities of the denominator (if present) enclosed in the
+`per<...>` expression template.
 
 ### Identities
 
-The arithmetics on units, dimensions, and quantities require a special identity value. Such value
+The arithmetics on units, dimensions, and quantity types require a special identity value. Such value
 can be returned as a result of the division of the same entities, or using it should not modify the
 expression template on multiplication.
 
@@ -580,7 +771,7 @@ The [@MP-UNITS] library chose the following names here:
 ### Supported operations and their results
 
 The table below presents all the operations that can be done on units, dimensions, and quantity
-types in a physical quantities and units library and corresponding expressions templates chosen
+types in a physical quantities and units library and corresponding expression templates chosen
 by the [@MP-UNITS] project as their results:
 
 |                   Operation                   | Resulting template expression arguments |
@@ -632,7 +823,7 @@ the resulting expression template.
     - _d_<sub>1/2</sub> - half-value thickness,
     - _Φ_<sub>e,λ</sub> - spectral radiant flux.
 
-    This is why the [@MP-UNITS] library uses type name identifiers in such cases.
+    This is why the [@MP-UNITS] library chose to use type name identifiers in such cases.
 
 2. **Aggregation**
 
@@ -667,7 +858,7 @@ the resulting expression template.
 
 4. **Repacking**
 
-    In case an expression uses two results of other operations, the components of its arguments
+    In case an expression uses two results of some other operations, the components of its arguments
     are repacked into one resulting type and simplified there.
 
     For example, assuming:
@@ -708,26 +899,37 @@ Thanks to all of the steps described above, a user may write the code like this 
 
 ```cpp
 using namespace mp_units::si::unit_symbols;
-auto speed = isq::speed(60. * km / h);
-auto duration = 8 * s;
-auto acceleration = speed / duration;
-std::cout << "acceleration: " << acceleration << " (" << acceleration.in(m / s2) << ")\n";
+quantity speed = isq::speed(60. * km / h);
+quantity duration = 8 * s;
+quantity acceleration1 = speed / duration;
+quantity acceleration2 = isq::acceleration(acceleration1.in(m / s2));
+std::cout << "acceleration: " << acceleration1 << " (" << acceleration2 << ")\n";
 ```
 
-The `acceleration`, being the result of the above code, has the following type
-(after stripping the `mp_units` namespace for brevity):
-
-```text
-quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>{}, 
-                   derived_unit<si::kilo_<si::metre{}>, per<non_si::hour, si::second>>{}>{},
-         int>
-```
-
-and the text output provides:
+the text output provides:
 
 ```text
 acceleration: 7.5 km h⁻¹ s⁻¹ (2.08333 m/s²)
 ```
+
+The above program will produce the following types for acceleration quantities
+(after stripping the `mp_units` namespace for brevity):
+
+- `acceleration1`
+
+    ```text
+    quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>{}, 
+                      derived_unit<si::kilo_<si::metre{}>, per<non_si::hour, si::second>>{}>{},
+             double>
+    ```
+
+- `acceleration2`
+
+    ```text
+    quantity<reference<isq::speed, per<isq::time>>{}, 
+                       derived_unit<si::metre, per<power<si::second, 2>>>{}>{},
+             double>>
+    ```
 
 ## Scaled units
 
@@ -755,7 +957,7 @@ compilation times and a loss of precision.
 When dealing with equations involving physical constants, they often occur more than once
 in an expression. Such a constant may appear both in a numerator and denominator of
 a quantity equation. As we know from fundamental physics, we can simplify such an expression
-by striking a constant out of the equation. Supporting such behavior allows a faster runtime
+by simply striking a constant out of the equation. Supporting such behavior allows a faster runtime
 performance and often a better precision of the resulting value.
 
 ### Physical constants as units
@@ -773,7 +975,8 @@ floating-point constant number, we can just use the integral type all the way. O
 in case a constant will not simplify in the equation, and the user will require a specific
 unit, such a multiplication will be lazily invoked, and the representation type will
 need to be expanded to facilitate that. With that, addition, subtractions, multiplications,
-and divisions will always be the fastest - compiled away or done in out-of-order execution.
+and divisions will always be the fastest - compiled away or done on the fast arithmetic types
+or in out-of-order execution.
 
 To benefit from all of the above, in the [@MP-UNITS] library, SI defining and other constants
 are implemented as units in the following way:
@@ -945,6 +1148,10 @@ potential confusion.
 
 ## Associated Units
 
+# Value Conversions
+
+
+
 # Quantities
 
 - quantity constructors and conversions (value preserving approach)
@@ -954,6 +1161,8 @@ potential confusion.
 - representation type constraints
 - vector quantities and their operations
 - non-negative quantities
+
+## Dimensionless Quantities
 
 # The affine space
 
