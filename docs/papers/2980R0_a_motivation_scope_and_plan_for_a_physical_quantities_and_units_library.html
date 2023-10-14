@@ -504,6 +504,8 @@ experience<span></span></a></li>
 <li><a href="#feature-rich" id="toc-feature-rich"><span class="toc-section-number">5.4</span> Feature rich<span></span></a></li>
 <li><a href="#easy-to-extend" id="toc-easy-to-extend"><span class="toc-section-number">5.5</span> Easy to
 Extend<span></span></a></li>
+<li><a href="#low-standardization-cost" id="toc-low-standardization-cost"><span class="toc-section-number">5.6</span> Low standardization
+cost<span></span></a></li>
 </ul></li>
 <li><a href="#look-and-feel" id="toc-look-and-feel"><span class="toc-section-number">6</span> Look and Feel<span></span></a>
 <ul>
@@ -977,6 +979,18 @@ such a library. It should support at least:</p>
 single line of code with no need to use preprocessor macros. Users
 should be able to easily extend provided systems with custom dimensions,
 quantities, and units.</p>
+<h2 data-number="5.6" id="low-standardization-cost"><span class="header-section-number">5.6</span> Low standardization cost<a href="#low-standardization-cost" class="self-link"></a></h2>
+<p>The set of entities required for standardization should be limited to
+the bare minimum.</p>
+<p>Derived units should not require separate library types but should be
+obtained through the composition of predefined named units. Units should
+not be associated with User-Defined Literals (UDLs), as it is the case
+of <code class="sourceCode default">std::chrono::duration</code>. UDLs
+do not compose, have very limited scope and functionality, and are
+expensive to standardize.</p>
+<p>There should be no preprocessor macros in the user interface.</p>
+<p>Most proposed features (besides text output) should be possible to be
+standardized as a freestanding part of the C++ standard library.</p>
 <h1 data-number="6" id="look-and-feel"><span class="header-section-number">6</span> Look and Feel<a href="#look-and-feel" class="self-link"></a></h1>
 <p><em>Note: The code examples presented in this paper may not exactly
 reflect the final interface design that is going to be proposed in the

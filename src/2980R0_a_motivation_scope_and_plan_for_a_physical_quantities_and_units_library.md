@@ -451,6 +451,20 @@ Most entities in the library should be possible to be defined with a single line
 no need to use preprocessor macros. Users should be able to easily extend provided systems with custom
 dimensions, quantities, and units.
 
+## Low standardization cost
+
+The set of entities required for standardization should be limited to the bare minimum.
+
+Derived units should not require separate library types but should be obtained through the composition
+of predefined named units. Units should not be associated with User-Defined Literals (UDLs), as it
+is the case of `std::chrono::duration`. UDLs do not compose, have very limited scope and
+functionality, and are expensive to standardize.
+
+There should be no preprocessor macros in the user interface.
+
+Most proposed features (besides text output) should be possible to be standardized as a freestanding
+part of the C++ standard library.
+
 
 # Look and Feel
 
