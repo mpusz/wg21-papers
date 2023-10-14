@@ -722,31 +722,18 @@ This does not provide strong interfaces anymore.
 
 Again, it turns out that [@ISO80000] has an answer. This specification standardizes hundreds
 of quantities, many of which are of the same kind. For example, for quantities of the kind length,
-it provides:
+it provides the following:
 
-- length,
-- width/breadth,
-- thickness,
-- diameter,
-- radius,
-- radius of curvature,
-- height/depth/altitude,
-- path length,
-- distance,
-- radial distance,
-- wavelength,
-- position vector,
-- displacement.
+![](img/quantities_of_the_same_kind.svg)
 
-The [@MP-UNITS] library is probably the first one on the market (in any programming language) that
-models such abstractions.
-
-Moreover, it turns out that various quantities of the same kind are not just a flat set but that
-[they form a hierarchy tree](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds)
-which influence:
+As we can see, various quantities of the same kind are not just a flat set but they form a hierarchy
+tree which influence:
 
 - conversion rules,
 - the quantity type being the result of adding or subtracting different quantities of the same kind.
+
+The [@MP-UNITS] library is probably the first one on the market (in any programming language) that
+models such abstractions.
 
 ### Converting between quantities of the same kind
 
