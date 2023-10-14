@@ -882,20 +882,39 @@ in the Committee._
 
 ## Basic Framework
 
-| Feature                                | Priority | Description                                                                                                                                    |
-|----------------------------------------|:--------:|------------------------------------------------------------------------------------------------------------------------------------------------|
-| Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them                         |
-| Quantity kinds                         |    1     | Support for example for `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities |
-| Various quantities of the same kind    |    1     | Support for example for `width`, `height`, `wavelength` (all of the kind `length`), which should be distinct quantities                        |
-| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities)                 |
-| Logarithmic units support              |    2     | Support for logarithmic units (e.g., decibel)                                                                                                  |
-| Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity type                                                                                    |
+| Feature                                | Priority | Description                                                                                                                                        |
+|----------------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them                             |
+| Quantity kinds                         |    1     | Support for example for `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantity types |
+| Various quantities of the same kind    |    1     | Support for example for `width`, `height`, `wavelength` (all of the kind `length`), which should be distinct quantity types                        |
+| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities)                     |
+| Logarithmic units support              |    2     | Support for logarithmic units (e.g., decibel)                                                                                                      |
+| Natural Units                          |    3     | Support for [natural units systems](https://en.wikipedia.org/wiki/Natural_units)                                                                   |
+| Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity type (feature requested in [@P1930R0] and by multiple customers)                            |
+
+In the above table:
+
+- `std::quantity` is a class template that is a workhorse of the library.
+  It is a non-compatible generalization of `std::chrono::duration`.
+- Expression templates are used to provide user-friendly error messages and great debugging experience.
+  More information on this subject can be found in [@P2982_PRE].
+- Quantity specifications include at least the following information: quantity type, quantity character,
+  quantity equation (in case of derived quantities), quantity kind, and dimension.
+- References (temporary name to be bikesheded) are numeric wrappers over a quantity specification and an unit.
 
 ## The Affine Space
 
 | Feature          | Priority | Description                                                |
 |------------------|:--------:|------------------------------------------------------------|
 | The Affine Space |    1     | `std::quantity_point`, absolute and relative point origins |
+
+In the above table:
+
+- `std::quantity_point` is a non-compatible generalization of `std::chrono::time_point`.
+- Absolute point origin is a compile-time constant defining an absolute origin for `std::quantity_point`
+  of a specific quantity type.
+- Relative point origin is a compile-time constant defining an origin relative to previously defined
+  absolute point origin.
 
 ## Text Output
 
@@ -974,9 +993,9 @@ by LEWG will help to keep the efforts on track.
 |--------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper about safety benefits and concerns to SG23<br>Papers about quantity arithmetics and number concepts to SG6                                             |
 | 2024.1 (Tokyo)     |                                                    | Paper on the Basic Framework (priority 1 features) to LEWG<br>Paper on `fixed_string` to SG16<br>Paper about text output to SG16<br>Paper about math utilities to SG6<br>Paper about prime numbers to SG6                   |
-| 2024.2 (St. Louis) |                                                    | Paper on the Basic Framework (priority 2 features) to SG6<br>Paper about the Affine Space to LEWG<br>Move quantity arithmetics and number concepts papers to LEWG                                                           |
+| 2024.2 (St. Louis) |                                                    | Papers on the Basic Framework (priority 2 & 3 features) to SG6<br>Paper about the Affine Space to LEWG<br>Move quantity arithmetics and number concepts papers to LEWG                                                      |
 | 2024.3 (Wrocław)   |                                                    | Paper of type and NTTP lists to LEWG<br>Papers on systems to SG6<br>Paper about `std::chrono` support to LEWG<BR>Move text output and `fixed_string` papers to LEWG<br>Move math utilities and prime numbers papers to LEWG |
-| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Basic Framework (priority 2 features) to LEWG                                                                                                                                                                          |
+| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Basic Framework (priority 2 & 3 features) to LEWG                                                                                                                                                                      |
 | 2025.2             | C++26 CD finalized                                 |                                                                                                                                                                                                                             |
 | 2025.3             |                                                    | Move papers on systems to LEWG                                                                                                                                                                                              |
 | 2026.1             | C++26 DIS finalized                                |                                                                                                                                                                                                                             |
@@ -1085,6 +1104,13 @@ references:
       given: Johel Ernesto
   title: "Improving our safety with a physical quantities and units library"
   URL: <https://wg21.link/p2981>
+- id: P2982_PRE
+  citation-label: P2982
+  author:
+    - family: Pusz
+      given: Mateusz
+  title: "`std::quantity` as a numeric type"
+  URL: <https://wg21.link/p2982>
 - id: SI
   citation-label: SI
   title: "SI Brochure: The International System of Units (SI)"

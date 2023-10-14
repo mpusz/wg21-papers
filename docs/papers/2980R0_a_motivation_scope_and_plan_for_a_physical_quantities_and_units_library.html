@@ -1413,7 +1413,7 @@ templates, dimensions, quantity specifications, units,
 <code class="sourceCode default">modulation_rate</code>, or
 <code class="sourceCode default">energy</code> and
 <code class="sourceCode default">moment_of_force</code>, which should be
-distinct quantities</td>
+distinct quantity types</td>
 </tr>
 <tr class="odd">
 <td>Various quantities of the same kind</td>
@@ -1423,7 +1423,7 @@ distinct quantities</td>
 <code class="sourceCode default">height</code>,
 <code class="sourceCode default">wavelength</code> (all of the kind
 <code class="sourceCode default">length</code>), which should be
-distinct quantities</td>
+distinct quantity types</td>
 </tr>
 <tr class="even">
 <td>Vector and tensor representation types</td>
@@ -1437,12 +1437,35 @@ changes are needed for vectors and tensors of quantities)</td>
 <td>Support for logarithmic units (e.g., decibel)</td>
 </tr>
 <tr class="even">
+<td>Natural Units</td>
+<td style="text-align: center;">3</td>
+<td>Support for <a href="https://en.wikipedia.org/wiki/Natural_units">natural units
+systems</a></td>
+</tr>
+<tr class="odd">
 <td>Polymorphic unit</td>
 <td style="text-align: center;">???</td>
-<td>Runtime-known type-erased unit of a specified quantity type</td>
+<td>Runtime-known type-erased unit of a specified quantity type (feature
+requested in <span class="citation" data-cites="P1930R0">[<a href="#ref-P1930R0" role="doc-biblioref">P1930R0</a>]</span> and by
+multiple customers)</td>
 </tr>
 </tbody>
 </table>
+<p>In the above table:</p>
+<ul>
+<li><code class="sourceCode default">std::quantity</code> is a class
+template that is a workhorse of the library. It is a non-compatible
+generalization of
+<code class="sourceCode default">std::chrono::duration</code>.</li>
+<li>Expression templates are used to provide user-friendly error
+messages and great debugging experience. More information on this
+subject can be found in <span class="citation" data-cites="P2982_PRE">[<a href="#ref-P2982_PRE" role="doc-biblioref">P2982</a>]</span>.</li>
+<li>Quantity specifications include at least the following information:
+quantity type, quantity character, quantity equation (in case of derived
+quantities), quantity kind, and dimension.</li>
+<li>References (temporary name to be bikesheded) are numeric wrappers
+over a quantity specification and an unit.</li>
+</ul>
 <h2 data-number="7.2" id="the-affine-space"><span class="header-section-number">7.2</span> The Affine Space<a href="#the-affine-space" class="self-link"></a></h2>
 <table>
 <colgroup>
@@ -1472,6 +1495,18 @@ absolute and relative point origins</td>
 </tr>
 </tbody>
 </table>
+<p>In the above table:</p>
+<ul>
+<li><code class="sourceCode default">std::quantity_point</code> is a
+non-compatible generalization of
+<code class="sourceCode default">std::chrono::time_point</code>.</li>
+<li>Absolute point origin is a compile-time constant defining an
+absolute origin for
+<code class="sourceCode default">std::quantity_point</code> of a
+specific quantity type.</li>
+<li>Relative point origin is a compile-time constant defining an origin
+relative to previously defined absolute point origin.</li>
+</ul>
 <h2 data-number="7.3" id="text-output"><span class="header-section-number">7.3</span> Text Output<a href="#text-output" class="self-link"></a></h2>
 <table>
 <colgroup>
@@ -1789,9 +1824,9 @@ about prime numbers to SG6</td>
 <tr class="odd">
 <td>2024.2 (St. Louis)</td>
 <td></td>
-<td>Paper on the Basic Framework (priority 2 features) to SG6<br>Paper
-about the Affine Space to LEWG<br>Move quantity arithmetics and number
-concepts papers to LEWG</td>
+<td>Papers on the Basic Framework (priority 2 &amp; 3 features) to
+SG6<br>Paper about the Affine Space to LEWG<br>Move quantity arithmetics
+and number concepts papers to LEWG</td>
 </tr>
 <tr class="even">
 <td>2024.3 (Wrocław)</td>
@@ -1805,7 +1840,7 @@ LEWG<br>Move math utilities and prime numbers papers to LEWG</td>
 <tr class="odd">
 <td>2025.1</td>
 <td>Last meeting for LEWG review of new C++26 features</td>
-<td>Move Basic Framework (priority 2 features) to LEWG</td>
+<td>Move Basic Framework (priority 2 &amp; 3 features) to LEWG</td>
 </tr>
 <tr class="even">
 <td>2025.2</td>
@@ -1951,6 +1986,11 @@ library. <a href="https://wg21.link/p1930r0"><div class="csl-block">https://wg21
 <div id="ref-P2981_PRE" class="csl-entry" role="doc-biblioentry">
 [P2981] Mateusz Pusz, Dominik Berner, and Johel Ernesto Guerrero Peña.
 Improving our safety with a physical quantities and units library. <a href="https://wg21.link/p2981"><div class="csl-block">https://wg21.link/p2981</div></a>
+</div>
+<div id="ref-P2982_PRE" class="csl-entry" role="doc-biblioentry">
+[P2982] Mateusz Pusz.
+<code class="sourceCode default">std::quantity</code> as a numeric type.
+<a href="https://wg21.link/p2982"><div class="csl-block">https://wg21.link/p2982</div></a>
 </div>
 <div id="ref-SI" class="csl-entry" role="doc-biblioentry">
 [SI] SI Brochure: The International System of Units (SI). <a href="https://www.bipm.org/en/publications/si-brochure"><div class="csl-block">https://www.bipm.org/en/publications/si-brochure</div></a>
