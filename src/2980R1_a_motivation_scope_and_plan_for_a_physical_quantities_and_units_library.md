@@ -436,17 +436,17 @@ the C++ standard library.
 
 # Design goals
 
-The library facilities that we plan to propose in the upcoming papers will be designed with
+The library facilities that we plan to propose in the upcoming papers is designed with
 the following goals in mind.
 
 ## Compile-time safety
 
-The most important property of such a library is the safety it brings to C++ projects.
-The correct handling of physical quantities, units, and numerical values should be verified both by
-the compiler during the compilation process and by humans with manual inspection
-in each individual line.
+The most important property of any such a library is the safety it brings to C++ projects.
+The correct handling of physical quantities, units, and numerical values should be verifiable both by
+the compiler and by humans with manual inspection
+of each individual line.
 
-In some cases we are even eager to prioritize safe interfaces over the general usability experience
+In some cases, we are even eager to prioritize safe interfaces over the general usability experience
 (e.g. getters of the underlying raw numerical value will always require a unit in which the value should
 be returned in, which results in more typing and is sometimes redundant).
 
@@ -455,22 +455,22 @@ More information on this subject can be found in [@P2981R0].
 ## Performance
 
 The library should be as fast or even faster than working with fundamental types. The should
-be no runtime overhead and no space size overhead should be needed to implement high-level
+be no runtime overhead, and no space size overhead should be needed to implement higher-level
 abstractions.
 
 ## Great user experience
 
-The primary purpose of such a library is to generate compile-time errors. If the developers
-did not introduce any bugs in the manual handling of quantities and units, such a library would be
-of little use. This is why such a library should be optimized for readable compilation errors
+The primary purpose of the library is to generate compile-time errors. If users
+did not introduce any bugs in the manual handling of quantities and units, the library would be
+of little use. This is why the library is optimized for readable compilation errors
 and great debugging experience.
 
-Such a library should be also easy to use and flexible. The interfaces should be straight-forward
+The library is easy to use and flexible. The interfaces are straight-forward
 and safe by default. Users should be able to easily express any quantity and unit, which requires
 them to compose.
 
 The above constraints imply the usage of special implementation techniques. The library will not
-only provides types but also compile-time known values that will enable users to write easy
+only provide types, but also compile-time known values that will enable users to write easy
 to understand and efficient equations on quantities and units.
 
 ## Feature rich
@@ -478,35 +478,34 @@ to understand and efficient equations on quantities and units.
 There are plenty of expectations from different parties regarding such a library. It should support
 at least:
 
-- Systems of Quantities,
-- Systems of Units,
-- Scalar, vector, and tensor quantities,
-- The affine space,
-- Natural units systems,
-- Strong angular system,
-- Any unit's magnitude (huge, small, floating-point),
-- Faster-than-lightspeed constants,
+- Systems of Quantities.
+- Systems of Units.
+- Scalar, vector, and tensor quantities.
+- The affine space.
+- Natural units systems.
+- Strong angular system.
+- Any unit's magnitude (huge, small, floating-point).
+- Faster-than-lightspeed constants.
 - Highly adjustable text-output formatting.
 
 ## Easy to extend
 
-Most entities in the library should be possible to be defined with a single line of code with
-no need to use preprocessor macros. Users should be able to easily extend provided systems with custom
+Most entities in the library can be defined with a single line of code without
+preprocessor macros. Users can easily extend provided systems with custom
 dimensions, quantities, and units.
 
 ## Low standardization cost
 
 The set of entities required for standardization should be limited to the bare minimum.
 
-Derived units should not require separate library types but should be obtained through the composition
+Derived units do not need separate library types. Instead, they can be obtained through the composition
 of predefined named units. Units should not be associated with User-Defined Literals (UDLs), as it
-is the case of `std::chrono::duration`. UDLs do not compose, have very limited scope and
+is the case with `std::chrono::duration`. UDLs do not compose, have very limited scope and
 functionality, and are expensive to standardize.
 
-There should be no preprocessor macros in the user interface.
+The user interface has no preprocessor macros.
 
-Most proposed features (besides text output) should be possible to be standardized as a freestanding
-part of the C++ standard library.
+It should be possible for most proposed features (besides text output) to be freestanding.
 
 
 # Look and feel
