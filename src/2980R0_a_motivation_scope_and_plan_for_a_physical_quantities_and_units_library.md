@@ -125,7 +125,7 @@ in the field at various start-ups, MIT Lincoln Laboratory, and most recently, ST
 Technology Research).
 
 Nicolas became obsessed with dimensional analysis as a high school JETS team member after learning
-the $125M Mars Climate Orbiter was destroyed due to a simple feet-to-meters miscalculation. He
+that the $125M Mars Climate Orbiter was destroyed due to a simple feet-to-meters miscalculation. He
 developed the widely adopted C++ [@NHOLTHAUS-UNITS] library based on the findings of the 2002 white
 paper "Dimensional Analysis in C++" by Scott Meyers. Astounded that no one smarter had already
 written such a library, he continued with `units` 2.0 and 3.0 based on modern C++. Those libraries
@@ -134,7 +134,7 @@ geodesy.
 
 In 2023, recognizing the limits of `units`, he joined forces with Mateusz Pusz in his effort to
 standardize his evolutionary dimensional analysis library, with the goal of providing the
-highest-quality dimensional analysis to all C++ users via the standard C++ library.
+highest-quality dimensional analysis to all C++ users via the C++ standard library.
 
 ## Roth Michaels
 
@@ -875,37 +875,36 @@ be described in detail in the upcoming papers. To learn more right away and to b
 early feedback, we encourage everyone to check out the documentation of the [@MP-UNITS] project.
 
 _Note: The priorities provided in the below tables are the recommendations by authors based on their
-experience in the domain but are in no way final. This is just an entry point for the discussion
+experience in the domain, but are in no way final. This is just an entry point for the discussion
 in the Committee._
 
 ## Basic framework
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                                | Priority | Description                                                                                                                                        |
-|----------------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them                             |
-| Quantity kinds                         |    1     | Support for example for `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantity types |
-| Various quantities of the same kind    |    1     | Support for example for `width`, `height`, `wavelength` (all of the kind `length`), which should be distinct quantity types                        |
-| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities)                     |
-| Logarithmic units support              |    2     | Support for logarithmic units (e.g., decibel)                                                                                                      |
-| Natural Units                          |    3     | Support for [natural units systems](https://en.wikipedia.org/wiki/Natural_units)                                                                   |
-| Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity type (feature requested in [@P1930R0] and by multiple customers)                            |
+| Feature                                | Priority | Description                                                                                                                                               |
+|----------------------------------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them                                    |
+| Quantity kinds                         |    1     | Support quantities of the same dimension that should be distinct, e.g., `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force` |
+| Various quantities of the same kind    |    1     | Support quantities of the same kind that should be distinct, e.g., `width`, `height`, `wavelength` (all of the kind `length`)                             |
+| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (without intrusive changes on vector and tensor types)                                   |
+| Logarithmic units support              |    2     | Support for logarithmic units, e.g., decibel                                                                                                              |
+| Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity type                                                                                               |
 
 <!-- markdownlint-enable MD013 -->
 
 In the above table:
 
-- `std::quantity` is a class template that is a workhorse of the library.
-  It is a non-compatible generalization of `std::chrono::duration`.
+- `std::quantity` is a class template that is the workhorse of the library.
+  It is an incompatible generalization of `std::chrono::duration`.
 - Expression templates are used to provide user-friendly error messages and great debugging experience.
   More information on this subject can be found in [@P2982_PRE].
 - Quantity specifications include at least the following information: quantity type, quantity character,
   quantity equation (in case of derived quantities), quantity kind, and dimension.
-- References (temporary name to be bikesheded) are numeric wrappers over a quantity specification and
+- References (temporary name to be bikeshedded) are numeric wrappers over a quantity specification and
   an unit.
 
-Below we provide a short overview of estimated additional framework-related costs associated with
+Below, we provide a short overview of estimated additional framework-related costs associated with
 providing support for the following features (based on our current implementation experience):
 
 - Quantity kinds
@@ -938,11 +937,10 @@ providing support for the following features (based on our current implementatio
 
 In the above table:
 
-- `std::quantity_point` is a non-compatible generalization of `std::chrono::time_point`.
+- `std::quantity_point` is an incompatible generalization of `std::chrono::time_point`.
 - Absolute point origin is a compile-time constant defining an absolute origin for `std::quantity_point`
   of a specific quantity type.
-- Relative point origin is a compile-time constant defining an origin relative to previously defined
-  absolute point origin.
+- Relative point origin is a compile-time constant defining an origin relative to another point origin.
 
 ## Text output
 
@@ -1011,10 +1009,10 @@ plan to propose any support for doing that for physical quantities and their uni
 
 ## External dependencies
 
-The features in this chapter are heavily used in the library but are not domain-specific.
-Having them standardized (instead of left as exposition only) could not only improve
+The features in this chapter are heavily used in the library, but are not domain-specific.
+Having them standardized (instead of left as exposition-only) could not only improve
 the specification of this library, but also could serve as an important building block for tools
-from other domains that we can get in the future from other authors.
+in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
 
@@ -1049,9 +1047,9 @@ by LEWG will help to keep the efforts on track.
 | 2025.2             | C++26 CD finalized                                 |                                                                                                                                                                                                                             |
 | 2025.3             |                                                    | Move papers on systems to LEWG                                                                                                                                                                                              |
 | 2026.1             | C++26 DIS finalized                                |                                                                                                                                                                                                                             |
-| 2026.2             | C++29 WP opens                                     | Wording for Basic Framework (priority 1 features) adn number concepts to LWG                                                                                                                                                |
+| 2026.2             | C++29 WP opens                                     | Wording for Basic Framework (priority 1 features) and number concepts to LWG                                                                                                                                                |
 | 2026.3             |                                                    | Wording for Basic Framework (priority 2 features), the Affine Space, `std::chrono` support, the text output, and `fixed_string` to LWG                                                                                      |
-| 2027.1             |                                                    | Wording for math utilities, prime numbers, systems, and type and NTTP lits to LWG                                                                                                                                           |
+| 2027.1             |                                                    | Wording for math utilities, prime numbers, systems, and type and NTTP lists to LWG                                                                                                                                          |
 | 2027.2             |                                                    |                                                                                                                                                                                                                             |
 | 2027.3             |                                                    |                                                                                                                                                                                                                             |
 | 2028.1             | Last meeting for LEWG review of new C++29 features | Finalize wording review in LWG and merge into C++29 WP                                                                                                                                                                      |
@@ -1158,6 +1156,8 @@ references:
 - id: P2982_PRE
   citation-label: P2982
   author:
+    - family: Hogg
+      given: Charles
     - family: Pusz
       given: Mateusz
   title: "`std::quantity` as a numeric type"
