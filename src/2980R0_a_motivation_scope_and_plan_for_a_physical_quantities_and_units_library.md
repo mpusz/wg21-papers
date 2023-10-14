@@ -13,6 +13,8 @@ author:
     email: <johelegp@gmail.com>
   - name: Charles Hogg
     email: <charles.r.hogg@gmail.com>
+  - name: Nicolas Holthaus
+    email: <nholthaus@gmail.com>
   - name: Roth Michaels ([Native Instruments](https://www.native-instruments.com))
     email: <isocxx@rothmichaels.us>
   - name: Vincent Reverdy
@@ -113,6 +115,25 @@ public release in 2023.
 While Au provides excellent ergonomics and robustness for pre-C++20 users, Chip also believes the
 C++ community would benefit from a standard units library.  For that reason, he has joined forces
 with the mp-units project, contributing code and design ideas.
+
+## Nicolas Holthaus
+
+Nicolas graduated Summa Cum Laude from Northwestern University with a B.S. in  Computer Engineering.
+He worked for several years at the United States Naval Air Warfare Center - Manned Flight Simulator -
+designing real-time C++ software for aircraft survivability simulation. He has subsequently continued
+in the field at various start-ups, MIT Lincoln Laboratory, and most recently, STR (Science and
+Technology Research).
+
+Nicolas became obsessed with dimensional analysis as a high school JETS team member after learning
+the $125M Mars Climate Orbiter was destroyed due to a simple feet-to-meters miscalculation. He
+developed the widely adopted C++ `units` library based on the findings of the 2002 white paper
+"Dimensional Analysis in C++" by Scott Meyers. Astounded that no one smarter had already written
+such a library, he continued with `units` 2.0 and 3.0 based on modern C++. Those libraries have
+been extensively adopted in many fields, including modeling & simulation, agriculture, and geodesy.
+
+In 2023, recognizing the limits of `units`, he joined forces with Mateusz Pusz in his effort to
+standardize his evolutionary dimensional analysis library, with the goal of providing the
+highest-quality dimensional analysis to all C++ users via the standard C++ library.
 
 ## Roth Michaels
 
