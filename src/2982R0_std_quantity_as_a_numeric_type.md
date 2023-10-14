@@ -7,6 +7,8 @@ audience:
 author:
   - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
     email: <mateusz.pusz@gmail.com>
+  - name: Chip Hogg ([Aurora Innovation](https://aurora.tech/))
+    email: <charles.r.hogg@gmail.com>
 ---
 
 
@@ -991,18 +993,136 @@ The above program will produce the following types for acceleration quantities
 
 ## Scaled units
 
+Another very common operation is to multiply an existing unit by a factor, creating a new, scaled unit.  For
+example, the unit _foot_ can be multiplied by 3, producing the unit _yard_.
+
+The process also works in reverse: the ratio between any two units of the same dimension is a well-defined
+number.  For example, the ratio between one foot and one inch is 12.
+
 ### Unit magnitudes
 
-TBD
+In principle, this scaling factor can be any positive real number.  In mp-units and Au, we have used the term
+"magnitude" to refer to this scaling factor.  (This should not be confused with the logarithmic "magnitude"
+unit commonly used in astronomy.)
+
+In the library implementation, each unit is associated with a magnitude.  However, for most units the
+magnitude is a fully encapsulated implementation detail, not a user-facing value.
+
+This is because the notion of "the" magnitude of a unit is not generally meaningful: it has no physically
+observable consequence.  What _is_ meaningful is the _ratio_ of magnitudes between two units of the same
+dimension.  We could associate the _foot_, say, with any magnitude $m_f$ that we like --- but once we make that
+choice, we must assign $3m_f$ to the _yard_, and $m_f/12$ to the _inch_.  Separately and independently, we can
+assign any magnitude $m_s$ to the second, because it's an independent dimension --- but once we make that
+choice, it fixes the magnitude for derived units, and we must assign, say, $(5280 m_f) / (3600 m_s)$ to the
+_mile per hour_.
+
+The one exception to the arbitrariness of magnitudes is _dimensionless_ units.  Because their dimension is
+null, quantities of these units can be meaningfully compared to their squares and other powers.  For example,
+the magnitude of _percent_ is $1 / 100$, and the magnitude of _squared percent_ (or _pertenk_, "per-10-k") is
+$1 / 10000$.  We cannot choose another value for the magnitude without producing observably incorrect results.
+
+### Requirements and Representation
+
+A magnitude is a positive real number.  The best way to _represent_ it depends on how we will _use_ it.  To
+derive our requirements, note that magnitudes must support every operation which units do.  This is because
+units have two components that participate in operations: _dimension_, and _magnitude_.  When we apply an
+operation to units, we simply apply it separately to the dimension and magnitude parts.
+
+Units are closed under _products_ and _rational powers_.  Therefore, our magnitude representation must support
+these operations natively and robustly; this is the most basic requirement.  We must also support certain
+_irrational_ "ratios", such as the factor of $\frac{\pi}{180}$ between _degrees_ and _radians_.
+
+The usual approach, `std::ratio`, fails to satisfy these requirements in multiple ways.
+
+- It is not closed under rational powers (rather infamously, in the case of $2^\frac{1}{2}$).
+- It cannot represent irrational factors such as $\pi$.
+- It is too vulnerable to overflow when raised to powers.
+
+One alternative is the _vector space magnitude_ representation.  Here, we represent each magnitude as
+a _product of powers of "basis" numbers_.  This is the same representation we use for dimensions, so it will
+naturally support all the same operations --- as long as we can find a suitable basis.
+
+Each magnitude must have a unique representation.  This requirement constrains our choice of "basis" vectors:
+they must not be able to represent any magnitude in more than one way.  Prime numbers have this property.
+Take any arbitrarily large (but finite) collection of primes, raise each prime to some chosen exponent, and
+compute the product: the result can't be expressed by any other collection of exponents.
+
+Already, this lets us represent every positive real number which `std::ratio` can represent, by breaking the
+numerator and denominator into their prime factorizations.  But we can go further, and handle irrational
+factors such as $\pi$ by introducing them as new basis vectors.  $\pi$ cannot be represented by the product of
+powers of _any_ finite collection of primes, which means that it is "linearly independent" in the sense of our
+vector space representation.
+
+On the C++ implementation side, we use variadic templates to define our magnitude.  Each element is a basis
+number raised to some rational power (which may be omitted or abbreviated as appropriate).
+
+Here are some examples, using Astronomical Units (au), meters (m), degrees (deg), and radians (rad).
+
+| Unit ratio | `std::ratio` representation | vector space representation |
+|-----------|-----------------------------|-----------------------------|
+| $\left(\frac{\text{au}}{\text{m}}\right)$ | `std::ratio<149'597'870'700>` | `magnitude<power_v<2, 2>(), 3, power_v<5, 2>(), 73, 877, 7789>` |
+| $\left(\frac{\text{au}}{\text{m}}\right)^2$ | Unrepresentable (overflow) | `magnitude<power_v<2, 4>(), power_v<3, 2>(), power_v<5, 4>(), power_v<73, 2>(), power_v<877, 2>(), power_v<7789, 2>()>` |
+| $\sqrt{\frac{\text{au}}{\text{m}}}$ | Unrepresentable | `magnitude<2, power_v<3, 1, 2>(), 5, power_v<73, 1, 2>(), power_v<877, 1, 2>(), power_v<7789, 1, 2>()>` |
+| $\left(\frac{\text{rad}}{\text{deg}}\right)$ | Unrepresentable | `magnitude<power_v<2, 2>(), power_v<3, 2>(), power_v<3.14159265358979323851e+0l, -1>(), 5>` |
+
+The variadic magnitude types have one disadvantage: they are more verbose.  We may be able to hide them via
+opaque types with nicer names, using a similar strategy as we have for units.  In any case, their major
+advantage is that they fulfill the requirements stated above --- indeed, they are the only solution we have
+seen which does.
 
 ### Construction helpers
 
+We do not want end users to specify the variadic `magnitude` implementation manually.  That would be too labor
+intensive and error prone.  Instead, we provide _construction helpers_ for end users.
 
+`mag<N>` creates the vector space representation of the integer `N`.  This is a simple value, so we can
+multiply and divide it with other magnitudes.
+
+For example, `mag<180> / mag<240>` produces `magnitude<power_v<2, -2>(), 3>`, which is $3/4$.  Notice how the
+result is always automatically represented in lowest terms, because a fraction _not_ in lowest terms cannot be
+represented as a product of powers of primes.
 
 ### Common units
 
+Some operations, such as addition or inequality comparison, are "common unit" operations.  In order to execute
+them on quantities of the same dimension, we must first convert them to their _common unit_.
 
+For units which are _commensurable_ --- that is, units whose ratio is a rational number --- the "common unit"
+is the largest unit that evenly divides both.  For example, the common unit of the _foot_ and _inch_ is the
+inch.
 
+This also includes instances where neither unit is an integer multiple of the other.  For example, the common
+unit of the meter and the yard does not have a name, but is equivalent to 800 micrometers.  If we call this
+unit `U`, then there are 1250 `U` per meter, and 1143 `U` per yard.
+
+The practical benefit of this definition is that this unit conversion will simply multiply each participating
+quantity by an exact integer.  If we use integer types to begin with, we can continue to use them without
+losing precision.
+
+Unfortunately, not every unit conversion makes this possible.  No angular unit could evenly divide both
+degrees and radians, for example.  In these instances, there is no uniquely defined notion of a "common unit".
+
+In our vector space representation, we can easily compute the magnitude of the common unit by taking the
+smallest exponent, across all participating magnitudes, for each individual basis vector --- as long as we
+remember to use the implicit "0" exponent for any basis vector that is omitted.
+
+The following example may help make this clear.  If we use $\text{COM}\left[U_1, \cdots, U_n\right]$ as
+notation to represent "the common unit of $U_1, \cdots, U_n$", and we show only the magnitudes for simplicity,
+here are the steps we would follow to find the magnitude of the common unit.
+
+$$
+\begin{align}
+\text{COM}\left[18, \frac{80}{3}\right] &= \text{COM}\left[(2 \cdot 3^2), (2^4 \cdot 3^{-1} \cdot 5)\right] \\
+&= \text{COM}\left[(2^1 \cdot 3^2 \cdot 5^0), (2^4 \cdot 3^{-1} \cdot 5^1)\right] \\
+&= 2^1 \cdot 3^{-1} \cdot 5^0 \\
+&= \frac{2}{3}
+\end{align}
+$$
+
+This procedure produces the unambiguous correct answer whenever it is well defined.  It also produces an
+answer for irrational "ratios", where there is no uniquely defined result.  This provides the practical
+benefit of making it easy to compare, say, an angle in degrees to one in radians, as long as at least one of
+them is represented in a floating point type.
 
 ## Faster than lightspeed constants
 
