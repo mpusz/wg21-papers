@@ -812,6 +812,17 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
     static_assert(!castable(isq::time, isq::length));
     ```
 
+    In the [@MP-UNITS] library even the explicit casts will not force such a conversion:
+
+    ```cpp
+    void foo(quantity<isq::length[m]>);
+    ```
+
+    ```cpp
+    foo(quantity_cast<isq::length>(42 * s)); // Compile-time error
+    ```
+
+
 With the above rules one can write a following short application to calculate the fuel consumption:
 
 ```cpp
@@ -857,6 +868,11 @@ the first common branch in a hierarchy tree of the same kind. For example:
 static_assert(common_quantity_spec(isq::width, isq::height) == isq::length);
 static_assert(common_quantity_spec(isq::thickness, isq::radius) == isq::width);
 static_assert(common_quantity_spec(isq::distance, isq::path_length) == isq::path_length);
+```
+
+```cpp
+quantity q = isq::thickness(1 * m) + isq::radius(1 * m);
+static_assert(q.quantity_spec == isq::width);
 ```
 
 One could argue that allowing adding or comparing quantities of height and width might be a safety
