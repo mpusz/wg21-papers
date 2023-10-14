@@ -768,6 +768,17 @@ The [@MP-UNITS] library chose the following names here:
 - `dimension_one` in the domain of dimensions,
 - `dimensionless` in the domain of quantity types.
 
+The above names were selected based on the following quote from the [@ISO80000]:
+
+> A quantity whose dimensional exponents are all equal to zero has the dimensional product denoted
+> A<sup>0</sup>B<sup>0</sup>C<sup>0</sup>… = 1, where the symbol 1 denotes the corresponding
+> dimension. There is no agreement on how to refer to such quantities. They have been called
+> **dimensionless** quantities (although this term should now be avoided), quantities with
+> **dimension one**, quantities with dimension number, or quantities with the **unit one**.
+> Such quantities are dimensionally simply numbers. To avoid confusion, it is helpful to use
+> explicit units with these quantities where possible, e.g., m/m, nmol/mol, rad, as specified
+> in the SI Brochure.
+
 ### Supported operations and their results
 
 The table below presents all the operations that can be done on units, dimensions, and quantity
