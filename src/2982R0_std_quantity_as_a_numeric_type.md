@@ -1058,12 +1058,12 @@ number raised to some rational power (which may be omitted or abbreviated as app
 
 Here are some examples, using Astronomical Units (au), meters (m), degrees (deg), and radians (rad).
 
-| Unit ratio | `std::ratio` representation | vector space representation |
-|-----------|-----------------------------|-----------------------------|
-| $\left(\frac{\text{au}}{\text{m}}\right)$ | `std::ratio<149'597'870'700>` | `magnitude<power_v<2, 2>(), 3, power_v<5, 2>(), 73, 877, 7789>` |
-| $\left(\frac{\text{au}}{\text{m}}\right)^2$ | Unrepresentable (overflow) | `magnitude<power_v<2, 4>(), power_v<3, 2>(), power_v<5, 4>(), power_v<73, 2>(), power_v<877, 2>(), power_v<7789, 2>()>` |
-| $\sqrt{\frac{\text{au}}{\text{m}}}$ | Unrepresentable | `magnitude<2, power_v<3, 1, 2>(), 5, power_v<73, 1, 2>(), power_v<877, 1, 2>(), power_v<7789, 1, 2>()>` |
-| $\left(\frac{\text{rad}}{\text{deg}}\right)$ | Unrepresentable | `magnitude<power_v<2, 2>(), power_v<3, 2>(), power_v<3.14159265358979323851e+0l, -1>(), 5>` |
+| Unit ratio                                   | `std::ratio` representation   | vector space representation                                                                                             |
+|----------------------------------------------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| $\left(\frac{\text{au}}{\text{m}}\right)$    | `std::ratio<149'597'870'700>` | `magnitude<power_v<2, 2>(), 3, power_v<5, 2>(), 73, 877, 7789>`                                                         |
+| $\left(\frac{\text{au}}{\text{m}}\right)^2$  | Unrepresentable (overflow)    | `magnitude<power_v<2, 4>(), power_v<3, 2>(), power_v<5, 4>(), power_v<73, 2>(), power_v<877, 2>(), power_v<7789, 2>()>` |
+| $\sqrt{\frac{\text{au}}{\text{m}}}$          | Unrepresentable               | `magnitude<2, power_v<3, 1, 2>(), 5, power_v<73, 1, 2>(), power_v<877, 1, 2>(), power_v<7789, 1, 2>()>`                 |
+| $\left(\frac{\text{rad}}{\text{deg}}\right)$ | Unrepresentable               | `magnitude<power_v<2, 2>(), power_v<3, 2>(), power_v<3.14159265358979323851e+0l, -1>(), 5>`                             |
 
 The variadic magnitude types have one disadvantage: they are more verbose.  We may be able to hide them via
 opaque types with nicer names, using a similar strategy as we have for units.  In any case, their major
@@ -1761,24 +1761,1061 @@ Doing the above is actually not such a big "hack" as the [@ISO80000] explicitly 
 Despite it being allowed by [@ISO80000], for type-safety reasons, we do not allow such a behavior
 by default, and a user has to opt into such scenarios explicitly.
 
+## Dimensionless Quantities
 
-- exceptions and special cases for dimensionless quantities
-- quantity arithmetics + quirks of modulo arithmetic and integral division
-- custom representation types (improve safety, provide additional info like measurement, linear algebra, minimal requirements)
+The quantities we discussed so far always had some specific type and physical dimension.
+However, this is not always the case. While performing various computations, we sometimes end up with
+so-called "dimensionless" quantities, which [@ISO-GUIDE] correctly defines as quantities of dimension
+one:
+
+> - Quantity for which all the exponents of the factors corresponding to the base quantities in
+>   its quantity dimension are zero.
+> - The measurement units and values of quantities of dimension one are numbers, but such quantities
+>   convey more information than a number.
+> - Some quantities of dimension one are defined as the ratios of two quantities of the same kind.
+> - Numbers of entities are quantities of dimension one.
+
+
+### Dividing two quantities of the same kind
+
+Dividing two quantities of the same kind always results in a quantity of dimension one. However,
+depending on what type of quantities we divide or what their units are, we may end up with slightly
+different results.
+
+In the [@MP-UNITS] library, dividing two quantities of the same dimension always results in a quantity
+with the dimension being `dimension_one`. This is often different for other physical units libraries,
+which may return a raw representation type for such cases. A raw value is also always returned from
+the division of two `std::chrono::duration` objects.
+
+In the initial design of this library, the resulting type of division of two quantities was their
+common representation type (the same as in case of `std::chrono::duration`):
+
+```cpp
+static_assert(std::is_same_v<decltype(10 * km / (5 * km)), std::int64_t>);
+```
+
+The reasoning behind it was not providing a false impression of a strong `quantity` type for
+something that looks and feels like a regular number. Also, all of the mathematic and trigonometric
+functions were working fine out of the box with such representation types, so we did not have to rewrite
+`sin()`, `cos()`, `exp()`, and others.
+
+However, the feedback we got from the production usage was that such an approach is really bad for
+generic programming. It is hard to handle the result of the two quantities' division (or multiplication)
+as it might be either a quantity or a fundamental type. If we want to raise such a result to some power,
+we must use `units::pow` or `std::pow` depending on the resulting type. Those are only a few issues
+related to such an approach.
+
+Moreover, suppose we divide quantities of the same dimension but with units of significantly different
+magnitudes. In that case, we may end up with a really small or a huge floating-point value, which
+may result in losing lots of precision. Returning a dimensionless quantity from such cases allows
+us to benefit from all the properties of scaled units and is consistent with the rest of the library.
+
+#### Dividing quantities of the same type
+
+First, let's analyze what happens if we divide two quantities of the same type:
+
+```cpp
+constexpr QuantityOf<dimensionless> auto q = isq::height(200 * m) / isq::height(50 * m);
+```
+
+In such a case, we end up with a dimensionless quantity that has the following properties:
+
+```cpp
+static_assert(q.quantity_spec == dimensionless);
+static_assert(q.dimension == dimension_one);
+static_assert(q.unit == one);
+```
+
+In case we would like to print its value, we would see a raw value of `4` in the output with no unit
+being printed.
+
+#### Dividing quantities of different types
+
+Now let's see what happens if we divide quantities of the same dimension and unit but which have
+different quantity types:
+
+```cpp
+constexpr QuantityOf<dimensionless> auto q = isq::work(200 * J) / isq::heat(50 * J);
+```
+
+Again we end up with `dimension_one` and `one`, but this time:
+
+```cpp
+static_assert(q.quantity_spec == isq::work / isq::heat);
+```
+
+As shown above, the result is not of a `dimensionless` type anymore. Instead, we get a quantity type
+derived from the performed quantity equation. According to the [@ISO80000], work divided by heat is
+the recipe for the thermodynamic efficiency quantity, thus:
+
+```cpp
+static_assert(implicitly_convertible(q.quantity_spec, isq::efficiency_thermodynamics));
+```
+
+Please note that the quantity of `isq::efficiency_thermodynamics` is of a kind `dimensionless`,
+so it is implicitly convertible to `dimensionless` and satisfies the `QuantityOf<dimensionless>`
+concept.
+
+#### Dividing quantities of different units
+
+Now, let's see what happens when we divide two quantities of the same type but different units:
+
+```cpp
+constexpr QuantityOf<dimensionless> auto q = isq::height(4 * km) / isq::height(2 * m);
+```
+
+This time we still get a quantity of `dimensionless` type with a `dimension_one` as its dimension.
+However, the resulting unit is not `one` anymore:
+
+```cpp
+static_assert(q.unit == mag_power<10, 3> * one);
+```
+
+In case we would print the text output of this quantity, we would not see a raw value of `2000`,
+but `2 km/m`.
+
+First, it may look surprising, but this is actually consistent with the division of quantities
+of different dimensions. For example, if we divide `4 * km / 2 * s`, we do not expect `km` to be
+"expanded" to `m` before the division, right? We would expect the result of `2 km/s`, which is
+exactly what we get when we divide quantities of the same kind.
+
+This is a compelling feature that allows us to express huge or tiny ratios without the need
+for big and expensive representation types. With this, we can easily define things like
+a [Hubble's constant](https://en.wikipedia.org/wiki/Hubble%27s_law#Dimensionless_Hubble_constant)
+that uses a unit that is proportional to the ratio of kilometers per megaparsecs, which are both
+units of length:
+
+```cpp
+inline constexpr struct hubble_constant :
+    named_unit<basic_symbol_text{"H₀", "H_0"}, mag<ratio{701, 10}> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
+} hubble_constant;
+```
+
+### Counts of things
+
+Another important use case for dimensionless quantities is to provide strong types for counts
+of things. For example:
+
+- ISO-80000-3 provides a `rotation` quantity defined as the number of revolutions,
+- IEC-80000-6 provides a `number_of_turns_in_a_winding` quantity,
+- IEC-80000-13 provides a `Hamming_distance` quantity defined as the number of digit positions
+  in which the corresponding digits of two words of the same length are different.
+
+Thanks to assigning strong names to such quantities, later on they can be explicitly used as
+arguments in the quantity equations of other quantities deriving from them.
+
+### Predefined units of the dimensionless quantity
+
+As we observed above, the most common unit for dimensionless quantities is `one`. It has the
+ratio of `1` and does not output any textual symbol.
+
+A unit `one` is special in the entire type system of units as it is considered to be an identity
+operand in the unit expression templates. This means that, for example:
+
+```cpp
+static_assert(one * one == one);
+static_assert(one * si::metre == si::metre);
+static_assert(si::metre / si::metre == one);
+```
+
+The same is also true for `dimension_one` and `dimensionless` in the domains of dimensions
+and quantity specifications.
+
+Besides the unit `one`, there are a few other scaled units predefined in the library for usage
+with dimensionless quantities:
+
+```cpp
+inline constexpr struct percent : named_unit<"%", mag<ratio{1, 100}> * one> {} percent;
+inline constexpr struct per_mille : named_unit<basic_symbol_text{"‰", "%o"}, mag<ratio(1, 1000)> * one> {} per_mille;
+```
+
+### Angular quantities
+
+Special, often controversial, examples of dimensionless quantities are an angular measure
+and solid angular measure quantities that are defined in the [@ISO80000] to be the result of
+a division of `arc_length / radius` and `area / pow<2>(radius)` respectively.
+Moreover, [@ISO80000] also explicitly states that both can be expressed in the unit `one`.
+This means that both `isq::angular_measure` and `isq::solid_angular_measure` should be of
+a kind of `dimensionless`.
+
+On the other hand, [@ISO80000] also specifies that a unit `radian` can be used for
+`isq::angular_measure`, and a unit `steradian` can be used for `isq::solid_angular_measure`.
+Those should not be mixed or used to express other types of dimensionless quantities. This means
+that both `isq::angular_measure` and `isq::solid_angular_measure` should also be quantity kinds
+by themselves.
+
+_Many people claim that angle being a dimensionless quantity is a bad idea. There are proposals
+submitted to make an angle a base quantity and `rad` to become a base unit in bot [@SI] and
+[@ISO80000]._
+
+### Nested quantity kinds
+
+Angular quantities are not the only ones with such a "strange" behavior. Another, but a similar
+case is a `storage_capacity` quantity specified in IEC-80000-13 that again allows expressing it
+in both `one` and `bit` units.
+
+Those cases make dimensionless quantities an exceptional tree in the library. This is the only
+quantity hierarchy that contains more than one quantity kind in its tree:
+
+![](img/quantities_of_dimensionless.svg)
+
+To provide such support in the library, we provided an `is_kind` specifier that can be appended
+to the quantity specification:
+
+```cpp
+inline constexpr struct angular_measure : quantity_spec<dimensionless, arc_length / radius, is_kind> {} angular_measure;
+inline constexpr struct solid_angular_measure : quantity_spec<dimensionless, area / pow<2>(radius), is_kind> {} solid_angular_measure;
+inline constexpr struct storage_capacity : quantity_spec<dimensionless, is_kind> {} storage_capacity;
+```
+
+With the above, we can constrain `radian`, `steradian`, and `bit` to be allowed for usage with
+specific quantity kinds only:
+
+```cpp
+inline constexpr struct radian : named_unit<"rad", metre / metre, kind_of<isq::angular_measure>> {} radian;
+inline constexpr struct steradian : named_unit<"sr", square(metre) / square(metre), kind_of<isq::solid_angular_measure>> {} steradian;
+inline constexpr struct bit : named_unit<"bit", one, kind_of<storage_capacity>> {} bit;
+```
+
+but still allow a usage of `one` and its scaled versions for such quantities.
+
+## Quantity Arithmetics
+
+### `quantity` is a numeric wrapper
+
+If we think about it, the `quantity` class template is just a "smart" numeric wrapper. It exposes
+properly constrained set of arithmetic operations on one or two operands.
+
+Every single arithmetic operator is exposed by the `quantity` class template only if
+the underlying representation type provides it as well and its implementation has proper
+semantics (e.g. returns a reasonable type).
+
+For example, in the following code, `-a` will compile only if `MyInt` exposes such an operation
+as well:
+
+```cpp
+quantity a = MyInt{42} * m;
+quantity b = -a;
+```
+
+Assuming that:
+
+- `q` is our quantity,
+- `qq` is a quantity implicitly convertible to `q`,
+- `q2` is any other quantity,
+- `kind` is a quantity of the same kind as `q`,
+- `one` is a quantity of `dimension_one` with the unit `one`,
+- `number` is a value of a type "compatible" with `q`'s representation type,
+
+here is the list of all the supported operators:
+
+- unary:
+    - `+q`
+    - `-q`
+    - `++q`
+    - `q++`
+    - `--q`
+    - `q--`
+- compound assignment:
+    - `q += qq`
+    - `q -= qq`
+    - `q %= qq`
+    - `q *= number`
+    - `q *= one`
+    - `q /= number`
+    - `q /= one`
+- binary:
+    - `q + kind`
+    - `q - kind`
+    - `q % kind`
+    - `q * q2`
+    - `q * number`
+    - `number * q`
+    - `q / q2`
+    - `q / number`
+    - `number / q`
+- ordering and comparison:
+    - `q == kind`
+    - `q <=> kind`
+
+As we can see, there are plenty of operations one can do on a value of a `quantity` type. As most
+of them are obvious, in the following chapters, we will discuss only the most important or non-trivial
+aspects of quantity arithmetics.
+
+### Addition and subtraction
+
+Quantities can easily be added or subtracted from each other:
+
+```cpp
+static_assert(1 * m + 1 * m == 2 * m);
+static_assert(2 * m - 1 * m == 1 * m);
+static_assert(isq::height(1 * m) + isq::height(1 * m) == isq::height(2 * m));
+static_assert(isq::height(2 * m) - isq::height(1 * m) == isq::height(1 * m));
+```
+
+The above uses the same types for LHS, RHS, and the result, but in general, we can add, subtract,
+or compare the values of any quantity type as long as both quantities are of the same kind.
+The result of such an operation will be the common type of the arguments:
+
+```cpp
+static_assert(1 * km + 1.5 * m == 1001.5 * m);
+static_assert(isq::height(1 * m) + isq::width(1 * m) == isq::length(2 * m));
+static_assert(isq::height(2 * m) - isq::distance(0.5 * m) == 1.5 * m);
+static_assert(isq::radius(1 * m) - 0.5 * m == isq::radius(0.5 * m));
+```
+
+Please note that for the compound assignment operators, both arguments have to either be of
+the same type or the RHS has to be implicitly convertible to the LHS, as the type of
+LHS is always the result of such an operation:
+
+```cpp
+static_assert((1 * m += 1 * km) == 1001 * m);
+static_assert((isq::height(1.5 * m) -= 1 * m) == isq::height(0.5 * m));
+```
+
+If we break those rules, the following code will not compile:
+
+```cpp
+static_assert((1 * m -= 0.5 * m) == 0.5 * m);                       // Compile-time error(1)
+static_assert((1 * km += 1 * m) == 1001 * m);                       // Compile-time error(2)
+static_assert((isq::height(1 * m) += isq::length(1 * m)) == 2 * m); // Compile-time error(3)
+```
+
+1. Floating-point to integral representation type is considered narrowing.
+2. Conversion of quantity with integral representation type from a unit of a higher resolution to
+   the one with a lower resolution is considered narrowing.
+3. Conversion from a more generic quantity type to a more specific one is considered unsafe.
+
+### Multiplication and division
+
+Multiplying or dividing a quantity by a number does not change its quantity type or unit. However,
+its representation type may change. For example:
+
+```cpp
+static_assert(isq::height(3 * m) * 0.5 == isq::height(1.5 * m));
+```
+
+Unless we use a compound assignment operator, in which case truncating operations are again not allowed:
+
+```cpp
+static_assert((isq::height(3 * m) *= 0.5) == isq::height(1.5 * m)); // Compile-time error(1)
+```
+
+1. Floating-point to integral representation type is considered narrowing.
+
+However, suppose we multiply or divide quantities of the same or different types, or we divide a raw
+number by a quantity. In that case, we most probably will end up in a quantity of yet another type:
+
+```cpp
+static_assert(120 * km / (2 * h) == 60 * km / h);
+static_assert(isq::width(2 * m) * isq::length(2 * m) == isq::area(4 * m2));
+static_assert(50 / isq::time(1 * s) == isq::frequency(50 * Hz));
+```
+
+An exception from the above rule happens when one of the arguments is a dimensionless quantity.
+If we multiply or divide by such a quantity, the quantity type will not change. If such a quantity
+has a unit `one`, also the unit of a quantity will not change:
+
+```cpp
+static_assert(120 * m / (2 * one) == 60 * m);
+```
+
+An interesting special case happens when we divide the same quantity kinds or multiply a quantity
+by its inverted type. In such a case, we end up with a dimensionless quantity.
+
+```cpp
+static_assert(isq::height(4 * m) / isq::width(2 * m) == 2 * one); // (1)!
+static_assert(5 * h / (120 * min) == 0 * one);  // (2)!
+static_assert(5. * h / (120 * min) == 2.5 * one);
+```
+
+1. The resulting quantity type of the LHS is `isq::height / isq::width`, which is a quantity of the
+dimensionless kind.
+2. The resulting quantity of the LHS is `0 * dimensionless[h / min]`. To be consistent with the division
+of different quantity types, we do not convert quantity values to a common unit before the division.
+
+#### Beware of integral division
+
+The physical units library can't do any runtime branching logic for the division operator.
+All logic has to be done at compile-time when the actual values are not known, and the quantity types
+can't change at runtime.
+
+If we expect `120 * km / (2 * h)` to return `60 km / h`, we have to agree with the fact that
+`5 * km / (24 * h)` returns `0 km/h`. We can't do a range check at runtime to dynamically adjust scales
+and types based on the values of provided function arguments.
+
+**This is why we often prefer floating-point representation types when dealing with units.**
+Some popular physical units libraries even
+[forbid integer division at all](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden).
+
+### Modulo
+
+Now that we know how addition, subtraction, multiplication, and division work, it is time to talk about
+modulo. What would we expect to be returned from the following quantity equation?
+
+```cpp
+auto q = 5 * h % (120 * min);
+```
+
+Most of us would probably expect to see `1 h` or `60 min` as a result. And this is where the problems
+start.
+
+C++ language defines its `/` and `%` operators with the [quotient-remainder theorem](https://eel.is/c++draft/expr.mul#4):
+
+```text
+q = a / b;
+r = a % b;
+q * b + r == a;
+```
+
+The important property of the modulo operator is that it only works for integral representation
+types (it is undefined what modulo for floating-point types means). However, as we saw in the
+previous chapter, integral types are tricky because they often truncate the value.
+
+From the quotient-remainder theorem, the result of modulo operation is `r = a - q * b`.
+Let's see what we get from such a quantity equation on integral representation types:
+
+```cpp
+const quantity a = 5 * h;
+const quantity b = 120 * min;
+const quantity q = a / b;
+const quantity r = a - q * b;
+
+std::cout << "reminder: " << r << "\n";
+```
+
+The above code outputs:
+
+```text
+reminder: 5 h
+```
+
+And now, a tough question needs an answer. Do we really want modulo operator on physical units
+to be consistent with the quotient-remainder theorem and return `5 h` for `5 * h % (120 * min)`?
+
+This is exactly why we decided not to follow this hugely surprising path in the [@MP-UNITS] library.
+The selected approach was also consistent with the feedback from the C++ experts. For example,
+this is what Richard Smith said about this issue:
+
+> I think the quotient-remainder property is a less important motivation here than other factors
+> -- the constraints on `%` and `/` are quite different, so they lack the inherent connection they
+> have for integers. In particular, I would expect that `A / B` works for all quantities `A` and `B`,
+> whereas `A % B` is only meaningful when `A` and `B` have the same dimension. It seems like
+> a nice-to-have for the property to apply in the case where both `/` and `%` are defined,
+> but internal consistency of `/` across all cases seems much more important to me.
+>
+> I would expect `61 min % 1 h` to be `1 min`, and `1 h % 59 min` to also be `1 min`, so my
+> intuition tells me that the result type of `A % B`, where `A` and `B` have the same dimension,
+> should have the smaller unit of `A` and `B` (and if the smaller one doesn't divide
+> the larger one, we should either use the `gcd / std::common_type` of the units of
+> `A` and `B` or perhaps just produce an error). I think any other behavior for `%` is hard to
+> defend.
+>
+> On the other hand, for division it seems to me that the choice of unit should probably not affect
+> the result, and so if we want that `5 mm / 120 min = 0 mm/min`, then `5 h / 120 min == 0 hc`
+> (where `hc` is a dimensionless "hexaconta", or `60x`, unit). I don't like the idea of taking
+> SI base units into account; that seems arbitrary and like it would do the wrong thing as often
+> as it does the right thing, especially when the units have a multiplier that is very large or
+> small. We could special-case the situation of a dimensionless quantity, but that could lead to
+> problematic overflow pretty easily: a calculation such as `10 s * 5 GHz * 2 uW` would overflow
+> an `int` if it produces a dimensionless quantity for `10 s * 5 GHz`, but it could equally
+> produce `50 G * 2 uW = 100 kW` without any overflow, and presumably would if the terms were merely
+> reordered.
+>
+> If people want to use integer-valued quantities, I think it's fundamental that you need
+> to know what the units of the result of an operation will be, and take that into account in how you
+> express computations; the simplest rule for heterogeneous operators like `*` or `/` seems to be that
+> the units of the result are determined by applying the operator to the units of the operands
+> -- and for homogeneous operators like `+` or `%`, it seems like the only reasonable option is
+> that you get the `std::common_type` of the units of the operands.
+
+To summarize, the modulo operator on physical units has more in common with addition and
+division operators than with the quotient-remainder theorem. To avoid surprising results, the
+operation uses a common unit to do the calculation and provide its result:
+
+```cpp
+static_assert(5 * h / (120 * min) == 0 * one);
+static_assert(5 * h % (120 * min) == 60 * min);
+static_assert(61 * min % (1 * h) == 1 * min);
+static_assert(1 * h % (59 * min) == 1 * min);
+```
+
+### Comparison against zero
+
+In our code, we often want to compare the value of a quantity against zero. For example, we do it
+every time when we want to ensure that we deal with a non-zero or positive value.
+
+We could implement such checks in the following way:
+
+```cpp
+if (q1 / q2 != 0 * m / s)
+  // ...
+```
+
+The above would work (assuming we are dealing with the quantity of speed), but could be suboptimal
+if the result of `q1 / q2` is not expressed in `m / s`. To eliminate the need for conversion, we
+need to write:
+
+```cpp
+if (auto q = q1 / q2; q != q.zero())
+  // ...
+```
+
+but that is a bit inconvenient, and inexperienced users could be unaware of this technique
+and its reasons.
+
+For the above reasons, the library provides dedicated interfaces to compare against zero that
+follow the naming convention of
+[named comparison functions](https://en.cppreference.com/w/cpp/utility/compare/named_comparison_functions)
+in the C++ Standard Library:
+
+- `is_eq_zero`
+- `is_neq_zero`
+- `is_lt_zero`
+- `is_gt_zero`
+- `is_lteq_zero`
+- `is_gteq_zero`
+
+Thanks to them, to save typing and not pay for unneeded conversions, our check could be implemented
+as follows:
+
+```cpp
+if (is_neq_zero(q1 / q2))
+  // ...
+```
+
+Those functions will work with any type `T` that exposes `zero()` member function returning
+something comparable to `T`. Thanks to that, we can use them not only with quantities but also
+with quantity points, `std::chrono::duration` or any other type that exposes such an interface.
+
+### Other maths
+
+This chapter scoped only on the `quantity` type's operators. However, there are many named math
+functions provided in the [@MP-UNITS] library. Among others, we can find there the following:
+
+- `pow()`, `sqrt()`, and `cbrt()`,
+- `exp()`,
+- `abs()`,
+- `epsilon()`,
+- `floor()`, `ceil()`, `round()`,
+- `inverse()`,
+- `hypot()`,
+- `sin()`, `cos()`, `tan()`,
+- `asin()`, `acos()`, `atan()`.
+
+In the library, we can also find _mp-units/random.h_ header file with all the pseudo-random number
+generators.
+
+We plan to provide a separate paper on those in the future.
+
+# Generic Interfaces
+
+Using a concrete unit in the interface often has a lot of sense. It is especially useful if we
+store the data internally in the object. In such a case, we have to select a specific unit anyway.
+
+For example, let's consider a simple storage tank:
+
+```cpp
+class StorageTank {
+  quantity<horizontal_area[m2]> base_;
+  quantity<isq::height[m]> height_;
+  quantity<isq::mass_density[kg / m3]> density_ = air_density;
+public:
+  constexpr StorageTank(const quantity<horizontal_area[m2]>& base, const quantity<isq::height[m]>& height) :
+      base_(base), height_(height)
+  {
+  }
+
+  // ...
+};
+```
+
+As the quantities provided in the function's interface are then stored in the class, there is probably
+no sense in using generic interfaces here.
+
+## The issues with unit-specific interfaces
+
+However, in many cases, using a specific unit in the interface is counterproductive. Let's consider
+the following function:
+
+```cpp
+quantity<isq::speed[km / h]> avg_speed(quantity<isq::length[km]> distance,
+                                       quantity<isq::time[h]> duration)
+{
+  return distance / duration;
+}
+```
+
+Everything seems fine for now. It also works great if we call it with:
+
+```cpp
+quantity<isq::speed[km / h]> s1 = avg_speed(220 * km, 2 * h);
+```
+
+However, if the user starts doing the following:
+
+```cpp
+quantity<isq::speed[mi / h]> s2 = avg_speed(140 * mi, 2 * h);
+quantity<isq::speed[m / s]> s3 = avg_speed(20 * m, 2 * s);
+```
+
+some issues start to be clearly visible:
+
+1. The arguments must be converted to units mandated by the function's parameters at each call.
+   This involves potentially expensive multiplication/division operations at runtime.
+2. After the function returns the speed in a unit of `km/h`, another potentially expensive
+   multiplication/division operations have to be performed to convert the resulting quantity into
+   a unit being the derived unit of the initial function's arguments.
+3. Besides the obvious runtime cost, some unit conversions may result in a data truncation which
+   means that the result will not be exactly equal to a direct division of the function's arguments.
+4. We have to use a floating-point representation type (the `quantity` class template by default uses
+   `double` as a representation type) which is considered value preserving.
+   Trying to use an integral type in this scenario will work only for `s1`, while `s2` and `s3`
+   will fail to compile. Failing to compile is a good thing here as the library tries to prevent
+   the user from doing a clearly wrong thing. To make the code compile, the user needs to use
+   dedicated `value_cast` or `force_in` like this:
+
+    ```cpp
+    quantity<isq::speed[mi / h]> s2 = avg_speed(value_cast<km>(140 * mi), 2 * h);
+    quantity<isq::speed[m / s]> s3 = avg_speed((20 * m).force_in(km), (2 * s).force_in(h));
+    ```
+
+    but the above will obviously provide an incorrect behavior (e.g. division by `0` in the evaluation
+    of `s3`).
+
+## A naive solution
+
+A naive solution here would be to implement the function as an unconstrained function template:
+
+```cpp
+auto avg_speed(auto distance, auto duration)
+{
+  return distance / duration;
+}
+```
+
+Beware that there are better solutions than this. The above code is too generic. Such a function template
+accepts everything:
+
+- quantities of other types
+    - the compiler will not prevent accidental reordering of the function's arguments
+    - quantities of different types can be passed as well
+- plain `double` arguments
+- `std::vector` and `std::lock_guard` will be accepted as well (of course, this will fail in the
+  function's body later in the compilation process)
+
+## Constraining function template arguments with concepts
+
+Much better generic code can be implemented using basic concepts provided with the library:
+
+```cpp
+auto avg_speed(QuantityOf<isq::length> auto distance,
+               QuantityOf<isq::time> auto duration)
+{
+  return isq::speed(distance / duration);
+}
+```
+
+This explicitly states that the arguments passed by the user must not only satisfy a `Quantity`
+concept but also their quantity specification must be implicitly convertible to `isq::length`
+and `isq::time` accordingly. This no longer leaves room for error while still allowing the compiler
+to generate the most efficient code.
+
+Please note that now it is safe just to use integral types all the way which again improves
+the runtime performance as the multiplication/division operations are often faster on integral rather
+than floating-point types.
+
+## Constraining function template return type
+
+The above function template resolves all of the issues described before. However, we can do even
+better here by additionally constraining the return type:
+
+```cpp
+QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto distance,
+                                      QuantityOf<isq::time> auto duration)
+{
+  return isq::speed(distance / duration);
+}
+```
+
+Doing so has two important benefits:
+
+1. It informs the users of our interface about what to expect to be the result of a function
+   invocation. It is superior to just returning `auto`, which does not provide any hint about
+   the thing being returned there.
+2. Such a concept constrains the type returned from the function. This means that it works as
+   a unit test to verify if our function actually performs what it is supposed to do. If there is
+   an error in quantity equations, we will learn about it right away.
+
+## Constraining a variable on the stack
+
+If we know exactly what the function does in its internals and if we know the exact argument types
+passed to such a function, we often know the exact type that will be returned from its invocation.
+
+However, if we care about performance, we should often use the generic interfaces described in this
+chapter. A side effect is that we sometimes are unsure about the return type. Even if we know it
+today, it might change a week from now due to some code refactoring.
+
+In such cases, we can again use `auto` to denote the type:
+
+```cpp
+auto s1 = avg_speed(220 * km, 2 * h);
+auto s2 = avg_speed(140 * mi, 2 * h);
+auto s3 = avg_speed(20 * m, 2 * s);
+```
+
+In this case, it is probably OK to do so as the `avg_speed` function name explicitly provides
+the information on what to expect as a result.
+
+In other scenarios where the returned quantity type is not so obvious, it is again helpful to
+constrain the type with a concept like so:
+
+```cpp
+QuantityOf<isq::speed> auto s1 = avg_speed(220 * km, 2 * h);
+QuantityOf<isq::speed> auto s2 = avg_speed(140 * mi, 2 * h);
+QuantityOf<isq::speed> auto s3 = avg_speed(20 * m, 2 * s);
+```
+
+Again this explicitly provides additional information about the quantity we are dealing with in
+the code, and it serves as a unit test checking if the "thing" returned from a function is actually
+what we expected here.
+
+## Basic concepts
+
+Here are some more concepts exposed in the library and dependencies between them:
+
+![](img/basic_concepts.svg)
+
+
+# Custom representation types
+
+TBD
+
+- improve safety
+- provide additional info like measurement
+- linear algebra
+- minimal requirements
 - representation type constraints
-- non-negative quantities
 
-
-
-## Dimensionless quantities
-
-# Value conversions
+## Non-negative quantities
 
 # The affine space
 
+The affine space has two types of entities:
 
-# Unit-safe math
+- **_point_** - a position specified with coordinate values (e.g. location, address, etc.)
+- **_vector_** - the difference between two points (e.g. shift, offset, displacement, duration, etc.)
 
+
+The _vector_ described here is specific to the affine space theory and is not the same thing as
+the quantity of a vector character that we discussed in the before (although, in some cases, those
+terms may overlap).
+
+## Operations in the affine space
+
+Here are the primary operations one can do in the affine space:
+
+- _vector_ + _vector_ -> _vector_
+- _vector_ - _vector_ -> _vector_
+- -_vector_ -> _vector_
+- _vector_ * scalar -> _vector_
+- scalar * _vector_ -> _vector_
+- _vector_ / scalar -> _vector_
+- _point_ - _point_ -> _vector_
+- _point_ + _vector_ -> _point_
+- _vector_ + _point_ -> _point_
+- _point_ - _vector_ -> _point_
+
+It is not possible to:
+
+- add two _points_,
+- subtract a _point_ from a _vector_,
+- multiply nor divide _points_ with anything else.
+
+## _Vector_ is modeled by `quantity`
+
+Up until now, each time when we used a `quantity` in our code, we were modeling some kind of a
+difference between two things:
+
+- the distance between two points
+- duration between two time points
+- the difference in speed (even if relative to `0`)
+
+As we already know, a `quantity` type provides all operations required for _vector_ type in
+the affine space.
+
+## _Point_ is modeled by `PointOrigin` and `quantity_point`
+
+In the [@MP-UNITS] library the _point_ abstraction is modelled by:
+
+- `PointOrigin` concept that specifies measurement origin,
+- `quantity_point` class template that specifies a _point_ relative to a specific predefined origin.
+
+### Absolute _point_ origin
+
+The **absolute point origin** specifies where the "zero" of our measurement's scale is. User can
+specify such an origin by deriving from the `absolute_point_origin` class template:
+
+```cpp
+constexpr struct mean_sea_level : absolute_point_origin<isq::altitude> {} mean_sea_level;
+```
+
+### `quantity_point`
+
+The `quantity_point` class template specifies an absolute quantity with respect to an origin:
+
+```cpp
+template<Reference auto R,
+         PointOriginFor<get_quantity_spec(R)> auto PO,
+         RepresentationOf<get_quantity_spec(R).character> Rep = double>
+class quantity_point;
+```
+
+As we can see above, the `quantity_point` class template exposes one additional parameter compared
+to `quantity`. The `PO` parameter satisfies a `PointOriginFor` concept and specifies the origin of
+our measurement scale.
+
+As a _point_ can be represented with a _vector_ from the origin, a `quantity_point` class
+template can be created with the following operations:
+
+```cpp
+quantity_point qp1 = mean_sea_level + 42 * m;
+quantity_point qp2 = 42 * m + mean_sea_level;
+quantity_point qp3 = mean_sea_level - 42 * m;
+```
+
+It is not allowed to subtract a _point_ from a _vector_ thus `42 * m - mean_sea_level` is an
+invalid operation.
+
+Similarly to creation of a quantity, if someone does not like the operator-based syntax to create
+a `quantity_point`, the same results can be achieved with `make_quantity_point` factory function:
+
+```cpp
+quantity_point qp4 = make_quantity_point<mean_sea_level>(42 * m);
+quantity_point qp5 = make_quantity_point<mean_sea_level>(-42 * m);
+```
+
+The provided `quantity` representing an offset from the origin is stored inside the `quantity_point`
+class template and can be obtained with a `quantity_from_origin()` member function:
+
+```cpp
+constexpr quantity_point everest_base_camp_alt = mean_sea_level + isq::altitude(5364 * m);
+static_assert(everest_base_camp_alt.quantity_from_origin() == 5364 * m);
+```
+
+### Relative _point_ origin
+
+We often do not have only one ultimate "zero" point when we measure things.
+
+Continuing the Mount Everest trip example above, measuring all daily hikes from the `mean_sea_level`
+might not be efficient. Maybe we know that we are not good climbers, so all our climbs can be
+represented with an 8-bit integer type allowing us to save memory in our database of climbs?
+Why not use `everest_base_camp_alt` as our reference point?
+
+For this purpose, we can define a `relative_point_origin` in the following way:
+
+```cpp
+constexpr struct everest_base_camp : relative_point_origin<everest_base_camp_alt> {} everest_base_camp;
+```
+
+The above can be used as an origin for subsequent _points_:
+
+```cpp
+constexpr quantity_point first_climb_alt = everest_base_camp + isq::altitude(std::uint8_t{42} * m);
+static_assert(first_climb_alt.quantity_from_origin() == 42 * m);
+```
+
+As we can see above, the `quantity_from_origin()` member function returns a relative distance from
+the current point origin. In case we would like to know the absolute altitude that we reached on
+this climb, we can subtract the absolute point origin from the current _point_:
+
+```cpp
+static_assert(first_climb_alt - mean_sea_level == 5406 * m);
+static_assert(first_climb_alt - first_climb_alt.absolute_point_origin == 5406 * m);
+```
+
+### Converting between different representations of the same _point_
+
+As we might represent the same _point_ with _vectors_ from various origins, the **mp-units** library
+provides facilities to convert the _point_ to the `quantity_point` class templates expressed in terms
+of different origins.
+
+For this purpose, we can either use:
+
+- a converting constructor:
+
+    ```cpp
+    constexpr quantity_point<isq::altitude[m], mean_sea_level, int> qp = first_climb_alt;
+    static_assert(qp.quantity_from_origin() == 5406 * m);
+    ```
+
+- a dedicated conversion interface:
+
+    ```cpp
+    constexpr quantity_point qp = first_climb_alt.point_for(mean_sea_level);
+    static_assert(qp.quantity_from_origin() == 5406 * m);
+    ```
+
+It is only allowed to convert between various origins defined in terms of the same
+`absolute_point_origin`. Even if it is possible to express the same _point_ as a _vector_
+from another `absolute_point_origin`, the library will not provide such a conversion.
+A custom user-defined conversion function will be needed to add this functionality.
+
+Said otherwise, in the [@MP-UNITS] library, there is no way to spell how two distinct
+`absolute_point_origin` types relate to each other.
+
+### _Point_ arithmetics
+
+Let's assume we will attend the CppCon conference hosted in Aurora, CO, and we want to estimate
+the distance we will travel. We have to take a taxi to a local airport, fly to DEN airport with
+a stopover in FRA, and, in the end, get a cab to the Gaylord Rockies Resort & Convention Center:
+
+```cpp
+constexpr struct home : absolute_point_origin<isq::distance> {} home;
+
+quantity_point<isq::distance[km], home> home_airport = home + 15 * km;
+quantity_point<isq::distance[km], home> fra_airport = home_airport + 829 * km;
+quantity_point<isq::distance[km], home> den_airport = fra_airport + 8115 * km;
+quantity_point<isq::distance[km], home> cppcon_venue = den_airport + 10.1 * mi;
+```
+
+As we can see above, we can easily get a new point by adding a quantity to an origin or another
+quantity point.
+
+If we want to find out the distance traveled between two points, we simply subtract them:
+
+```cpp
+quantity<isq::distance[km]> total = cppcon_venue - home;
+quantity<isq::distance[km]> flight = den_airport - home_airport;
+```
+
+If we would like to find out the total distance traveled by taxi as well, we have to do a bit
+more calculations:
+
+```cpp
+quantity<isq::distance[km]> taxi1 = home_airport - home;
+quantity<isq::distance[km]> taxi2 = cppcon_venue - den_airport;
+quantity<isq::distance[km]> taxi = taxi1 + taxi2;
+```
+
+Now, if we print the results:
+
+```cpp
+std::cout << "Total distance:  " << total << "\n";
+std::cout << "Flight distance: " << flight << "\n";
+std::cout << "Taxi distance:   " << taxi << "\n";
+```
+
+we will see the following output:
+
+```text
+Total distance:  8975.25 km
+Flight distance: 8944 km
+Taxi distance:   31.2544 km
+```
+
+It is not allowed to subtract two point origins defined in terms of `absolute_point_origin`
+(e.g. `mean_sea_level - mean_sea_level`) as those do not contain information about the unit
+so we are not able to determine a resulting `quantity` type.
+
+### Temperature support
+
+Another important example of relative point origins is support of temperature quantity points in
+units different than kelvin [`K`].
+
+The [@SI] definition in the [@MP-UNITS] library provides two predefined point origins:
+
+```cpp
+namespace si {
+
+inline constexpr struct absolute_zero : absolute_point_origin<isq::thermodynamic_temperature> {} absolute_zero;
+inline constexpr struct ice_point : relative_point_origin<absolute_zero + 273.15 * kelvin> {} ice_point;
+
+}
+```
+
+With the above, we can be explicit what is the origin of our temperature point. For example, if
+we want to implement the degree Celsius scale we can do it as follows:
+
+```cpp
+using Celsius_point = quantity_point<isq::Celsius_temperature[deg_C], si::ice_point>;
+```
+
+Notice that while stacking point origins, we can use not only different representation types
+but also different units for an origin and a _point_. In the above example, the relative
+point origin is defined in terms of `si::kelvin`, while the quantity point uses
+`si::degree_Celsius`.
+
+To play a bit with temperatures we can implement a simple room's AC temperature controller in
+the following way:
+
+```cpp
+constexpr struct room_reference_temp : relative_point_origin<si::ice_point + 21 * deg_C> {} room_reference_temp;
+using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
+
+constexpr auto step_delta = isq::Celsius_temperature(0.5 * deg_C);
+constexpr int number_of_steps = 6;
+
+room_temp room_low = room_reference_temp - number_of_steps * step_delta;
+room_temp room_high = room_reference_temp + number_of_steps * step_delta;
+
+std::println("| {:<14} | {:^18} | {:^18} | {:^18} |", "Temperature", "Room reference", "Ice point", "Absolute zero");
+std::println("|{0:=^16}|{0:=^20}|{0:=^20}|{0:=^20}|", "");
+
+auto print = [&](std::string_view label, auto v){
+  std::println("| {:<14} | {:^18} | {:^18} | {:^18} |",
+               label, v - room_reference_temp, v - si::ice_point, v - si::absolute_zero);
+};
+
+print("Lowest", room_low);
+print("Default", room_reference_temp);
+print("Highest", room_high);
+```
+
+The above prints:
+
+```text
+| Temperature    |   Room reference   |     Ice point      |   Absolute zero    |
+|================|====================|====================|====================|
+| Lowest         |       -3 °C        |       18 °C        |     291.15 °C      |
+| Default        |        0 °C        |       21 °C        |     294.15 °C      |
+| Highest        |        3 °C        |       24 °C        |     297.15 °C      |
+```
+
+### No text output for _points_
+
+The library does not provide a text output for quantity points, as printing just a number and a unit
+is not enough to adequately describe a quantity point. Often, an additional postfix is required.
+
+For example, the text output of `42 m` may mean many things and can also be confused with an output
+of a regular quantity. On the other hand, printing `42 m AMSL` for altitudes above mean sea level is
+a much better solution, but the library does not have enough information to print it that way by itself.
+
+## The affine space is about type-safety
+
+The following operations are not allowed in the affine space:
+
+- **adding** two `quantity_point` objects
+    - It is physically impossible to add positions of home and Denver airports.
+- **subtracting** a `quantity_point` from a `quantity`
+    - What would it mean to subtract DEN airport location from the distance to it?
+- **multiplying/dividing** a `quantity_point` with a scalar
+    - What is the position of `2 *` DEN airport location?
+- **multiplying/dividing** a `quantity_point` with a quantity
+    - What would multiplying the distance with the DEN airport location mean?
+- **multiplying/dividing** two `quantity_point` objects
+    - What would multiplying home and DEN airport location mean?
+- **mixing** `quantity_points` of different quantity kinds
+    - It is physically impossible to subtract time from length.
+- **mixing** `quantity_points` of inconvertible quantities
+    - What does it mean to subtract a distance point to DEN airport from the Mount Everest base camp
+      altitude?
+- **mixing** `quantity_points` of convertible quantities but with unrelated origins
+    - How to subtract a point on our trip to CppCon measured relatively to our home location from
+      a point measured relative to the center of the Solar System?
+
+The usage of `quantity_point` and affine space types in general, improves expressiveness and
+type-safety of the code we write.
 
 
 # Acknowledgements
