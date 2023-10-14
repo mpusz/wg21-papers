@@ -518,6 +518,18 @@ The `kind_of<isq::length>` above states explicitly that this unit has an associa
 kind. In other words, `si::metre` (and scaled units based on it) can be used to express
 the amount of any quantity of kind length.
 
+Associated units are so useful and common in the [@MP-UNITS] library that they got their
+own concepts `AssociatedUnit<T>` to improve the interfaces.
+
+Please note that for some systems of units (i.e. natural units) a unit may not have an
+associated quantity type. For example, if we assume speed of light constant `c = 1` we can
+define a system where both length and time will be measured in seconds and speed will be
+a quantity measured with the unit `one`. In such case the definition will look as follows:
+
+```cpp
+inline constexpr struct second : named_unit<"s"> {} second;
+```
+
 ## Units compose
 
 One of the strongest points of the [@SI] system is that its units compose. This allows providing
@@ -530,6 +542,14 @@ quantity<si::metre / si::second> q;
 
 to express a quantity of speed. The resulting quantity type is implicitly inferred from
 the unit equation by repeating exactly the same operations on the associated quantity kinds.
+
+Also, as units are regular values we can easily provide a helper ad-hoc unit with:
+
+```cpp
+constexpr auto mps = si::metre / si::second;
+quantity<mps> q;
+```
+
 
 ## Many shades of the same unit
 
@@ -660,6 +680,33 @@ inline constexpr struct mag_pi : magnitude<std::numbers::pi_v<long double>> {} m
 ```cpp
 inline constexpr struct degree : named_unit<basic_symbol_text{"°", "deg"}, mag_pi / mag<180> * si::radian> {} degree;
 ```
+
+## Unit symbols
+
+In the [@MP-UNITS] library units are available via their full names or through their short symbols.
+To use a long version it is enough to type:
+
+```cpp
+#include <mp-units/systems/si/si.h>
+
+using namespace mp_units;
+
+quantity q = 42 * si::metre;
+```
+
+The same can be obtained using an optional unit symbol:
+
+```cpp
+#include <mp-units/systems/si/si.h>
+
+using namespace mp_units;
+using namespace mp_units::si::unit_symbols;
+
+quantity q = 42 * m;
+```
+
+Unit symbols introduce a lot of short identifiers into the current namespace, and that is why they
+are opt-in. A user has to explicitly "import" them from a dedicated `unit_symbols` namespace.
 
 
 # Operations on units, dimensions, and quantity types
@@ -1182,25 +1229,430 @@ potential confusion. Also, it is really hard to mathematically prove that unit m
 representation that we us in the library is greater or smaller than the other one in some cases.
 
 
-# Quantity references
-
-## Associated units
-
-# Value conversions
-
-
-
 # Quantities
 
-- quantity constructors and conversions (value preserving approach)
+`quantity` class template is the workhorse of the library. It can be considered a generalization
+of `std::chrono::duration`, but is not directly compatible with it.
+
+## Quantity references
+
+_Note: we know that probably the term "reference" will not survive too long in the Committee,
+but we couldn't find a better name for it in the [@MP-UNITS] library._
+
+[@ISO-GUIDE] says:
+
+> **quantity** - property of a phenomenon, body, or substance, where the property has a magnitude
+> that can be expressed as a number and a reference. ...
+> A reference can be a measurement unit, a measurement procedure, a reference material, or
+> a combination of such.
+
+In the [@MP-UNITS] library a quantity reference represents all the domain-specific meta-data about
+the quantity besides its representation type and its value. A `Reference` concept is
+satisfied by either of:
+
+- an associated unit (e.g. `si::metre`),
+- an instantiation of the `reference<QuantitySpec, Unit>` class template explicitly specifying
+  the quantity type and its unit.
+
+A reference type is implicitly created as a result of the following expression:
+
+```cpp
+using namespace mp_units::si::unit_symbols;
+constexpr auto ref = isq::height[m];
+```
+
+The above example resulted in the following type `reference<isq::height, si::metre>` being
+instantiated.
+
+Reference class template also exposes arithmetic interface similar to the one that we have
+already discussed in case of units and quantity types. It just simply forwards the operation
+to its quantity type an units members. For example:
+
+```cpp
+template<QuantitySpec auto Q, Unit auto U>
+struct reference {
+  template<auto Q2, auto U2>
+  [[nodiscard]] friend consteval bool operator==(reference, reference<Q2, U2>)
+  {
+    return Q == Q2 && U == U2;
+  }
+
+  template<AssociatedUnit U2>
+  [[nodiscard]] friend consteval bool operator==(reference, U2 u2)
+  {
+    return Q == get_quantity_spec(u2) && U == u2;
+  }
+
+  template<auto Q2, auto U2>
+  [[nodiscard]] friend consteval reference<Q * Q2, U * U2> operator*(reference, reference<Q2, U2>)
+  {
+    return {};
+  }
+
+  template<AssociatedUnit U2>
+  [[nodiscard]] friend consteval reference<Q * get_quantity_spec(U2{}), U * U2{}> operator*(reference, U2)
+  {
+    return {};
+  }
+
+  // ...
+};
+```
+
+Please note that all of the operators work on two `reference` instantiations, or one its
+instantiation and an `AssociatedUnit`.
+
+## `quantity` class template
+
+Based on the ISO definition above, the `quantity` class template has the following signature:
+
+```cpp
+template<Reference auto R, RepresentationOf<get_quantity_spec(R).character> Rep = double>
+class quantity;
+```
+
+It has only one data member of `Rep` type. Unfortunately, this data member is publicly exposed
+to satisfy the C++ language requirements for structural types. Hopefully, the language rules
+for structural types will improve with time before this library gets standardized.
+
+## Quantity construction helpers
+
+As we already noticed in many examples above a numerical value multiplied or divided by
+the `Reference` creates the value of `quantity` class template with the representation type
+and reference deduced from the types used in the expression.
+
+We have a few options to choose from here:
+
+- simple quantities (quantities of a quantity kind)
+
+```cpp
+quantity<si::metre / si::second, int> q1 = 42 * m / s;
+quantity q2 = 42 * m / s;
+
+static_assert(std::is_same_v<decltype(q1), decltype(q2)>);
+static_assert(q1.quantity_spec == kind_of<isq::length / isq::time>);
+```
+
+- typed quantities
+
+```cpp
+quantity<isq::speed[si::metre / si::second], int> q3 = 42 * m / s;
+quantity q4 = 42 * isq::speed[m / s];
+quantity q5 = isq::speed(42 * m / s);
+
+static_assert(std::is_same_v<decltype(q3), decltype(q4)>);
+static_assert(std::is_same_v<decltype(q3), decltype(q5)>);
+static_assert(q3.quantity_spec == isq::speed);
+```
+
+In case someone doesn't like the multiply syntax or there is an ambiguity between `operator*`
+provided by this and other libraries, a quantity can also be created with a dedicated factory
+function:
+
+```cpp
+quantity q = make_quantity<isq::speed[m / s]>(42);
+```
+
+## Quantity constructors and value conversions
+
+`quantity` class template has a converting constructor that participates in the overload resolution
+only when:
+
+- source quantity specification is implicitly convertible to the destination one,
+- both units share the same reference unit,
+- the resulting value conversion will be value-preserving.
+
+Additionally, this constructor becomes explicit if the source representation type is not convertible
+to the destination one.
+
+### Value-preserving conversions
+
+As of today, the [@MP-UNITS] library follows [the rules of `std::chrono::duration` for
+value-preserving conversions](https://en.cppreference.com/w/cpp/chrono/duration/duration).
+We realize that some time has passed now and maybe we can improve in this domain. However,
+to our knowledge, as of today, we do not have any tools we could use in the C++ Standard to
+improve that.
+
+Below we describe the current approach.
+
+```cpp
+auto q1 = 5 * km;
+std::cout << q1.in(m) << '\n';
+quantity<si::metre, int> q2 = q1;
+```
+
+The second line above converts the current quantity to the one expressed in metres and prints its
+contents. The third line converts the quantity expressed in kilometers into the one measured in
+metres.
+
+In both cases we assume that one can convert a quantity into another one with a unit of a higher
+resolution. There is no protection against overflow of the representation type. In case the target
+quantity ends up with a value bigger than the representation type can handle, we will be facing
+Undefined Behavior.
+
+If we try similar, but this time opposite, operations to the above, both conversions should fail
+to compile:
+
+```cpp
+auto q1 = 5 * m;
+std::cout << q1.in(km) << '\n';              // Compile-time error
+quantity<si::kilo<si::metre>, int> q2 = q1;  // Compile-time error
+```
+
+We can't preserve the value of a source quantity when we convert it to a one using the unit of
+a lower resolution while dealing with an integral representation type for a quantity.
+In the example above, converting `5` meters would result in `0` kilometers if internal conversion
+is performed using regular integer arithmetic.
+
+While this could be a valid behavior, the problem arises when the user expects to be able to convert
+the quantity back to the original unit without loss of information.
+So the library should prevent such conversions from happening implicitly; whether the library
+should offer explicitly marked unsafe conversions for these cases is yet to be discussed.
+
+To make the above conversions compile, we could use a floating-point representation type:
+
+```cpp
+auto q1 = 5. * m;    // source quantity uses `double` as a representation type
+std::cout << q1.in(km) << '\n';
+quantity<si::kilo<si::metre>> q2 = q1;
+```
+
+or:
+
+```cpp
+auto q1 = 5 * m;     // source quantity uses `int` as a representation type
+std::cout << value_cast<double>(q1).in(km) << '\n';
+quantity<si::kilo<si::metre>> q2 = q1;  // double by default
+```
+
+_The [@MP-UNITS] library follows `std::chrono::duration` logic and treats floating-point types as
+value-preserving._
+
+### Value-truncating conversions
+
+Another possibility would be to force such a truncating conversion explicitly from the code:
+
+```cpp
+auto q1 = 5 * m;     // source quantity uses `int` as a representation type
+std::cout << q1.force_in(km) << '\n';
+quantity<si::kilo<si::metre>, int> q2 = value_cast<km>(q1);
+```
+
+The code above makes it clear that "something bad" may happen here if we are not extra careful.
+
+Another case for truncation happens when we assign a quantity with a floating-point representation
+type to the one using an integral representation type for its value:
+
+```cpp
+auto q1 = 2.5 * m;
+quantity<si::metre, int> q2 = q1;
+```
+
+Such an operation should fail to compile as well. Again, to force such a truncation, we have to
+be explicit in the code:
+
+```cpp
+auto q1 = 2.5 * m;
+quantity<si::metre, int> q2 = value_cast<int>(q1);
+```
+
+As we can see, it is essential not to allow such truncating conversions to happen implicitly
+and a good physical quantities and units library should fail at compile time in case a user makes
+such a mistake.
+
+## Character of a quantity
+
+This chapter is just a short preview to the feature that will get its own paper in the future if
+the Committee is interested in exploring this path.
+
+### Scalars, vectors, and tensors
+
+[@ISO80000] explicitly states:
+
+> Scalars, vectors and tensors are mathematical objects that can be used to denote certain physical
+> quantities and their values. They are as such independent of the particular choice of a coordinate
+> system, whereas each scalar component of a vector or a tensor and each component vector and
+> component tensor depend on that choice.
+
+Such distinction is important because each quantity character represents different properties
+and allows different operations to be done on its quantities.
+
+For example, imagine a physical units library that allows the creation of a `speed` quantity from both
+`length / time` and `length * time`. It wouldn't be too safe to use such a product, right?
+
+Now we have to realize that both of the above operations (multiplication and division) are not even
+mathematically defined for linear algebra types such as vectors or tensors. On the other hand, two vectors
+can be passed as arguments to dot and cross-product operations. The result of the first one is
+a scalar. The second one results in a vector that is perpendicular to both vectors passed as arguments.
+Again, it wouldn't be safe to allow replacing those two operations with each other or expect the same
+results from both cases. This simply can't work.
+
+### ISQ defines quantities of all characters
+
+While defining quantities ISO 80000 explicitly mentions when a specific quantity has a vector or tensor
+character. Here are some examples:
+
+| Quantity               |  Character   |                 Quantity Equation                 |
+|------------------------|:------------:|:-------------------------------------------------:|
+| `duration`             |    scalar    |                 _{base quantity}_                 |
+| `mass`                 |    scalar    |                 _{base quantity}_                 |
+| `length`               |    scalar    |                 _{base quantity}_                 |
+| `path_length`          |    scalar    |                 _{base quantity}_                 |
+| `radius`               |    scalar    |                 _{base quantity}_                 |
+| `position_vector`      |  **vector**  |                 _{base quantity}_                 |
+| `velocity`             |  **vector**  |           `position_vector / duration`            |
+| `acceleration`         |  **vector**  |               `velocity / duration`               |
+| `force`                |  **vector**  |               `mass * acceleration`               |
+| `power`                |    scalar    |                `force ⋅ velocity`                 |
+| `moment_of_force`      |  **vector**  |             `position_vector × force`             |
+| `torque`               |    scalar    |         `moment_of_force ⋅ {unit-vector}`         |
+| `surface_tension`      |    scalar    |                `|force| / length`                 |
+| `angular_displacement` |    scalar    |              `path_length / radius`               |
+| `angular_velocity`     |  **vector**  | `angular_displacement / duration * {unit-vector}` |
+| `momentum`             |  **vector**  |                 `mass * velocity`                 |
+| `angular_momentum`     |  **vector**  |           `position_vector × momentum`            |
+| `moment_of_inertia`    | **_tensor_** |       `angular_momentum ⊗ angular_velocity`       |
+
+In the above equations:
+
+- `a * b` - regular multiplication where one of the arguments has to be scalar
+- `a / b` - regular division where the divisor has to be scalar
+- `a ⋅ b` - dot product of two vectors
+- `a × b` - cross product of two vectors
+- `|a|` - magnitude of a vector
+- `{unit-vector}` - a special vector with the magnitude of `1`
+- `a ⊗ b` - tensor product of two vectors or tensors
+
+As of now, all of the C++ physical units libraries on the market besides [@MP-UNITS] do not
+support the operations mentioned above. They expose only multiplication and division operators,
+which do not work for linear algebra-based representation types. If a user of those libraries
+would like to create the quantities provided in the above table properly, this would result in
+a compile-time error stating that multiplication and division of two linear algebra vectors is
+impossible.
+
+Outside of C++ only [@PINT] provides a great support in this domain.
+
+### Characters don't apply to dimensions and units
+
+[@ISO80000] explicitly states that dimensions are orthogonal to quantity characters:
+
+> In deriving the dimension of a quantity, no account is taken of its scalar, vector, or tensor character.
+
+Also, it explicitly states that:
+
+> All units are scalars.
+
+### Defining vector and tensor quantities
+
+To specify that a specific quantity has a vector or tensor character a value of `quantity_character`
+enumeration can be appended to the `quantity_spec` describing such a quantity type:
+
+```cpp
+inline constexpr struct position_vector : quantity_spec<length, quantity_character::vector> {} position_vector;
+inline constexpr struct displacement : quantity_spec<length, quantity_character::vector> {} displacement;
+```
+
+With the above, all the quantities derived from `position_vector` or `displacement` will have a
+correct character determined according to the kind of operations included in the quantity equation
+defining a derived quantity.
+
+For example, `velocity` in the below definition will be defined as a vector quantity (no explicit
+character override is needed):
+
+```cpp
+inline constexpr struct velocity : quantity_spec<speed, position_vector / duration> {} velocity;
+```
+
+### Representation types for vector and tensor quantities
+
+As we specified before, the `quantity` class template is defined as follows:
+
+```cpp
+template<Reference auto R,
+         RepresentationOf<get_quantity_spec(R).character> Rep = double>
+class quantity;
+```
+
+The second template parameter is constrained with a `RepresentationOf` concept that checks if
+the provided representation type satisfies the requirements for the character associated with this
+quantity type.
+
+Unfortunately, the current version of the C++ Standard Library does not provide any types that could
+be used as a representation type for vector and tensor quantities. This is why users are on their
+own here.
+
+However, thanks to the provided customization points, any linear algebra library types can be used
+as a vector or tensor quantity representation type.
+
+To enable the usage of a user-defined type as a representation type for vector or tensor quantities,
+user needs to provide a partial specialization of `is_vector` or `is_tensor` customization points.
+
+For example, here is how it can be done for the [P1385](https://wg21.link/p1385) types:
+
+```cpp
+#include <matrix>
+
+using la_vector = STD_LA::fixed_size_column_vector<double, 3>;
+
+template<>
+inline constexpr bool mp_units::is_vector<la_vector> = true;
+```
+
+With the above, we can use `la_vector` as a representation type for our quantity:
+
+```cpp
+Quantity auto q = la_vector{1, 2, 3} * isq::velocity[m / s];
+```
+
+Pleas note, that the following does not work:
+
+```cpp
+Quantity auto q1 = la_vector{1, 2, 3} * m / s;
+Quantity auto q2 = isq::velocity(la_vector{1, 2, 3} * m / s);
+quantity<isq::velocity[m/s]> q3{la_vector{1, 2, 3} * m / s};
+```
+
+In all the cases above, the SI unit `m / s` has an associated scalar quantity of
+`isq::length / isq::time`. `la_vector` is not a correct representation type for a scalar quantity
+so the construction fails.
+
+### Hacking the character
+
+Sometimes we want to use a vector quantity, but we don't care about its direction. For example,
+the standard gravity acceleration constant always points down, so we might not care about this
+in a particular scenario. In such a case, we may want to "hack" the library to allow scalar types
+to be used as a representation type for scalar quantities.
+
+For example, we can do the following:
+
+```cpp
+template<class T>
+  requires mp_units::is_scalar<T>
+inline constexpr bool mp_units::is_vector<T> = true;
+```
+
+which says that every type that can be used as a scalar representation is also allowed for vector
+quantities.
+
+Doing the above is actually not such a big "hack" as the [@ISO80000] explicitly allows it:
+
+> A vector is a tensor of the first order and a scalar is a tensor of order zero.
+
+Despite it being allowed by [@ISO80000], for type-safety reasons, we do not allow such a behavior
+by default, and a user has to opt into such scenarios explicitly.
+
+
 - exceptions and special cases for dimensionless quantities
 - quantity arithmetics + quirks of modulo arithmetic and integral division
 - custom representation types (improve safety, provide additional info like measurement, linear algebra, minimal requirements)
 - representation type constraints
-- vector quantities and their operations
 - non-negative quantities
 
+
+
 ## Dimensionless quantities
+
+# Value conversions
 
 # The affine space
 
@@ -1241,6 +1693,10 @@ references:
   citation-label: mp-units
   title: "mp-units - A Physical Quantities and Units library for C++"
   URL: <https://mpusz.github.io/mp-units>
+- id: PINT
+  citation-label: Pint
+  title: "Pint: makes units easy"
+  URL: <https://pint.readthedocs.io/en/stable/index.html>
 - id: SI
   citation-label: SI
   title: "SI Brochure: The International System of Units (SI)"
