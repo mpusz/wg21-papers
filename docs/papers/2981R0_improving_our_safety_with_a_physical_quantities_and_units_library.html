@@ -459,12 +459,12 @@ Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateus
 <li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">1</span> Introduction<span></span></a></li>
 <li><a href="#terms-and-definitions" id="toc-terms-and-definitions"><span class="toc-section-number">2</span>
 Terms and definitions<span></span></a></li>
-<li><a href="#the-future-is-here" id="toc-the-future-is-here"><span class="toc-section-number">3</span> The Future Is
-Here<span></span></a></li>
+<li><a href="#the-future-is-here" id="toc-the-future-is-here"><span class="toc-section-number">3</span> The future is
+here<span></span></a></li>
 <li><a href="#affected-industries" id="toc-affected-industries"><span class="toc-section-number">4</span> Affected
-Industries<span></span></a></li>
+industries<span></span></a></li>
 <li><a href="#mismeasure-for-measure" id="toc-mismeasure-for-measure"><span class="toc-section-number">5</span> Mismeasure for
-Measure<span></span></a></li>
+measure<span></span></a></li>
 <li><a href="#common-smells-when-there-is-no-library-for-physical-quantities" id="toc-common-smells-when-there-is-no-library-for-physical-quantities"><span class="toc-section-number">6</span> Common smells when there is no
 library for physical quantities<span></span></a>
 <ul>
@@ -479,7 +479,7 @@ consistency<span></span></a></li>
 <li><a href="#lack-of-a-conceptual-framework" id="toc-lack-of-a-conceptual-framework"><span class="toc-section-number">6.5</span> Lack of a conceptual
 framework<span></span></a></li>
 </ul></li>
-<li><a href="#safety-features" id="toc-safety-features"><span class="toc-section-number">7</span> Safety Features<span></span></a>
+<li><a href="#safety-features" id="toc-safety-features"><span class="toc-section-number">7</span> Safety features<span></span></a>
 <ul>
 <li><a href="#unit-conversions" id="toc-unit-conversions"><span class="toc-section-number">7.1</span> Unit
 conversions<span></span></a></li>
@@ -513,7 +513,7 @@ quantities<span></span></a></li>
 <li><a href="#vector-and-tensor-quantities" id="toc-vector-and-tensor-quantities"><span class="toc-section-number">7.10</span> Vector and tensor
 quantities<span></span></a></li>
 </ul></li>
-<li><a href="#safety-pitfalls" id="toc-safety-pitfalls"><span class="toc-section-number">8</span> Safety Pitfalls<span></span></a>
+<li><a href="#safety-pitfalls" id="toc-safety-pitfalls"><span class="toc-section-number">8</span> Safety pitfalls<span></span></a>
 <ul>
 <li><a href="#integer-division" id="toc-integer-division"><span class="toc-section-number">8.1</span> Integer
 division<span></span></a></li>
@@ -553,7 +553,7 @@ library.</em></p>
 <p>This document consistently uses the official metrology vocabulary
 defined in the <span class="citation" data-cites="ISO-GUIDE">[<a href="#ref-ISO-GUIDE" role="doc-biblioref">ISO/IEC Guide 99</a>]</span>
 and <span class="citation" data-cites="BIPM-VIM">[<a href="#ref-BIPM-VIM" role="doc-biblioref">JCGM 200:2012</a>]</span>.</p>
-<h1 data-number="3" id="the-future-is-here"><span class="header-section-number">3</span> The Future Is Here<a href="#the-future-is-here" class="self-link"></a></h1>
+<h1 data-number="3" id="the-future-is-here"><span class="header-section-number">3</span> The future is here<a href="#the-future-is-here" class="self-link"></a></h1>
 <p>Not that long ago, self-driving cars were a thing from SciFi movies.
 It was something so futuristic and hard to imagine that it only appeared
 in movies set in the very far future. Today, autonomous cars are
@@ -575,7 +575,7 @@ change fast enough to enforce a safe-by-construction code, which becomes
 even more critical if the code handling the physical computation is
 written by domain experts such as physicists that are not necessarily
 fluent in C++.</p>
-<h1 data-number="4" id="affected-industries"><span class="header-section-number">4</span> Affected Industries<a href="#affected-industries" class="self-link"></a></h1>
+<h1 data-number="4" id="affected-industries"><span class="header-section-number">4</span> Affected industries<a href="#affected-industries" class="self-link"></a></h1>
 <p>When people think about industries that could use physical quantities
 and unit libraries, they think of a few companies related to aerospace,
 autonomous cars, or embedded industries. That is all true, but there are
@@ -605,7 +605,7 @@ standard or domain-specific quantities, could benefit from a zero-cost
 abstraction for operating on quantity values and their units. The
 library also provides affine space abstractions, which may prove useful
 in many other domains.</p>
-<h1 data-number="5" id="mismeasure-for-measure"><span class="header-section-number">5</span> Mismeasure for Measure<a href="#mismeasure-for-measure" class="self-link"></a></h1>
+<h1 data-number="5" id="mismeasure-for-measure"><span class="header-section-number">5</span> Mismeasure for measure<a href="#mismeasure-for-measure" class="self-link"></a></h1>
 <p>Human history knows many expensive failures and accidents caused by
 mistakes in calculations involving different physical units. The most
 famous and probably the most expensive example in the software
@@ -821,7 +821,7 @@ These are weak types that make up weakly-typed interfaces. The resulting
 interfaces and implementations built with these types easily allow
 mixing up parameters and using operations that are not part of the
 represented quantity.</p>
-<h1 data-number="7" id="safety-features"><span class="header-section-number">7</span> Safety Features<a href="#safety-features" class="self-link"></a></h1>
+<h1 data-number="7" id="safety-features"><span class="header-section-number">7</span> Safety features<a href="#safety-features" class="self-link"></a></h1>
 <p>This chapter describes the features that enforce safety in our code
 bases. It starts with obvious things but then it moves to probably less
 known benefits of using physical quantities and units libraries. This
@@ -1543,7 +1543,7 @@ fundamental types.</em></p>
 compile-time safety of the library by ensuring that quantities are
 created with proper quantity equations and are using correct
 representation types.</p>
-<h1 data-number="8" id="safety-pitfalls"><span class="header-section-number">8</span> Safety Pitfalls<a href="#safety-pitfalls" class="self-link"></a></h1>
+<h1 data-number="8" id="safety-pitfalls"><span class="header-section-number">8</span> Safety pitfalls<a href="#safety-pitfalls" class="self-link"></a></h1>
 <h2 data-number="8.1" id="integer-division"><span class="header-section-number">8.1</span> Integer division<a href="#integer-division" class="self-link"></a></h2>
 <p>The physical units library can’t do any runtime branching logic for
 the division operator. All logic has to be done at compile-time when the

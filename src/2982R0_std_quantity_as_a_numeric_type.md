@@ -29,7 +29,7 @@ This document consistently uses the official metrology vocabulary defined in the
 and [@BIPM-VIM].
 
 
-# Systems of Quantities
+# Systems of quantities
 
 The physical units libraries on the market typically only focus on modeling one or more
 systems of units. However, this is not the only system kind to model. Another, and maybe
@@ -490,7 +490,7 @@ specifier in the `quantity_spec` definition can be put as a template parameter t
 specifier. For example, `kind_of<isq::width>` will fail to compile.
 
 
-# Systems of Units
+# Systems of units
 
 Modeling a system of units is the most important feature and a selling point of every
 physical units library. Thanks to that, the library can protect users from performing invalid
@@ -944,7 +944,7 @@ The above program will produce the following types for acceleration quantities
 
 ## Scaled units
 
-### Unit Magnitudes
+### Unit magnitudes
 
 TBD
 
@@ -1182,11 +1182,11 @@ potential confusion. Also, it is really hard to mathematically prove that unit m
 representation that we us in the library is greater or smaller than the other one in some cases.
 
 
-# Quantity References
+# Quantity references
 
-## Associated Units
+## Associated units
 
-# Value Conversions
+# Value conversions
 
 
 
@@ -1200,12 +1200,12 @@ representation that we us in the library is greater or smaller than the other on
 - vector quantities and their operations
 - non-negative quantities
 
-## Dimensionless Quantities
+## Dimensionless quantities
 
 # The affine space
 
 
-# Math CPOs
+# Unit-safe math
 
 
 

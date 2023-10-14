@@ -50,7 +50,7 @@ This document consistently uses the official metrology vocabulary defined in the
 and [@BIPM-VIM].
 
 
-# About Authors
+# About authors
 
 ## Dominik Berner
 
@@ -391,7 +391,7 @@ efforts hoping that the ISO C++ Committee will be willing to include such a feat
 the C++ standard library.
 
 
-# Design Goals
+# Design goals
 
 The library facilities that we plan to propose in the upcoming papers will be designed with
 the following goals in mind.
@@ -445,7 +445,7 @@ at least:
 - Faster-than-lightspeed constants,
 - Highly adjustable text-output formatting.
 
-## Easy to Extend
+## Easy to extend
 
 Most entities in the library should be possible to be defined with a single line of code with
 no need to use preprocessor macros. Users should be able to easily extend provided systems with custom
@@ -466,7 +466,7 @@ Most proposed features (besides text output) should be possible to be standardiz
 part of the C++ standard library.
 
 
-# Look and Feel
+# Look and feel
 
 _Note: The code examples presented in this paper may not exactly reflect the final interface
 design that is going to be proposed in the follow-up papers. We are still doing some small
@@ -508,7 +508,7 @@ static_assert(1000 / (1 * s) == 1 * kHz);
 
 Try it in [the Compiler Explorer](https://godbolt.org/z/sYfoPzTvT).
 
-## Hello Units
+## Hello units
 
 The next example serves as a showcase of various features available in the [@MP-UNITS] library.
 
@@ -647,7 +647,7 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 
 Try it in [the Compiler Explorer](https://godbolt.org/z/c17TWGhc5).
 
-## Storage Tank
+## Storage tank
 
 This example estimates the process of filling a storage tank with some contents. It presents:
 
@@ -878,7 +878,7 @@ _Note: The priorities provided in the below tables are the recommendations by au
 experience in the domain but are in no way final. This is just an entry point for the discussion
 in the Committee._
 
-## Basic Framework
+## Basic framework
 
 <!-- markdownlint-disable MD013 -->
 
@@ -926,7 +926,7 @@ providing support for the following features (based on our current implementatio
 - Polymorphic unit
     - the design is TBD
 
-## The Affine Space
+## The affine space
 
 <!-- markdownlint-disable MD013 -->
 
@@ -944,7 +944,7 @@ In the above table:
 - Relative point origin is a compile-time constant defining an origin relative to previously defined
   absolute point origin.
 
-## Text Output
+## Text output
 
 <!-- markdownlint-disable MD013 -->
 
@@ -960,7 +960,7 @@ In the above table:
 
 _Note:_ There is no built-in support to output `quantity_point` as text.
 
-## Text Input
+## Text input
 
 As long as the C++ Standard doesn't provide a generic facility to parse localized text, we do not
 plan to propose any support for doing that for physical quantities and their units.
@@ -1028,7 +1028,7 @@ from other domains that we can get in the future from other authors.
 <!-- markdownlint-enable MD013 -->
 
 
-# Plan For Standardization
+# Plan for standardization
 
 Having physical quantities and units support in C++ would be extremely useful for many C++ developers,
 and ideally, we should ship it in C++29. We believe that it can be done, and we propose a plan

@@ -43,7 +43,7 @@ This document consistently uses the official metrology vocabulary defined in the
 and [@BIPM-VIM].
 
 
-# The Future Is Here
+# The future is here
 
 Not that long ago, self-driving cars were a thing from SciFi movies. It was something so
 futuristic and hard to imagine that it only appeared in movies set in the very far future.
@@ -64,7 +64,7 @@ which becomes even more critical if the code handling the physical computation i
 experts such as physicists that are not necessarily fluent in C++.
 
 
-# Affected Industries
+# Affected industries
 
 When people think about industries that could use physical quantities and unit libraries, they
 think of a few companies related to aerospace, autonomous cars, or embedded industries. That
@@ -97,7 +97,7 @@ also provides affine space abstractions, which may prove useful in many
 other domains.
 
 
-# Mismeasure for Measure
+# Mismeasure for measure
 
 Human history knows many expensive failures and accidents caused by mistakes in calculations involving
 different physical units. The most famous and probably the most expensive example in the software
@@ -302,7 +302,7 @@ The resulting interfaces and implementations built with these types
 easily allow mixing up parameters and using operations that are not part of the represented quantity.
 
 
-# Safety Features
+# Safety features
 
 This chapter describes the features that enforce safety in our code bases. It starts with obvious
 things but then it moves to probably less known benefits of using physical quantities
@@ -1126,7 +1126,7 @@ by ensuring that quantities are created with proper quantity equations and are u
 representation types.
 
 
-# Safety Pitfalls
+# Safety pitfalls
 
 ## Integer division
 
