@@ -1383,6 +1383,8 @@ references:
       given: Johel Ernesto
     - family: Hogg
       given: Charles
+    - family: Holthaus
+      given: Nicolas
     - family: Michaels
       given: Roth
     - family: Reverdy

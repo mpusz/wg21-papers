@@ -1065,6 +1065,10 @@ references:
   author:
     - family: Pusz
       given: Mateusz
+    - family: Berner
+      given: Dominik
+    - family: Guerrero Peña
+      given: Johel Ernesto
   title: "Improving our safety with a physical quantities and units library"
   URL: <https://wg21.link/p2981>
 - id: SI
