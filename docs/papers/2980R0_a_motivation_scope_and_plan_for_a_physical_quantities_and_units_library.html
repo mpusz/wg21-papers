@@ -506,27 +506,37 @@ Rhine<span></span></a></li>
 <li><a href="#user-defined-quantities-and-units" id="toc-user-defined-quantities-and-units"><span class="toc-section-number">5.5</span> User defined quantities and
 units<span></span></a></li>
 </ul></li>
-<li><a href="#scope" id="toc-scope"><span class="toc-section-number">6</span> Scope<span></span></a>
+<li><a href="#design-goals" id="toc-design-goals"><span class="toc-section-number">6</span> Design Goals<span></span></a>
 <ul>
-<li><a href="#basic-framework" id="toc-basic-framework"><span class="toc-section-number">6.1</span> Basic
+<li><a href="#safety-1" id="toc-safety-1"><span class="toc-section-number">6.1</span> Safety<span></span></a></li>
+<li><a href="#performance" id="toc-performance"><span class="toc-section-number">6.2</span> Performance<span></span></a></li>
+<li><a href="#great-user-experience" id="toc-great-user-experience"><span class="toc-section-number">6.3</span> Great user
+experience<span></span></a></li>
+<li><a href="#feature-rich" id="toc-feature-rich"><span class="toc-section-number">6.4</span> Feature rich<span></span></a></li>
+<li><a href="#easy-to-extend" id="toc-easy-to-extend"><span class="toc-section-number">6.5</span> Easy to
+Extend<span></span></a></li>
+</ul></li>
+<li><a href="#scope" id="toc-scope"><span class="toc-section-number">7</span> Scope<span></span></a>
+<ul>
+<li><a href="#basic-framework" id="toc-basic-framework"><span class="toc-section-number">7.1</span> Basic
 Framework<span></span></a></li>
-<li><a href="#the-affine-space" id="toc-the-affine-space"><span class="toc-section-number">6.2</span> The Affine
+<li><a href="#the-affine-space" id="toc-the-affine-space"><span class="toc-section-number">7.2</span> The Affine
 Space<span></span></a></li>
-<li><a href="#text-output" id="toc-text-output"><span class="toc-section-number">6.3</span> Text Output<span></span></a></li>
-<li><a href="#text-input" id="toc-text-input"><span class="toc-section-number">6.4</span> Text Input<span></span></a></li>
-<li><a href="#systems-of-quantities" id="toc-systems-of-quantities"><span class="toc-section-number">6.5</span> Systems of
+<li><a href="#text-output" id="toc-text-output"><span class="toc-section-number">7.3</span> Text Output<span></span></a></li>
+<li><a href="#text-input" id="toc-text-input"><span class="toc-section-number">7.4</span> Text Input<span></span></a></li>
+<li><a href="#systems-of-quantities" id="toc-systems-of-quantities"><span class="toc-section-number">7.5</span> Systems of
 quantities<span></span></a></li>
-<li><a href="#systems-of-units" id="toc-systems-of-units"><span class="toc-section-number">6.6</span> Systems of
+<li><a href="#systems-of-units" id="toc-systems-of-units"><span class="toc-section-number">7.6</span> Systems of
 units<span></span></a></li>
-<li><a href="#utilities" id="toc-utilities"><span class="toc-section-number">6.7</span> Utilities<span></span></a></li>
-<li><a href="#external-dependencies" id="toc-external-dependencies"><span class="toc-section-number">6.8</span> External
+<li><a href="#utilities" id="toc-utilities"><span class="toc-section-number">7.7</span> Utilities<span></span></a></li>
+<li><a href="#external-dependencies" id="toc-external-dependencies"><span class="toc-section-number">7.8</span> External
 dependencies<span></span></a></li>
 </ul></li>
-<li><a href="#plan-for-standardization" id="toc-plan-for-standardization"><span class="toc-section-number">7</span> Plan For
+<li><a href="#plan-for-standardization" id="toc-plan-for-standardization"><span class="toc-section-number">8</span> Plan For
 Standardization<span></span></a></li>
-<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">8</span>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">9</span>
 Acknowledgements<span></span></a></li>
-<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">9</span> References<span></span></a></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">10</span> References<span></span></a></li>
 </ul>
 </div>
 <h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
@@ -1289,7 +1299,59 @@ One sample @ 48000 Smpl/s is 0.0208333 ms
 35 ms is 1680 Smpl @ 48000 Smpl/s</code></pre>
 <p>Try it in <a href="https://godbolt.org/z/KeT3MsfcG">the Compiler
 Explorer</a>.</p>
-<h1 data-number="6" id="scope"><span class="header-section-number">6</span> Scope<a href="#scope" class="self-link"></a></h1>
+<h1 data-number="6" id="design-goals"><span class="header-section-number">6</span> Design Goals<a href="#design-goals" class="self-link"></a></h1>
+<p>The library facilities that we plan to propose in the upcoming
+proposals will be designed with the following goals in mind.</p>
+<h2 data-number="6.1" id="safety-1"><span class="header-section-number">6.1</span> Safety<a href="#safety-1" class="self-link"></a></h2>
+<p>The most important property of such a library is the safety it brings
+to C++ projects. The correct handling of physical quantities, units, and
+numerical values should be verified both by the compiler during the
+compilation process and by humans with manual inspection in each
+individual line.</p>
+<p>In some cases we are even eager to prioritize safe interfaces over
+the general usability experience (e.g. getters of the underlying raw
+numerical value will always require a unit in which the value should be
+returned in, which results in more typing and is sometimes
+redundant).</p>
+<p>More information on this subject can be found in <span class="citation" data-cites="P2981_PRE">[<a href="#ref-P2981_PRE" role="doc-biblioref">P2981</a>]</span>.</p>
+<h2 data-number="6.2" id="performance"><span class="header-section-number">6.2</span> Performance<a href="#performance" class="self-link"></a></h2>
+<p>The library should be as fast or even faster than working with
+fundamental types. The should be no runtime overhead and no space size
+overhead should be needed to implement high-level abstractions.</p>
+<h2 data-number="6.3" id="great-user-experience"><span class="header-section-number">6.3</span> Great user experience<a href="#great-user-experience" class="self-link"></a></h2>
+<p>The primary purpose of such a library is to generate compile-time
+errors. If the developers did not introduce any bugs in the manual
+handling of quantities and units, such a library would be of little use.
+This is why such a library should be optimized for readable compilation
+errors and great debugging experience.</p>
+<p>Such a library should be also easy to use and flexible. The
+interfaces should be straight-forward and safe by default. Users should
+be able to easily express any quantity and unit, which requires them to
+compose.</p>
+<p>The above constraints imply the usage of special implementation
+techniques. The library will not only provides types but also
+compile-time known values that will enable users to write easy to
+understand and efficient equations on quantities and units.</p>
+<h2 data-number="6.4" id="feature-rich"><span class="header-section-number">6.4</span> Feature rich<a href="#feature-rich" class="self-link"></a></h2>
+<p>There are plenty of expectations from different parties regarding
+such a library. It should support at least:</p>
+<ul>
+<li>Systems of Quantities,</li>
+<li>Systems of Units,</li>
+<li>Scalar, vector, and tensor quantities,</li>
+<li>The affine space,</li>
+<li>Natural units systems,</li>
+<li>Strong angular system,</li>
+<li>Any unit’s magnitude (huge, small, floating-point),</li>
+<li>Faster-than-lightspeed constants,</li>
+<li>Highly adjustable text-output formatting.</li>
+</ul>
+<h2 data-number="6.5" id="easy-to-extend"><span class="header-section-number">6.5</span> Easy to Extend<a href="#easy-to-extend" class="self-link"></a></h2>
+<p>Most entities in the library should be possible to be defined with a
+single line of code with no need to use preprocessor macros. Users
+should be able to easily extend provided systems with custom dimensions,
+quantities, and units.</p>
+<h1 data-number="7" id="scope"><span class="header-section-number">7</span> Scope<a href="#scope" class="self-link"></a></h1>
 <p>The tables below briefly highlight the expected scope and feature
 set. Each of the features will be described in detail in the upcoming
 papers. To learn more right away and to be able to provide early
@@ -1300,7 +1362,7 @@ recommendations by authors based on their experience in the domain but
 are in no way final. This is just an entry point for the discussion in
 the Committee.</em></p>
 <!-- markdownlint-disable MD013 -->
-<h2 data-number="6.1" id="basic-framework"><span class="header-section-number">6.1</span> Basic Framework<a href="#basic-framework" class="self-link"></a></h2>
+<h2 data-number="7.1" id="basic-framework"><span class="header-section-number">7.1</span> Basic Framework<a href="#basic-framework" class="self-link"></a></h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -1367,7 +1429,7 @@ changes are needed for vectors and tensors of quantities)</td>
 </tr>
 </tbody>
 </table>
-<h2 data-number="6.2" id="the-affine-space"><span class="header-section-number">6.2</span> The Affine Space<a href="#the-affine-space" class="self-link"></a></h2>
+<h2 data-number="7.2" id="the-affine-space"><span class="header-section-number">7.2</span> The Affine Space<a href="#the-affine-space" class="self-link"></a></h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -1396,7 +1458,7 @@ absolute and relative point origins</td>
 </tr>
 </tbody>
 </table>
-<h2 data-number="6.3" id="text-output"><span class="header-section-number">6.3</span> Text Output<a href="#text-output" class="self-link"></a></h2>
+<h2 data-number="7.3" id="text-output"><span class="header-section-number">7.3</span> Text Output<a href="#text-output" class="self-link"></a></h2>
 <table>
 <colgroup>
 <col style="width: 22%" />
@@ -1447,11 +1509,11 @@ facilities</td>
 </table>
 <p><em>Note:</em> There is no built-in support to output
 <code class="sourceCode default">quantity_point</code> as text.</p>
-<h2 data-number="6.4" id="text-input"><span class="header-section-number">6.4</span> Text Input<a href="#text-input" class="self-link"></a></h2>
+<h2 data-number="7.4" id="text-input"><span class="header-section-number">7.4</span> Text Input<a href="#text-input" class="self-link"></a></h2>
 <p>As long as the C++ Standard doesn’t provide a generic facility to
 parse localized text, we do not plan to propose any support for doing
 that for physical quantities and their units.</p>
-<h2 data-number="6.5" id="systems-of-quantities"><span class="header-section-number">6.5</span> Systems of quantities<a href="#systems-of-quantities" class="self-link"></a></h2>
+<h2 data-number="7.5" id="systems-of-quantities"><span class="header-section-number">7.5</span> Systems of quantities<a href="#systems-of-quantities" class="self-link"></a></h2>
 <table>
 <colgroup>
 <col style="width: 12%" />
@@ -1509,7 +1571,7 @@ matter physics)</td>
 </tr>
 </tbody>
 </table>
-<h2 data-number="6.6" id="systems-of-units"><span class="header-section-number">6.6</span> Systems of units<a href="#systems-of-units" class="self-link"></a></h2>
+<h2 data-number="7.6" id="systems-of-units"><span class="header-section-number">7.6</span> Systems of units<a href="#systems-of-units" class="self-link"></a></h2>
 <table>
 <colgroup>
 <col style="width: 13%" />
@@ -1575,7 +1637,7 @@ systems)</td>
 </tr>
 </tbody>
 </table>
-<h2 data-number="6.7" id="utilities"><span class="header-section-number">6.7</span> Utilities<a href="#utilities" class="self-link"></a></h2>
+<h2 data-number="7.7" id="utilities"><span class="header-section-number">7.7</span> Utilities<a href="#utilities" class="self-link"></a></h2>
 <table>
 <colgroup>
 <col style="width: 14%" />
@@ -1616,7 +1678,7 @@ external libraries</td>
 </tr>
 </tbody>
 </table>
-<h2 data-number="6.8" id="external-dependencies"><span class="header-section-number">6.8</span> External dependencies<a href="#external-dependencies" class="self-link"></a></h2>
+<h2 data-number="7.8" id="external-dependencies"><span class="header-section-number">7.8</span> External dependencies<a href="#external-dependencies" class="self-link"></a></h2>
 <p>The features in this chapter are heavily used in the library but are
 not domain-specific. Having them standardized (instead of left as
 exposition only) could not only improve the specification of this
@@ -1666,7 +1728,7 @@ lists</td>
 </tr>
 </tbody>
 </table>
-<h1 data-number="7" id="plan-for-standardization"><span class="header-section-number">7</span> Plan For Standardization<a href="#plan-for-standardization" class="self-link"></a></h1>
+<h1 data-number="8" id="plan-for-standardization"><span class="header-section-number">8</span> Plan For Standardization<a href="#plan-for-standardization" class="self-link"></a></h1>
 <p>Having physical quantities and units support in C++ would be
 extremely useful for many C++ developers, and ideally, we should ship it
 in C++29. We believe that it can be done, and we propose a plan to get
@@ -1799,14 +1861,14 @@ NTTP lits to LWG</td>
 </tbody>
 </table>
 <!-- markdownlint-enable MD013 -->
-<h1 data-number="8" id="acknowledgements"><span class="header-section-number">8</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<h1 data-number="9" id="acknowledgements"><span class="header-section-number">9</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
 proposal.</p>
 <p>We would also like to thank Peter Sommerlad for providing valuable
 feedback that helped us shape the final version of this document.</p>
 <!-- markdownlint-disable -->
-<h1 data-number="9" id="bibliography"><span class="header-section-number">9</span> References<a href="#bibliography" class="self-link"></a></h1>
+<h1 data-number="10" id="bibliography"><span class="header-section-number">10</span> References<a href="#bibliography" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
 <div id="ref-AU" class="csl-entry" role="doc-biblioentry">
 [Au] The Au Units library. <a href="https://aurora-opensource.github.io/au"><div class="csl-block">https://aurora-opensource.github.io/au</div></a>

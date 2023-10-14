@@ -793,6 +793,67 @@ One sample @ 48000 Smpl/s is 0.0208333 ms
 Try it in [the Compiler Explorer](https://godbolt.org/z/KeT3MsfcG).
 
 
+# Design Goals
+
+The library facilities that we plan to propose in the upcoming proposals will be designed with
+the following goals in mind.
+
+## Safety
+
+The most important property of such a library is the safety it brings to C++ projects.
+The correct handling of physical quantities, units, and numerical values should be verified both by
+the compiler during the compilation process and by humans with manual inspection
+in each individual line.
+
+In some cases we are even eager to prioritize safe interfaces over the general usability experience
+(e.g. getters of the underlying raw numerical value will always require a unit in which the value should
+be returned in, which results in more typing and is sometimes redundant).
+
+More information on this subject can be found in [@P2981_PRE].
+
+## Performance
+
+The library should be as fast or even faster than working with fundamental types. The should
+be no runtime overhead and no space size overhead should be needed to implement high-level
+abstractions.
+
+## Great user experience
+
+The primary purpose of such a library is to generate compile-time errors. If the developers
+did not introduce any bugs in the manual handling of quantities and units, such a library would be
+of little use. This is why such a library should be optimized for readable compilation errors
+and great debugging experience.
+
+Such a library should be also easy to use and flexible. The interfaces should be straight-forward
+and safe by default. Users should be able to easily express any quantity and unit, which requires
+them to compose.
+
+The above constraints imply the usage of special implementation techniques. The library will not
+only provides types but also compile-time known values that will enable users to write easy
+to understand and efficient equations on quantities and units.
+
+## Feature rich
+
+There are plenty of expectations from different parties regarding such a library. It should support
+at least:
+
+- Systems of Quantities,
+- Systems of Units,
+- Scalar, vector, and tensor quantities,
+- The affine space,
+- Natural units systems,
+- Strong angular system,
+- Any unit's magnitude (huge, small, floating-point),
+- Faster-than-lightspeed constants,
+- Highly adjustable text-output formatting.
+
+## Easy to Extend
+
+Most entities in the library should be possible to be defined with a single line of code with
+no need to use preprocessor macros. Users should be able to easily extend provided systems with custom
+dimensions, quantities, and units.
+
+
 # Scope
 
 The tables below briefly highlight the expected scope and feature set. Each of the features will
