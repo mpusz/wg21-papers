@@ -87,7 +87,7 @@ Computing systems engineer.
 Lives at HEAD with C++Next and good practices.
 Performs in-depth code reviews of familiarized code bases.
 Has an eye for identifying automation opportunities, and acts on them.
-Contributor to [@MP-UNITS], and previously `nholthaus/units` v3.
+Contributor to [@MP-UNITS], and previously [@NHOLTHAUS-UNITS] v3.
 Mostly at <https://github.com/JohelEGP/>.
 
 ## Charles Hogg
