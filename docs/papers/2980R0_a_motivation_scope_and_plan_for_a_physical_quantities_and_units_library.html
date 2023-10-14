@@ -497,7 +497,8 @@ practice<span></span></a></li>
 </ul></li>
 <li><a href="#design-goals" id="toc-design-goals"><span class="toc-section-number">5</span> Design Goals<span></span></a>
 <ul>
-<li><a href="#safety-1" id="toc-safety-1"><span class="toc-section-number">5.1</span> Safety<span></span></a></li>
+<li><a href="#compile-time-safety" id="toc-compile-time-safety"><span class="toc-section-number">5.1</span> Compile-time
+safety<span></span></a></li>
 <li><a href="#performance" id="toc-performance"><span class="toc-section-number">5.2</span> Performance<span></span></a></li>
 <li><a href="#great-user-experience" id="toc-great-user-experience"><span class="toc-section-number">5.3</span> Great user
 experience<span></span></a></li>
@@ -930,7 +931,7 @@ willing to include such a feature in the C++ standard library.</p>
 <h1 data-number="5" id="design-goals"><span class="header-section-number">5</span> Design Goals<a href="#design-goals" class="self-link"></a></h1>
 <p>The library facilities that we plan to propose in the upcoming papers
 will be designed with the following goals in mind.</p>
-<h2 data-number="5.1" id="safety-1"><span class="header-section-number">5.1</span> Safety<a href="#safety-1" class="self-link"></a></h2>
+<h2 data-number="5.1" id="compile-time-safety"><span class="header-section-number">5.1</span> Compile-time safety<a href="#compile-time-safety" class="self-link"></a></h2>
 <p>The most important property of such a library is the safety it brings
 to C++ projects. The correct handling of physical quantities, units, and
 numerical values should be verified both by the compiler during the
@@ -1375,8 +1376,8 @@ feedback, we encourage everyone to check out the documentation of the
 recommendations by authors based on their experience in the domain but
 are in no way final. This is just an entry point for the discussion in
 the Committee.</em></p>
-<!-- markdownlint-disable MD013 -->
 <h2 data-number="7.1" id="basic-framework"><span class="header-section-number">7.1</span> Basic Framework<a href="#basic-framework" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -1451,6 +1452,7 @@ multiple customers)</td>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <p>In the above table:</p>
 <ul>
 <li><code class="sourceCode default">std::quantity</code> is a class
@@ -1466,7 +1468,51 @@ quantities), quantity kind, and dimension.</li>
 <li>References (temporary name to be bikesheded) are numeric wrappers
 over a quantity specification and an unit.</li>
 </ul>
+<p>Below we provide a short overview of estimated additional
+framework-related costs associated with providing support for the
+following features (based on our current implementation experience):</p>
+<ul>
+<li>Quantity kinds
+<ul>
+<li><code class="sourceCode default">is_kind</code> tag type</li>
+<li>additional conversion rules to improve safety</li>
+</ul></li>
+<li>Quantities of the same kind
+<ul>
+<li><code class="sourceCode default">kind_of&lt;QS&gt;</code> class and
+variable templates</li>
+<li>additional conversion rules to improve safety</li>
+<li><code class="sourceCode default">common_quantity_spec()</code>
+function that finds a common node in the hierarchy tree</li>
+</ul></li>
+<li>Vector and tensor representation types
+<ul>
+<li><code class="sourceCode default">quantity_character</code> enum</li>
+<li><code class="sourceCode default">is_scalar&lt;T&gt;</code>,
+<code class="sourceCode default">is_vector&lt;T&gt;</code>,
+<code class="sourceCode default">is_tensor&lt;T&gt;</code>
+customizations points</li>
+<li>a few concepts
+(e.g. <code class="sourceCode default">RepresentationOf&lt;Ch&gt;</code>,
+<code class="sourceCode default">VectorRepresntation&lt;T&gt;</code>,
+…)</li>
+</ul></li>
+<li>Logarithmic units
+<ul>
+<li>the design is TBD</li>
+</ul></li>
+<li>Natural units
+<ul>
+<li><code class="sourceCode default">system_reference</code> class
+template</li>
+</ul></li>
+<li>Polymorphic unit
+<ul>
+<li>the design is TBD</li>
+</ul></li>
+</ul>
 <h2 data-number="7.2" id="the-affine-space"><span class="header-section-number">7.2</span> The Affine Space<a href="#the-affine-space" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -1495,6 +1541,7 @@ absolute and relative point origins</td>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <p>In the above table:</p>
 <ul>
 <li><code class="sourceCode default">std::quantity_point</code> is a
@@ -1508,6 +1555,7 @@ specific quantity type.</li>
 relative to previously defined absolute point origin.</li>
 </ul>
 <h2 data-number="7.3" id="text-output"><span class="header-section-number">7.3</span> Text Output<a href="#text-output" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
 <col style="width: 22%" />
@@ -1556,6 +1604,7 @@ facilities</td>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <p><em>Note:</em> There is no built-in support to output
 <code class="sourceCode default">quantity_point</code> as text.</p>
 <h2 data-number="7.4" id="text-input"><span class="header-section-number">7.4</span> Text Input<a href="#text-input" class="self-link"></a></h2>
@@ -1563,6 +1612,7 @@ facilities</td>
 parse localized text, we do not plan to propose any support for doing
 that for physical quantities and their units.</p>
 <h2 data-number="7.5" id="systems-of-quantities"><span class="header-section-number">7.5</span> Systems of quantities<a href="#systems-of-quantities" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
 <col style="width: 12%" />
@@ -1620,7 +1670,9 @@ matter physics)</td>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <h2 data-number="7.6" id="systems-of-units"><span class="header-section-number">7.6</span> Systems of units<a href="#systems-of-units" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
 <col style="width: 13%" />
@@ -1686,7 +1738,9 @@ systems)</td>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <h2 data-number="7.7" id="utilities"><span class="header-section-number">7.7</span> Utilities<a href="#utilities" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
 <col style="width: 14%" />
@@ -1727,12 +1781,14 @@ external libraries</td>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <h2 data-number="7.8" id="external-dependencies"><span class="header-section-number">7.8</span> External dependencies<a href="#external-dependencies" class="self-link"></a></h2>
 <p>The features in this chapter are heavily used in the library but are
 not domain-specific. Having them standardized (instead of left as
 exposition only) could not only improve the specification of this
 library, but also could serve as an important building block for tools
 from other domains that we can get in the future from other authors.</p>
+<!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
 <col style="width: 23%" />
@@ -1777,6 +1833,7 @@ lists</td>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <h1 data-number="8" id="plan-for-standardization"><span class="header-section-number">8</span> Plan For Standardization<a href="#plan-for-standardization" class="self-link"></a></h1>
 <p>Having physical quantities and units support in C++ would be
 extremely useful for many C++ developers, and ideally, we should ship it
@@ -1786,6 +1843,7 @@ things get delayed or controversial for whatever reason, physical
 quantities and units (or some parts of it) will miss the train and we
 will have to wait three more years. However, having a clear plan
 approved by LEWG will help to keep the efforts on track.</p>
+<!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
 <col style="width: 6%" />

@@ -236,18 +236,18 @@ quite often. We see similar errors occurring in various domains over the years:
   which led to the wrong estimation of the equator and his expected travel distance [@COLUMBUS].
 - In 1628, a new warship, Vasa, accidentally had an asymmetrical hull (being thicker on the port side
   than the starboard side), which was one of the reasons for her sinking less than a mile into her maiden
-  voyage, resulting in the death of 30 people on board. This asymmetry could have been caused by the use of
-  different systems of measurement, as archaeologists have found four rulers used by the workers who
-  built the ship. Two were calibrated in Swedish feet, which had 12 inches, while the other two
+  voyage, resulting in the death of 30 people on board. This asymmetry could have been caused by the
+  use of different systems of measurement, as archaeologists have found four rulers used by the workers
+  who built the ship. Two were calibrated in Swedish feet, which had 12 inches, while the other two
   measured Amsterdam feet, which had 11 inches [@VASA].
 - Air Canada Flight 143 ran out of fuel on July 23, 1983, at an altitude of 41 000 feet
   (12 000 metres), midway through the flight because the fuel had been calculated in pounds
   instead of kilograms by the ground crew [@GIMLI_GLIDER].
 - The British rock band Black Sabbath, during its Born Again tour in 1983, ordered a replica of Stonehenge
   as props for the scene. Unfortunately, they had to leave them in the storage area because, while
-  submitting the order, their manager wrote dimensions down in meters when he meant feet, and so the stones
-  didn't fit the scene. "It cost a fortune to make, but there was not a building on Earth that you could
-  fit it into" [@STONEHENGE].
+  submitting the order, their manager wrote dimensions down in meters when he meant feet, and so the
+  stones didn't fit the scene. "It cost a fortune to make, but there was not a building on Earth that
+  you could fit it into" [@STONEHENGE].
 - On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a miscommunication between
   pilots about the desired flight altitude [@FLIGHT_6316].
 - In February 2001, the crew of the Moorpark College Zoo built an enclosure for Clarence the Tortoise
@@ -396,7 +396,7 @@ the C++ standard library.
 The library facilities that we plan to propose in the upcoming papers will be designed with
 the following goals in mind.
 
-## Safety
+## Compile-time safety
 
 The most important property of such a library is the safety it brings to C++ projects.
 The correct handling of physical quantities, units, and numerical values should be verified both by
@@ -878,9 +878,9 @@ _Note: The priorities provided in the below tables are the recommendations by au
 experience in the domain but are in no way final. This is just an entry point for the discussion
 in the Committee._
 
-<!-- markdownlint-disable MD013 -->
-
 ## Basic Framework
+
+<!-- markdownlint-disable MD013 -->
 
 | Feature                                | Priority | Description                                                                                                                                        |
 |----------------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -892,6 +892,8 @@ in the Committee._
 | Natural Units                          |    3     | Support for [natural units systems](https://en.wikipedia.org/wiki/Natural_units)                                                                   |
 | Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity type (feature requested in [@P1930R0] and by multiple customers)                            |
 
+<!-- markdownlint-enable MD013 -->
+
 In the above table:
 
 - `std::quantity` is a class template that is a workhorse of the library.
@@ -900,13 +902,39 @@ In the above table:
   More information on this subject can be found in [@P2982_PRE].
 - Quantity specifications include at least the following information: quantity type, quantity character,
   quantity equation (in case of derived quantities), quantity kind, and dimension.
-- References (temporary name to be bikesheded) are numeric wrappers over a quantity specification and an unit.
+- References (temporary name to be bikesheded) are numeric wrappers over a quantity specification and
+  an unit.
+
+Below we provide a short overview of estimated additional framework-related costs associated with
+providing support for the following features (based on our current implementation experience):
+
+- Quantity kinds
+    - `is_kind` tag type
+    - additional conversion rules to improve safety
+- Quantities of the same kind
+    - `kind_of<QS>` class and variable templates
+    - additional conversion rules to improve safety
+    - `common_quantity_spec()` function that finds a common node in the hierarchy tree
+- Vector and tensor representation types
+    - `quantity_character` enum
+    - `is_scalar<T>`, `is_vector<T>`, `is_tensor<T>` customizations points
+    - a few concepts (e.g. `RepresentationOf<Ch>`, `VectorRepresntation<T>`, ...)
+- Logarithmic units
+    - the design is TBD
+- Natural units
+    - `system_reference` class template
+- Polymorphic unit
+    - the design is TBD
 
 ## The Affine Space
+
+<!-- markdownlint-disable MD013 -->
 
 | Feature          | Priority | Description                                                |
 |------------------|:--------:|------------------------------------------------------------|
 | The Affine Space |    1     | `std::quantity_point`, absolute and relative point origins |
+
+<!-- markdownlint-enable MD013 -->
 
 In the above table:
 
@@ -918,6 +946,8 @@ In the above table:
 
 ## Text Output
 
+<!-- markdownlint-disable MD013 -->
+
 | Feature                | Priority | Description                                                           |
 |------------------------|:--------:|-----------------------------------------------------------------------|
 | `quantity` text output |    1     | Text output for quantity variables (number + unit)                    |
@@ -925,6 +955,8 @@ In the above table:
 | Dimensions text output |    2     | Text output for dimension variables                                   |
 | `std::format` support  |    1     | Custom grammar and support for all the standard formatting facilities |
 | `std::ostream` support |    2     | Stream insertion operators support                                    |
+
+<!-- markdownlint-enable MD013 -->
 
 _Note:_ There is no built-in support to output `quantity_point` as text.
 
@@ -935,6 +967,8 @@ plan to propose any support for doing that for physical quantities and their uni
 
 ## Systems of quantities
 
+<!-- markdownlint-disable MD013 -->
+
 | Feature                           | Priority | Description                                                                                                                                                                                                                      |
 |-----------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | The most important ISQ quantities |    1     | Specification of the most commonly used ISQ quantities                                                                                                                                                                           |
@@ -944,7 +978,11 @@ plan to propose any support for doing that for physical quantities and their uni
 | Angular                           |    1     | Strong angular quantities                                                                                                                                                                                                        |
 | Angular ISQ                       |    3     | Changes to the ISQ to support strong angular quantities                                                                                                                                                                          |
 
+<!-- markdownlint-enable MD013 -->
+
 ## Systems of units
+
+<!-- markdownlint-disable MD013 -->
 
 | Feature       | Priority | Description                                                                        |
 |---------------|:--------:|------------------------------------------------------------------------------------|
@@ -957,13 +995,19 @@ plan to propose any support for doing that for physical quantities and their uni
 | CGS system    |    2     | Centimetre-Gram-Second system                                                      |
 | IAU system    |    3     | International Astronomical Union units system                                      |
 
+<!-- markdownlint-enable MD013 -->
+
 ## Utilities
+
+<!-- markdownlint-disable MD013 -->
 
 | Feature               | Priority | Description                                                                                                                   |
 |-----------------------|:--------:|-------------------------------------------------------------------------------------------------------------------------------|
 | `std::chrono` support |    2     | Customization points that enable support for `std::chrono_duration` and `std::chrono_time_point` and other external libraries |
 | Math                  |    2     | Common mathematical functions on quantities                                                                                   |
 | Random                |    3     | Random number generators of quantities                                                                                        |
+
+<!-- markdownlint-enable MD013 -->
 
 ## External dependencies
 
@@ -972,12 +1016,16 @@ Having them standardized (instead of left as exposition only) could not only imp
 the specification of this library, but also could serve as an important building block for tools
 from other domains that we can get in the future from other authors.
 
+<!-- markdownlint-disable MD013 -->
+
 | Feature                          | Priority | Description                                                                                        |
 |----------------------------------|:--------:|----------------------------------------------------------------------------------------------------|
 | Number concepts                  |    1     | Concepts for vector- and point-space numbers                                                       |
 | `fixed_string`                   |    1     | String-like structural type (can be used as an NTTP)                                               |
 | Compile-time prime numbers       |    1     | Compile-time facilities to break any integral value to a product of prime numbers and their powers |
 | Standardized type and NTTP lists |    2     | Common library providing algorithms to handle type and NTTP lists                                  |
+
+<!-- markdownlint-enable MD013 -->
 
 
 # Plan For Standardization
@@ -988,6 +1036,8 @@ to get there. The plan below is, of course, not an irrevocable commitment. If th
 or controversial for whatever reason, physical quantities and units (or some parts of it)
 will miss the train and we will have to wait three more years. However, having a clear plan approved
 by LEWG will help to keep the efforts on track.
+
+<!-- markdownlint-disable MD013 -->
 
 | Meeting            | C++ Milestones                                     | Activities                                                                                                                                                                                                                  |
 |--------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1010,6 +1060,7 @@ by LEWG will help to keep the efforts on track.
 | 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                                                                                                         |
 
 <!-- markdownlint-enable MD013 -->
+
 
 # Acknowledgements
 
