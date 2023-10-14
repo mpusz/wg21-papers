@@ -724,7 +724,7 @@ Again, it turns out that [@ISO80000] has an answer. This specification standardi
 of quantities, many of which are of the same kind. For example, for quantities of the kind length,
 it provides the following:
 
-![](img/quantities_of_the_same_kind.svg)
+![](img/quantities_of_length.svg)
 
 As we can see, various quantities of the same kind are not just a flat set but they form a hierarchy
 tree which influence:
