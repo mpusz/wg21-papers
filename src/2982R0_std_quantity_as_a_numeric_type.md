@@ -861,7 +861,7 @@ the resulting expression template.
     | `A, per<power<A, 2>>` | `{identity}, per<A>` |
 
     It is important to notice here that only the elements with exactly the same type are being
-    simplified. This means that, for example, `m / m` results in `one`, but `km / m` will not be
+    simplified. This means that, for example, `m/m` results in `one`, but `km/m` will not be
     simplified. The resulting derived unit will preserve both symbols and their relative
     magnitude. This allows us to properly print symbols of some units or constants that require
     such behavior. For example, the Hubble constant is expressed in `km⋅s⁻¹⋅Mpc⁻¹`, where both
@@ -1106,9 +1106,9 @@ here is the point when a user would like to derive its own strong type from the 
 
 Please note that the library never provides strong types for derived dimensions besides
 the `dimension_one`. For example, ISQ defines length (`L`) and time (`T`) dimensions, but there is
-no such thing as a speed dimension. There is only a derived dimension of speed. It does not have
-its own symbol and is described with `LT⁻¹`. This is the reason why a user should also not
-derive strong types from the derived dimensions.
+no such thing as a speed dimension. It does not have its own symbol as well. There is only a derived
+dimension of speed described with `LT⁻¹`. This is the reason why a user should also not derive strong
+types from the derived dimensions.
 
 The equality operator for dimensions can be implemented as:
 
@@ -1122,14 +1122,40 @@ template<Dimension Lhs, Dimension Rhs>
 
 ### Quantity types
 
-Equality for quantity types is similar to dimensions. Again, users are allowed to derive their own types
-from the strong types derived by the library (both base and derived quantities).
+Equality for quantity types is similar to dimensions. Again, users are allowed to derive their own
+types but only from the named strong types provided by the library:
+
+```cpp
+template<QuantitySpec Lhs, QuantitySpec Rhs>
+[[nodiscard]] consteval bool operator==(Lhs, Rhs)
+{
+  if constexpr (detail::NamedQuantitySpec<Lhs> && detail::NamedQuantitySpec<Rhs>)
+    return std::derived_from<Lhs, Rhs> || std::derived_from<Rhs, Lhs>;
+  else
+    return is_same_v<Lhs, Rhs>;
+}
+```
 
 ### Units
 
+Equality for units is a bit more complicated. Not only watt (`W`) should be equivalent to `J/s` or
+`kg m²/s³` but also litre (`l`) should be equivalent to cubic decimetre (`dm³`). This is why in this
+case we do not compare user-provided types but first convert each unit to its canonical representation
+and then we compare if the reference unit and the magnitude is the same:
+
+```cpp
+[[nodiscard]] consteval bool operator==(Unit auto lhs, Unit auto rhs)
+{
+  auto canonical_lhs = detail::get_canonical_unit(lhs);
+  auto canonical_rhs = detail::get_canonical_unit(rhs);
+  return detail::have_same_canonical_reference_unit(canonical_lhs.reference_unit, canonical_rhs.reference_unit) &&
+         canonical_lhs.mag == canonical_rhs.mag;
+}
+```
+
 ## Ordering
 
-Please note that ordering for dimensions and quantity types has no physical sense.
+Please note that the ordering for dimensions and quantity types has no physical sense.
 
 We could entertain adding ordering for units, but this would work only for quantities having the same
 reference unit, which would be inconsistent with how equivalence works.
@@ -1152,7 +1178,8 @@ if constexpr (my_unit > si::nano(si::second)) {
 In the above code, the first check could be useful for some use cases. However, the second
 one is impossible to implement and should not compile. The third one could be considered useful,
 but the current version of [@MP-UNITS] does not expose such an interface to limit
-potential confusion.
+potential confusion. Also, it is really hard to mathematically prove that unit magnitude
+representation that we us in the library is greater or smaller than the other one in some cases.
 
 
 # Quantity References
