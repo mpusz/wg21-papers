@@ -645,7 +645,7 @@ subsequently continued in the field at various start-ups, MIT Lincoln
 Laboratory, and most recently, STR (Science and Technology
 Research).</p>
 <p>Nicolas became obsessed with dimensional analysis as a high school
-JETS team member after learning the $125M Mars Climate Orbiter was
+JETS team member after learning that the $125M Mars Climate Orbiter was
 destroyed due to a simple feet-to-meters miscalculation. He developed
 the widely adopted C++ <span class="citation" data-cites="NHOLTHAUS-UNITS">[<a href="#ref-NHOLTHAUS-UNITS" role="doc-biblioref">nholthaus/units</a>]</span> library based on the
 findings of the 2002 white paper “Dimensional Analysis in C++” by Scott
@@ -658,7 +658,7 @@ agriculture, and geodesy.</p>
 <code class="sourceCode default">units</code>, he joined forces with
 Mateusz Pusz in his effort to standardize his evolutionary dimensional
 analysis library, with the goal of providing the highest-quality
-dimensional analysis to all C++ users via the standard C++ library.</p>
+dimensional analysis to all C++ users via the C++ standard library.</p>
 <h2 data-number="3.5" id="roth-michaels"><span class="header-section-number">3.5</span> Roth Michaels<a href="#roth-michaels" class="self-link"></a></h2>
 <p>Roth Michaels is a Principal Software Engineer at <a href="https://www.native-instruments.com">Native Instruments</a>, a
 leading manufacturer of audio, and music, software and hardware. Working
@@ -1372,16 +1372,16 @@ papers. To learn more right away and to be able to provide early
 feedback, we encourage everyone to check out the documentation of the
 <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> project.</p>
 <p><em>Note: The priorities provided in the below tables are the
-recommendations by authors based on their experience in the domain but
+recommendations by authors based on their experience in the domain, but
 are in no way final. This is just an entry point for the discussion in
 the Committee.</em></p>
 <h2 data-number="7.1" id="basic-framework"><span class="header-section-number">7.1</span> Basic framework<a href="#basic-framework" class="self-link"></a></h2>
 <!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
-<col style="width: 20%" />
-<col style="width: 5%" />
-<col style="width: 74%" />
+<col style="width: 19%" />
+<col style="width: 4%" />
+<col style="width: 75%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1407,47 +1407,37 @@ templates, dimensions, quantity specifications, units,
 <tr class="even">
 <td>Quantity kinds</td>
 <td style="text-align: center;">1</td>
-<td>Support for example for
-<code class="sourceCode default">frequency</code>,
+<td>Support quantities of the same dimension that should be distinct,
+e.g., <code class="sourceCode default">frequency</code>,
 <code class="sourceCode default">activity</code>, and
 <code class="sourceCode default">modulation_rate</code>, or
 <code class="sourceCode default">energy</code> and
-<code class="sourceCode default">moment_of_force</code>, which should be
-distinct quantity types</td>
+<code class="sourceCode default">moment_of_force</code></td>
 </tr>
 <tr class="odd">
 <td>Various quantities of the same kind</td>
 <td style="text-align: center;">1</td>
-<td>Support for example for
+<td>Support quantities of the same kind that should be distinct, e.g.,
 <code class="sourceCode default">width</code>,
 <code class="sourceCode default">height</code>,
 <code class="sourceCode default">wavelength</code> (all of the kind
-<code class="sourceCode default">length</code>), which should be
-distinct quantity types</td>
+<code class="sourceCode default">length</code>)</td>
 </tr>
 <tr class="even">
 <td>Vector and tensor representation types</td>
 <td style="text-align: center;">2</td>
-<td>Support for quantities of vector and tensor representation types (no
-changes are needed for vectors and tensors of quantities)</td>
+<td>Support for quantities of vector and tensor representation types
+(without intrusive changes on vector and tensor types)</td>
 </tr>
 <tr class="odd">
 <td>Logarithmic units support</td>
 <td style="text-align: center;">2</td>
-<td>Support for logarithmic units (e.g., decibel)</td>
+<td>Support for logarithmic units, e.g., decibel</td>
 </tr>
 <tr class="even">
-<td>Natural Units</td>
-<td style="text-align: center;">3</td>
-<td>Support for <a href="https://en.wikipedia.org/wiki/Natural_units">natural units
-systems</a></td>
-</tr>
-<tr class="odd">
 <td>Polymorphic unit</td>
 <td style="text-align: center;">???</td>
-<td>Runtime-known type-erased unit of a specified quantity type (feature
-requested in <span class="citation" data-cites="P1930R0">[<a href="#ref-P1930R0" role="doc-biblioref">P1930R0</a>]</span> and by
-multiple customers)</td>
+<td>Runtime-known type-erased unit of a specified quantity type</td>
 </tr>
 </tbody>
 </table>
@@ -1455,7 +1445,7 @@ multiple customers)</td>
 <p>In the above table:</p>
 <ul>
 <li><code class="sourceCode default">std::quantity</code> is a class
-template that is a workhorse of the library. It is a non-compatible
+template that is the workhorse of the library. It is an incompatible
 generalization of
 <code class="sourceCode default">std::chrono::duration</code>.</li>
 <li>Expression templates are used to provide user-friendly error
@@ -1464,10 +1454,10 @@ subject can be found in <span class="citation" data-cites="P2982_PRE">[<a href="
 <li>Quantity specifications include at least the following information:
 quantity type, quantity character, quantity equation (in case of derived
 quantities), quantity kind, and dimension.</li>
-<li>References (temporary name to be bikesheded) are numeric wrappers
+<li>References (temporary name to be bikeshedded) are numeric wrappers
 over a quantity specification and an unit.</li>
 </ul>
-<p>Below we provide a short overview of estimated additional
+<p>Below, we provide a short overview of estimated additional
 framework-related costs associated with providing support for the
 following features (based on our current implementation experience):</p>
 <ul>
@@ -1543,15 +1533,15 @@ absolute and relative point origins</td>
 <!-- markdownlint-enable MD013 -->
 <p>In the above table:</p>
 <ul>
-<li><code class="sourceCode default">std::quantity_point</code> is a
-non-compatible generalization of
+<li><code class="sourceCode default">std::quantity_point</code> is an
+incompatible generalization of
 <code class="sourceCode default">std::chrono::time_point</code>.</li>
 <li>Absolute point origin is a compile-time constant defining an
 absolute origin for
 <code class="sourceCode default">std::quantity_point</code> of a
 specific quantity type.</li>
 <li>Relative point origin is a compile-time constant defining an origin
-relative to previously defined absolute point origin.</li>
+relative to another point origin.</li>
 </ul>
 <h2 data-number="7.3" id="text-output"><span class="header-section-number">7.3</span> Text output<a href="#text-output" class="self-link"></a></h2>
 <!-- markdownlint-disable MD013 -->
@@ -1782,11 +1772,11 @@ external libraries</td>
 </table>
 <!-- markdownlint-enable MD013 -->
 <h2 data-number="7.8" id="external-dependencies"><span class="header-section-number">7.8</span> External dependencies<a href="#external-dependencies" class="self-link"></a></h2>
-<p>The features in this chapter are heavily used in the library but are
+<p>The features in this chapter are heavily used in the library, but are
 not domain-specific. Having them standardized (instead of left as
-exposition only) could not only improve the specification of this
+exposition-only) could not only improve the specification of this
 library, but also could serve as an important building block for tools
-from other domains that we can get in the future from other authors.</p>
+in other domains that we can get in the future from other authors.</p>
 <!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
@@ -1917,7 +1907,7 @@ LEWG<br>Move math utilities and prime numbers papers to LEWG</td>
 <tr class="odd">
 <td>2026.2</td>
 <td>C++29 WP opens</td>
-<td>Wording for Basic Framework (priority 1 features) adn number
+<td>Wording for Basic Framework (priority 1 features) and number
 concepts to LWG</td>
 </tr>
 <tr class="even">
@@ -1932,7 +1922,7 @@ LWG</td>
 <td>2027.1</td>
 <td></td>
 <td>Wording for math utilities, prime numbers, systems, and type and
-NTTP lits to LWG</td>
+NTTP lists to LWG</td>
 </tr>
 <tr class="even">
 <td>2027.2</td>
@@ -2045,7 +2035,7 @@ library. <a href="https://wg21.link/p1930r0"><div class="csl-block">https://wg21
 Improving our safety with a physical quantities and units library. <a href="https://wg21.link/p2981"><div class="csl-block">https://wg21.link/p2981</div></a>
 </div>
 <div id="ref-P2982_PRE" class="csl-entry" role="doc-biblioentry">
-[P2982] Mateusz Pusz.
+[P2982] Charles Hogg and Mateusz Pusz.
 <code class="sourceCode default">std::quantity</code> as a numeric type.
 <a href="https://wg21.link/p2982"><div class="csl-block">https://wg21.link/p2982</div></a>
 </div>
