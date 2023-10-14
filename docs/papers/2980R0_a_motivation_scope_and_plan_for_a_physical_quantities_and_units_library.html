@@ -495,26 +495,26 @@ value<span></span></a></li>
 <li><a href="#standardizing-existing-practice" id="toc-standardizing-existing-practice"><span class="toc-section-number">4.7</span> Standardizing existing
 practice<span></span></a></li>
 </ul></li>
-<li><a href="#look-and-feel" id="toc-look-and-feel"><span class="toc-section-number">5</span> Look and Feel<span></span></a>
+<li><a href="#design-goals" id="toc-design-goals"><span class="toc-section-number">5</span> Design Goals<span></span></a>
 <ul>
-<li><a href="#basic-quantity-equations" id="toc-basic-quantity-equations"><span class="toc-section-number">5.1</span> Basic quantity
-equations<span></span></a></li>
-<li><a href="#hello-units" id="toc-hello-units"><span class="toc-section-number">5.2</span> Hello Units<span></span></a></li>
-<li><a href="#bridge-across-the-rhine" id="toc-bridge-across-the-rhine"><span class="toc-section-number">5.3</span> Bridge across the
-Rhine<span></span></a></li>
-<li><a href="#storage-tank" id="toc-storage-tank"><span class="toc-section-number">5.4</span> Storage Tank<span></span></a></li>
-<li><a href="#user-defined-quantities-and-units" id="toc-user-defined-quantities-and-units"><span class="toc-section-number">5.5</span> User defined quantities and
-units<span></span></a></li>
-</ul></li>
-<li><a href="#design-goals" id="toc-design-goals"><span class="toc-section-number">6</span> Design Goals<span></span></a>
-<ul>
-<li><a href="#safety-1" id="toc-safety-1"><span class="toc-section-number">6.1</span> Safety<span></span></a></li>
-<li><a href="#performance" id="toc-performance"><span class="toc-section-number">6.2</span> Performance<span></span></a></li>
-<li><a href="#great-user-experience" id="toc-great-user-experience"><span class="toc-section-number">6.3</span> Great user
+<li><a href="#safety-1" id="toc-safety-1"><span class="toc-section-number">5.1</span> Safety<span></span></a></li>
+<li><a href="#performance" id="toc-performance"><span class="toc-section-number">5.2</span> Performance<span></span></a></li>
+<li><a href="#great-user-experience" id="toc-great-user-experience"><span class="toc-section-number">5.3</span> Great user
 experience<span></span></a></li>
-<li><a href="#feature-rich" id="toc-feature-rich"><span class="toc-section-number">6.4</span> Feature rich<span></span></a></li>
-<li><a href="#easy-to-extend" id="toc-easy-to-extend"><span class="toc-section-number">6.5</span> Easy to
+<li><a href="#feature-rich" id="toc-feature-rich"><span class="toc-section-number">5.4</span> Feature rich<span></span></a></li>
+<li><a href="#easy-to-extend" id="toc-easy-to-extend"><span class="toc-section-number">5.5</span> Easy to
 Extend<span></span></a></li>
+</ul></li>
+<li><a href="#look-and-feel" id="toc-look-and-feel"><span class="toc-section-number">6</span> Look and Feel<span></span></a>
+<ul>
+<li><a href="#basic-quantity-equations" id="toc-basic-quantity-equations"><span class="toc-section-number">6.1</span> Basic quantity
+equations<span></span></a></li>
+<li><a href="#hello-units" id="toc-hello-units"><span class="toc-section-number">6.2</span> Hello Units<span></span></a></li>
+<li><a href="#bridge-across-the-rhine" id="toc-bridge-across-the-rhine"><span class="toc-section-number">6.3</span> Bridge across the
+Rhine<span></span></a></li>
+<li><a href="#storage-tank" id="toc-storage-tank"><span class="toc-section-number">6.4</span> Storage Tank<span></span></a></li>
+<li><a href="#user-defined-quantities-and-units" id="toc-user-defined-quantities-and-units"><span class="toc-section-number">6.5</span> User defined quantities and
+units<span></span></a></li>
 </ul></li>
 <li><a href="#scope" id="toc-scope"><span class="toc-section-number">7</span> Scope<span></span></a>
 <ul>
@@ -925,7 +925,59 @@ together to propose the best physical quantities and units library we
 can get with the latest version of the C++ language. They spend their
 private time and efforts hoping that the ISO C++ Committee will be
 willing to include such a feature in the C++ standard library.</p>
-<h1 data-number="5" id="look-and-feel"><span class="header-section-number">5</span> Look and Feel<a href="#look-and-feel" class="self-link"></a></h1>
+<h1 data-number="5" id="design-goals"><span class="header-section-number">5</span> Design Goals<a href="#design-goals" class="self-link"></a></h1>
+<p>The library facilities that we plan to propose in the upcoming papers
+will be designed with the following goals in mind.</p>
+<h2 data-number="5.1" id="safety-1"><span class="header-section-number">5.1</span> Safety<a href="#safety-1" class="self-link"></a></h2>
+<p>The most important property of such a library is the safety it brings
+to C++ projects. The correct handling of physical quantities, units, and
+numerical values should be verified both by the compiler during the
+compilation process and by humans with manual inspection in each
+individual line.</p>
+<p>In some cases we are even eager to prioritize safe interfaces over
+the general usability experience (e.g. getters of the underlying raw
+numerical value will always require a unit in which the value should be
+returned in, which results in more typing and is sometimes
+redundant).</p>
+<p>More information on this subject can be found in <span class="citation" data-cites="P2981_PRE">[<a href="#ref-P2981_PRE" role="doc-biblioref">P2981</a>]</span>.</p>
+<h2 data-number="5.2" id="performance"><span class="header-section-number">5.2</span> Performance<a href="#performance" class="self-link"></a></h2>
+<p>The library should be as fast or even faster than working with
+fundamental types. The should be no runtime overhead and no space size
+overhead should be needed to implement high-level abstractions.</p>
+<h2 data-number="5.3" id="great-user-experience"><span class="header-section-number">5.3</span> Great user experience<a href="#great-user-experience" class="self-link"></a></h2>
+<p>The primary purpose of such a library is to generate compile-time
+errors. If the developers did not introduce any bugs in the manual
+handling of quantities and units, such a library would be of little use.
+This is why such a library should be optimized for readable compilation
+errors and great debugging experience.</p>
+<p>Such a library should be also easy to use and flexible. The
+interfaces should be straight-forward and safe by default. Users should
+be able to easily express any quantity and unit, which requires them to
+compose.</p>
+<p>The above constraints imply the usage of special implementation
+techniques. The library will not only provides types but also
+compile-time known values that will enable users to write easy to
+understand and efficient equations on quantities and units.</p>
+<h2 data-number="5.4" id="feature-rich"><span class="header-section-number">5.4</span> Feature rich<a href="#feature-rich" class="self-link"></a></h2>
+<p>There are plenty of expectations from different parties regarding
+such a library. It should support at least:</p>
+<ul>
+<li>Systems of Quantities,</li>
+<li>Systems of Units,</li>
+<li>Scalar, vector, and tensor quantities,</li>
+<li>The affine space,</li>
+<li>Natural units systems,</li>
+<li>Strong angular system,</li>
+<li>Any unit’s magnitude (huge, small, floating-point),</li>
+<li>Faster-than-lightspeed constants,</li>
+<li>Highly adjustable text-output formatting.</li>
+</ul>
+<h2 data-number="5.5" id="easy-to-extend"><span class="header-section-number">5.5</span> Easy to Extend<a href="#easy-to-extend" class="self-link"></a></h2>
+<p>Most entities in the library should be possible to be defined with a
+single line of code with no need to use preprocessor macros. Users
+should be able to easily extend provided systems with custom dimensions,
+quantities, and units.</p>
+<h1 data-number="6" id="look-and-feel"><span class="header-section-number">6</span> Look and Feel<a href="#look-and-feel" class="self-link"></a></h1>
 <p><em>Note: The code examples presented in this paper may not exactly
 reflect the final interface design that is going to be proposed in the
 follow-up papers. We are still doing some small fine-tuning to improve
@@ -934,7 +986,7 @@ the library.</em></p>
 physical quantities and units. To allow the reader to better understand
 the features and scope of the library, this chapter presents a few
 simple examples.</p>
-<h2 data-number="5.1" id="basic-quantity-equations"><span class="header-section-number">5.1</span> Basic quantity equations<a href="#basic-quantity-equations" class="self-link"></a></h2>
+<h2 data-number="6.1" id="basic-quantity-equations"><span class="header-section-number">6.1</span> Basic quantity equations<a href="#basic-quantity-equations" class="self-link"></a></h2>
 <p>Let’s start with a really simple example presenting basic operations
 that every physical quantities and units library should provide:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
@@ -961,7 +1013,7 @@ that every physical quantities and units library should provide:</p>
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1000</span> <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> s<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> kHz<span class="op">)</span>;</span></code></pre></div>
 <p>Try it in <a href="https://godbolt.org/z/sYfoPzTvT">the Compiler
 Explorer</a>.</p>
-<h2 data-number="5.2" id="hello-units"><span class="header-section-number">5.2</span> Hello Units<a href="#hello-units" class="self-link"></a></h2>
+<h2 data-number="6.2" id="hello-units"><span class="header-section-number">6.2</span> Hello Units<a href="#hello-units" class="self-link"></a></h2>
 <p>The next example serves as a showcase of various features available
 in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>
 library.</p>
@@ -1003,7 +1055,7 @@ library.</p>
 <span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Try it in <a href="https://godbolt.org/z/3E7q5P6jq">the Compiler
 Explorer</a>.</p>
-<h2 data-number="5.3" id="bridge-across-the-rhine"><span class="header-section-number">5.3</span> Bridge across the Rhine<a href="#bridge-across-the-rhine" class="self-link"></a></h2>
+<h2 data-number="6.3" id="bridge-across-the-rhine"><span class="header-section-number">6.3</span> Bridge across the Rhine<a href="#bridge-across-the-rhine" class="self-link"></a></h2>
 <p>The following example codifies the history of a famous issue during
 the construction of a bridge across the Rhine River between the German
 and Swiss parts of the town Laufenburg <span class="citation" data-cites="HOCHRHEINBRÜCKE">[<a href="#ref-HOCHRHEINBRÜCKE" role="doc-biblioref">Hochrheinbrücke</a>]</span>. It also nicely
@@ -1089,7 +1141,7 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 - Switzerland: 33000 cm</code></pre>
 <p>Try it in <a href="https://godbolt.org/z/c17TWGhc5">the Compiler
 Explorer</a>.</p>
-<h2 data-number="5.4" id="storage-tank"><span class="header-section-number">5.4</span> Storage Tank<a href="#storage-tank" class="self-link"></a></h2>
+<h2 data-number="6.4" id="storage-tank"><span class="header-section-number">6.4</span> Storage Tank<a href="#storage-tank" class="self-link"></a></h2>
 <p>This example estimates the process of filling a storage tank with
 some contents. It presents:</p>
 <ul>
@@ -1228,7 +1280,7 @@ float rise rate = 0.0002 m/s
 tank full E.T.A. at current flow rate = 800 s</code></pre>
 <p>Try it in <a href="https://godbolt.org/z/cx8Pr6ne9">the Compiler
 Explorer</a>.</p>
-<h2 data-number="5.5" id="user-defined-quantities-and-units"><span class="header-section-number">5.5</span> User defined quantities and
+<h2 data-number="6.5" id="user-defined-quantities-and-units"><span class="header-section-number">6.5</span> User defined quantities and
 units<a href="#user-defined-quantities-and-units" class="self-link"></a></h2>
 <p>Users can easily define new quantities and units for domain-specific
 use-cases. This example from digital signal processing will show how to
@@ -1299,58 +1351,6 @@ One sample @ 48000 Smpl/s is 0.0208333 ms
 35 ms is 1680 Smpl @ 48000 Smpl/s</code></pre>
 <p>Try it in <a href="https://godbolt.org/z/KeT3MsfcG">the Compiler
 Explorer</a>.</p>
-<h1 data-number="6" id="design-goals"><span class="header-section-number">6</span> Design Goals<a href="#design-goals" class="self-link"></a></h1>
-<p>The library facilities that we plan to propose in the upcoming
-proposals will be designed with the following goals in mind.</p>
-<h2 data-number="6.1" id="safety-1"><span class="header-section-number">6.1</span> Safety<a href="#safety-1" class="self-link"></a></h2>
-<p>The most important property of such a library is the safety it brings
-to C++ projects. The correct handling of physical quantities, units, and
-numerical values should be verified both by the compiler during the
-compilation process and by humans with manual inspection in each
-individual line.</p>
-<p>In some cases we are even eager to prioritize safe interfaces over
-the general usability experience (e.g. getters of the underlying raw
-numerical value will always require a unit in which the value should be
-returned in, which results in more typing and is sometimes
-redundant).</p>
-<p>More information on this subject can be found in <span class="citation" data-cites="P2981_PRE">[<a href="#ref-P2981_PRE" role="doc-biblioref">P2981</a>]</span>.</p>
-<h2 data-number="6.2" id="performance"><span class="header-section-number">6.2</span> Performance<a href="#performance" class="self-link"></a></h2>
-<p>The library should be as fast or even faster than working with
-fundamental types. The should be no runtime overhead and no space size
-overhead should be needed to implement high-level abstractions.</p>
-<h2 data-number="6.3" id="great-user-experience"><span class="header-section-number">6.3</span> Great user experience<a href="#great-user-experience" class="self-link"></a></h2>
-<p>The primary purpose of such a library is to generate compile-time
-errors. If the developers did not introduce any bugs in the manual
-handling of quantities and units, such a library would be of little use.
-This is why such a library should be optimized for readable compilation
-errors and great debugging experience.</p>
-<p>Such a library should be also easy to use and flexible. The
-interfaces should be straight-forward and safe by default. Users should
-be able to easily express any quantity and unit, which requires them to
-compose.</p>
-<p>The above constraints imply the usage of special implementation
-techniques. The library will not only provides types but also
-compile-time known values that will enable users to write easy to
-understand and efficient equations on quantities and units.</p>
-<h2 data-number="6.4" id="feature-rich"><span class="header-section-number">6.4</span> Feature rich<a href="#feature-rich" class="self-link"></a></h2>
-<p>There are plenty of expectations from different parties regarding
-such a library. It should support at least:</p>
-<ul>
-<li>Systems of Quantities,</li>
-<li>Systems of Units,</li>
-<li>Scalar, vector, and tensor quantities,</li>
-<li>The affine space,</li>
-<li>Natural units systems,</li>
-<li>Strong angular system,</li>
-<li>Any unit’s magnitude (huge, small, floating-point),</li>
-<li>Faster-than-lightspeed constants,</li>
-<li>Highly adjustable text-output formatting.</li>
-</ul>
-<h2 data-number="6.5" id="easy-to-extend"><span class="header-section-number">6.5</span> Easy to Extend<a href="#easy-to-extend" class="self-link"></a></h2>
-<p>Most entities in the library should be possible to be defined with a
-single line of code with no need to use preprocessor macros. Users
-should be able to easily extend provided systems with custom dimensions,
-quantities, and units.</p>
 <h1 data-number="7" id="scope"><span class="header-section-number">7</span> Scope<a href="#scope" class="self-link"></a></h1>
 <p>The tables below briefly highlight the expected scope and feature
 set. Each of the features will be described in detail in the upcoming
