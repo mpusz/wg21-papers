@@ -777,18 +777,22 @@ The tables below briefly highlight the expected scope and feature set. Each of t
 be described in detail in the upcoming papers. To learn more right away and to be able to provide
 early feedback, we encourage everyone to check out the documentation of the [@MP-UNITS] project.
 
+_Note: The priorities provided in the below tables are the recommendations by authors based on their
+experience in the domain but are in no way final. This is just an entry point for the discussion
+in the Committee._
+
 <!-- markdownlint-disable MD013 -->
 
 ## Basic Framework
 
-| Feature                                | Priority | Description                                                                                                                    |
-|----------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------|
-| Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them         |
-| Quantity kinds                         |    1     | `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities         |
-| Various quantities of the same kind    |    1     | `width`, `height`, `wavelength` (all of the kind `length`) should be distinct quantities                                       |
-| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities) |
-| Logarithmic units support              |    2     | Support for logarithmic units (e.g., decibel)                                                                                  |
-| Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity                                                                         |
+| Feature                                | Priority | Description                                                                                                                                    |
+|----------------------------------------|:--------:|------------------------------------------------------------------------------------------------------------------------------------------------|
+| Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them                         |
+| Quantity kinds                         |    1     | Support for example for `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force`, which should be distinct quantities |
+| Various quantities of the same kind    |    1     | Support for example for `width`, `height`, `wavelength` (all of the kind `length`), which should be distinct quantities                        |
+| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (no changes are needed for vectors and tensors of quantities)                 |
+| Logarithmic units support              |    2     | Support for logarithmic units (e.g., decibel)                                                                                                  |
+| Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity type                                                                                    |
 
 ## The Affine Space
 
@@ -820,7 +824,9 @@ plan to propose any support for doing that for physical quantities and their uni
 | The most important ISQ quantities |    1     | Specification of the most commonly used ISQ quantities                                                                                                                                                                           |
 | ISQ 3-6                           |    1     | Specification of the ISQ quantities specified in ISO/IEC 80000 parts 3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)                                                                                         |
 | ISQ 7-12                          |    3     | Specification of the ISQ quantities specified in ISO 80000 parts 7 - 12 (Light and radiation, Acoustics, Physical chemistry and molecular physics, Atomic and nuclear physics, Characteristic numbers, Condensed matter physics) |
-| ISQ 13                            |    2     | Specification of the ISQ quantities specified in IEC 80000-13 (Information science and technology)                                                                                                                               |
+| ISQ 13                            |    1     | Specification of the ISQ quantities specified in IEC 80000-13 (Information science and technology)                                                                                                                               |
+| Angular                           |    1     | Strong angular quantities                                                                                                                                                                                                        |
+| Angular ISQ                       |    3     | Changes to the ISQ to support strong angular quantities                                                                                                                                                                          |
 
 ## Systems of units
 
@@ -828,11 +834,11 @@ plan to propose any support for doing that for physical quantities and their uni
 |---------------|:--------:|------------------------------------------------------------------------------------|
 | SI            |    1     | All the units, prefixes, and symbols (including prefixed versions) of the SI       |
 | IEC 80000-13  |    1     | All the units, prefixes, and symbols (including prefixed versions) of IEC 80000-13 |
-| International |    1     | International yard and pound units system                                          |
-| Imperial      |    2     | Imperial units system                                                              |
-| USC system    |    2     | United States Customary system                                                     |
+| International |    1     | International yard and pound units (common to Imperial and USC systems)            |
+| Angular       |    1     | Strong angular quantities and units system                                         |
+| Imperial      |    2     | Imperial system-specific units                                                     |
+| USC system    |    2     | United States Customary system-specific units                                      |
 | CGS system    |    2     | Centimetre-Gram-Second system                                                      |
-| Angular       |    3     | Strong angular quantities and units system                                         |
 | IAU system    |    3     | International Astronomical Union units system                                      |
 
 ## Utilities
@@ -843,6 +849,21 @@ plan to propose any support for doing that for physical quantities and their uni
 | Math                  |    2     | Common mathematical functions on quantities                                                                                   |
 | Random                |    3     | Random number generators of quantities                                                                                        |
 
+## External dependencies
+
+The features in this chapter are heavily used in the library but are not domain-specific.
+Having them standardized (instead of left as exposition only) could not only improve
+the specification of this library, but also could serve as an important building block for tools
+from other domains that we can get in the future from other authors.
+
+| Feature                          | Priority | Description                                                                                        |
+|----------------------------------|:--------:|----------------------------------------------------------------------------------------------------|
+| Number concepts                  |    1     | Concepts for vector- and point-space numbers                                                       |
+| `fixed_string`                   |    1     | String-like structural type (can be used as an NTTP)                                               |
+| Compile-time prime numbers       |    1     | Compile-time facilities to break any integral value to a product of prime numbers and their powers |
+| Standardized type and NTTP lists |    2     | Common library providing algorithms to handle type and NTTP lists                                  |
+
+
 # Plan For Standardization
 
 Having physical quantities and units support in C++ would be extremely useful for many C++ developers,
@@ -852,25 +873,25 @@ or controversial for whatever reason, physical quantities and units (or some par
 will miss the train and we will have to wait three more years. However, having a clear plan approved
 by LEWG will help to keep the efforts on track.
 
-| Meeting            | C++ Milestones                                     | Activities                                                                                                                                   |
-|--------------------|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG<br>Paper about safety benefits and concerns to SG23<br>Paper about quantity arithmetics to SG6  |
-| 2024.1 (Tokyo)     |                                                    | Paper on the Basic Framework (priority 1 features) to LEWG<br>Paper about text output to SG16<br>Paper about math utilities to SG6           |
-| 2024.2 (St. Louis) |                                                    | Paper on the Basic Framework (priority 2 features) to SG6<br>Paper about the Affine Space to LEWG<br>Move quantity arithmetics paper to LEWG |
-| 2024.3 (Wrocław)   |                                                    | Papers on systems to SG6<br>Paper about `std::chrono` support to LEWG<BR>Move text output paper to LEWG<br>Move math utilities paper to LEWG |
-| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Basic Framework (priority 2 features) to LEWG                                                                                           |
-| 2025.2             | C++26 CD finalized                                 |                                                                                                                                              |
-| 2025.3             |                                                    | Move papers on systems to LEWG                                                                                                               |
-| 2026.1             | C++26 DIS finalized                                |                                                                                                                                              |
-| 2026.2             | C++29 WP opens                                     | Wording for Basic Framework (priority 1 features) to LWG                                                                                     |
-| 2026.3             |                                                    | Wording for Basic Framework (priority 2 features), the Affine Space, `std::chrono` support, and the text output to LWG                       |
-| 2027.1             |                                                    | Wording for math utilities and systems to LWG                                                                                                |
-| 2027.2             |                                                    |                                                                                                                                              |
-| 2027.3             |                                                    |                                                                                                                                              |
-| 2028.1             | Last meeting for LEWG review of new C++29 features | Finalize wording review in LWG and merge into C++29 WP                                                                                       |
-| 2028.2             | C++29 CS finalized                                 | Resolve any outstanding design/wording issues                                                                                                |
-| 2028.3             |                                                    | Resolve NB comments                                                                                                                          |
-| 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                          |
+| Meeting            | C++ Milestones                                     | Activities                                                                                                                                                                                                                  |
+|--------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper about safety benefits and concerns to SG23<br>Papers about quantity arithmetics and number concepts to SG6                                             |
+| 2024.1 (Tokyo)     |                                                    | Paper on the Basic Framework (priority 1 features) to LEWG<br>Paper on `fixed_string` to SG16<br>Paper about text output to SG16<br>Paper about math utilities to SG6<br>Paper about prime numbers to SG6                   |
+| 2024.2 (St. Louis) |                                                    | Paper on the Basic Framework (priority 2 features) to SG6<br>Paper about the Affine Space to LEWG<br>Move quantity arithmetics and number concepts papers to LEWG                                                           |
+| 2024.3 (Wrocław)   |                                                    | Paper of type and NTTP lists to LEWG<br>Papers on systems to SG6<br>Paper about `std::chrono` support to LEWG<BR>Move text output and `fixed_string` papers to LEWG<br>Move math utilities and prime numbers papers to LEWG |
+| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Basic Framework (priority 2 features) to LEWG                                                                                                                                                                          |
+| 2025.2             | C++26 CD finalized                                 |                                                                                                                                                                                                                             |
+| 2025.3             |                                                    | Move papers on systems to LEWG                                                                                                                                                                                              |
+| 2026.1             | C++26 DIS finalized                                |                                                                                                                                                                                                                             |
+| 2026.2             | C++29 WP opens                                     | Wording for Basic Framework (priority 1 features) adn number concepts to LWG                                                                                                                                                |
+| 2026.3             |                                                    | Wording for Basic Framework (priority 2 features), the Affine Space, `std::chrono` support, the text output, and `fixed_string` to LWG                                                                                      |
+| 2027.1             |                                                    | Wording for math utilities, prime numbers, systems, and type and NTTP lits to LWG                                                                                                                                           |
+| 2027.2             |                                                    |                                                                                                                                                                                                                             |
+| 2027.3             |                                                    |                                                                                                                                                                                                                             |
+| 2028.1             | Last meeting for LEWG review of new C++29 features | Finalize wording review in LWG and merge into C++29 WP                                                                                                                                                                      |
+| 2028.2             | C++29 CS finalized                                 | Resolve any outstanding design/wording issues                                                                                                                                                                               |
+| 2028.3             |                                                    | Resolve NB comments                                                                                                                                                                                                         |
+| 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                                                                                                         |
 
 <!-- markdownlint-enable MD013 -->
 

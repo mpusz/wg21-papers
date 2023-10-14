@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-13" />
+  <meta name="dcterms.date" content="2023-10-14" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-13</td>
+    <td>2023-10-14</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -516,6 +516,8 @@ quantities<span></span></a></li>
 <li><a href="#systems-of-units" id="toc-systems-of-units"><span class="toc-section-number">6.6</span> Systems of
 units<span></span></a></li>
 <li><a href="#utilities" id="toc-utilities"><span class="toc-section-number">6.7</span> Utilities<span></span></a></li>
+<li><a href="#external-dependencies" id="toc-external-dependencies"><span class="toc-section-number">6.8</span> External
+dependencies<span></span></a></li>
 </ul></li>
 <li><a href="#plan-for-standardization" id="toc-plan-for-standardization"><span class="toc-section-number">7</span> Plan For
 Standardization<span></span></a></li>
@@ -1267,13 +1269,17 @@ set. Each of the features will be described in detail in the upcoming
 papers. To learn more right away and to be able to provide early
 feedback, we encourage everyone to check out the documentation of the
 <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> project.</p>
+<p><em>Note: The priorities provided in the below tables are the
+recommendations by authors based on their experience in the domain but
+are in no way final. This is just an entry point for the discussion in
+the Committee.</em></p>
 <!-- markdownlint-disable MD013 -->
 <h2 data-number="6.1" id="basic-framework"><span class="header-section-number">6.1</span> Basic Framework<a href="#basic-framework" class="self-link"></a></h2>
 <table>
 <colgroup>
-<col style="width: 22%" />
+<col style="width: 20%" />
 <col style="width: 5%" />
-<col style="width: 71%" />
+<col style="width: 74%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1299,7 +1305,8 @@ templates, dimensions, quantity specifications, units,
 <tr class="even">
 <td>Quantity kinds</td>
 <td style="text-align: center;">1</td>
-<td><code class="sourceCode default">frequency</code>,
+<td>Support for example for
+<code class="sourceCode default">frequency</code>,
 <code class="sourceCode default">activity</code>, and
 <code class="sourceCode default">modulation_rate</code>, or
 <code class="sourceCode default">energy</code> and
@@ -1309,11 +1316,12 @@ distinct quantities</td>
 <tr class="odd">
 <td>Various quantities of the same kind</td>
 <td style="text-align: center;">1</td>
-<td><code class="sourceCode default">width</code>,
+<td>Support for example for
+<code class="sourceCode default">width</code>,
 <code class="sourceCode default">height</code>,
 <code class="sourceCode default">wavelength</code> (all of the kind
-<code class="sourceCode default">length</code>) should be distinct
-quantities</td>
+<code class="sourceCode default">length</code>), which should be
+distinct quantities</td>
 </tr>
 <tr class="even">
 <td>Vector and tensor representation types</td>
@@ -1329,7 +1337,7 @@ changes are needed for vectors and tensors of quantities)</td>
 <tr class="even">
 <td>Polymorphic unit</td>
 <td style="text-align: center;">???</td>
-<td>Runtime-known type-erased unit of a specified quantity</td>
+<td>Runtime-known type-erased unit of a specified quantity type</td>
 </tr>
 </tbody>
 </table>
@@ -1459,9 +1467,19 @@ matter physics)</td>
 </tr>
 <tr class="even">
 <td>ISQ 13</td>
-<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
 <td>Specification of the ISQ quantities specified in IEC 80000-13
 (Information science and technology)</td>
+</tr>
+<tr class="odd">
+<td>Angular</td>
+<td style="text-align: center;">1</td>
+<td>Strong angular quantities</td>
+</tr>
+<tr class="even">
+<td>Angular ISQ</td>
+<td style="text-align: center;">3</td>
+<td>Changes to the ISQ to support strong angular quantities</td>
 </tr>
 </tbody>
 </table>
@@ -1501,27 +1519,28 @@ of IEC 80000-13</td>
 <tr class="odd">
 <td>International</td>
 <td style="text-align: center;">1</td>
-<td>International yard and pound units system</td>
+<td>International yard and pound units (common to Imperial and USC
+systems)</td>
 </tr>
 <tr class="even">
-<td>Imperial</td>
-<td style="text-align: center;">2</td>
-<td>Imperial units system</td>
+<td>Angular</td>
+<td style="text-align: center;">1</td>
+<td>Strong angular quantities and units system</td>
 </tr>
 <tr class="odd">
-<td>USC system</td>
+<td>Imperial</td>
 <td style="text-align: center;">2</td>
-<td>United States Customary system</td>
+<td>Imperial system-specific units</td>
 </tr>
 <tr class="even">
+<td>USC system</td>
+<td style="text-align: center;">2</td>
+<td>United States Customary system-specific units</td>
+</tr>
+<tr class="odd">
 <td>CGS system</td>
 <td style="text-align: center;">2</td>
 <td>Centimetre-Gram-Second system</td>
-</tr>
-<tr class="odd">
-<td>Angular</td>
-<td style="text-align: center;">3</td>
-<td>Strong angular quantities and units system</td>
 </tr>
 <tr class="even">
 <td>IAU system</td>
@@ -1571,6 +1590,56 @@ external libraries</td>
 </tr>
 </tbody>
 </table>
+<h2 data-number="6.8" id="external-dependencies"><span class="header-section-number">6.8</span> External dependencies<a href="#external-dependencies" class="self-link"></a></h2>
+<p>The features in this chapter are heavily used in the library but are
+not domain-specific. Having them standardized (instead of left as
+exposition only) could not only improve the specification of this
+library, but also could serve as an important building block for tools
+from other domains that we can get in the future from other authors.</p>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 6%" />
+<col style="width: 69%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Feature</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Priority</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Description</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Number concepts</td>
+<td style="text-align: center;">1</td>
+<td>Concepts for vector- and point-space numbers</td>
+</tr>
+<tr class="even">
+<td><code class="sourceCode default">fixed_string</code></td>
+<td style="text-align: center;">1</td>
+<td>String-like structural type (can be used as an NTTP)</td>
+</tr>
+<tr class="odd">
+<td>Compile-time prime numbers</td>
+<td style="text-align: center;">1</td>
+<td>Compile-time facilities to break any integral value to a product of
+prime numbers and their powers</td>
+</tr>
+<tr class="even">
+<td>Standardized type and NTTP lists</td>
+<td style="text-align: center;">2</td>
+<td>Common library providing algorithms to handle type and NTTP
+lists</td>
+</tr>
+</tbody>
+</table>
 <h1 data-number="7" id="plan-for-standardization"><span class="header-section-number">7</span> Plan For Standardization<a href="#plan-for-standardization" class="self-link"></a></h1>
 <p>Having physical quantities and units support in C++ would be
 extremely useful for many C++ developers, and ideally, we should ship it
@@ -1582,9 +1651,9 @@ will have to wait three more years. However, having a clear plan
 approved by LEWG will help to keep the efforts on track.</p>
 <table>
 <colgroup>
-<col style="width: 9%" />
-<col style="width: 24%" />
-<col style="width: 66%" />
+<col style="width: 6%" />
+<col style="width: 17%" />
+<col style="width: 75%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1603,30 +1672,33 @@ approved by LEWG will help to keep the efforts on track.</p>
 <tr class="odd">
 <td>2023.3 (Kona)</td>
 <td></td>
-<td>Paper on motivation, scope, and plan to LEWG<br>Paper about safety
-benefits and concerns to SG23<br>Paper about quantity arithmetics to
-SG6</td>
+<td>Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper
+about safety benefits and concerns to SG23<br>Papers about quantity
+arithmetics and number concepts to SG6</td>
 </tr>
 <tr class="even">
 <td>2024.1 (Tokyo)</td>
 <td></td>
 <td>Paper on the Basic Framework (priority 1 features) to LEWG<br>Paper
-about text output to SG16<br>Paper about math utilities to SG6</td>
+on <code class="sourceCode default">fixed_string</code> to SG16<br>Paper
+about text output to SG16<br>Paper about math utilities to SG6<br>Paper
+about prime numbers to SG6</td>
 </tr>
 <tr class="odd">
 <td>2024.2 (St. Louis)</td>
 <td></td>
 <td>Paper on the Basic Framework (priority 2 features) to SG6<br>Paper
-about the Affine Space to LEWG<br>Move quantity arithmetics paper to
-LEWG</td>
+about the Affine Space to LEWG<br>Move quantity arithmetics and number
+concepts papers to LEWG</td>
 </tr>
 <tr class="even">
 <td>2024.3 (Wrocław)</td>
 <td></td>
-<td>Papers on systems to SG6<br>Paper about
-<code class="sourceCode default">std::chrono</code> support to
-LEWG<BR>Move text output paper to LEWG<br>Move math utilities paper to
-LEWG</td>
+<td>Paper of type and NTTP lists to LEWG<br>Papers on systems to
+SG6<br>Paper about <code class="sourceCode default">std::chrono</code>
+support to LEWG<BR>Move text output and
+<code class="sourceCode default">fixed_string</code> papers to
+LEWG<br>Move math utilities and prime numbers papers to LEWG</td>
 </tr>
 <tr class="odd">
 <td>2025.1</td>
@@ -1651,19 +1723,22 @@ LEWG</td>
 <tr class="odd">
 <td>2026.2</td>
 <td>C++29 WP opens</td>
-<td>Wording for Basic Framework (priority 1 features) to LWG</td>
+<td>Wording for Basic Framework (priority 1 features) adn number
+concepts to LWG</td>
 </tr>
 <tr class="even">
 <td>2026.3</td>
 <td></td>
 <td>Wording for Basic Framework (priority 2 features), the Affine Space,
-<code class="sourceCode default">std::chrono</code> support, and the
-text output to LWG</td>
+<code class="sourceCode default">std::chrono</code> support, the text
+output, and <code class="sourceCode default">fixed_string</code> to
+LWG</td>
 </tr>
 <tr class="odd">
 <td>2027.1</td>
 <td></td>
-<td>Wording for math utilities and systems to LWG</td>
+<td>Wording for math utilities, prime numbers, systems, and type and
+NTTP lits to LWG</td>
 </tr>
 <tr class="even">
 <td>2027.2</td>
