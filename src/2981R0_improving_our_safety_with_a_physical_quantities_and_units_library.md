@@ -654,7 +654,7 @@ We have checked a few leading libraries on the market, and here are the results:
 - [@PINT] library in Python claims that the result is 3.0 Hz,
 - [@JSR-385] library in Java throws an exception saying that we can't add those quantities.
 
-Now let's check what [@ISO80000] says about quantity kinds:
+Now let's check what [@ISO-GUIDE] says about quantity kinds:
 
 - Quantities may be grouped together into categories of quantities that are **mutually comparable**
 - Mutually comparable quantities are called **quantities of the same kind**
@@ -664,7 +664,7 @@ Now let's check what [@ISO80000] says about quantity kinds:
   dimension**
 - Quantities of the **same dimension are not necessarily of the same kind**
 
-It also explicitly notes:
+[@ISO80000] also explicitly notes:
 
 > **Measurement units of quantities of the same quantity dimension may be designated by the same name
 > and symbol even when the quantities are not of the same kind**. For example, joule per kelvin and J/K
@@ -843,7 +843,7 @@ const quantity<fuel_consumption[l / (mag<100> * km)]> q = football_field;  // Co
 
 ### Comparing, adding, and subtracting quantities of the same kind
 
-[@ISO80000] explicitly states that `width` and `height` are quantities of the same kind and as such
+[@ISO-GUIDE] explicitly states that `width` and `height` are quantities of the same kind and as such
 they:
 
 - are mutually comparable,
