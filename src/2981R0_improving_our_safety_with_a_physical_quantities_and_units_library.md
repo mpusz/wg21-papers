@@ -1409,7 +1409,7 @@ references:
     - family: Guerrero Peña
       given: Johel Ernesto
     - family: Hogg
-      given: Charles
+      given: Chip
     - family: Holthaus
       given: Nicolas
     - family: Michaels

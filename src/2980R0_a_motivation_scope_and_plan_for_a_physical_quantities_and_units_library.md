@@ -1172,7 +1172,7 @@ references:
   citation-label: P2982
   author:
     - family: Hogg
-      given: Charles
+      given: Chip
     - family: Pusz
       given: Mateusz
   title: "`std::quantity` as a numeric type"
