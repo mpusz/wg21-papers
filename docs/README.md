@@ -40,12 +40,12 @@ to this activity.
 - [P2007R0: `std::from_chars` should work with `std::string_view`](papers/2007R0_std_from_chars_should_work_with_std_string_view.html)
 - [P2007R1: `std::from_chars` should work with `std::string_view`](papers/2007R1_std_from_chars_should_work_with_std_string_view.html)
 - [P2008R0: Enable variable template template parameters](papers/2008R0_enable_variable_template_template_parameters.html)
-
-### Under Development
-
 - [P2980R0: A motivation, scope, and plan for a physical quantities and units library](papers/2980R0_a_motivation_scope_and_plan_for_a_physical_quantities_and_units_library.html)
 - [P2981R0: Improving our safety with a physical quantities and units library](papers/2981R0_improving_our_safety_with_a_physical_quantities_and_units_library.html)
 - [P2982R0: `std::quantity` as a numeric type](papers/2982R0_std_quantity_as_a_numeric_type.html)
+
+### Under Development
+
 
 ## More Papers
 
