@@ -11,7 +11,7 @@ author:
     email: <dominik.berner@gmail.com>
   - name: Johel Ernesto Guerrero Peña
     email: <johelegp@gmail.com>
-  - name: Charles Hogg
+  - name: Chip Hogg
     email: <charles.r.hogg@gmail.com>
   - name: Nicolas Holthaus
     email: <nholthaus@gmail.com>

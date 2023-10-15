@@ -1002,10 +1002,10 @@ number.  For example, the ratio between one foot and one inch is 12.
 ### Unit magnitudes
 
 In principle, this scaling factor can be any positive real number.  In mp-units and Au, we have used the term
-"magnitude" to refer to this scaling factor.  (This should not be confused with the logarithmic "magnitude"
-unit commonly used in astronomy.)
+"magnitude" to refer to this scaling factor.  (This should not be confused with other uses of the term, such
+as the logarithmic "magnitude" unit commonly used in astronomy.)
 
-In the library implementation, each unit is associated with a magnitude.  However, for most units the
+In the library implementation, each unit is associated with a magnitude.  However, for most units, the
 magnitude is a fully encapsulated implementation detail, not a user-facing value.
 
 This is because the notion of "the" magnitude of a unit is not generally meaningful: it has no physically
@@ -1016,10 +1016,11 @@ assign any magnitude $m_s$ to the second, because it's an independent dimension 
 choice, it fixes the magnitude for derived units, and we must assign, say, $(5280 m_f) / (3600 m_s)$ to the
 _mile per hour_.
 
-The one exception to the arbitrariness of magnitudes is _dimensionless_ units.  Because their dimension is
-null, quantities of these units can be meaningfully compared to their squares and other powers.  For example,
-the magnitude of _percent_ is $1 / 100$, and the magnitude of _squared percent_ (or _pertenk_, "per-10-k") is
-$1 / 10000$.  We cannot choose another value for the magnitude without producing observably incorrect results.
+The one exception to the arbitrariness of magnitudes is _dimensionless_ units.  Because their dimension is the
+identity, quantities of these units can be meaningfully compared to their squares and other powers.  For
+example, the magnitude of _percent_ is $1 / 100$, and the magnitude of _squared percent_ (or _pertenk_,
+"per-10-k") is $1 / 10000$.  We cannot choose another value for the magnitude without producing observably
+incorrect results.
 
 ### Requirements and Representation
 
