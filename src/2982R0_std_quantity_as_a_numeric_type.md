@@ -2267,8 +2267,10 @@ if (auto q = q1 / q2; q != q.zero())
 
 but that is a bit inconvenient, and inexperienced users could be unaware of this technique and its reasons.
 
-For the above reasons, the library provides dedicated interfaces to compare against zero that
-follow the naming convention of
+#### Named comparison functions
+
+For the above reasons, the [@MP-UNITS] library provides dedicated interfaces to compare against zero
+that follow the naming convention of
 [named comparison functions](https://en.cppreference.com/w/cpp/utility/compare/named_comparison_functions)
 in the C++ Standard Library:
 
@@ -2289,12 +2291,12 @@ if (is_neq_zero(q1 / q2))
 
 Those functions will work with any type `T` that exposes a `zero()` member function returning
 something comparable to `T`. Thanks to that, we can use them not only with quantities but also
-with quantity points, `std::chrono::duration` or any other type that exposes such an interface.
+with `std::chrono::duration` or any other type that exposes such an interface.
 
-#### Alternative: `Zero` type
+#### `Zero` type
 
 The [@AU] library takes a different approach to this problem.  It provides an empty type, `Zero`, which
-represents a value of exactly 0 (in any units).  It also provides an instance `ZERO` of this type.  Every
+represents a value of exactly `0` (in any units).  It also provides an instance `ZERO` of this type.  Every
 quantity is implicitly constructible from `Zero`.
 
 Consider this example legacy (i.e., pre-units-library) code:
@@ -2316,60 +2318,80 @@ This has significant advantages.  It preserves the _form_ of the code, making th
 than replacement with a function such as `is_gt_zero`.  It also reduces the number of new comparison APIs
 a user must learn: `Zero` handles them all.
 
-`Zero` has one downside: it will not work when passed across _generic quantity_ interfaces.  The benefit of `Zero`
-comes in situations where the surrounding context makes it unambiguous which quantity type it should
-construct.  While it converts to any _specific_ quantity type, it is not itself a quantity.  This could
-confuse users.
+`Zero` has a few downsides though:
 
-When we examine these failures, we find two categories.
+1. CTAD can't deduce the quantity type as there is no unit provided. So if we try to refactor the
+   following:
 
-1. **Non-regretted failures:** In these cases, the failure is a blessing in disguise, because it prevents us
-   from forming an underspecified request.
+    ```cpp
+    quantity<si::metre / si::second> q1 = 0 * m / s;  // OK
+    quantity q2 = 0 * m / s;                          // OK
+    ```
 
-2. **Regretted failures:** These are failures where the user's request is perfectly reasonable and
-   unambiguous. We'd prefer that the user's code works, and does what they expect.
+   only the first one will work and the second one will fail to compile:
 
-One example of a "non-regretted failure" is a generic speed function, which divides a distance by a time and
-returns the results in the natural derived unit:
+    ```cpp
+    quantity<si::metre / si::second> q1 = ZERO;  // OK
+    quantity q2 = ZERO;                          // Compile-time error
+    ```
 
-```cpp
-QuantityOf<isq::speed> auto average_speed(
-    QuantityOf<isq::distance> auto ds,
-    QuantityOf<isq::time> auto dt)
-{
-    return ds / dt;
-}
-```
+2. While refactoring the [@MP-UNITS] code to try out this approach we found out also some other places
+   where we could not replace numerical value `0` with `ZERO`:
 
-In this case, we might be tempted to write `average_speed(ZERO, 10 * si::second)`, but this wouldn't provide
-enough information to determine the units of the return type.  The compilation failure draws our attention to
-this omission.
+   ```cpp
+   for (auto tt = 0 * ms; tt <= 50 * ms; ++tt) { /* ... */ }
+   ```
 
-An example "regretted failure" is the unit-aware `max()` function from [@AU].  This function template takes
-two different quantity types, and returns whichever quantity is larger, expressed in their common unit.  In
-principle, it's perfectly meaningful to pass `Zero` as one of the arguments of `max()`.  (For example,
-a quantity which is known to be non-negative can come from a computation that sometimes returns slightly
-negative results, due to floating point errors).  With `max()`, it's also perfectly clear (in principle) which
-quantity type we should construct from `Zero`: That of the other argument.  But in _practice_, template
-deduction fails because `Zero` is not itself a quantity.
+   ```cpp
+   msl_altitude alt = mean_sea_level + 0 * si::metre; 
+   ```
 
-The remedy is to provide new overloads that handle `Zero`, making the `max()` API feel more seamless and less
-surprising for the end user.  This does have its costs.  For one thing, it creates extra work on the
-implementation side.  It also scales poorly as `Zero` becomes meaningful for more and more parameters in our
-API.  On the other hand, there are hidden benefits as well: If `Zero` becomes a vocabulary type that is useful
-beyond simple quantities, then a single pair of overloads for `max()` will cover every possible type to which
-`Zero` is convertible.
+   The second example, would not work because the `mean_sea_level` is an absolute point origin that
+   stores the information about the quantity type but not its value and unit.
 
-For completeness, we should consider how the special function approach would handle this same case, where one
-of the arguments to `max` is 0.  It fares slightly better on the implementation side, because it requires only
-one new function instead of two; there is only one "slot" to put the nonzero argument.  However, the end user
-experience is worse, because they have to learn another new function name.  Moreover, the best name for that
-function is not immediately clear.  Finally, if there are other types where this "max-with-zero" functionality
-makes sense, we will have to manually add a new overload for every such new type.
+3. It works for addition but not multiplication as we do not know if we should multiply by a scalar or
+   a quantity. In the latter case, we do not have enough information to produce not only a unit but even
+   quantity type and dimension of the result:
 
-Overall, these two approaches --- special functions, and a `Zero` type --- represent two local optima in
-design space.  Each has its strengths and weaknesses; each makes different tradeoffs.  It's currently an open
-question as to which approach would be best suited for a quantity type in the standard library.
+    ```cpp
+    quantity q1 = 1 * m / s;
+    quantity q2 = q1 + 0 * m / s;   // OK
+    quantity q3 = q1 * (0 * s);     // OK
+    ```
+
+    ```cpp
+    quantity q1 = 1 * m / s;
+    quantity q1 = q1 + ZERO;        // OK
+    quantity q2 = q1 * ZERO;        // Compile-time error
+    ```
+
+4. It will not work when passed across generic quantity interfaces. Even though the `quantity` class
+   template is implicitly convertible from `Zero`, the `Zero` type is not a quantity and thus does
+   not satisfy a `Quantity` concept:
+
+    ```cpp
+    void foo(quantity<si::metre> q);
+    void boo(QuantityOf<isq::length> auto q);
+
+    foo(ZERO);   // OK
+    boo(ZERO);   // Compile-time error
+    ```
+
+   The above issue may be even more problematic to the users if the `foo()` was used with `ZERO`
+   for a long time, and after that, it was refactored to become a generic function template `boo()`,
+   which would make the previously correct code to not compile.
+
+Of course, we can argue that it is obvious that the above cases do not compile because there are
+good reasons for that. As long as it might not surprise the domain experts that have lots of
+experience with coding in such a library, novices will try to replace every numeric value `0`
+with `ZERO` and often will be confused when it does not work.
+
+#### Comparison against zero: Summary
+
+Overall, these two approaches --- special functions, and a `Zero` type --- represent two local
+optima in design space. Each has its strengths and weaknesses; each makes different tradeoffs.
+It's currently an open question as to which approach would be best suited for a quantity type
+in the standard library.
 
 ### Other maths
 
