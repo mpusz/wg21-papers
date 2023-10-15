@@ -1577,7 +1577,7 @@ quantity<si::metre, int> q2 = value_cast<int>(q1);
 ```
 
 As we can see, it is essential not to allow such truncating conversions to happen implicitly
-and a good physical quantities and units library should fail at compile time in case a user makes
+and a good physical quantities and units library should fail at compile-time in case a user makes
 such a mistake.
 
 ## Character of a quantity

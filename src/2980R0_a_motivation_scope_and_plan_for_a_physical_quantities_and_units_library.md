@@ -220,10 +220,10 @@ on the discipline of the programmers to enforce these. At the time of writing, t
 does not change fast enough to enforce safe-by-construction code.
 
 
-One of the areas where C++ can significantly improve the safety of applications being written
-by thousands of developers is introducing a type-safe, well-tested, standardized way to handle
-physical quantities and their units. The rationale for this is that people tend to have problems
-communicating or using proper units both in the code and in daily life. Numerous
+One of the ways C++ can significantly improve the safety of applications being written
+by thousands of developers is by introducing a type-safe, well-tested, standardized way to handle
+physical quantities and their units. The rationale is that people tend to have problems
+communicating or using proper units in code and daily life. Numerous
 expensive failures and accidents happened due to using an invalid unit or a quantity type.
 
 The most famous and probably the most expensive example in the software engineering domain is
