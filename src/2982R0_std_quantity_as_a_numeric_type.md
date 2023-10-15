@@ -2316,7 +2316,7 @@ This has significant advantages.  It preserves the _form_ of the code, making th
 than replacement with a function such as `is_gt_zero`.  It also reduces the number of new comparison APIs
 a user must learn: `Zero` handles them all.
 
-`Zero` has one downside: it will not work when passed across _generic quantity_ interfaces.  `Zero`'s value
+`Zero` has one downside: it will not work when passed across _generic quantity_ interfaces.  The benefit of `Zero`
 comes in situations where the surrounding context makes it unambiguous which quantity type it should
 construct.  While it converts to any _specific_ quantity type, it is not itself a quantity.  This could
 confuse users.
