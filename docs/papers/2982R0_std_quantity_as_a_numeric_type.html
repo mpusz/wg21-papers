@@ -502,12 +502,14 @@ kind<span></span></a></li>
 <li><a href="#system-of-quantities-is-not-only-about-kinds" id="toc-system-of-quantities-is-not-only-about-kinds"><span class="toc-section-number">3.3</span> System of quantities is not only
 about kinds<span></span></a></li>
 <li><a href="#converting-between-quantities-of-the-same-kind" id="toc-converting-between-quantities-of-the-same-kind"><span class="toc-section-number">3.4</span> Converting between quantities of
-the same kind<span></span></a></li>
-<li><a href="#comparing-adding-and-subtracting-quantities-of-the-same-kind" id="toc-comparing-adding-and-subtracting-quantities-of-the-same-kind"><span class="toc-section-number">3.5</span> Comparing, adding, and subtracting
-quantities of the same kind<span></span></a></li>
-<li><a href="#hierarchies-of-derived-quantities" id="toc-hierarchies-of-derived-quantities"><span class="toc-section-number">3.6</span> Hierarchies of derived
+the same kind<span></span></a>
+<ul>
+<li><a href="#comparing-adding-and-subtracting-quantities-of-the-same-kind" id="toc-comparing-adding-and-subtracting-quantities-of-the-same-kind"><span class="toc-section-number">3.4.1</span> Comparing, adding, and
+subtracting quantities of the same kind<span></span></a></li>
+</ul></li>
+<li><a href="#hierarchies-of-derived-quantities" id="toc-hierarchies-of-derived-quantities"><span class="toc-section-number">3.5</span> Hierarchies of derived
 quantities<span></span></a></li>
-<li><a href="#modeling-a-quantity-kind" id="toc-modeling-a-quantity-kind"><span class="toc-section-number">3.7</span> Modeling a quantity
+<li><a href="#modeling-a-quantity-kind" id="toc-modeling-a-quantity-kind"><span class="toc-section-number">3.6</span> Modeling a quantity
 kind<span></span></a></li>
 </ul></li>
 <li><a href="#systems-of-units" id="toc-systems-of-units"><span class="toc-section-number">4</span> Systems of units<span></span></a>
@@ -707,7 +709,7 @@ and <span class="citation" data-cites="BIPM-VIM">[<a href="#ref-BIPM-VIM" role="
 modeling one or more systems of units. However, this is not the only
 system kind to model. Another, and maybe even more important is a system
 of quantities. The most important example here is the International
-System of Quantities (ISQ) defined by the series of <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> documents.</p>
+System of Quantities (ISQ) defined by the series of <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> documents.</p>
 <h2 data-number="3.1" id="dimension-is-not-enough-to-describe-a-quantity"><span class="header-section-number">3.1</span> Dimension is not enough to
 describe a quantity<a href="#dimension-is-not-enough-to-describe-a-quantity" class="self-link"></a></h2>
 <p>Most of the products on the market are aware of physical dimensions.
@@ -718,8 +720,8 @@ supporting quantities of energy and a moment of force as independent,
 strong types. The problem here arises from the fact that both of them
 have exactly the same dimension
 <code class="sourceCode default">L²MT⁻²</code>, but a totally different
-physical meaning. As a result, it should not be possible to mix them in
-one quantity equation.</p>
+physical meaning. As a result, they do not participate in same-set
+operations, e.g., comparison, addition.</p>
 <p>A similar question that we could ask ourselves is what should be the
 result of:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> res <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> Hz <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> Bq <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> Bd;</span></code></pre></div>
@@ -767,7 +769,8 @@ of quantities <strong>have the same quantity dimension</strong></li>
 <li>Quantities of the <strong>same dimension are not necessarily of the
 same kind</strong></li>
 </ul>
-<p><span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> also explicitly notes:</p>
+<p><span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> also explicitly
+notes:</p>
 <blockquote>
 <p><strong>Measurement units of quantities of the same quantity
 dimension may be designated by the same name and symbol even when the
@@ -787,24 +790,24 @@ i.e. the newton metre (N · m).</p>
 one quantity may be defined for the same dimension:</p>
 <ul>
 <li>quantities of different kinds (e.g. frequency, modulation rate,
-activity, …)</li>
+activity)</li>
 <li>quantities of the same kind (e.g. length, width, altitude, distance,
-radius, wavelength, position vector, …)</li>
+radius, wavelength, position vector)</li>
 </ul>
 <p>Two quantities can’t be added, subtracted, or compared unless they
 belong to the same quantity kind.</p>
 <h2 data-number="3.3" id="system-of-quantities-is-not-only-about-kinds"><span class="header-section-number">3.3</span> System of quantities is not
 only about kinds<a href="#system-of-quantities-is-not-only-about-kinds" class="self-link"></a></h2>
-<p>The <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span>
+<p>The <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span>
 specifies hundreds of different quantities. Plenty of various kinds are
 provided, and often, each kind contains more than one quantity. It turns
 out that such quantities form a hierarchy of quantities of the same
 kind.</p>
 <p>For example, here are all quantities of the kind length provided in
-the <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span>:</p>
+<span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> (part 1):</p>
 <p><img src="data:image/svg+xml;base64,PHN2ZyBhcmlhLXJvbGVkZXNjcmlwdGlvbj0iZmxvd2NoYXJ0LXYyIiByb2xlPSJncmFwaGljcy1kb2N1bWVudCBkb2N1bWVudCIgdmlld0JveD0iLTggLTggMTA3Ny4xOTE0MDYyNSAzNDYiIHN0eWxlPSJtYXgtd2lkdGg6IDEwMCU7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBpZD0iZ3JhcGgtZGl2IiBoZWlnaHQ9IjEwMCUiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48c3R5bGU+QGltcG9ydCB1cmwoImh0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL2ZvbnQtYXdlc29tZS82LjQuMi9jc3MvYWxsLm1pbi5jc3MiKTsnPC9zdHlsZT48c3R5bGU+I2dyYXBoLWRpdntmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7ZmlsbDojMzMzO30jZ3JhcGgtZGl2IC5lcnJvci1pY29ue2ZpbGw6IzU1MjIyMjt9I2dyYXBoLWRpdiAuZXJyb3ItdGV4dHtmaWxsOiM1NTIyMjI7c3Ryb2tlOiM1NTIyMjI7fSNncmFwaC1kaXYgLmVkZ2UtdGhpY2tuZXNzLW5vcm1hbHtzdHJva2Utd2lkdGg6MnB4O30jZ3JhcGgtZGl2IC5lZGdlLXRoaWNrbmVzcy10aGlja3tzdHJva2Utd2lkdGg6My41cHg7fSNncmFwaC1kaXYgLmVkZ2UtcGF0dGVybi1zb2xpZHtzdHJva2UtZGFzaGFycmF5OjA7fSNncmFwaC1kaXYgLmVkZ2UtcGF0dGVybi1kYXNoZWR7c3Ryb2tlLWRhc2hhcnJheTozO30jZ3JhcGgtZGl2IC5lZGdlLXBhdHRlcm4tZG90dGVke3N0cm9rZS1kYXNoYXJyYXk6Mjt9I2dyYXBoLWRpdiAubWFya2Vye2ZpbGw6IzMzMzMzMztzdHJva2U6IzMzMzMzMzt9I2dyYXBoLWRpdiAubWFya2VyLmNyb3Nze3N0cm9rZTojMzMzMzMzO30jZ3JhcGgtZGl2IHN2Z3tmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7fSNncmFwaC1kaXYgLmxhYmVse2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtjb2xvcjojMzMzO30jZ3JhcGgtZGl2IC5jbHVzdGVyLWxhYmVsIHRleHR7ZmlsbDojMzMzO30jZ3JhcGgtZGl2IC5jbHVzdGVyLWxhYmVsIHNwYW4sI2dyYXBoLWRpdiBwe2NvbG9yOiMzMzM7fSNncmFwaC1kaXYgLmxhYmVsIHRleHQsI2dyYXBoLWRpdiBzcGFuLCNncmFwaC1kaXYgcHtmaWxsOiMzMzM7Y29sb3I6IzMzMzt9I2dyYXBoLWRpdiAubm9kZSByZWN0LCNncmFwaC1kaXYgLm5vZGUgY2lyY2xlLCNncmFwaC1kaXYgLm5vZGUgZWxsaXBzZSwjZ3JhcGgtZGl2IC5ub2RlIHBvbHlnb24sI2dyYXBoLWRpdiAubm9kZSBwYXRoe2ZpbGw6I0VDRUNGRjtzdHJva2U6IzkzNzBEQjtzdHJva2Utd2lkdGg6MXB4O30jZ3JhcGgtZGl2IC5mbG93Y2hhcnQtbGFiZWwgdGV4dHt0ZXh0LWFuY2hvcjptaWRkbGU7fSNncmFwaC1kaXYgLm5vZGUgLmxhYmVse3RleHQtYWxpZ246Y2VudGVyO30jZ3JhcGgtZGl2IC5ub2RlLmNsaWNrYWJsZXtjdXJzb3I6cG9pbnRlcjt9I2dyYXBoLWRpdiAuYXJyb3doZWFkUGF0aHtmaWxsOiMzMzMzMzM7fSNncmFwaC1kaXYgLmVkZ2VQYXRoIC5wYXRoe3N0cm9rZTojMzMzMzMzO3N0cm9rZS13aWR0aDoyLjBweDt9I2dyYXBoLWRpdiAuZmxvd2NoYXJ0LWxpbmt7c3Ryb2tlOiMzMzMzMzM7ZmlsbDpub25lO30jZ3JhcGgtZGl2IC5lZGdlTGFiZWx7YmFja2dyb3VuZC1jb2xvcjojZThlOGU4O3RleHQtYWxpZ246Y2VudGVyO30jZ3JhcGgtZGl2IC5lZGdlTGFiZWwgcmVjdHtvcGFjaXR5OjAuNTtiYWNrZ3JvdW5kLWNvbG9yOiNlOGU4ZTg7ZmlsbDojZThlOGU4O30jZ3JhcGgtZGl2IC5sYWJlbEJrZ3tiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLCAyMzIsIDIzMiwgMC41KTt9I2dyYXBoLWRpdiAuY2x1c3RlciByZWN0e2ZpbGw6I2ZmZmZkZTtzdHJva2U6I2FhYWEzMztzdHJva2Utd2lkdGg6MXB4O30jZ3JhcGgtZGl2IC5jbHVzdGVyIHRleHR7ZmlsbDojMzMzO30jZ3JhcGgtZGl2IC5jbHVzdGVyIHNwYW4sI2dyYXBoLWRpdiBwe2NvbG9yOiMzMzM7fSNncmFwaC1kaXYgZGl2Lm1lcm1haWRUb29sdGlwe3Bvc2l0aW9uOmFic29sdXRlO3RleHQtYWxpZ246Y2VudGVyO21heC13aWR0aDoyMDBweDtwYWRkaW5nOjJweDtmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjEycHg7YmFja2dyb3VuZDpoc2woODAsIDEwMCUsIDk2LjI3NDUwOTgwMzklKTtib3JkZXI6MXB4IHNvbGlkICNhYWFhMzM7Ym9yZGVyLXJhZGl1czoycHg7cG9pbnRlci1ldmVudHM6bm9uZTt6LWluZGV4OjEwMDt9I2dyYXBoLWRpdiAuZmxvd2NoYXJ0VGl0bGVUZXh0e3RleHQtYW5jaG9yOm1pZGRsZTtmb250LXNpemU6MThweDtmaWxsOiMzMzM7fSNncmFwaC1kaXYgOnJvb3R7LS1tZXJtYWlkLWZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjt9PC9zdHlsZT48Zz48bWFya2VyIG9yaWVudD0iYXV0byIgbWFya2VySGVpZ2h0PSIxMiIgbWFya2VyV2lkdGg9IjEyIiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIHJlZlk9IjUiIHJlZlg9IjYiIHZpZXdCb3g9IjAgMCAxMCAxMCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LXBvaW50RW5kIj48cGF0aCBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgZD0iTSAwIDAgTCAxMCA1IEwgMCAxMCB6Ij48L3BhdGg+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTIiIG1hcmtlcldpZHRoPSIxMiIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1IiByZWZYPSI0LjUiIHZpZXdCb3g9IjAgMCAxMCAxMCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LXBvaW50U3RhcnQiPjxwYXRoIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBkPSJNIDAgNSBMIDEwIDEwIEwgMTAgMCB6Ij48L3BhdGg+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTEiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1IiByZWZYPSIxMSIgdmlld0JveD0iMCAwIDEwIDEwIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydCIgaWQ9ImdyYXBoLWRpdl9mbG93Y2hhcnQtY2lyY2xlRW5kIj48Y2lyY2xlIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiByPSI1IiBjeT0iNSIgY3g9IjUiPjwvY2lyY2xlPjwvbWFya2VyPjxtYXJrZXIgb3JpZW50PSJhdXRvIiBtYXJrZXJIZWlnaHQ9IjExIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgcmVmWT0iNSIgcmVmWD0iLTEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LWNpcmNsZVN0YXJ0Ij48Y2lyY2xlIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiByPSI1IiBjeT0iNSIgY3g9IjUiPjwvY2lyY2xlPjwvbWFya2VyPjxtYXJrZXIgb3JpZW50PSJhdXRvIiBtYXJrZXJIZWlnaHQ9IjExIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgcmVmWT0iNS4yIiByZWZYPSIxMiIgdmlld0JveD0iMCAwIDExIDExIiBjbGFzcz0ibWFya2VyIGNyb3NzIGZsb3djaGFydCIgaWQ9ImdyYXBoLWRpdl9mbG93Y2hhcnQtY3Jvc3NFbmQiPjxwYXRoIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBkPSJNIDEsMSBsIDksOSBNIDEwLDEgbCAtOSw5Ij48L3BhdGg+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTEiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1LjIiIHJlZlg9Ii0xIiB2aWV3Qm94PSIwIDAgMTEgMTEiIGNsYXNzPSJtYXJrZXIgY3Jvc3MgZmxvd2NoYXJ0IiBpZD0iZ3JhcGgtZGl2X2Zsb3djaGFydC1jcm9zc1N0YXJ0Ij48cGF0aCBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgZD0iTSAxLDEgbCA5LDkgTSAxMCwxIGwgLTksOSI+PC9wYXRoPjwvbWFya2VyPjxnIGNsYXNzPSJyb290Ij48ZyBjbGFzcz0iY2x1c3RlcnMiPjwvZz48ZyBjbGFzcz0iZWRnZVBhdGhzIj48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXdpZHRoIiBpZD0iTC1sZW5ndGgtd2lkdGgtMCIgZD0iTTYxNi4wOTgsMjIuMDgxTDUzNC40OCwyOS4wNjhDNDUyLjg2MywzNi4wNTQsMjg5LjYyOSw1MC4wMjcsMjA4LjAxMiw2My4xOEMxMjYuMzk1LDc2LjMzMywxMjYuMzk1LDg4LjY2NywxMjYuMzk1LDk0LjgzM0wxMjYuMzk1LDEwMSI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1sZW5ndGggTEUtaGVpZ2h0IiBpZD0iTC1sZW5ndGgtaGVpZ2h0LTAiIGQ9Ik02MTYuMDk4LDIzLjc5TDU2OC45OTEsMzAuNDkyQzUyMS44ODQsMzcuMTkzLDQyNy42NzEsNTAuNTk3LDM4MC41NjQsNjMuNDY1QzMzMy40NTcsNzYuMzMzLDMzMy40NTcsODguNjY3LDMzMy40NTcsOTQuODMzTDMzMy40NTcsMTAxIj48L3BhdGg+PHBhdGggc3R5bGU9ImZpbGw6bm9uZTsiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIExTLXdpZHRoIExFLXRoaWNrbmVzcyIgaWQ9Ikwtd2lkdGgtdGhpY2tuZXNzLTAiIGQ9Ik05Ni43NiwxNDBMODcuMzg5LDE0Ni4xNjdDNzguMDE3LDE1Mi4zMzMsNTkuMjc0LDE2NC42NjcsNDkuOTAzLDE3NUM0MC41MzEsMTg1LjMzMyw0MC41MzEsMTkzLjY2Nyw0MC41MzEsMTk3LjgzM0w0MC41MzEsMjAyIj48L3BhdGg+PHBhdGggc3R5bGU9ImZpbGw6bm9uZTsiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIExTLXdpZHRoIExFLWRpYW1ldGVyIiBpZD0iTC13aWR0aC1kaWFtZXRlci0wIiBkPSJNMTQxLjg0MywxNDBMMTQ2LjcyOSwxNDYuMTY3QzE1MS42MTQsMTUyLjMzMywxNjEuMzg1LDE2NC42NjcsMTY2LjI3MSwxNzVDMTcxLjE1NiwxODUuMzMzLDE3MS4xNTYsMTkzLjY2NywxNzEuMTU2LDE5Ny44MzNMMTcxLjE1NiwyMDIiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtd2lkdGggTEUtcmFkaXVzIiBpZD0iTC13aWR0aC1yYWRpdXMtMCIgZD0iTTE4My4wMDMsMTQwTDIwMC45MDUsMTQ2LjE2N0MyMTguODA3LDE1Mi4zMzMsMjU0LjYxLDE2NC42NjcsMjcyLjUxMiwxNzVDMjkwLjQxNCwxODUuMzMzLDI5MC40MTQsMTkzLjY2NywyOTAuNDE0LDE5Ny44MzNMMjkwLjQxNCwyMDIiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXBhdGhfbGVuZ3RoIiBpZD0iTC1sZW5ndGgtcGF0aF9sZW5ndGgtMCIgZD0iTTYxNi4wOTgsMzAuNzQ1TDYwMS4yMzQsMzYuMjg4QzU4Ni4zNzEsNDEuODMsNTU2LjY0NSw1Mi45MTUsNTQxLjc4MSw2NC42MjRDNTI2LjkxOCw3Ni4zMzMsNTI2LjkxOCw4OC42NjcsNTI2LjkxOCw5NC44MzNMNTI2LjkxOCwxMDEiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtcGF0aF9sZW5ndGggTEUtZGlzdGFuY2UiIGlkPSJMLXBhdGhfbGVuZ3RoLWRpc3RhbmNlLTAiIGQ9Ik01MjYuOTE4LDE0MEw1MjYuOTE4LDE0Ni4xNjdDNTI2LjkxOCwxNTIuMzMzLDUyNi45MTgsMTY0LjY2Nyw1MjYuOTE4LDE3NUM1MjYuOTE4LDE4NS4zMzMsNTI2LjkxOCwxOTMuNjY3LDUyNi45MTgsMTk3LjgzM0w1MjYuOTE4LDIwMiI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1kaXN0YW5jZSBMRS1yYWRpYWxfZGlzdGFuY2UiIGlkPSJMLWRpc3RhbmNlLXJhZGlhbF9kaXN0YW5jZS0wIiBkPSJNNTI2LjkxOCwyNDFMNTI2LjkxOCwyNDUuMTY3QzUyNi45MTgsMjQ5LjMzMyw1MjYuOTE4LDI1Ny42NjcsNTI2LjkxOCwyNjZDNTI2LjkxOCwyNzQuMzMzLDUyNi45MTgsMjgyLjY2Nyw1MjYuOTE4LDI4Ni44MzNMNTI2LjkxOCwyOTEiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXdhdmVsZW5ndGgiIGlkPSJMLWxlbmd0aC13YXZlbGVuZ3RoLTAiIGQ9Ik02NTkuMzE4LDM5TDY2Mi4xMDksNDMuMTY3QzY2NC45MDEsNDcuMzMzLDY3MC40ODQsNTUuNjY3LDY3My4yNzUsNjZDNjc2LjA2Niw3Ni4zMzMsNjc2LjA2Niw4OC42NjcsNjc2LjA2Niw5NC44MzNMNjc2LjA2NiwxMDEiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXBvc2l0aW9uX3ZlY3RvciIgaWQ9IkwtbGVuZ3RoLXBvc2l0aW9uX3ZlY3Rvci0wIiBkPSJNNjc2LjQxLDI2LjUxNUw3MDMuMjY4LDMyLjc2MkM3MzAuMTI2LDM5LjAxLDc4My44NDIsNTEuNTA1LDgxMC43MDEsNjEuOTE5QzgzNy41NTksNzIuMzMzLDgzNy41NTksODAuNjY3LDgzNy41NTksODQuODMzTDgzNy41NTksODkiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLWRpc3BsYWNlbWVudCIgaWQ9IkwtbGVuZ3RoLWRpc3BsYWNlbWVudC0wIiBkPSJNNjc2LjQxLDIzLjIzMkw3MzEuMzEzLDMwLjAyN0M3ODYuMjE1LDM2LjgyMSw4OTYuMDIsNTAuNDExLDk1MC45MjIsNjEuMzcyQzEwMDUuODI0LDcyLjMzMywxMDA1LjgyNCw4MC42NjcsMTAwNS44MjQsODQuODMzTDEwMDUuODI0LDg5Ij48L3BhdGg+PHBhdGggc3R5bGU9ImZpbGw6bm9uZTsiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIExTLXJhZGl1cyBMRS1yYWRpdXNfb2ZfY3VydmF0dXJlIiBpZD0iTC1yYWRpdXMtcmFkaXVzX29mX2N1cnZhdHVyZS0wIiBkPSJNMjkwLjQxNCwyNDFMMjkwLjQxNCwyNDUuMTY3QzI5MC40MTQsMjQ5LjMzMywyOTAuNDE0LDI1Ny42NjcsMjkwLjQxNCwyNjZDMjkwLjQxNCwyNzQuMzMzLDI5MC40MTQsMjgyLjY2NywyOTAuNDE0LDI4Ni44MzNMMjkwLjQxNCwyOTEiPjwvcGF0aD48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbHMiPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvZz48ZyBjbGFzcz0ibm9kZXMiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY0Ni4yNTM5MDYyNSwgMTkuNSkiIGlkPSJmbG93Y2hhcnQtbGVuZ3RoLTY4ODIiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSI2MC4zMTI1IiB5PSItMTkuNSIgeD0iLTMwLjE1NjI1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjIuNjU2MjUsIC0xMikiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMjQiIHdpZHRoPSI0NS4zMTI1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+bGVuZ3RoPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEyNi4zOTQ1MzEyNSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXdpZHRoLTY4ODMiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxMjguMzEyNSIgeT0iLTE5LjUiIHg9Ii02NC4xNTYyNSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTU2LjY1NjI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iMTEzLjMxMjUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj53aWR0aCAoYnJlYWR0aCk8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzMzLjQ1NzAzMTI1LCAxMjAuNSkiIGlkPSJmbG93Y2hhcnQtaGVpZ2h0LTY4ODUiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxODUuODEyNSIgeT0iLTE5LjUiIHg9Ii05Mi45MDYyNSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTg1LjQwNjI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iMTcwLjgxMjUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5oZWlnaHQgKGRlcHRoLCBhbHRpdHVkZSk8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDAuNTMxMjUsIDIyMS41KSIgaWQ9ImZsb3djaGFydC10aGlja25lc3MtNjg4NyIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9IjgxLjA2MjUiIHk9Ii0xOS41IiB4PSItNDAuNTMxMjUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zMy4wMzEyNSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjY2LjA2MjUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj50aGlja25lc3M8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTcxLjE1NjI1LCAyMjEuNSkiIGlkPSJmbG93Y2hhcnQtZGlhbWV0ZXItNjg4OSIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9IjgwLjE4NzUiIHk9Ii0xOS41IiB4PSItNDAuMDkzNzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zMi41OTM3NSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjY1LjE4NzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5kaWFtZXRlcjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyOTAuNDE0MDYyNSwgMjIxLjUpIiBpZD0iZmxvd2NoYXJ0LXJhZGl1cy02ODkxIiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iNTguMzI4MTI1IiB5PSItMTkuNSIgeD0iLTI5LjE2NDA2MjUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMS42NjQwNjI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iNDMuMzI4MTI1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+cmFkaXVzPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUyNi45MTc5Njg3NSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXBhdGhfbGVuZ3RoLTY4OTMiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxMDEuMTA5Mzc1IiB5PSItMTkuNSIgeD0iLTUwLjU1NDY4NzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00My4wNTQ2ODc1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iODYuMTA5Mzc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+cGF0aF9sZW5ndGg8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTI2LjkxNzk2ODc1LCAyMjEuNSkiIGlkPSJmbG93Y2hhcnQtZGlzdGFuY2UtNjg5NSIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9Ijc1LjA5Mzc1IiB5PSItMTkuNSIgeD0iLTM3LjU0Njg3NSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTMwLjA0Njg3NSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjYwLjA5Mzc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+ZGlzdGFuY2U8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTI2LjkxNzk2ODc1LCAzMTAuNSkiIGlkPSJmbG93Y2hhcnQtcmFkaWFsX2Rpc3RhbmNlLTY4OTciIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxMjQuNzE4NzUiIHk9Ii0xOS41IiB4PSItNjIuMzU5Mzc1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTQuODU5Mzc1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iMTA5LjcxODc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+cmFkaWFsX2Rpc3RhbmNlPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY3Ni4wNjY0MDYyNSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXdhdmVsZW5ndGgtNjg5OSIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9Ijk3LjE4NzUiIHk9Ii0xOS41IiB4PSItNDguNTkzNzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00MS4wOTM3NSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjgyLjE4NzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj53YXZlbGVuZ3RoPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDgzNy41NTg1OTM3NSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXBvc2l0aW9uX3ZlY3Rvci02OTAxIiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjYzIiB3aWR0aD0iMTI1Ljc5Njg3NSIgeT0iLTMxLjUiIHg9Ii02Mi44OTg0Mzc1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTUuMzk4NDM3NSwgLTI0KSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSI0OCIgd2lkdGg9IjExMC43OTY4NzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5wb3NpdGlvbl92ZWN0b3I8YnIvPnt2ZWN0b3J9PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEwMDUuODI0MjE4NzUsIDEyMC41KSIgaWQ9ImZsb3djaGFydC1kaXNwbGFjZW1lbnQtNjkwMyIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSI2MyIgd2lkdGg9IjExMC43MzQzNzUiIHk9Ii0zMS41IiB4PSItNTUuMzY3MTg3NSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQ3Ljg2NzE4NzUsIC0yNCkiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iNDgiIHdpZHRoPSI5NS43MzQzNzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5kaXNwbGFjZW1lbnQ8YnIvPnt2ZWN0b3J9PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI5MC40MTQwNjI1LCAzMTAuNSkiIGlkPSJmbG93Y2hhcnQtcmFkaXVzX29mX2N1cnZhdHVyZS02OTA1IiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iMTU4Ljc2NTYyNSIgeT0iLTE5LjUiIHg9Ii03OS4zODI4MTI1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNzEuODgyODEyNSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjE0My43NjU2MjUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5yYWRpdXNfb2ZfY3VydmF0dXJlPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvZz48L2c+PC9nPjwvc3ZnPg==" /></p>
 <p>Each of the above quantities expresses some kind of length, and each
-can be measured with meters which is the unit defined by the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span> for quantities of length. However,
+can be measured with meters, which is the unit defined by the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span> for quantities of length. However,
 each has different properties, usage, and sometimes even a different
 character (position vector and displacement are vector quantities).</p>
 <p>The below presents how such a hierarchy tree can be defined in the
@@ -841,10 +844,9 @@ template,</li>
 <li><code class="sourceCode default">breadth</code> is an alias name for
 the same quantity as <code class="sourceCode default">width</code>.</li>
 </ul>
-<p>Please note that some quantities
-(e.g. <code class="sourceCode default">displacement</code>) may be
-specified by the <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> as
-vector or tensor quantities.</p>
+<p>Please note that some quantities may be specified by <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> as vector or tensor
+quantities
+(e.g. <code class="sourceCode default">displacement</code>).</p>
 <h2 data-number="3.4" id="converting-between-quantities-of-the-same-kind"><span class="header-section-number">3.4</span> Converting between quantities
 of the same kind<a href="#converting-between-quantities-of-the-same-kind" class="self-link"></a></h2>
 <p>Quantity conversion rules can be defined based on the same hierarchy
@@ -860,7 +862,7 @@ of quantities of kind length.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>width, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>radius, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>radius, isq<span class="op">::</span>width<span class="op">))</span>;</span></code></pre></div>
-<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library,
 implicit conversions are allowed on copy-initialization:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">(</span>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&lt;</span>m<span class="op">&gt;&gt;</span> q<span class="op">)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>width<span class="op">&lt;</span>m<span class="op">&gt;&gt;</span> q1 <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
@@ -879,7 +881,7 @@ implicit conversions are allowed on copy-initialization:</p>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>length, isq<span class="op">::</span>width<span class="op">))</span>;</span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>length, isq<span class="op">::</span>radius<span class="op">))</span>;</span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>width, isq<span class="op">::</span>radius<span class="op">))</span>;</span></code></pre></div>
-<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library,
 explicit conversions are forced by passing the quantity to a call
 operator of a <code class="sourceCode default">quantity_spec</code>
 type:</p>
@@ -887,8 +889,8 @@ type:</p>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">&lt;</span>m<span class="op">&gt;&gt;</span> q2 <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span>q1<span class="op">)</span>;  <span class="co">// explicit quantity conversion</span></span></code></pre></div></li>
 <li><p><strong>Explicit casts</strong></p>
 <ul>
-<li><code class="sourceCode default">height</code> is not a
-<code class="sourceCode default">width</code>.</li>
+<li><code class="sourceCode default">height</code> is never a
+<code class="sourceCode default">width</code>, and vice versa.</li>
 <li>Both <code class="sourceCode default">height</code> and
 <code class="sourceCode default">width</code> are quantities of kind
 <code class="sourceCode default">length</code>.</li>
@@ -896,7 +898,7 @@ type:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>height, isq<span class="op">::</span>width<span class="op">))</span>;</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>height, isq<span class="op">::</span>width<span class="op">))</span>;</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>castable<span class="op">(</span>isq<span class="op">::</span>height, isq<span class="op">::</span>width<span class="op">))</span>;</span></code></pre></div>
-<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library,
 explicit casts are forced with a dedicated
 <code class="sourceCode default">quantity_cast</code> function:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>width<span class="op">&lt;</span>m<span class="op">&gt;&gt;</span> q1 <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
@@ -909,15 +911,15 @@ with <code class="sourceCode default">length</code>.</li>
 <div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>time, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>time, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>castable<span class="op">(</span>isq<span class="op">::</span>time, isq<span class="op">::</span>length<span class="op">))</span>;</span></code></pre></div>
-<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library,
 even the explicit casts will not force such a conversion:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">(</span>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">[</span>m<span class="op">]&gt;)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>foo<span class="op">(</span>quantity_cast<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;(</span><span class="dv">42</span> <span class="op">*</span> s<span class="op">))</span>; <span class="co">// Compile-time error</span></span></code></pre></div></li>
 </ol>
-<p>With the above rules one can write a following short application to
-calculate the fuel consumption:</p>
+<p>With the above rules, one can write the following short application
+to calculate a fuel consumption:</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> fuel_volume <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>volume<span class="op">&gt;</span> <span class="op">{}</span> fuel_volume;</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> fuel_consumption  <span class="op">:</span> quantity_spec<span class="op">&lt;</span>fuel_volume <span class="op">/</span> isq<span class="op">::</span>distance<span class="op">&gt;</span> <span class="op">{}</span> fuel_consumption;</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> fuel_consumption <span class="op">:</span> quantity_spec<span class="op">&lt;</span>fuel_volume <span class="op">/</span> isq<span class="op">::</span>distance<span class="op">&gt;</span> <span class="op">{}</span> fuel_consumption;</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity fuel <span class="op">=</span> fuel_volume<span class="op">(</span><span class="fl">40.</span> <span class="op">*</span> l<span class="op">)</span>;</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity distance <span class="op">=</span> isq<span class="op">::</span>distance<span class="op">(</span><span class="fl">550.</span> <span class="op">*</span> km<span class="op">)</span>;</span>
@@ -925,24 +927,24 @@ calculate the fuel consumption:</p>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Fuel consumption: &quot;</span> <span class="op">&lt;&lt;</span> q <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span></code></pre></div>
 <p>The above code prints:</p>
 <pre class="text"><code>Fuel consumption: 7.27273 × 10⁻² l/km</code></pre>
-<p>Please note that despite the dimensions of
+<p>Please note that, despite the dimensions of
 <code class="sourceCode default">fuel_consumption</code> and
-<code class="sourceCode default">isq::area</code> are the same
-(<code class="sourceCode default">L²</code>), the constructor of a
-quantity <code class="sourceCode default">q</code> below will fail to
-compile when we pass an argument being the quantity of area:</p>
+<code class="sourceCode default">isq::area</code> being the same (L²),
+the constructor of a quantity <code class="sourceCode default">q</code>
+below will fail to compile when we pass an argument being the quantity
+of area:</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>fuel_consumption<span class="op">.</span>dimension <span class="op">==</span> isq<span class="op">::</span>area<span class="op">.</span>dimension<span class="op">)</span>;</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>area<span class="op">[</span>m2<span class="op">]&gt;</span> football_field <span class="op">=</span> isq<span class="op">::</span>length<span class="op">(</span><span class="dv">105</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">*</span> isq<span class="op">::</span>width<span class="op">(</span><span class="dv">68</span> <span class="op">*</span> m<span class="op">)</span>;</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity<span class="op">&lt;</span>fuel_consumption<span class="op">[</span>l <span class="op">/</span> <span class="op">(</span>mag<span class="op">&lt;</span><span class="dv">100</span><span class="op">&gt;</span> <span class="op">*</span> km<span class="op">)]&gt;</span> q <span class="op">=</span> football_field;  <span class="co">// Compile-time error</span></span></code></pre></div>
-<h2 data-number="3.5" id="comparing-adding-and-subtracting-quantities-of-the-same-kind"><span class="header-section-number">3.5</span> Comparing, adding, and
-subtracting quantities of the same kind<a href="#comparing-adding-and-subtracting-quantities-of-the-same-kind" class="self-link"></a></h2>
+<h3 data-number="3.4.1" id="comparing-adding-and-subtracting-quantities-of-the-same-kind"><span class="header-section-number">3.4.1</span> Comparing, adding, and
+subtracting quantities of the same kind<a href="#comparing-adding-and-subtracting-quantities-of-the-same-kind" class="self-link"></a></h3>
 <p><span class="citation" data-cites="ISO-GUIDE">[<a href="#ref-ISO-GUIDE" role="doc-biblioref">ISO/IEC Guide 99</a>]</span>
 explicitly states that <code class="sourceCode default">width</code> and
 <code class="sourceCode default">height</code> are quantities of the
-same kind and as such they:</p>
+same kind and as such they</p>
 <ul>
-<li>are mutually comparable,</li>
+<li>are mutually comparable, and</li>
 <li>can be added and subtracted.</li>
 </ul>
 <p>If we take the above for granted, the only reasonable result of
@@ -950,18 +952,19 @@ same kind and as such they:</p>
 <code class="sourceCode default">2 * length</code>, where the result of
 <code class="sourceCode default">length</code> is known as a common
 quantity type. A result of such an equation is always the first common
-branch in a hierarchy tree of the same kind. For example:</p>
+node in a hierarchy tree of the same kind. For example:</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>common_quantity_spec<span class="op">(</span>isq<span class="op">::</span>width, isq<span class="op">::</span>height<span class="op">)</span> <span class="op">==</span> isq<span class="op">::</span>length<span class="op">)</span>;</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>common_quantity_spec<span class="op">(</span>isq<span class="op">::</span>thickness, isq<span class="op">::</span>radius<span class="op">)</span> <span class="op">==</span> isq<span class="op">::</span>width<span class="op">)</span>;</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>common_quantity_spec<span class="op">(</span>isq<span class="op">::</span>distance, isq<span class="op">::</span>path_length<span class="op">)</span> <span class="op">==</span> isq<span class="op">::</span>path_length<span class="op">)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> isq<span class="op">::</span>thickness<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">+</span> isq<span class="op">::</span>radius<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> m<span class="op">)</span>;</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>q<span class="op">.</span>quantity_spec <span class="op">==</span> isq<span class="op">::</span>width<span class="op">)</span>;</span></code></pre></div>
-<p>One could argue that allowing adding or comparing quantities of
-height and width might be a safety issue, but we need to be consistent
-with the requirements of the <span class="citation" data-cites="ISO-GUIDE">[<a href="#ref-ISO-GUIDE" role="doc-biblioref">ISO/IEC Guide 99</a>]</span>. Moreover, from our
-experience, disallowing such operations and requiring an explicit cast
-to a common quantity in every single place makes the code so cluttered
-with casts that it nearly renders the library unusable.</p>
+<p>One could argue that allowing to add or compare quantities of height
+and width might be a safety issue, but we need to be consistent with the
+requirements of <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span>.
+Moreover, from our experience, disallowing such operations and requiring
+an explicit cast to a common quantity in every single place makes the
+code so cluttered with casts that it nearly renders the library
+unusable.</p>
 <p>Fortunately, the above-mentioned conversion rules make the code safe
 by construction anyway. Let’s analyze the following example:</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> horizontal_length <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="op">{}</span> horizontal_length;</span>
@@ -996,11 +999,11 @@ by construction anyway. Let’s analyze the following example:</p>
 <code class="sourceCode default">horizontal_length</code> of a kind
 length, which then, together with
 <code class="sourceCode default">isq::width</code> and
-<code class="sourceCode default">isq::height</code> are used to define
+<code class="sourceCode default">isq::height</code>, are used to define
 the dimensions of a Christmas gift. Next, we provide a function that
 calculates the dimensions of a gift wrapping paper with some wraparound.
 The result of both those expressions is a quantity of
-<code class="sourceCode default">isq::length</code> as this is the
+<code class="sourceCode default">isq::length</code>, as this is the
 closest common quantity for the arguments used in this quantity
 equation.</p>
 <p>Regarding safety, it is important to mention here, that thanks to the
@@ -1024,7 +1027,7 @@ code compile, an explicit conversion of a quantity type is needed:</p>
 quantities improve the library usability, while the conversion rules
 enhance the safety of the library compared to the libraries that do not
 model quantity kinds.</p>
-<h2 data-number="3.6" id="hierarchies-of-derived-quantities"><span class="header-section-number">3.6</span> Hierarchies of derived
+<h2 data-number="3.5" id="hierarchies-of-derived-quantities"><span class="header-section-number">3.5</span> Hierarchies of derived
 quantities<a href="#hierarchies-of-derived-quantities" class="self-link"></a></h2>
 <p>The same rules propagate to derived quantities. For example, we can
 define strongly typed horizontal length and area:</p>
@@ -1050,7 +1053,7 @@ to that:</p>
 <span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>horizontal_length <span class="op">*</span> isq<span class="op">::</span>width, isq<span class="op">::</span>area<span class="op">))</span>;</span>
 <span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>horizontal_length <span class="op">*</span> isq<span class="op">::</span>width, horizontal_area<span class="op">))</span>;</span></code></pre></div>
 <p>Unfortunately, derived quantity equations often do not automatically
-form a hierarchy tree. This is why it is sometimes not obvious what such
+form a hierarchy tree. This is why sometimes it is not obvious what such
 a tree should look like. Also, the <span class="citation" data-cites="ISO-GUIDE">[<a href="#ref-ISO-GUIDE" role="doc-biblioref">ISO/IEC Guide 99</a>]</span> explicitly states:</p>
 <blockquote>
 <p>The division of ‘quantity’ according to ‘kind of quantity’ is, to
@@ -1101,17 +1104,17 @@ is.</p>
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>mass <span class="op">*</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>isq<span class="op">::</span>length<span class="op">)</span> <span class="op">/</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>isq<span class="op">::</span>time<span class="op">)</span>, gravitational_potential_energy<span class="op">))</span>;</span>
 <span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>mass <span class="op">*</span> isq<span class="op">::</span>acceleration_of_free_fall <span class="op">*</span> isq<span class="op">::</span>height, gravitational_potential_energy<span class="op">))</span>;</span></code></pre></div></li>
 </ul>
-<h2 data-number="3.7" id="modeling-a-quantity-kind"><span class="header-section-number">3.7</span> Modeling a quantity kind<a href="#modeling-a-quantity-kind" class="self-link"></a></h2>
+<h2 data-number="3.6" id="modeling-a-quantity-kind"><span class="header-section-number">3.6</span> Modeling a quantity kind<a href="#modeling-a-quantity-kind" class="self-link"></a></h2>
 <p>In the physical units library, we also need an abstraction describing
 an entire family of quantities of the same kind. Such quantities have
 not only the same dimension but also can be expressed in the same
 units.</p>
 <p>To annotate a quantity to represent its kind (and not just a
-hierarchy tree’s root quantity) in <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> we introduced a
+hierarchy tree’s root quantity), in <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> we introduced a
 <code class="sourceCode default">kind_of&lt;&gt;</code> specifier. For
-example, to express any quantity of length, we need to type
-<code class="sourceCode default">kind_of&lt;isq::length&gt;</code>. Such
-an entity behaves as any quantity of its kind. This means that it is
+example, to express any quantity of length, we need to specify
+<code class="sourceCode default">kind_of&lt;isq::length&gt;</code>. That
+entity behaves as any quantity of its kind. This means that it is
 implicitly convertible to any quantity in a tree:</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>length, isq<span class="op">::</span>height<span class="op">))</span>;</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>kind_of<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span>, isq<span class="op">::</span>height<span class="op">))</span>;</span></code></pre></div>
@@ -1148,9 +1151,8 @@ quantity, we need to add those missing pieces of information. This is
 where a system of units kicks in.</p>
 <p>The <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span> is explicitly stated to be based on
 the ISQ. Among others, it defines seven base units, one for each base
-quantity. In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, this is
-expressed by associating a quantity kind with a unit that is used to
-express it:</p>
+quantity. In <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, this is
+expressed by associating a quantity kind to an unit being defined:</p>
 <div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> metre <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;m&quot;</span>, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;&gt;</span> <span class="op">{}</span> metre;</span></code></pre></div>
 <p>The
 <code class="sourceCode default">kind_of&lt;isq::length&gt;</code> above
@@ -1162,13 +1164,14 @@ quantity of kind length.</p>
 own concepts
 <code class="sourceCode default">AssociatedUnit&lt;T&gt;</code> to
 improve the interfaces.</p>
-<p>Please note that for some systems of units (i.e. natural units) a
-unit may not have an associated quantity type. For example, if we assume
-speed of light constant <code class="sourceCode default">c = 1</code> we
-can define a system where both length and time will be measured in
-seconds and speed will be a quantity measured with the unit
-<code class="sourceCode default">one</code>. In such case the definition
-will look as follows:</p>
+<p>Please note that for some systems of units (e.g., natural units), a
+unit may not have an associated quantity type. For example, if we define
+the speed of light constant as
+<code class="sourceCode default">c = 1</code>, we can define a system
+where both length and time will be measured in seconds, and speed will
+be a quantity measured with the unit
+<code class="sourceCode default">one</code>. In such case, the
+definition will look as follows:</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> second <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;s&quot;</span><span class="op">&gt;</span> <span class="op">{}</span> second;</span></code></pre></div>
 <h2 data-number="4.2" id="units-compose"><span class="header-section-number">4.2</span> Units compose<a href="#units-compose" class="self-link"></a></h2>
 <p>One of the strongest points of the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>
@@ -1179,7 +1182,7 @@ set of predefined units and prefixes. For example, one can write:</p>
 <p>to express a quantity of speed. The resulting quantity type is
 implicitly inferred from the unit equation by repeating exactly the same
 operations on the associated quantity kinds.</p>
-<p>Also, as units are regular values we can easily provide a helper
+<p>Also, as units are regular values, we can easily provide a helper
 ad-hoc unit with:</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> mps <span class="op">=</span> si<span class="op">::</span>metre <span class="op">/</span> si<span class="op">::</span>second;</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>mps<span class="op">&gt;</span> q;</span></code></pre></div>
@@ -1224,7 +1227,7 @@ such units to be used only with a specific quantity kind:</p>
 only be used for frequencies, while
 <code class="sourceCode default">becquerel</code> should only be used
 for quantities of activity. This means that the following equation will
-not compile improving the type-safety of the library:</p>
+not compile, improving the type-safety of the library:</p>
 <div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> Hz <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> Bq;   <span class="co">// Fails to compile</span></span></code></pre></div>
 <h2 data-number="4.5" id="prefixed-units"><span class="header-section-number">4.5</span> Prefixed units<a href="#prefixed-units" class="self-link"></a></h2>
 <p>Besides named units, the <a href="../../appendix/glossary.md#si">SI</a> specifies also 24 prefixes
@@ -1234,7 +1237,7 @@ them.</p>
 <p>Implementation of <code class="sourceCode default">std::ratio</code>
 provided by all major compilers is able to express only 16 of them. This
 is why, in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, we had
-to find an alternative way to represent unit magnitude in a more
+to find an alternative way to represent a unit’s magnitude in a more
 flexible way.</p>
 <p>Each prefix is implemented as:</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>PrefixableUnit <span class="kw">auto</span> U<span class="op">&gt;</span> <span class="kw">struct</span> quecto_ <span class="op">:</span> prefixed_unit<span class="op">&lt;</span><span class="st">&quot;q&quot;</span>, mag_power<span class="op">&lt;</span><span class="dv">10</span>, <span class="op">-</span><span class="dv">30</span><span class="op">&gt;</span>, U<span class="op">&gt;</span> <span class="op">{}</span>;</span>
@@ -1243,15 +1246,15 @@ flexible way.</p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> qm <span class="op">=</span> quecto<span class="op">&lt;</span>metre<span class="op">&gt;</span>;</span></code></pre></div>
 <p>The usage of <code class="sourceCode default">mag_power</code> not
 only enables providing support for SI prefixes, but it can also
-efficiently represent any rational magnitude. For example, IEC 80000
-prefixes used in the IT industry can be implemented as:</p>
+efficiently represent any rational magnitude. For example, <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> (part 13) prefixes used
+in the IT industry can be implemented as:</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>PrefixableUnit <span class="kw">auto</span> U<span class="op">&gt;</span> <span class="kw">struct</span> yobi_ <span class="op">:</span> prefixed_unit<span class="op">&lt;</span><span class="st">&quot;Yi&quot;</span>, mag_power<span class="op">&lt;</span><span class="dv">2</span>, <span class="dv">80</span><span class="op">&gt;</span>, U<span class="op">&gt;</span> <span class="op">{}</span>;</span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>PrefixableUnit <span class="kw">auto</span> U<span class="op">&gt;</span> <span class="kw">inline</span> <span class="kw">constexpr</span> yobi_<span class="op">&lt;</span>U<span class="op">&gt;</span> yobi;</span></code></pre></div>
 <p><em>Please note that we need two lines with two definitions in the
-case of a class template and an associated variable template. C and C++
-standards allow to provide the same identifier for a class and its
-variable and append the variable name after the class definition. None
-of this is allowed for class templates.</em></p>
+case of a class template and an associated variable template. The C and
+C++ standards permit providing the same identifier for a class and its
+variable and appending the variable name after the class definition.
+None of this is allowed for class templates.</em></p>
 <h2 data-number="4.6" id="scaled-units"><span class="header-section-number">4.6</span> Scaled units<a href="#scaled-units" class="self-link"></a></h2>
 <p>In the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>, all units are either base or
 derived units or prefixed versions of those. However, those are not the
@@ -1279,7 +1282,7 @@ number π (Pi):</p>
 <div class="sourceCode" id="cb43"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> mag_pi <span class="op">:</span> magnitude<span class="op">&lt;</span>std<span class="op">::</span>numbers<span class="op">::</span>pi_v<span class="op">&lt;</span><span class="dt">long</span> <span class="dt">double</span><span class="op">&gt;&gt;</span> <span class="op">{}</span> mag_pi;</span></code></pre></div>
 <div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> degree <span class="op">:</span> named_unit<span class="op">&lt;</span>basic_symbol_text<span class="op">{</span><span class="st">&quot;°&quot;</span>, <span class="st">&quot;deg&quot;</span><span class="op">}</span>, mag_pi <span class="op">/</span> mag<span class="op">&lt;</span><span class="dv">180</span><span class="op">&gt;</span> <span class="op">*</span> si<span class="op">::</span>radian<span class="op">&gt;</span> <span class="op">{}</span> degree;</span></code></pre></div>
 <h2 data-number="4.7" id="unit-symbols"><span class="header-section-number">4.7</span> Unit symbols<a href="#unit-symbols" class="self-link"></a></h2>
-<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library,
 units are available via their full names or through their short symbols.
 To use a long version it is enough to type:</p>
 <div class="sourceCode" id="cb45"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
@@ -1320,14 +1323,14 @@ get proper types as results of such operations.</p>
 adding:</p>
 <ul>
 <li>square root
-(e.g. <code class="sourceCode default">sqrt(metre * metre)</code> is
+(e.g. <code class="sourceCode default">sqrt(metre * metre)</code> as
 equivalent to
 <code class="sourceCode default">pow&lt;1, 2&gt;(metre * metre)</code>),</li>
 <li>cubic root
 (e.g. <code class="sourceCode default">cbrt(metre * metre * metre)</code>
-is equivalent to <code class="sourceCode default">pow&lt;1, 3&gt;(metre * metre * metre)</code>),</li>
+as equivalent to <code class="sourceCode default">pow&lt;1, 3&gt;(metre * metre * metre)</code>),</li>
 <li>inversion
-(e.g. <code class="sourceCode default">inverse(second)</code> is
+(e.g. <code class="sourceCode default">inverse(second)</code> as
 equivalent to
 <code class="sourceCode default">one / second</code>).</li>
 </ul>
@@ -1381,11 +1384,11 @@ at compile-time but would also be really confusing to the users
 observing them in the compilation logs. This is why we need a dedicated
 solution here.</p>
 <p>In a physical quantities and units library, we need expression
-templates to express the results of:</p>
+templates to express the results of</p>
 <ul>
 <li>dimension equations,</li>
 <li>quantity type equations,</li>
-<li>unit equations,</li>
+<li>unit equations, and</li>
 <li>unit magnitude equations.</li>
 </ul>
 <p>If the above equation results in a derived entity, we must create a
@@ -1479,7 +1482,7 @@ of dimensions,</li>
 of quantity types.</li>
 </ul>
 <p>The above names were selected based on the following quote from the
-<span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span>:</p>
+<span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span>:</p>
 <blockquote>
 <p>A quantity whose dimensional exponents are all equal to zero has the
 dimensional product denoted A<sup>0</sup>B<sup>0</sup>C<sup>0</sup>… =
@@ -1583,7 +1586,7 @@ sorted according to a specific predicate. This is why:</p>
 <p>This is probably the most important of all the steps, as it allows
 comparing types and enables the rest of the simplification rules.</p>
 <p>Units and dimensions have unique symbols, but ordering quantity types
-might not be that trivial. Although the ISQ defined in <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> provides symbols for each
+might not be that trivial. Although the ISQ defined in <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> provides symbols for each
 quantity, there is little use for them in the C++ code. This is caused
 by the fact that such symbols use a lot of characters that are not
 available with the Unicode encoding. Most of the limitations correspond
@@ -2365,7 +2368,7 @@ own paper in the future if the Committee is interested in exploring this
 path.</p>
 <h3 data-number="6.5.1" id="scalars-vectors-and-tensors"><span class="header-section-number">6.5.1</span> Scalars, vectors, and
 tensors<a href="#scalars-vectors-and-tensors" class="self-link"></a></h3>
-<p><span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> explicitly states:</p>
+<p><span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> explicitly states:</p>
 <blockquote>
 <p>Scalars, vectors and tensors are mathematical objects that can be
 used to denote certain physical quantities and their values. They are as
@@ -2537,7 +2540,7 @@ linear algebra vectors is impossible.</p>
 support in this domain.</p>
 <h3 data-number="6.5.3" id="characters-dont-apply-to-dimensions-and-units"><span class="header-section-number">6.5.3</span> Characters don’t apply to
 dimensions and units<a href="#characters-dont-apply-to-dimensions-and-units" class="self-link"></a></h3>
-<p><span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> explicitly states that
+<p><span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> explicitly states that
 dimensions are orthogonal to quantity characters:</p>
 <blockquote>
 <p>In deriving the dimension of a quantity, no account is taken of its
@@ -2623,15 +2626,14 @@ quantities.</p>
 <span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="dt">bool</span> mp_units<span class="op">::</span>is_vector<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span></code></pre></div>
 <p>which says that every type that can be used as a scalar
 representation is also allowed for vector quantities.</p>
-<p>Doing the above is actually not such a big “hack” as the <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> explicitly allows it:</p>
+<p>Doing the above is actually not such a big “hack” as the <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> explicitly allows it:</p>
 <blockquote>
 <p>A vector is a tensor of the first order and a scalar is a tensor of
 order zero.</p>
 </blockquote>
-<p>Despite it being allowed by <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO
-80000</a>]</span>, for type-safety reasons, we do not allow such a
-behavior by default, and a user has to opt into such scenarios
-explicitly.</p>
+<p>Despite it being allowed by <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span>, for type-safety reasons,
+we do not allow such a behavior by default, and a user has to opt into
+such scenarios explicitly.</p>
 <h2 data-number="6.6" id="dimensionless-quantities"><span class="header-section-number">6.6</span> Dimensionless Quantities<a href="#dimensionless-quantities" class="self-link"></a></h2>
 <p>The quantities we discussed so far always had some specific type and
 physical dimension. However, this is not always the case. While
@@ -2717,9 +2719,8 @@ dimension and unit but which have different quantity types:</p>
 <p>As shown above, the result is not of a
 <code class="sourceCode default">dimensionless</code> type anymore.
 Instead, we get a quantity type derived from the performed quantity
-equation. According to the <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO
-80000</a>]</span>, work divided by heat is the recipe for the
-thermodynamic efficiency quantity, thus:</p>
+equation. According to the <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span>, work divided by heat is
+the recipe for the thermodynamic efficiency quantity, thus:</p>
 <div class="sourceCode" id="cb83"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>q<span class="op">.</span>quantity_spec, isq<span class="op">::</span>efficiency_thermodynamics<span class="op">))</span>;</span></code></pre></div>
 <p>Please note that the quantity of
 <code class="sourceCode default">isq::efficiency_thermodynamics</code>
@@ -2801,18 +2802,18 @@ dimensionless quantities:</p>
 <h3 data-number="6.6.4" id="angular-quantities"><span class="header-section-number">6.6.4</span> Angular quantities<a href="#angular-quantities" class="self-link"></a></h3>
 <p>Special, often controversial, examples of dimensionless quantities
 are an angular measure and solid angular measure quantities that are
-defined in the <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> to be
-the result of a division of
+defined in the <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> to
+be the result of a division of
 <code class="sourceCode default">arc_length / radius</code> and
 <code class="sourceCode default">area / pow&lt;2&gt;(radius)</code>
-respectively. Moreover, <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> also
+respectively. Moreover, <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> also
 explicitly states that both can be expressed in the unit
 <code class="sourceCode default">one</code>. This means that both
 <code class="sourceCode default">isq::angular_measure</code> and
 <code class="sourceCode default">isq::solid_angular_measure</code>
 should be of a kind of
 <code class="sourceCode default">dimensionless</code>.</p>
-<p>On the other hand, <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span> also
+<p>On the other hand, <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span> also
 specifies that a unit <code class="sourceCode default">radian</code> can
 be used for
 <code class="sourceCode default">isq::angular_measure</code>, and a unit
@@ -2826,8 +2827,7 @@ should also be quantity kinds by themselves.</p>
 <p><em>Many people claim that angle being a dimensionless quantity is a
 bad idea. There are proposals submitted to make an angle a base quantity
 and <code class="sourceCode default">rad</code> to become a base unit in
-bot <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span> and <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO
-80000</a>]</span>.</em></p>
+bot <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span> and <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO/IEC 80000</a>]</span>.</em></p>
 <h3 data-number="6.6.5" id="nested-quantity-kinds"><span class="header-section-number">6.6.5</span> Nested quantity kinds<a href="#nested-quantity-kinds" class="self-link"></a></h3>
 <p>Angular quantities are not the only ones with such a “strange”
 behavior. Another, but a similar case is a
@@ -3825,7 +3825,7 @@ feedback that helped us shape the final version of this document.</p>
 [Au] The Au Units library. <a href="https://aurora-opensource.github.io/au"><div class="csl-block">https://aurora-opensource.github.io/au</div></a>
 </div>
 <div id="ref-ISO80000" class="csl-entry" role="doc-biblioentry">
-[ISO 80000] ISO80000: Quantities and units. <a href="https://www.iso.org/standard/76921.html"><div class="csl-block">https://www.iso.org/standard/76921.html</div></a>
+[ISO/IEC 80000] ISO/IEC 80000: Quantities and units. <a href="https://www.iso.org/committee/46202/x/catalogue/"><div class="csl-block">https://www.iso.org/committee/46202/x/catalogue/</div></a>
 </div>
 <div id="ref-ISO-GUIDE" class="csl-entry" role="doc-biblioentry">
 [ISO/IEC Guide 99] ISO/IEC Guide 99: International vocabulary of
