@@ -1153,11 +1153,9 @@ through conversion. While the consequent use of floating-point representation ty
 it is not always possible. Especially in close-to-the-metal applications and small embedded systems,
 the use of floating-point types is sometimes not an option, either for performance reasons or lack
 of hardware support.
-Having different operators for safe-floating point operations and unsafe integer operations would
-force users to use different symbols for quantities using floating-point or integral values which
-decreases usability significantly.
-As such, the need of explicitly enabling such unsafe operations for integers only through a compiler
-flag could be an option. 
+Having different operators for safe floating-point operations and unsafe integer operations would
+hurt generic programming.
+As such, users should instead use safer representation types.
 
 ## Lack of safe numeric types
 
