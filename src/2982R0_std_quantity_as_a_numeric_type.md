@@ -643,6 +643,11 @@ template<PrefixableUnit auto U> struct yobi_ : prefixed_unit<"Yi", mag_power<2, 
 template<PrefixableUnit auto U> inline constexpr yobi_<U> yobi;
 ```
 
+_Please note that we need two lines with two definitions in the case of a class template and
+an associated variable template. C and C++ standards allow to provide the same identifier for
+a class and its variable and append the variable name after the class definition.
+None of this is allowed for class templates._
+
 ## Scaled units
 
 In the [@SI], all units are either base or derived units or prefixed versions of those.
