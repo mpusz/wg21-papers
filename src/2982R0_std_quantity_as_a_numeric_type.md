@@ -2327,7 +2327,7 @@ When we examine these failures, we find two categories.
    from forming an underspecified request.
 
 2. **Regretted failures:** These are failures where the user's request is perfectly reasonable and
-   unambiguous. We'd prefer that the user's code work, and does what they expect.
+   unambiguous. We'd prefer that the user's code works, and does what they expect.
 
 One example of a "non-regretted failure" is a generic speed function, which divides a distance by a time and
 returns the results in the natural derived unit:
