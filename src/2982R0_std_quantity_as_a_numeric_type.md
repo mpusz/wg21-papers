@@ -2362,7 +2362,7 @@ beyond simple quantities, then a single pair of overloads for `max()` will cover
 
 For completeness, we should consider how the special function approach would handle this same case, where one
 of the arguments to `max` is 0.  It fares slightly better on the implementation side, because it requires only
-one new function instead of two: there is only one "slot" to put the nonzero argument.  However, the end user
+one new function instead of two; there is only one "slot" to put the nonzero argument.  However, the end user
 experience is worse, because they have to learn another new function name.  Moreover, the best name for that
 function is not immediately clear.  Finally, if there are other types where this "max-with-zero" functionality
 makes sense, we will have to manually add a new overload for every such new type.
