@@ -2356,7 +2356,7 @@ deduction fails because `Zero` is not itself a quantity.
 The remedy is to provide new overloads that handle `Zero`, making the `max()` API feel more seamless and less
 surprising for the end user.  This does have its costs.  For one thing, it creates extra work on the
 implementation side.  It also scales poorly as `Zero` becomes meaningful for more and more parameters in our
-API.  On the other hand, there are hidden benefits as well: if `Zero` becomes a vocabulary type that is useful
+API.  On the other hand, there are hidden benefits as well: If `Zero` becomes a vocabulary type that is useful
 beyond simple quantities, then a single pair of overloads for `max()` will cover every possible type to which
 `Zero` is convertible.
 
