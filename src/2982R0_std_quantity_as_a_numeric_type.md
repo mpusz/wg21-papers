@@ -2347,10 +2347,10 @@ this omission.
 
 An example "regretted failure" is the unit-aware `max()` function from [@AU].  This function template takes
 two different quantity types, and returns whichever quantity is larger, expressed in their common unit.  In
-principle, It's perfectly meaningful to pass `Zero` as one of the arguments of `max()`.  (For example,
-a quantity which is known to be non-negative can come from a computation that sometimes return slightly
-negative results, due to floating point error.)  With `max()` it's also perfectly clear (in principle) which
-quantity type we should construct from `Zero`: that of the other argument.  But in _practice_, template
+principle, it's perfectly meaningful to pass `Zero` as one of the arguments of `max()`.  (For example,
+a quantity which is known to be non-negative can come from a computation that sometimes returns slightly
+negative results, due to floating point errors).  With `max()`, it's also perfectly clear (in principle) which
+quantity type we should construct from `Zero`: That of the other argument.  But in _practice_, template
 deduction fails because `Zero` is not itself a quantity.
 
 The remedy is to provide new overloads that handle `Zero`, making the `max()` API feel more seamless and less
