@@ -545,7 +545,7 @@ expression templates<span></span></a></li>
 <li><a href="#unit-magnitudes" id="toc-unit-magnitudes"><span class="toc-section-number">5.2.1</span> Unit
 magnitudes<span></span></a></li>
 <li><a href="#requirements-and-representation" id="toc-requirements-and-representation"><span class="toc-section-number">5.2.2</span> Requirements and
-Representation<span></span></a></li>
+representation<span></span></a></li>
 <li><a href="#construction-helpers" id="toc-construction-helpers"><span class="toc-section-number">5.2.3</span> Construction
 helpers<span></span></a></li>
 <li><a href="#common-units" id="toc-common-units"><span class="toc-section-number">5.2.4</span> Common
@@ -650,11 +650,7 @@ stack<span></span></a></li>
 concepts<span></span></a></li>
 </ul></li>
 <li><a href="#custom-representation-types" id="toc-custom-representation-types"><span class="toc-section-number">8</span> Custom representation
-types<span></span></a>
-<ul>
-<li><a href="#non-negative-quantities" id="toc-non-negative-quantities"><span class="toc-section-number">8.1</span> Non-negative
-quantities<span></span></a></li>
-</ul></li>
+types<span></span></a></li>
 <li><a href="#the-affine-space" id="toc-the-affine-space"><span class="toc-section-number">9</span> The affine space<span></span></a>
 <ul>
 <li><a href="#operations-in-the-affine-space" id="toc-operations-in-the-affine-space"><span class="toc-section-number">9.1</span> Operations in the affine
@@ -1251,6 +1247,11 @@ efficiently represent any rational magnitude. For example, IEC 80000
 prefixes used in the IT industry can be implemented as:</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>PrefixableUnit <span class="kw">auto</span> U<span class="op">&gt;</span> <span class="kw">struct</span> yobi_ <span class="op">:</span> prefixed_unit<span class="op">&lt;</span><span class="st">&quot;Yi&quot;</span>, mag_power<span class="op">&lt;</span><span class="dv">2</span>, <span class="dv">80</span><span class="op">&gt;</span>, U<span class="op">&gt;</span> <span class="op">{}</span>;</span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>PrefixableUnit <span class="kw">auto</span> U<span class="op">&gt;</span> <span class="kw">inline</span> <span class="kw">constexpr</span> yobi_<span class="op">&lt;</span>U<span class="op">&gt;</span> yobi;</span></code></pre></div>
+<p><em>Please note that we need two lines with two definitions in the
+case of a class template and an associated variable template. C and C++
+standards allow to provide the same identifier for a class and its
+variable and append the variable name after the class definition. None
+of this is allowed for class templates.</em></p>
 <h2 data-number="4.6" id="scaled-units"><span class="header-section-number">4.6</span> Scaled units<a href="#scaled-units" class="self-link"></a></h2>
 <p>In the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>, all units are either base or
 derived units or prefixed versions of those. However, those are not the
@@ -1313,7 +1314,7 @@ get proper types as results of such operations.</p>
 (e.g. <code class="sourceCode default">metre / second</code>),</li>
 <li>power
 (e.g. <code class="sourceCode default">pow&lt;2&gt;(metre)</code> or
-<code class="sourceCode default">pow&lt;1, 2&gt;(metre * metre)</code>)</li>
+<code class="sourceCode default">pow&lt;1, 2&gt;(metre * metre)</code>).</li>
 </ul>
 <p>To improve the usability of the library, we also recommend
 adding:</p>
@@ -1336,10 +1337,10 @@ it makes sense to expose the following:</p>
 <li>square power
 (e.g. <code class="sourceCode default">square(metre)</code> is
 equivalent to
-<code class="sourceCode default">pow&lt;2&gt;(metre)</code>)</li>
+<code class="sourceCode default">pow&lt;2&gt;(metre)</code>),</li>
 <li>cubic power
 (e.g. <code class="sourceCode default">cubic(metre)</code> is equivalent
-to <code class="sourceCode default">pow&lt;3&gt;(metre)</code>)</li>
+to <code class="sourceCode default">pow&lt;3&gt;(metre)</code>).</li>
 </ul>
 <p>The above two functions could also be considered for dimensions and
 quantity types. However,
@@ -1769,7 +1770,7 @@ brevity):</p>
                   derived_unit&lt;si::kilo_&lt;si::metre{}&gt;, per&lt;non_si::hour, si::second&gt;&gt;{}&gt;{},
          double&gt;</code></pre></li>
 <li><p><code class="sourceCode default">acceleration2</code></p>
-<pre class="text"><code>quantity&lt;reference&lt;isq::speed, per&lt;isq::time&gt;&gt;{}, 
+<pre class="text"><code>quantity&lt;reference&lt;isq::acceleration,
                    derived_unit&lt;si::metre, per&lt;power&lt;si::second, 2&gt;&gt;&gt;{}&gt;{},
          double&gt;&gt;</code></pre></li>
 </ul>
@@ -1782,38 +1783,29 @@ the same dimension is a well-defined number. For example, the ratio
 between one foot and one inch is 12.</p>
 <h3 data-number="5.2.1" id="unit-magnitudes"><span class="header-section-number">5.2.1</span> Unit magnitudes<a href="#unit-magnitudes" class="self-link"></a></h3>
 <p>In principle, this scaling factor can be any positive real number. In
-mp-units and Au, we have used the term “magnitude” to refer to this
-scaling factor. (This should not be confused with the logarithmic
-“magnitude” unit commonly used in astronomy.)</p>
+<span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> and <span class="citation" data-cites="AU">[<a href="#ref-AU" role="doc-biblioref">Au</a>]</span>,
+we have used the term “magnitude” to refer to this scaling factor. (This
+should not be confused with other uses of the term, such as the
+logarithmic “magnitude” unit commonly used in astronomy.)</p>
 <p>In the library implementation, each unit is associated with a
-magnitude. However, for most units the magnitude is a fully encapsulated
-implementation detail, not a user-facing value.</p>
+magnitude. However, for most units, the magnitude is a fully
+encapsulated implementation detail, not a user-facing value.</p>
 <p>This is because the notion of “the” magnitude of a unit is not
 generally meaningful: it has no physically observable consequence. What
 <em>is</em> meaningful is the <em>ratio</em> of magnitudes between two
-units of the same dimension. We could associate the <em>foot</em>, say,
-with any magnitude <span class="math inline">\(m_f\)</span> that we like
-— but once we make that choice, we must assign <span class="math inline">\(3m_f\)</span> to the <em>yard</em>, and <span class="math inline">\(m_f/12\)</span> to the <em>inch</em>. Separately
+units of the same quantity kind. We could associate the <em>foot</em>,
+say, with any magnitude <span class="math inline">\(m_f\)</span> that we
+like — but once we make that choice, we must assign <span class="math inline">\(3m_f\)</span> to the <em>yard</em>, and <span class="math inline">\(m_f/12\)</span> to the <em>inch</em>. Separately
 and independently, we can assign any magnitude <span class="math inline">\(m_s\)</span> to the second, because it’s an
 independent dimension — but once we make that choice, it fixes the
 magnitude for derived units, and we must assign, say, <span class="math inline">\((5280 m_f) / (3600 m_s)\)</span> to the <em>mile
 per hour</em>.</p>
-<p>The one exception to the arbitrariness of magnitudes is
-<em>dimensionless</em> units. Because their dimension is null,
-quantities of these units can be meaningfully compared to their squares
-and other powers. For example, the magnitude of <em>percent</em> is
-<span class="math inline">\(1 / 100\)</span>, and the magnitude of
-<em>squared percent</em> (or <em>pertenk</em>, “per-10-k”) is <span class="math inline">\(1 / 10000\)</span>. We cannot choose another value
-for the magnitude without producing observably incorrect results.</p>
 <h3 data-number="5.2.2" id="requirements-and-representation"><span class="header-section-number">5.2.2</span> Requirements and
-Representation<a href="#requirements-and-representation" class="self-link"></a></h3>
+representation<a href="#requirements-and-representation" class="self-link"></a></h3>
 <p>A magnitude is a positive real number. The best way to
 <em>represent</em> it depends on how we will <em>use</em> it. To derive
 our requirements, note that magnitudes must support every operation
-which units do. This is because units have two components that
-participate in operations: <em>dimension</em>, and <em>magnitude</em>.
-When we apply an operation to units, we simply apply it separately to
-the dimension and magnitude parts.</p>
+which units do.</p>
 <p>Units are closed under <em>products</em> and <em>rational
 powers</em>. Therefore, our magnitude representation must support these
 operations natively and robustly; this is the most basic requirement. We
@@ -1853,6 +1845,7 @@ our magnitude. Each element is a basis number raised to some rational
 power (which may be omitted or abbreviated as appropriate).</p>
 <p>Here are some examples, using Astronomical Units (au), meters (m),
 degrees (deg), and radians (rad).</p>
+<!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
 <col style="width: 23%" />
@@ -1896,6 +1889,7 @@ representation</strong>
 </tr>
 </tbody>
 </table>
+<!-- markdownlint-enable MD013 -->
 <p>The variadic magnitude types have one disadvantage: they are more
 verbose. We may be able to hide them via opaque types with nicer names,
 using a similar strategy as we have for units. In any case, their major
@@ -1949,6 +1943,7 @@ is omitted.</p>
 as notation to represent “the common unit of <span class="math inline">\(U_1, \cdots, U_n\)</span>”, and we show only the
 magnitudes for simplicity, here are the steps we would follow to find
 the magnitude of the common unit.</p>
+<!-- markdownlint-disable MD013 -->
 <p><span class="math display">\[
 \begin{align}
 \text{COM}\left[18, \frac{80}{3}\right] &amp;= \text{COM}\left[(2 \cdot
@@ -1959,6 +1954,7 @@ the magnitude of the common unit.</p>
 &amp;= \frac{2}{3}
 \end{align}
 \]</span></p>
+<!-- markdownlint-enable MD013 -->
 <p>This procedure produces the unambiguous correct answer whenever it is
 well defined. It also produces an answer for irrational “ratios”, where
 there is no uniquely defined result. This provides the practical benefit
@@ -3188,6 +3184,21 @@ something comparable to <code class="sourceCode default">T</code>.
 Thanks to that, we can use them not only with quantities but also with
 <code class="sourceCode default">std::chrono::duration</code> or any
 other type that exposes such an interface.</p>
+<p>This approach has a downside, though: it produces a set of new APIs
+which users must learn. Nor are these six the only such functions that
+will need to exist: for example,
+<code class="sourceCode default">max</code> and
+<code class="sourceCode default">min</code> are perfectly reasonable to
+use with <code class="sourceCode default">0</code> regardless of the
+units, but supporting them under this strategy would require adding a
+new utility function for each — and coming up with a name for those
+functions.</p>
+<p>It also introduces small opportunities for error and diffs that are
+harder to review, because we’re replacing a pattern that uses an
+operator (say, <code class="sourceCode default">a &gt; 0</code>) with a
+named function call (say,
+<code class="sourceCode default">is_gt_zero(a)</code>).</p>
+<p>These pitfalls motivate us to consider other approaches as well.</p>
 <h4 data-number="6.7.5.2" id="zero-type"><span class="header-section-number">6.7.5.2</span>
 <code class="sourceCode default">Zero</code> type<a href="#zero-type" class="self-link"></a></h4>
 <p>The <span class="citation" data-cites="AU">[<a href="#ref-AU" role="doc-biblioref">Au</a>]</span> library takes a different approach
@@ -3214,63 +3225,62 @@ the code, making the transition less error prone than replacement with a
 function such as <code class="sourceCode default">is_gt_zero</code>. It
 also reduces the number of new comparison APIs a user must learn:
 <code class="sourceCode default">Zero</code> handles them all.</p>
-<p><code class="sourceCode default">Zero</code> has a few downsides
-though:</p>
+<p><code class="sourceCode default">Zero</code> has one downside: it
+will not work when passed across <em>generic quantity</em> interfaces.
+<code class="sourceCode default">Zero</code>’s value comes in situations
+where the surrounding context makes it unambiguous which quantity type
+it should construct. While it converts to any <em>specific</em> quantity
+type, it is not itself a quantity. This could confuse users.</p>
+<p>This downside manifests in several different ways. Here are some
+examples:</p>
 <ol type="1">
-<li><p>CTAD can’t deduce the quantity type as there is no unit provided.
-So if we try to refactor the following:</p>
-<div class="sourceCode" id="cb109"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb109-1"><a href="#cb109-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre <span class="op">/</span> si<span class="op">::</span>second<span class="op">&gt;</span> q1 <span class="op">=</span> <span class="dv">0</span> <span class="op">*</span> m <span class="op">/</span> s;  <span class="co">// OK</span></span>
-<span id="cb109-2"><a href="#cb109-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> <span class="dv">0</span> <span class="op">*</span> m <span class="op">/</span> s;                          <span class="co">// OK</span></span></code></pre></div>
-<p>only the first one will work and the second one will fail to
-compile:</p>
-<div class="sourceCode" id="cb110"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre <span class="op">/</span> si<span class="op">::</span>second<span class="op">&gt;</span> q1 <span class="op">=</span> ZERO;  <span class="co">// OK</span></span>
-<span id="cb110-2"><a href="#cb110-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> ZERO;                          <span class="co">// Compile-time error</span></span></code></pre></div></li>
 <li><p>While refactoring the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> code to try out this approach
-we found out also some other places where we could not replace numerical
-value <code class="sourceCode default">0</code> with
+we found out a perfectly reasonable place where we could not replace
+numerical value <code class="sourceCode default">0</code> with
 <code class="sourceCode default">ZERO</code>:</p>
-<div class="sourceCode" id="cb111"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb111-1"><a href="#cb111-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="kw">auto</span> tt <span class="op">=</span> <span class="dv">0</span> <span class="op">*</span> ms; tt <span class="op">&lt;=</span> <span class="dv">50</span> <span class="op">*</span> ms; <span class="op">++</span>tt<span class="op">)</span> <span class="op">{</span> <span class="co">/* ... */</span> <span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb112"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb112-1"><a href="#cb112-1" aria-hidden="true" tabindex="-1"></a>msl_altitude alt <span class="op">=</span> mean_sea_level <span class="op">+</span> <span class="dv">0</span> <span class="op">*</span> si<span class="op">::</span>metre; </span></code></pre></div>
-<p>The second example, would not work because the
+<div class="sourceCode" id="cb109"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb109-1"><a href="#cb109-1" aria-hidden="true" tabindex="-1"></a>msl_altitude alt <span class="op">=</span> mean_sea_level <span class="op">+</span> <span class="dv">0</span> <span class="op">*</span> si<span class="op">::</span>metre;  <span class="co">// OK</span></span>
+<span id="cb109-2"><a href="#cb109-2" aria-hidden="true" tabindex="-1"></a>msl_altitude alt <span class="op">=</span> mean_sea_level <span class="op">+</span> ZERO;           <span class="co">// Compile-time error</span></span></code></pre></div>
+<p>This would not work because the
 <code class="sourceCode default">mean_sea_level</code> is an absolute
 point origin that stores the information about the quantity type but not
 its value and unit.</p></li>
-<li><p>It works for addition but not multiplication as we do not know if
-we should multiply by a scalar or a quantity. In the latter case, we do
-not have enough information to produce not only a unit but even quantity
-type and dimension of the result:</p>
-<div class="sourceCode" id="cb113"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb113-1"><a href="#cb113-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">/</span> s;</span>
-<span id="cb113-2"><a href="#cb113-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> q1 <span class="op">+</span> <span class="dv">0</span> <span class="op">*</span> m <span class="op">/</span> s;   <span class="co">// OK</span></span>
-<span id="cb113-3"><a href="#cb113-3" aria-hidden="true" tabindex="-1"></a>quantity q3 <span class="op">=</span> q1 <span class="op">*</span> <span class="op">(</span><span class="dv">0</span> <span class="op">*</span> s<span class="op">)</span>;     <span class="co">// OK</span></span></code></pre></div>
-<div class="sourceCode" id="cb114"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb114-1"><a href="#cb114-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">/</span> s;</span>
-<span id="cb114-2"><a href="#cb114-2" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> q1 <span class="op">+</span> ZERO;        <span class="co">// OK</span></span>
-<span id="cb114-3"><a href="#cb114-3" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> q1 <span class="op">*</span> ZERO;        <span class="co">// Compile-time error</span></span></code></pre></div></li>
-<li><p>It will not work when passed across generic quantity interfaces.
-Even though the <code class="sourceCode default">quantity</code> class
-template is implicitly convertible from
-<code class="sourceCode default">Zero</code>, the
-<code class="sourceCode default">Zero</code> type is not a quantity and
-thus does not satisfy a <code class="sourceCode default">Quantity</code>
-concept:</p>
-<div class="sourceCode" id="cb115"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">(</span>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> q<span class="op">)</span>;</span>
-<span id="cb115-2"><a href="#cb115-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> boo<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> q<span class="op">)</span>;</span>
-<span id="cb115-3"><a href="#cb115-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb115-4"><a href="#cb115-4" aria-hidden="true" tabindex="-1"></a>foo<span class="op">(</span>ZERO<span class="op">)</span>;   <span class="co">// OK</span></span>
-<span id="cb115-5"><a href="#cb115-5" aria-hidden="true" tabindex="-1"></a>boo<span class="op">(</span>ZERO<span class="op">)</span>;   <span class="co">// Compile-time error</span></span></code></pre></div>
-<p>The above issue may be even more problematic to the users if the
-<code class="sourceCode default">foo()</code> was used with
-<code class="sourceCode default">ZERO</code> for a long time, and after
-that, it was refactored to become a generic function template
-<code class="sourceCode default">boo()</code>, which would make the
-previously correct code to not compile.</p></li>
+<li><p>Callsites passing <code class="sourceCode default">ZERO</code>
+can add friction when refactoring a concrete interface to be more
+generic.</p>
+<div class="sourceCode" id="cb110"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> v1 <span class="op">{</span> <span class="dt">void</span> foo<span class="op">(</span>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> q<span class="op">)</span>; <span class="op">}</span></span>
+<span id="cb110-2"><a href="#cb110-2" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> v2 <span class="op">{</span> <span class="dt">void</span> foo<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> q<span class="op">)</span>; <span class="op">}</span></span>
+<span id="cb110-3"><a href="#cb110-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb110-4"><a href="#cb110-4" aria-hidden="true" tabindex="-1"></a>v1<span class="op">::</span>foo<span class="op">(</span>ZERO<span class="op">)</span>;   <span class="co">// OK</span></span>
+<span id="cb110-5"><a href="#cb110-5" aria-hidden="true" tabindex="-1"></a>v2<span class="op">::</span>foo<span class="op">(</span>ZERO<span class="op">)</span>;   <span class="co">// Compile-time error</span></span></code></pre></div>
+<p>In practice, this issue will be discovered at the point of
+refactoring, so it mainly affects library authors, not their clients.
+They can handle this by adding an overload for
+<code class="sourceCode default">Zero</code>, if appropriate. However,
+this wouldn’t scale well for APIs with <em>multiple</em> parameters
+where users would want to pass
+<code class="sourceCode default">Zero</code>.</p></li>
+<li><p>For completeness, we mention that
+<code class="sourceCode default">Zero</code> works for addition but not
+multiplication. When multiplying, we do not know what units (or even
+what dimension!) is desired for the result. However, this is not a
+problem in practice because users would not be motivated to write this
+in the first place, as simple multiplication with
+<code class="sourceCode default">0</code> (including any necessary
+units, if the result has a different dimension) would work.</p>
+<div class="sourceCode" id="cb111"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb111-1"><a href="#cb111-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">/</span> s;</span>
+<span id="cb111-2"><a href="#cb111-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> q1 <span class="op">+</span> <span class="dv">0</span> <span class="op">*</span> m <span class="op">/</span> s;   <span class="co">// OK</span></span>
+<span id="cb111-3"><a href="#cb111-3" aria-hidden="true" tabindex="-1"></a>quantity q3 <span class="op">=</span> q1 <span class="op">*</span> <span class="op">(</span><span class="dv">0</span> <span class="op">*</span> s<span class="op">)</span>;     <span class="co">// OK</span></span></code></pre></div>
+<div class="sourceCode" id="cb112"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb112-1"><a href="#cb112-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">/</span> s;</span>
+<span id="cb112-2"><a href="#cb112-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> q1 <span class="op">+</span> ZERO;        <span class="co">// OK</span></span>
+<span id="cb112-3"><a href="#cb112-3" aria-hidden="true" tabindex="-1"></a>quantity q3 <span class="op">=</span> q1 <span class="op">*</span> ZERO;        <span class="co">// Compile-time error</span></span></code></pre></div></li>
 </ol>
-<p>Of course, we can argue that it is obvious that the above cases do
-not compile because there are good reasons for that. As long as it might
-not surprise the domain experts that have lots of experience with coding
-in such a library, novices will try to replace every numeric value
-<code class="sourceCode default">0</code> with
-<code class="sourceCode default">ZERO</code> and often will be confused
-when it does not work.</p>
+<p>The main concern with the
+<code class="sourceCode default">Zero</code> feature is that novices
+might be tempted to replace every numeric value
+<code class="sourceCode default">0</code> with the instance
+<code class="sourceCode default">ZERO</code>, becoming confused when it
+doesn’t work. We could address this with easy-to-read documentation that
+clarifies its use cases and mental models.</p>
 <h4 data-number="6.7.5.3" id="comparison-against-zero-summary"><span class="header-section-number">6.7.5.3</span> Comparison against zero:
 Summary<a href="#comparison-against-zero-summary" class="self-link"></a></h4>
 <p>Overall, these two approaches — special functions, and a
@@ -3311,18 +3321,18 @@ file with all the pseudo-random number generators.</p>
 is especially useful if we store the data internally in the object. In
 such a case, we have to select a specific unit anyway.</p>
 <p>For example, let’s consider a simple storage tank:</p>
-<div class="sourceCode" id="cb116"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb116-1"><a href="#cb116-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StorageTank <span class="op">{</span></span>
-<span id="cb116-2"><a href="#cb116-2" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;</span> base_;</span>
-<span id="cb116-3"><a href="#cb116-3" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;</span> height_;</span>
-<span id="cb116-4"><a href="#cb116-4" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass_density<span class="op">[</span>kg <span class="op">/</span> m3<span class="op">]&gt;</span> density_ <span class="op">=</span> air_density;</span>
-<span id="cb116-5"><a href="#cb116-5" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb116-6"><a href="#cb116-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> StorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;&amp;</span> base, <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
-<span id="cb116-7"><a href="#cb116-7" aria-hidden="true" tabindex="-1"></a>      base_<span class="op">(</span>base<span class="op">)</span>, height_<span class="op">(</span>height<span class="op">)</span></span>
-<span id="cb116-8"><a href="#cb116-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb116-9"><a href="#cb116-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb116-10"><a href="#cb116-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb116-11"><a href="#cb116-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
-<span id="cb116-12"><a href="#cb116-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb113"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb113-1"><a href="#cb113-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StorageTank <span class="op">{</span></span>
+<span id="cb113-2"><a href="#cb113-2" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;</span> base_;</span>
+<span id="cb113-3"><a href="#cb113-3" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;</span> height_;</span>
+<span id="cb113-4"><a href="#cb113-4" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass_density<span class="op">[</span>kg <span class="op">/</span> m3<span class="op">]&gt;</span> density_ <span class="op">=</span> air_density;</span>
+<span id="cb113-5"><a href="#cb113-5" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb113-6"><a href="#cb113-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> StorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;&amp;</span> base, <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb113-7"><a href="#cb113-7" aria-hidden="true" tabindex="-1"></a>      base_<span class="op">(</span>base<span class="op">)</span>, height_<span class="op">(</span>height<span class="op">)</span></span>
+<span id="cb113-8"><a href="#cb113-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb113-9"><a href="#cb113-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb113-10"><a href="#cb113-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb113-11"><a href="#cb113-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb113-12"><a href="#cb113-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p>As the quantities provided in the function’s interface are then
 stored in the class, there is probably no sense in using generic
 interfaces here.</p>
@@ -3330,17 +3340,17 @@ interfaces here.</p>
 interfaces<a href="#the-issues-with-unit-specific-interfaces" class="self-link"></a></h2>
 <p>However, in many cases, using a specific unit in the interface is
 counterproductive. Let’s consider the following function:</p>
-<div class="sourceCode" id="cb117"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb117-1"><a href="#cb117-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>km <span class="op">/</span> h<span class="op">]&gt;</span> avg_speed<span class="op">(</span>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">[</span>km<span class="op">]&gt;</span> distance,</span>
-<span id="cb117-2"><a href="#cb117-2" aria-hidden="true" tabindex="-1"></a>                                       quantity<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">[</span>h<span class="op">]&gt;</span> duration<span class="op">)</span></span>
-<span id="cb117-3"><a href="#cb117-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb117-4"><a href="#cb117-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> distance <span class="op">/</span> duration;</span>
-<span id="cb117-5"><a href="#cb117-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb114"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb114-1"><a href="#cb114-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>km <span class="op">/</span> h<span class="op">]&gt;</span> avg_speed<span class="op">(</span>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">[</span>km<span class="op">]&gt;</span> distance,</span>
+<span id="cb114-2"><a href="#cb114-2" aria-hidden="true" tabindex="-1"></a>                                       quantity<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">[</span>h<span class="op">]&gt;</span> duration<span class="op">)</span></span>
+<span id="cb114-3"><a href="#cb114-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb114-4"><a href="#cb114-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> distance <span class="op">/</span> duration;</span>
+<span id="cb114-5"><a href="#cb114-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Everything seems fine for now. It also works great if we call it
 with:</p>
-<div class="sourceCode" id="cb118"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb118-1"><a href="#cb118-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>km <span class="op">/</span> h<span class="op">]&gt;</span> s1 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">220</span> <span class="op">*</span> km, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb115"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>km <span class="op">/</span> h<span class="op">]&gt;</span> s1 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">220</span> <span class="op">*</span> km, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
 <p>However, if the user starts doing the following:</p>
-<div class="sourceCode" id="cb119"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb119-1"><a href="#cb119-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>mi <span class="op">/</span> h<span class="op">]&gt;</span> s2 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">140</span> <span class="op">*</span> mi, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb119-2"><a href="#cb119-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>m <span class="op">/</span> s<span class="op">]&gt;</span> s3 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">20</span> <span class="op">*</span> m, <span class="dv">2</span> <span class="op">*</span> s<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb116"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb116-1"><a href="#cb116-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>mi <span class="op">/</span> h<span class="op">]&gt;</span> s2 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">140</span> <span class="op">*</span> mi, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb116-2"><a href="#cb116-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>m <span class="op">/</span> s<span class="op">]&gt;</span> s3 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">20</span> <span class="op">*</span> m, <span class="dv">2</span> <span class="op">*</span> s<span class="op">)</span>;</span></code></pre></div>
 <p>some issues start to be clearly visible:</p>
 <ol type="1">
 <li><p>The arguments must be converted to units mandated by the
@@ -3367,8 +3377,8 @@ from doing a clearly wrong thing. To make the code compile, the user
 needs to use dedicated
 <code class="sourceCode default">value_cast</code> or
 <code class="sourceCode default">force_in</code> like this:</p>
-<div class="sourceCode" id="cb120"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb120-1"><a href="#cb120-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>mi <span class="op">/</span> h<span class="op">]&gt;</span> s2 <span class="op">=</span> avg_speed<span class="op">(</span>value_cast<span class="op">&lt;</span>km<span class="op">&gt;(</span><span class="dv">140</span> <span class="op">*</span> mi<span class="op">)</span>, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb120-2"><a href="#cb120-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>m <span class="op">/</span> s<span class="op">]&gt;</span> s3 <span class="op">=</span> avg_speed<span class="op">((</span><span class="dv">20</span> <span class="op">*</span> m<span class="op">).</span>force_in<span class="op">(</span>km<span class="op">)</span>, <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> s<span class="op">).</span>force_in<span class="op">(</span>h<span class="op">))</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb117"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb117-1"><a href="#cb117-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>mi <span class="op">/</span> h<span class="op">]&gt;</span> s2 <span class="op">=</span> avg_speed<span class="op">(</span>value_cast<span class="op">&lt;</span>km<span class="op">&gt;(</span><span class="dv">140</span> <span class="op">*</span> mi<span class="op">)</span>, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb117-2"><a href="#cb117-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>m <span class="op">/</span> s<span class="op">]&gt;</span> s3 <span class="op">=</span> avg_speed<span class="op">((</span><span class="dv">20</span> <span class="op">*</span> m<span class="op">).</span>force_in<span class="op">(</span>km<span class="op">)</span>, <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> s<span class="op">).</span>force_in<span class="op">(</span>h<span class="op">))</span>;</span></code></pre></div>
 <p>but the above will obviously provide an incorrect behavior
 (e.g. division by <code class="sourceCode default">0</code> in the
 evaluation of <code class="sourceCode default">s3</code>).</p></li>
@@ -3376,10 +3386,10 @@ evaluation of <code class="sourceCode default">s3</code>).</p></li>
 <h2 data-number="7.2" id="a-naive-solution"><span class="header-section-number">7.2</span> A naive solution<a href="#a-naive-solution" class="self-link"></a></h2>
 <p>A naive solution here would be to implement the function as an
 unconstrained function template:</p>
-<div class="sourceCode" id="cb121"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb121-1"><a href="#cb121-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> avg_speed<span class="op">(</span><span class="kw">auto</span> distance, <span class="kw">auto</span> duration<span class="op">)</span></span>
-<span id="cb121-2"><a href="#cb121-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb121-3"><a href="#cb121-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> distance <span class="op">/</span> duration;</span>
-<span id="cb121-4"><a href="#cb121-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb118"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb118-1"><a href="#cb118-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> avg_speed<span class="op">(</span><span class="kw">auto</span> distance, <span class="kw">auto</span> duration<span class="op">)</span></span>
+<span id="cb118-2"><a href="#cb118-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb118-3"><a href="#cb118-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> distance <span class="op">/</span> duration;</span>
+<span id="cb118-4"><a href="#cb118-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Beware that there are better solutions than this. The above code is
 too generic. Such a function template accepts everything:</p>
 <ul>
@@ -3399,11 +3409,11 @@ compilation process)</li>
 arguments with concepts<a href="#constraining-function-template-arguments-with-concepts" class="self-link"></a></h2>
 <p>Much better generic code can be implemented using basic concepts
 provided with the library:</p>
-<div class="sourceCode" id="cb122"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb122-1"><a href="#cb122-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> avg_speed<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> distance,</span>
-<span id="cb122-2"><a href="#cb122-2" aria-hidden="true" tabindex="-1"></a>               QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> duration<span class="op">)</span></span>
-<span id="cb122-3"><a href="#cb122-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb122-4"><a href="#cb122-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> isq<span class="op">::</span>speed<span class="op">(</span>distance <span class="op">/</span> duration<span class="op">)</span>;</span>
-<span id="cb122-5"><a href="#cb122-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb119"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb119-1"><a href="#cb119-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> avg_speed<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> distance,</span>
+<span id="cb119-2"><a href="#cb119-2" aria-hidden="true" tabindex="-1"></a>               QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> duration<span class="op">)</span></span>
+<span id="cb119-3"><a href="#cb119-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb119-4"><a href="#cb119-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> isq<span class="op">::</span>speed<span class="op">(</span>distance <span class="op">/</span> duration<span class="op">)</span>;</span>
+<span id="cb119-5"><a href="#cb119-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>This explicitly states that the arguments passed by the user must not
 only satisfy a <code class="sourceCode default">Quantity</code> concept
 but also their quantity specification must be implicitly convertible to
@@ -3420,11 +3430,11 @@ return type<a href="#constraining-function-template-return-type" class="self-lin
 <p>The above function template resolves all of the issues described
 before. However, we can do even better here by additionally constraining
 the return type:</p>
-<div class="sourceCode" id="cb123"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb123-1"><a href="#cb123-1" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> avg_speed<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> distance,</span>
-<span id="cb123-2"><a href="#cb123-2" aria-hidden="true" tabindex="-1"></a>                                      QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> duration<span class="op">)</span></span>
-<span id="cb123-3"><a href="#cb123-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb123-4"><a href="#cb123-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> isq<span class="op">::</span>speed<span class="op">(</span>distance <span class="op">/</span> duration<span class="op">)</span>;</span>
-<span id="cb123-5"><a href="#cb123-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb120"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb120-1"><a href="#cb120-1" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> avg_speed<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> distance,</span>
+<span id="cb120-2"><a href="#cb120-2" aria-hidden="true" tabindex="-1"></a>                                      QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> duration<span class="op">)</span></span>
+<span id="cb120-3"><a href="#cb120-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb120-4"><a href="#cb120-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> isq<span class="op">::</span>speed<span class="op">(</span>distance <span class="op">/</span> duration<span class="op">)</span>;</span>
+<span id="cb120-5"><a href="#cb120-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Doing so has two important benefits:</p>
 <ol type="1">
 <li>It informs the users of our interface about what to expect to be the
@@ -3447,18 +3457,18 @@ sometimes are unsure about the return type. Even if we know it today, it
 might change a week from now due to some code refactoring.</p>
 <p>In such cases, we can again use
 <code class="sourceCode default">auto</code> to denote the type:</p>
-<div class="sourceCode" id="cb124"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> s1 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">220</span> <span class="op">*</span> km, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> s2 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">140</span> <span class="op">*</span> mi, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb124-3"><a href="#cb124-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> s3 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">20</span> <span class="op">*</span> m, <span class="dv">2</span> <span class="op">*</span> s<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb121"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb121-1"><a href="#cb121-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> s1 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">220</span> <span class="op">*</span> km, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb121-2"><a href="#cb121-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> s2 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">140</span> <span class="op">*</span> mi, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb121-3"><a href="#cb121-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> s3 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">20</span> <span class="op">*</span> m, <span class="dv">2</span> <span class="op">*</span> s<span class="op">)</span>;</span></code></pre></div>
 <p>In this case, it is probably OK to do so as the
 <code class="sourceCode default">avg_speed</code> function name
 explicitly provides the information on what to expect as a result.</p>
 <p>In other scenarios where the returned quantity type is not so
 obvious, it is again helpful to constrain the type with a concept like
 so:</p>
-<div class="sourceCode" id="cb125"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> s1 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">220</span> <span class="op">*</span> km, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb125-2"><a href="#cb125-2" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> s2 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">140</span> <span class="op">*</span> mi, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb125-3"><a href="#cb125-3" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> s3 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">20</span> <span class="op">*</span> m, <span class="dv">2</span> <span class="op">*</span> s<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb122"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb122-1"><a href="#cb122-1" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> s1 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">220</span> <span class="op">*</span> km, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb122-2"><a href="#cb122-2" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> s2 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">140</span> <span class="op">*</span> mi, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb122-3"><a href="#cb122-3" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> s3 <span class="op">=</span> avg_speed<span class="op">(</span><span class="dv">20</span> <span class="op">*</span> m, <span class="dv">2</span> <span class="op">*</span> s<span class="op">)</span>;</span></code></pre></div>
 <p>Again this explicitly provides additional information about the
 quantity we are dealing with in the code, and it serves as a unit test
 checking if the “thing” returned from a function is actually what we
@@ -3468,15 +3478,20 @@ expected here.</p>
 between them:</p>
 <p><img src="data:image/svg+xml;base64,PHN2ZyBhcmlhLXJvbGVkZXNjcmlwdGlvbj0iZmxvd2NoYXJ0LXYyIiByb2xlPSJncmFwaGljcy1kb2N1bWVudCBkb2N1bWVudCIgdmlld0JveD0iLTggLTggMzk1LjIxNDg0Mzc1IDQxMSIgc3R5bGU9Im1heC13aWR0aDogMTAwJTsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGlkPSJncmFwaC1kaXYiIGhlaWdodD0iMTAwJSIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxzdHlsZT5AaW1wb3J0IHVybCgiaHR0cHM6Ly9jZG5qcy5jbG91ZGZsYXJlLmNvbS9hamF4L2xpYnMvZm9udC1hd2Vzb21lLzYuNC4yL2Nzcy9hbGwubWluLmNzcyIpOyc8L3N0eWxlPjxzdHlsZT4jZ3JhcGgtZGl2e2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmaWxsOiMzMzM7fSNncmFwaC1kaXYgLmVycm9yLWljb257ZmlsbDojNTUyMjIyO30jZ3JhcGgtZGl2IC5lcnJvci10ZXh0e2ZpbGw6IzU1MjIyMjtzdHJva2U6IzU1MjIyMjt9I2dyYXBoLWRpdiAuZWRnZS10aGlja25lc3Mtbm9ybWFse3N0cm9rZS13aWR0aDoycHg7fSNncmFwaC1kaXYgLmVkZ2UtdGhpY2tuZXNzLXRoaWNre3N0cm9rZS13aWR0aDozLjVweDt9I2dyYXBoLWRpdiAuZWRnZS1wYXR0ZXJuLXNvbGlke3N0cm9rZS1kYXNoYXJyYXk6MDt9I2dyYXBoLWRpdiAuZWRnZS1wYXR0ZXJuLWRhc2hlZHtzdHJva2UtZGFzaGFycmF5OjM7fSNncmFwaC1kaXYgLmVkZ2UtcGF0dGVybi1kb3R0ZWR7c3Ryb2tlLWRhc2hhcnJheToyO30jZ3JhcGgtZGl2IC5tYXJrZXJ7ZmlsbDojMzMzMzMzO3N0cm9rZTojMzMzMzMzO30jZ3JhcGgtZGl2IC5tYXJrZXIuY3Jvc3N7c3Ryb2tlOiMzMzMzMzM7fSNncmFwaC1kaXYgc3Zne2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDt9I2dyYXBoLWRpdiAubGFiZWx7Zm9udC1mYW1pbHk6InRyZWJ1Y2hldCBtcyIsdmVyZGFuYSxhcmlhbCxzYW5zLXNlcmlmO2NvbG9yOiMzMzM7fSNncmFwaC1kaXYgLmNsdXN0ZXItbGFiZWwgdGV4dHtmaWxsOiMzMzM7fSNncmFwaC1kaXYgLmNsdXN0ZXItbGFiZWwgc3BhbiwjZ3JhcGgtZGl2IHB7Y29sb3I6IzMzMzt9I2dyYXBoLWRpdiAubGFiZWwgdGV4dCwjZ3JhcGgtZGl2IHNwYW4sI2dyYXBoLWRpdiBwe2ZpbGw6IzMzMztjb2xvcjojMzMzO30jZ3JhcGgtZGl2IC5ub2RlIHJlY3QsI2dyYXBoLWRpdiAubm9kZSBjaXJjbGUsI2dyYXBoLWRpdiAubm9kZSBlbGxpcHNlLCNncmFwaC1kaXYgLm5vZGUgcG9seWdvbiwjZ3JhcGgtZGl2IC5ub2RlIHBhdGh7ZmlsbDojRUNFQ0ZGO3N0cm9rZTojOTM3MERCO3N0cm9rZS13aWR0aDoxcHg7fSNncmFwaC1kaXYgLmZsb3djaGFydC1sYWJlbCB0ZXh0e3RleHQtYW5jaG9yOm1pZGRsZTt9I2dyYXBoLWRpdiAubm9kZSAubGFiZWx7dGV4dC1hbGlnbjpjZW50ZXI7fSNncmFwaC1kaXYgLm5vZGUuY2xpY2thYmxle2N1cnNvcjpwb2ludGVyO30jZ3JhcGgtZGl2IC5hcnJvd2hlYWRQYXRoe2ZpbGw6IzMzMzMzMzt9I2dyYXBoLWRpdiAuZWRnZVBhdGggLnBhdGh7c3Ryb2tlOiMzMzMzMzM7c3Ryb2tlLXdpZHRoOjIuMHB4O30jZ3JhcGgtZGl2IC5mbG93Y2hhcnQtbGlua3tzdHJva2U6IzMzMzMzMztmaWxsOm5vbmU7fSNncmFwaC1kaXYgLmVkZ2VMYWJlbHtiYWNrZ3JvdW5kLWNvbG9yOiNlOGU4ZTg7dGV4dC1hbGlnbjpjZW50ZXI7fSNncmFwaC1kaXYgLmVkZ2VMYWJlbCByZWN0e29wYWNpdHk6MC41O2JhY2tncm91bmQtY29sb3I6I2U4ZThlODtmaWxsOiNlOGU4ZTg7fSNncmFwaC1kaXYgLmxhYmVsQmtne2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsIDIzMiwgMjMyLCAwLjUpO30jZ3JhcGgtZGl2IC5jbHVzdGVyIHJlY3R7ZmlsbDojZmZmZmRlO3N0cm9rZTojYWFhYTMzO3N0cm9rZS13aWR0aDoxcHg7fSNncmFwaC1kaXYgLmNsdXN0ZXIgdGV4dHtmaWxsOiMzMzM7fSNncmFwaC1kaXYgLmNsdXN0ZXIgc3BhbiwjZ3JhcGgtZGl2IHB7Y29sb3I6IzMzMzt9I2dyYXBoLWRpdiBkaXYubWVybWFpZFRvb2x0aXB7cG9zaXRpb246YWJzb2x1dGU7dGV4dC1hbGlnbjpjZW50ZXI7bWF4LXdpZHRoOjIwMHB4O3BhZGRpbmc6MnB4O2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTJweDtiYWNrZ3JvdW5kOmhzbCg4MCwgMTAwJSwgOTYuMjc0NTA5ODAzOSUpO2JvcmRlcjoxcHggc29saWQgI2FhYWEzMztib3JkZXItcmFkaXVzOjJweDtwb2ludGVyLWV2ZW50czpub25lO3otaW5kZXg6MTAwO30jZ3JhcGgtZGl2IC5mbG93Y2hhcnRUaXRsZVRleHR7dGV4dC1hbmNob3I6bWlkZGxlO2ZvbnQtc2l6ZToxOHB4O2ZpbGw6IzMzMzt9I2dyYXBoLWRpdiA6cm9vdHstLW1lcm1haWQtZm9udC1mYW1pbHk6InRyZWJ1Y2hldCBtcyIsdmVyZGFuYSxhcmlhbCxzYW5zLXNlcmlmO308L3N0eWxlPjxnPjxtYXJrZXIgb3JpZW50PSJhdXRvIiBtYXJrZXJIZWlnaHQ9IjEyIiBtYXJrZXJXaWR0aD0iMTIiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgcmVmWT0iNSIgcmVmWD0iNiIgdmlld0JveD0iMCAwIDEwIDEwIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydCIgaWQ9ImdyYXBoLWRpdl9mbG93Y2hhcnQtcG9pbnRFbmQiPjxwYXRoIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBkPSJNIDAgMCBMIDEwIDUgTCAwIDEwIHoiPjwvcGF0aD48L21hcmtlcj48bWFya2VyIG9yaWVudD0iYXV0byIgbWFya2VySGVpZ2h0PSIxMiIgbWFya2VyV2lkdGg9IjEyIiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIHJlZlk9IjUiIHJlZlg9IjQuNSIgdmlld0JveD0iMCAwIDEwIDEwIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydCIgaWQ9ImdyYXBoLWRpdl9mbG93Y2hhcnQtcG9pbnRTdGFydCI+PHBhdGggc3R5bGU9InN0cm9rZS13aWR0aDogMTsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIGQ9Ik0gMCA1IEwgMTAgMTAgTCAxMCAwIHoiPjwvcGF0aD48L21hcmtlcj48bWFya2VyIG9yaWVudD0iYXV0byIgbWFya2VySGVpZ2h0PSIxMSIgbWFya2VyV2lkdGg9IjExIiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIHJlZlk9IjUiIHJlZlg9IjExIiB2aWV3Qm94PSIwIDAgMTAgMTAiIGNsYXNzPSJtYXJrZXIgZmxvd2NoYXJ0IiBpZD0iZ3JhcGgtZGl2X2Zsb3djaGFydC1jaXJjbGVFbmQiPjxjaXJjbGUgc3R5bGU9InN0cm9rZS13aWR0aDogMTsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHI9IjUiIGN5PSI1IiBjeD0iNSI+PC9jaXJjbGU+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTEiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1IiByZWZYPSItMSIgdmlld0JveD0iMCAwIDEwIDEwIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydCIgaWQ9ImdyYXBoLWRpdl9mbG93Y2hhcnQtY2lyY2xlU3RhcnQiPjxjaXJjbGUgc3R5bGU9InN0cm9rZS13aWR0aDogMTsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHI9IjUiIGN5PSI1IiBjeD0iNSI+PC9jaXJjbGU+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTEiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1LjIiIHJlZlg9IjEyIiB2aWV3Qm94PSIwIDAgMTEgMTEiIGNsYXNzPSJtYXJrZXIgY3Jvc3MgZmxvd2NoYXJ0IiBpZD0iZ3JhcGgtZGl2X2Zsb3djaGFydC1jcm9zc0VuZCI+PHBhdGggc3R5bGU9InN0cm9rZS13aWR0aDogMjsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIGQ9Ik0gMSwxIGwgOSw5IE0gMTAsMSBsIC05LDkiPjwvcGF0aD48L21hcmtlcj48bWFya2VyIG9yaWVudD0iYXV0byIgbWFya2VySGVpZ2h0PSIxMSIgbWFya2VyV2lkdGg9IjExIiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIHJlZlk9IjUuMiIgcmVmWD0iLTEiIHZpZXdCb3g9IjAgMCAxMSAxMSIgY2xhc3M9Im1hcmtlciBjcm9zcyBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LWNyb3NzU3RhcnQiPjxwYXRoIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBkPSJNIDEsMSBsIDksOSBNIDEwLDEgbCAtOSw5Ij48L3BhdGg+PC9tYXJrZXI+PGcgY2xhc3M9InJvb3QiPjxnIGNsYXNzPSJjbHVzdGVycyI+PC9nPjxnIGNsYXNzPSJlZGdlUGF0aHMiPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1EaW1lbnNpb24gTEUtUXVhbnRpdHlTcGVjIiBpZD0iTC1EaW1lbnNpb24tUXVhbnRpdHlTcGVjLTAiIGQ9Ik01NS4wNTUsMzlMNTUuMDU1LDQzLjE2N0M1NS4wNTUsNDcuMzMzLDU1LjA1NSw1NS42NjcsNTUuMDU1LDY0QzU1LjA1NSw3Mi4zMzMsNTUuMDU1LDgwLjY2Nyw1NS4wNTUsODQuODMzTDU1LjA1NSw4OSI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1RdWFudGl0eVNwZWMgTEUtUmVmZXJlbmNlIiBpZD0iTC1RdWFudGl0eVNwZWMtUmVmZXJlbmNlLTAiIGQ9Ik01NS4wNTUsMTI4TDU1LjA1NSwxMzIuMTY3QzU1LjA1NSwxMzYuMzMzLDU1LjA1NSwxNDQuNjY3LDYxLjAyNywxNTNDNjYuOTk5LDE2MS4zMzMsNzguOTQ0LDE2OS42NjcsODQuOTE3LDE3My44MzNMOTAuODg5LDE3OCI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1Vbml0IExFLVJlZmVyZW5jZSIgaWQ9IkwtVW5pdC1SZWZlcmVuY2UtMCIgZD0iTTE4Mi42MjUsMTI4TDE4Mi42MjUsMTMyLjE2N0MxODIuNjI1LDEzNi4zMzMsMTgyLjYyNSwxNDQuNjY3LDE3Ni42NTMsMTUzQzE3MC42OCwxNjEuMzMzLDE1OC43MzUsMTY5LjY2NywxNTIuNzYzLDE3My44MzNMMTQ2Ljc5MSwxNzgiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtUmVmZXJlbmNlIExFLVF1YW50aXR5IiBpZD0iTC1SZWZlcmVuY2UtUXVhbnRpdHktMCIgZD0iTTExOC44NCwyMTdMMTE4Ljg0LDIyMS4xNjdDMTE4Ljg0LDIyNS4zMzMsMTE4Ljg0LDIzMy42NjcsMTI2LjExLDI0MkMxMzMuMzc5LDI1MC4zMzMsMTQ3LjkxOSwyNTguNjY3LDE1NS4xODgsMjYyLjgzM0wxNjIuNDU4LDI2NyI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1SZXByZXNlbnRhdGlvbiBMRS1RdWFudGl0eSIgaWQ9IkwtUmVwcmVzZW50YXRpb24tUXVhbnRpdHktMCIgZD0iTTI3NC4xMjEsMjE3TDI3NC4xMjEsMjIxLjE2N0MyNzQuMTIxLDIyNS4zMzMsMjc0LjEyMSwyMzMuNjY3LDI2Ni44NTEsMjQyQzI1OS41ODIsMjUwLjMzMywyNDUuMDQyLDI1OC42NjcsMjM3Ljc3MiwyNjIuODMzTDIzMC41MDMsMjY3Ij48L3BhdGg+PHBhdGggc3R5bGU9ImZpbGw6bm9uZTsiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIExTLVF1YW50aXR5IExFLVF1YW50aXR5UG9pbnQiIGlkPSJMLVF1YW50aXR5LVF1YW50aXR5UG9pbnQtMCIgZD0iTTE5Ni40OCwzMDZMMTk2LjQ4LDMxMC4xNjdDMTk2LjQ4LDMxNC4zMzMsMTk2LjQ4LDMyMi42NjcsMjAyLjgyOCwzMzFDMjA5LjE3NSwzMzkuMzMzLDIyMS44NywzNDcuNjY3LDIyOC4yMTcsMzUxLjgzM0wyMzQuNTY0LDM1NiI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1Qb2ludE9yaWdpbiBMRS1RdWFudGl0eVBvaW50IiBpZD0iTC1Qb2ludE9yaWdpbi1RdWFudGl0eVBvaW50LTAiIGQ9Ik0zMzIuMDU5LDMwNkwzMzIuMDU5LDMxMC4xNjdDMzMyLjA1OSwzMTQuMzMzLDMzMi4wNTksMzIyLjY2NywzMjUuNzExLDMzMUMzMTkuMzY0LDMzOS4zMzMsMzA2LjY2OSwzNDcuNjY3LDMwMC4zMjIsMzUxLjgzM0wyOTMuOTc1LDM1NiI+PC9wYXRoPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVscyI+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48L2c+PGcgY2xhc3M9Im5vZGVzIj48YSB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1NS4wNTQ2ODc1LCAxOS41KSIgeGxpbms6aHJlZj0iI0RpbWVuc2lvbiI+PGcgaWQ9ImZsb3djaGFydC1EaW1lbnNpb24tMzkyIiBjbGFzcz0ibm9kZSBkZWZhdWx0IGNsaWNrYWJsZSBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSI4OC41IiB5PSItMTkuNSIgeD0iLTQ0LjI1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMzYuNzUsIC0xMikiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMjQiIHdpZHRoPSI3My41Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+RGltZW5zaW9uPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvYT48YSB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1NS4wNTQ2ODc1LCAxMDguNSkiIHhsaW5rOmhyZWY9IiNRdWFudGl0eVNwZWMiPjxnIGlkPSJmbG93Y2hhcnQtUXVhbnRpdHlTcGVjLTM5MyIgY2xhc3M9Im5vZGUgZGVmYXVsdCBjbGlja2FibGUgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iMTEwLjEwOTM3NSIgeT0iLTE5LjUiIHg9Ii01NS4wNTQ2ODc1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDcuNTU0Njg3NSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9Ijk1LjEwOTM3NSI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPlF1YW50aXR5U3BlYzwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48L2E+PGEgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTE4LjgzOTg0Mzc1LCAxOTcuNSkiIHhsaW5rOmhyZWY9IiNSZWZlcmVuY2UiPjxnIGlkPSJmbG93Y2hhcnQtUmVmZXJlbmNlLTM5NSIgY2xhc3M9Im5vZGUgZGVmYXVsdCBjbGlja2FibGUgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iODcuMzc1IiB5PSItMTkuNSIgeD0iLTQzLjY4NzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zNi4xODc1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iNzIuMzc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+UmVmZXJlbmNlPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvYT48YSB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxODIuNjI1LCAxMDguNSkiIHhsaW5rOmhyZWY9IiNVbml0Ij48ZyBpZD0iZmxvd2NoYXJ0LVVuaXQtMzk2IiBjbGFzcz0ibm9kZSBkZWZhdWx0IGNsaWNrYWJsZSBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSI0NS4wMzEyNSIgeT0iLTE5LjUiIHg9Ii0yMi41MTU2MjUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xNS4wMTU2MjUsIC0xMikiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMjQiIHdpZHRoPSIzMC4wMzEyNSI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPlVuaXQ8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PC9hPjxhIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE5Ni40ODA0Njg3NSwgMjg2LjUpIiB4bGluazpocmVmPSIjUXVhbnRpdHkiPjxnIGlkPSJmbG93Y2hhcnQtUXVhbnRpdHktMzk5IiBjbGFzcz0ibm9kZSBkZWZhdWx0IGNsaWNrYWJsZSBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSI3Ni44NDM3NSIgeT0iLTE5LjUiIHg9Ii0zOC40MjE4NzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zMC45MjE4NzUsIC0xMikiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMjQiIHdpZHRoPSI2MS44NDM3NSI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPlF1YW50aXR5PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvYT48YSB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNzQuMTIxMDkzNzUsIDE5Ny41KSIgeGxpbms6aHJlZj0iI1JlcHJlc2VudGF0aW9uIj48ZyBpZD0iZmxvd2NoYXJ0LVJlcHJlc2VudGF0aW9uLTQwMCIgY2xhc3M9Im5vZGUgZGVmYXVsdCBjbGlja2FibGUgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iMTIzLjE4NzUiIHk9Ii0xOS41IiB4PSItNjEuNTkzNzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC01NC4wOTM3NSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjEwOC4xODc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+UmVwcmVzZW50YXRpb248L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PC9hPjxhIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2NC4yNjk1MzEyNSwgMzc1LjUpIiB4bGluazpocmVmPSIjUXVhbnRpdHlQb2ludCI+PGcgaWQ9ImZsb3djaGFydC1RdWFudGl0eVBvaW50LTQwMyIgY2xhc3M9Im5vZGUgZGVmYXVsdCBjbGlja2FibGUgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iMTEzLjI1IiB5PSItMTkuNSIgeD0iLTU2LjYyNSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQ5LjEyNSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9Ijk4LjI1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+UXVhbnRpdHlQb2ludDwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48L2E+PGEgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzMyLjA1ODU5Mzc1LCAyODYuNSkiIHhsaW5rOmhyZWY9IiNQb2ludE9yaWdpbiI+PGcgaWQ9ImZsb3djaGFydC1Qb2ludE9yaWdpbi00MDQiIGNsYXNzPSJub2RlIGRlZmF1bHQgY2xpY2thYmxlIGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9Ijk0LjMxMjUiIHk9Ii0xOS41IiB4PSItNDcuMTU2MjUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zOS42NTYyNSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9Ijc5LjMxMjUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5Qb2ludE9yaWdpbjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48L2E+PC9nPjwvZz48L2c+PC9zdmc+" /></p>
 <h1 data-number="8" id="custom-representation-types"><span class="header-section-number">8</span> Custom representation types<a href="#custom-representation-types" class="self-link"></a></h1>
-<p>TBD</p>
+<p>The library physical quantities and units library should work with
+any custom representation type. Those can be used to:</p>
 <ul>
-<li>improve safety</li>
-<li>provide additional info like measurement</li>
-<li>linear algebra</li>
-<li>minimal requirements</li>
-<li>representation type constraints</li>
+<li>improve safety (e.g., prevent overflows, restrict the range of
+accepted values, etc.),</li>
+<li>provide additional information (e.g., not only a quantity value but
+also the uncertainty of the measurement),</li>
+<li>enable linear algebra usage.</li>
 </ul>
-<h2 data-number="8.1" id="non-negative-quantities"><span class="header-section-number">8.1</span> Non-negative quantities<a href="#non-negative-quantities" class="self-link"></a></h2>
+<p>As of right now, we have two other concurrent proposals to SG6 in
+this subject on the fly (<span class="citation" data-cites="P2993_PRE">[<a href="#ref-P2993_PRE" role="doc-biblioref">P2993</a>]</span> and <span class="citation" data-cites="P3003_PRE">[<a href="#ref-P3003_PRE" role="doc-biblioref">P3003</a>]</span>), we do not provide any concrete
+requirements or recommendations here. Based on the results of
+discussions on the mentioned proposals, we will provide correct
+guidelines in the next revisions of this paper.</p>
 <h1 data-number="9" id="the-affine-space"><span class="header-section-number">9</span> The affine space<a href="#the-affine-space" class="self-link"></a></h1>
 <p>The affine space has two types of entities:</p>
 <ul>
@@ -3543,15 +3558,15 @@ of our measurement’s scale is. User can specify such an origin by
 deriving from the
 <code class="sourceCode default">absolute_point_origin</code> class
 template:</p>
-<div class="sourceCode" id="cb126"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb126-1"><a href="#cb126-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> mean_sea_level <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">&gt;</span> <span class="op">{}</span> mean_sea_level;</span></code></pre></div>
+<div class="sourceCode" id="cb123"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb123-1"><a href="#cb123-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> mean_sea_level <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">&gt;</span> <span class="op">{}</span> mean_sea_level;</span></code></pre></div>
 <h3 data-number="9.3.2" id="quantity_point"><span class="header-section-number">9.3.2</span>
 <code class="sourceCode default">quantity_point</code><a href="#quantity_point" class="self-link"></a></h3>
 <p>The <code class="sourceCode default">quantity_point</code> class
 template specifies an absolute quantity with respect to an origin:</p>
-<div class="sourceCode" id="cb127"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>Reference <span class="kw">auto</span> R,</span>
-<span id="cb127-2"><a href="#cb127-2" aria-hidden="true" tabindex="-1"></a>         PointOriginFor<span class="op">&lt;</span>get_quantity_spec<span class="op">(</span>R<span class="op">)&gt;</span> <span class="kw">auto</span> PO,</span>
-<span id="cb127-3"><a href="#cb127-3" aria-hidden="true" tabindex="-1"></a>         RepresentationOf<span class="op">&lt;</span>get_quantity_spec<span class="op">(</span>R<span class="op">).</span>character<span class="op">&gt;</span> Rep <span class="op">=</span> <span class="dt">double</span><span class="op">&gt;</span></span>
-<span id="cb127-4"><a href="#cb127-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> quantity_point;</span></code></pre></div>
+<div class="sourceCode" id="cb124"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>Reference <span class="kw">auto</span> R,</span>
+<span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a>         PointOriginFor<span class="op">&lt;</span>get_quantity_spec<span class="op">(</span>R<span class="op">)&gt;</span> <span class="kw">auto</span> PO,</span>
+<span id="cb124-3"><a href="#cb124-3" aria-hidden="true" tabindex="-1"></a>         RepresentationOf<span class="op">&lt;</span>get_quantity_spec<span class="op">(</span>R<span class="op">).</span>character<span class="op">&gt;</span> Rep <span class="op">=</span> <span class="dt">double</span><span class="op">&gt;</span></span>
+<span id="cb124-4"><a href="#cb124-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> quantity_point;</span></code></pre></div>
 <p>As we can see above, the
 <code class="sourceCode default">quantity_point</code> class template
 exposes one additional parameter compared to
@@ -3562,9 +3577,9 @@ specifies the origin of our measurement scale.</p>
 <p>As a <em>point</em> can be represented with a <em>vector</em> from
 the origin, a <code class="sourceCode default">quantity_point</code>
 class template can be created with the following operations:</p>
-<div class="sourceCode" id="cb128"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb128-1"><a href="#cb128-1" aria-hidden="true" tabindex="-1"></a>quantity_point qp1 <span class="op">=</span> mean_sea_level <span class="op">+</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
-<span id="cb128-2"><a href="#cb128-2" aria-hidden="true" tabindex="-1"></a>quantity_point qp2 <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m <span class="op">+</span> mean_sea_level;</span>
-<span id="cb128-3"><a href="#cb128-3" aria-hidden="true" tabindex="-1"></a>quantity_point qp3 <span class="op">=</span> mean_sea_level <span class="op">-</span> <span class="dv">42</span> <span class="op">*</span> m;</span></code></pre></div>
+<div class="sourceCode" id="cb125"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a>quantity_point qp1 <span class="op">=</span> mean_sea_level <span class="op">+</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
+<span id="cb125-2"><a href="#cb125-2" aria-hidden="true" tabindex="-1"></a>quantity_point qp2 <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m <span class="op">+</span> mean_sea_level;</span>
+<span id="cb125-3"><a href="#cb125-3" aria-hidden="true" tabindex="-1"></a>quantity_point qp3 <span class="op">=</span> mean_sea_level <span class="op">-</span> <span class="dv">42</span> <span class="op">*</span> m;</span></code></pre></div>
 <p>It is not allowed to subtract a <em>point</em> from a <em>vector</em>
 thus <code class="sourceCode default">42 * m - mean_sea_level</code> is
 an invalid operation.</p>
@@ -3574,16 +3589,16 @@ operator-based syntax to create a
 can be achieved with
 <code class="sourceCode default">make_quantity_point</code> factory
 function:</p>
-<div class="sourceCode" id="cb129"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb129-1"><a href="#cb129-1" aria-hidden="true" tabindex="-1"></a>quantity_point qp4 <span class="op">=</span> make_quantity_point<span class="op">&lt;</span>mean_sea_level<span class="op">&gt;(</span><span class="dv">42</span> <span class="op">*</span> m<span class="op">)</span>;</span>
-<span id="cb129-2"><a href="#cb129-2" aria-hidden="true" tabindex="-1"></a>quantity_point qp5 <span class="op">=</span> make_quantity_point<span class="op">&lt;</span>mean_sea_level<span class="op">&gt;(-</span><span class="dv">42</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb126"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb126-1"><a href="#cb126-1" aria-hidden="true" tabindex="-1"></a>quantity_point qp4 <span class="op">=</span> make_quantity_point<span class="op">&lt;</span>mean_sea_level<span class="op">&gt;(</span><span class="dv">42</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb126-2"><a href="#cb126-2" aria-hidden="true" tabindex="-1"></a>quantity_point qp5 <span class="op">=</span> make_quantity_point<span class="op">&lt;</span>mean_sea_level<span class="op">&gt;(-</span><span class="dv">42</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div>
 <p>The provided <code class="sourceCode default">quantity</code>
 representing an offset from the origin is stored inside the
 <code class="sourceCode default">quantity_point</code> class template
 and can be obtained with a
 <code class="sourceCode default">quantity_from_origin()</code> member
 function:</p>
-<div class="sourceCode" id="cb130"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb130-1"><a href="#cb130-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity_point everest_base_camp_alt <span class="op">=</span> mean_sea_level <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(</span><span class="dv">5364</span> <span class="op">*</span> m<span class="op">)</span>;</span>
-<span id="cb130-2"><a href="#cb130-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>everest_base_camp_alt<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">==</span> <span class="dv">5364</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb127"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity_point everest_base_camp_alt <span class="op">=</span> mean_sea_level <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(</span><span class="dv">5364</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb127-2"><a href="#cb127-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>everest_base_camp_alt<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">==</span> <span class="dv">5364</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div>
 <h3 data-number="9.3.3" id="relative-point-origin"><span class="header-section-number">9.3.3</span> Relative <em>point</em>
 origin<a href="#relative-point-origin" class="self-link"></a></h3>
 <p>We often do not have only one ultimate “zero” point when we measure
@@ -3598,19 +3613,19 @@ reference point?</p>
 <p>For this purpose, we can define a
 <code class="sourceCode default">relative_point_origin</code> in the
 following way:</p>
-<div class="sourceCode" id="cb131"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb131-1"><a href="#cb131-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> everest_base_camp <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>everest_base_camp_alt<span class="op">&gt;</span> <span class="op">{}</span> everest_base_camp;</span></code></pre></div>
+<div class="sourceCode" id="cb128"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb128-1"><a href="#cb128-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> everest_base_camp <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>everest_base_camp_alt<span class="op">&gt;</span> <span class="op">{}</span> everest_base_camp;</span></code></pre></div>
 <p>The above can be used as an origin for subsequent
 <em>points</em>:</p>
-<div class="sourceCode" id="cb132"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity_point first_climb_alt <span class="op">=</span> everest_base_camp <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(</span>std<span class="op">::</span><span class="dt">uint8_t</span><span class="op">{</span><span class="dv">42</span><span class="op">}</span> <span class="op">*</span> m<span class="op">)</span>;</span>
-<span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>first_climb_alt<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">==</span> <span class="dv">42</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb129"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb129-1"><a href="#cb129-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity_point first_climb_alt <span class="op">=</span> everest_base_camp <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(</span>std<span class="op">::</span><span class="dt">uint8_t</span><span class="op">{</span><span class="dv">42</span><span class="op">}</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb129-2"><a href="#cb129-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>first_climb_alt<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">==</span> <span class="dv">42</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div>
 <p>As we can see above, the
 <code class="sourceCode default">quantity_from_origin()</code> member
 function returns a relative distance from the current point origin. In
 case we would like to know the absolute altitude that we reached on this
 climb, we can subtract the absolute point origin from the current
 <em>point</em>:</p>
-<div class="sourceCode" id="cb133"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb133-1"><a href="#cb133-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>first_climb_alt <span class="op">-</span> mean_sea_level <span class="op">==</span> <span class="dv">5406</span> <span class="op">*</span> m<span class="op">)</span>;</span>
-<span id="cb133-2"><a href="#cb133-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>first_climb_alt <span class="op">-</span> first_climb_alt<span class="op">.</span>absolute_point_origin <span class="op">==</span> <span class="dv">5406</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb130"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb130-1"><a href="#cb130-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>first_climb_alt <span class="op">-</span> mean_sea_level <span class="op">==</span> <span class="dv">5406</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb130-2"><a href="#cb130-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>first_climb_alt <span class="op">-</span> first_climb_alt<span class="op">.</span>absolute_point_origin <span class="op">==</span> <span class="dv">5406</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div>
 <h3 data-number="9.3.4" id="converting-between-different-representations-of-the-same-point"><span class="header-section-number">9.3.4</span> Converting between different
 representations of the same <em>point</em><a href="#converting-between-different-representations-of-the-same-point" class="self-link"></a></h3>
 <p>As we might represent the same <em>point</em> with <em>vectors</em>
@@ -3621,11 +3636,11 @@ expressed in terms of different origins.</p>
 <p>For this purpose, we can either use:</p>
 <ul>
 <li><p>a converting constructor:</p>
-<div class="sourceCode" id="cb134"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb134-1"><a href="#cb134-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, mean_sea_level, <span class="dt">int</span><span class="op">&gt;</span> qp <span class="op">=</span> first_climb_alt;</span>
-<span id="cb134-2"><a href="#cb134-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>qp<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">==</span> <span class="dv">5406</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div></li>
+<div class="sourceCode" id="cb131"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb131-1"><a href="#cb131-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, mean_sea_level, <span class="dt">int</span><span class="op">&gt;</span> qp <span class="op">=</span> first_climb_alt;</span>
+<span id="cb131-2"><a href="#cb131-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>qp<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">==</span> <span class="dv">5406</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div></li>
 <li><p>a dedicated conversion interface:</p>
-<div class="sourceCode" id="cb135"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb135-1"><a href="#cb135-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity_point qp <span class="op">=</span> first_climb_alt<span class="op">.</span>point_for<span class="op">(</span>mean_sea_level<span class="op">)</span>;</span>
-<span id="cb135-2"><a href="#cb135-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>qp<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">==</span> <span class="dv">5406</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div></li>
+<div class="sourceCode" id="cb132"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity_point qp <span class="op">=</span> first_climb_alt<span class="op">.</span>point_for<span class="op">(</span>mean_sea_level<span class="op">)</span>;</span>
+<span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>qp<span class="op">.</span>quantity_from_origin<span class="op">()</span> <span class="op">==</span> <span class="dv">5406</span> <span class="op">*</span> m<span class="op">)</span>;</span></code></pre></div></li>
 </ul>
 <p>It is only allowed to convert between various origins defined in
 terms of the same
@@ -3645,27 +3660,27 @@ CO, and we want to estimate the distance we will travel. We have to take
 a taxi to a local airport, fly to DEN airport with a stopover in FRA,
 and, in the end, get a cab to the Gaylord Rockies Resort &amp;
 Convention Center:</p>
-<div class="sourceCode" id="cb136"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb136-1"><a href="#cb136-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> home <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">&gt;</span> <span class="op">{}</span> home;</span>
-<span id="cb136-2"><a href="#cb136-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb136-3"><a href="#cb136-3" aria-hidden="true" tabindex="-1"></a>quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]</span>, home<span class="op">&gt;</span> home_airport <span class="op">=</span> home <span class="op">+</span> <span class="dv">15</span> <span class="op">*</span> km;</span>
-<span id="cb136-4"><a href="#cb136-4" aria-hidden="true" tabindex="-1"></a>quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]</span>, home<span class="op">&gt;</span> fra_airport <span class="op">=</span> home_airport <span class="op">+</span> <span class="dv">829</span> <span class="op">*</span> km;</span>
-<span id="cb136-5"><a href="#cb136-5" aria-hidden="true" tabindex="-1"></a>quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]</span>, home<span class="op">&gt;</span> den_airport <span class="op">=</span> fra_airport <span class="op">+</span> <span class="dv">8115</span> <span class="op">*</span> km;</span>
-<span id="cb136-6"><a href="#cb136-6" aria-hidden="true" tabindex="-1"></a>quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]</span>, home<span class="op">&gt;</span> cppcon_venue <span class="op">=</span> den_airport <span class="op">+</span> <span class="fl">10.1</span> <span class="op">*</span> mi;</span></code></pre></div>
+<div class="sourceCode" id="cb133"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb133-1"><a href="#cb133-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> home <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">&gt;</span> <span class="op">{}</span> home;</span>
+<span id="cb133-2"><a href="#cb133-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb133-3"><a href="#cb133-3" aria-hidden="true" tabindex="-1"></a>quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]</span>, home<span class="op">&gt;</span> home_airport <span class="op">=</span> home <span class="op">+</span> <span class="dv">15</span> <span class="op">*</span> km;</span>
+<span id="cb133-4"><a href="#cb133-4" aria-hidden="true" tabindex="-1"></a>quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]</span>, home<span class="op">&gt;</span> fra_airport <span class="op">=</span> home_airport <span class="op">+</span> <span class="dv">829</span> <span class="op">*</span> km;</span>
+<span id="cb133-5"><a href="#cb133-5" aria-hidden="true" tabindex="-1"></a>quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]</span>, home<span class="op">&gt;</span> den_airport <span class="op">=</span> fra_airport <span class="op">+</span> <span class="dv">8115</span> <span class="op">*</span> km;</span>
+<span id="cb133-6"><a href="#cb133-6" aria-hidden="true" tabindex="-1"></a>quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]</span>, home<span class="op">&gt;</span> cppcon_venue <span class="op">=</span> den_airport <span class="op">+</span> <span class="fl">10.1</span> <span class="op">*</span> mi;</span></code></pre></div>
 <p>As we can see above, we can easily get a new point by adding a
 quantity to an origin or another quantity point.</p>
 <p>If we want to find out the distance traveled between two points, we
 simply subtract them:</p>
-<div class="sourceCode" id="cb137"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb137-1"><a href="#cb137-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> total <span class="op">=</span> cppcon_venue <span class="op">-</span> home;</span>
-<span id="cb137-2"><a href="#cb137-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> flight <span class="op">=</span> den_airport <span class="op">-</span> home_airport;</span></code></pre></div>
+<div class="sourceCode" id="cb134"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb134-1"><a href="#cb134-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> total <span class="op">=</span> cppcon_venue <span class="op">-</span> home;</span>
+<span id="cb134-2"><a href="#cb134-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> flight <span class="op">=</span> den_airport <span class="op">-</span> home_airport;</span></code></pre></div>
 <p>If we would like to find out the total distance traveled by taxi as
 well, we have to do a bit more calculations:</p>
-<div class="sourceCode" id="cb138"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb138-1"><a href="#cb138-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> taxi1 <span class="op">=</span> home_airport <span class="op">-</span> home;</span>
-<span id="cb138-2"><a href="#cb138-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> taxi2 <span class="op">=</span> cppcon_venue <span class="op">-</span> den_airport;</span>
-<span id="cb138-3"><a href="#cb138-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> taxi <span class="op">=</span> taxi1 <span class="op">+</span> taxi2;</span></code></pre></div>
+<div class="sourceCode" id="cb135"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb135-1"><a href="#cb135-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> taxi1 <span class="op">=</span> home_airport <span class="op">-</span> home;</span>
+<span id="cb135-2"><a href="#cb135-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> taxi2 <span class="op">=</span> cppcon_venue <span class="op">-</span> den_airport;</span>
+<span id="cb135-3"><a href="#cb135-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>distance<span class="op">[</span>km<span class="op">]&gt;</span> taxi <span class="op">=</span> taxi1 <span class="op">+</span> taxi2;</span></code></pre></div>
 <p>Now, if we print the results:</p>
-<div class="sourceCode" id="cb139"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb139-1"><a href="#cb139-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Total distance:  &quot;</span> <span class="op">&lt;&lt;</span> total <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
-<span id="cb139-2"><a href="#cb139-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Flight distance: &quot;</span> <span class="op">&lt;&lt;</span> flight <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
-<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Taxi distance:   &quot;</span> <span class="op">&lt;&lt;</span> taxi <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb136"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb136-1"><a href="#cb136-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Total distance:  &quot;</span> <span class="op">&lt;&lt;</span> total <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb136-2"><a href="#cb136-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Flight distance: &quot;</span> <span class="op">&lt;&lt;</span> flight <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb136-3"><a href="#cb136-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Taxi distance:   &quot;</span> <span class="op">&lt;&lt;</span> taxi <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span></code></pre></div>
 <p>we will see the following output:</p>
 <pre class="text"><code>Total distance:  8975.25 km
 Flight distance: 8944 km
@@ -3682,16 +3697,16 @@ temperature quantity points in units different than kelvin
 [<code class="sourceCode default">K</code>].</p>
 <p>The <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span> definition in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library provides two
 predefined point origins:</p>
-<div class="sourceCode" id="cb140"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> si <span class="op">{</span></span>
-<span id="cb140-2"><a href="#cb140-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb140-3"><a href="#cb140-3" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> absolute_zero <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>thermodynamic_temperature<span class="op">&gt;</span> <span class="op">{}</span> absolute_zero;</span>
-<span id="cb140-4"><a href="#cb140-4" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> ice_point <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>absolute_zero <span class="op">+</span> <span class="fl">273.15</span> <span class="op">*</span> kelvin<span class="op">&gt;</span> <span class="op">{}</span> ice_point;</span>
-<span id="cb140-5"><a href="#cb140-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb140-6"><a href="#cb140-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb137"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb137-1"><a href="#cb137-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> si <span class="op">{</span></span>
+<span id="cb137-2"><a href="#cb137-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb137-3"><a href="#cb137-3" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> absolute_zero <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>thermodynamic_temperature<span class="op">&gt;</span> <span class="op">{}</span> absolute_zero;</span>
+<span id="cb137-4"><a href="#cb137-4" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> ice_point <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>absolute_zero <span class="op">+</span> <span class="fl">273.15</span> <span class="op">*</span> kelvin<span class="op">&gt;</span> <span class="op">{}</span> ice_point;</span>
+<span id="cb137-5"><a href="#cb137-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb137-6"><a href="#cb137-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>With the above, we can be explicit what is the origin of our
 temperature point. For example, if we want to implement the degree
 Celsius scale we can do it as follows:</p>
-<div class="sourceCode" id="cb141"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb141-1"><a href="#cb141-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> Celsius_point <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>Celsius_temperature<span class="op">[</span>deg_C<span class="op">]</span>, si<span class="op">::</span>ice_point<span class="op">&gt;</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb138"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb138-1"><a href="#cb138-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> Celsius_point <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>Celsius_temperature<span class="op">[</span>deg_C<span class="op">]</span>, si<span class="op">::</span>ice_point<span class="op">&gt;</span>;</span></code></pre></div>
 <p>Notice that while stacking point origins, we can use not only
 different representation types but also different units for an origin
 and a <em>point</em>. In the above example, the relative point origin is
@@ -3700,26 +3715,26 @@ while the quantity point uses
 <code class="sourceCode default">si::degree_Celsius</code>.</p>
 <p>To play a bit with temperatures we can implement a simple room’s AC
 temperature controller in the following way:</p>
-<div class="sourceCode" id="cb142"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb142-1"><a href="#cb142-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> room_reference_temp <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>si<span class="op">::</span>ice_point <span class="op">+</span> <span class="dv">21</span> <span class="op">*</span> deg_C<span class="op">&gt;</span> <span class="op">{}</span> room_reference_temp;</span>
-<span id="cb142-2"><a href="#cb142-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> room_temp <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>Celsius_temperature<span class="op">[</span>deg_C<span class="op">]</span>, room_reference_temp<span class="op">&gt;</span>;</span>
-<span id="cb142-3"><a href="#cb142-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-4"><a href="#cb142-4" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> step_delta <span class="op">=</span> isq<span class="op">::</span>Celsius_temperature<span class="op">(</span><span class="fl">0.5</span> <span class="op">*</span> deg_C<span class="op">)</span>;</span>
-<span id="cb142-5"><a href="#cb142-5" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">int</span> number_of_steps <span class="op">=</span> <span class="dv">6</span>;</span>
-<span id="cb142-6"><a href="#cb142-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-7"><a href="#cb142-7" aria-hidden="true" tabindex="-1"></a>room_temp room_low <span class="op">=</span> room_reference_temp <span class="op">-</span> number_of_steps <span class="op">*</span> step_delta;</span>
-<span id="cb142-8"><a href="#cb142-8" aria-hidden="true" tabindex="-1"></a>room_temp room_high <span class="op">=</span> room_reference_temp <span class="op">+</span> number_of_steps <span class="op">*</span> step_delta;</span>
-<span id="cb142-9"><a href="#cb142-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-10"><a href="#cb142-10" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;| {:&lt;14} | {:^18} | {:^18} | {:^18} |&quot;</span>, <span class="st">&quot;Temperature&quot;</span>, <span class="st">&quot;Room reference&quot;</span>, <span class="st">&quot;Ice point&quot;</span>, <span class="st">&quot;Absolute zero&quot;</span><span class="op">)</span>;</span>
-<span id="cb142-11"><a href="#cb142-11" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;|{0:=^16}|{0:=^20}|{0:=^20}|{0:=^20}|&quot;</span>, <span class="st">&quot;&quot;</span><span class="op">)</span>;</span>
-<span id="cb142-12"><a href="#cb142-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-13"><a href="#cb142-13" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> print <span class="op">=</span> <span class="op">[&amp;](</span>std<span class="op">::</span>string_view label, <span class="kw">auto</span> v<span class="op">){</span></span>
-<span id="cb142-14"><a href="#cb142-14" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;| {:&lt;14} | {:^18} | {:^18} | {:^18} |&quot;</span>,</span>
-<span id="cb142-15"><a href="#cb142-15" aria-hidden="true" tabindex="-1"></a>               label, v <span class="op">-</span> room_reference_temp, v <span class="op">-</span> si<span class="op">::</span>ice_point, v <span class="op">-</span> si<span class="op">::</span>absolute_zero<span class="op">)</span>;</span>
-<span id="cb142-16"><a href="#cb142-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb142-17"><a href="#cb142-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-18"><a href="#cb142-18" aria-hidden="true" tabindex="-1"></a>print<span class="op">(</span><span class="st">&quot;Lowest&quot;</span>, room_low<span class="op">)</span>;</span>
-<span id="cb142-19"><a href="#cb142-19" aria-hidden="true" tabindex="-1"></a>print<span class="op">(</span><span class="st">&quot;Default&quot;</span>, room_reference_temp<span class="op">)</span>;</span>
-<span id="cb142-20"><a href="#cb142-20" aria-hidden="true" tabindex="-1"></a>print<span class="op">(</span><span class="st">&quot;Highest&quot;</span>, room_high<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb139"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb139-1"><a href="#cb139-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> room_reference_temp <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>si<span class="op">::</span>ice_point <span class="op">+</span> <span class="dv">21</span> <span class="op">*</span> deg_C<span class="op">&gt;</span> <span class="op">{}</span> room_reference_temp;</span>
+<span id="cb139-2"><a href="#cb139-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> room_temp <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>Celsius_temperature<span class="op">[</span>deg_C<span class="op">]</span>, room_reference_temp<span class="op">&gt;</span>;</span>
+<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb139-4"><a href="#cb139-4" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> step_delta <span class="op">=</span> isq<span class="op">::</span>Celsius_temperature<span class="op">(</span><span class="fl">0.5</span> <span class="op">*</span> deg_C<span class="op">)</span>;</span>
+<span id="cb139-5"><a href="#cb139-5" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">int</span> number_of_steps <span class="op">=</span> <span class="dv">6</span>;</span>
+<span id="cb139-6"><a href="#cb139-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb139-7"><a href="#cb139-7" aria-hidden="true" tabindex="-1"></a>room_temp room_low <span class="op">=</span> room_reference_temp <span class="op">-</span> number_of_steps <span class="op">*</span> step_delta;</span>
+<span id="cb139-8"><a href="#cb139-8" aria-hidden="true" tabindex="-1"></a>room_temp room_high <span class="op">=</span> room_reference_temp <span class="op">+</span> number_of_steps <span class="op">*</span> step_delta;</span>
+<span id="cb139-9"><a href="#cb139-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb139-10"><a href="#cb139-10" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;| {:&lt;14} | {:^18} | {:^18} | {:^18} |&quot;</span>, <span class="st">&quot;Temperature&quot;</span>, <span class="st">&quot;Room reference&quot;</span>, <span class="st">&quot;Ice point&quot;</span>, <span class="st">&quot;Absolute zero&quot;</span><span class="op">)</span>;</span>
+<span id="cb139-11"><a href="#cb139-11" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;|{0:=^16}|{0:=^20}|{0:=^20}|{0:=^20}|&quot;</span>, <span class="st">&quot;&quot;</span><span class="op">)</span>;</span>
+<span id="cb139-12"><a href="#cb139-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb139-13"><a href="#cb139-13" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> print <span class="op">=</span> <span class="op">[&amp;](</span>std<span class="op">::</span>string_view label, <span class="kw">auto</span> v<span class="op">){</span></span>
+<span id="cb139-14"><a href="#cb139-14" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;| {:&lt;14} | {:^18} | {:^18} | {:^18} |&quot;</span>,</span>
+<span id="cb139-15"><a href="#cb139-15" aria-hidden="true" tabindex="-1"></a>               label, v <span class="op">-</span> room_reference_temp, v <span class="op">-</span> si<span class="op">::</span>ice_point, v <span class="op">-</span> si<span class="op">::</span>absolute_zero<span class="op">)</span>;</span>
+<span id="cb139-16"><a href="#cb139-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb139-17"><a href="#cb139-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb139-18"><a href="#cb139-18" aria-hidden="true" tabindex="-1"></a>print<span class="op">(</span><span class="st">&quot;Lowest&quot;</span>, room_low<span class="op">)</span>;</span>
+<span id="cb139-19"><a href="#cb139-19" aria-hidden="true" tabindex="-1"></a>print<span class="op">(</span><span class="st">&quot;Default&quot;</span>, room_reference_temp<span class="op">)</span>;</span>
+<span id="cb139-20"><a href="#cb139-20" aria-hidden="true" tabindex="-1"></a>print<span class="op">(</span><span class="st">&quot;Highest&quot;</span>, room_high<span class="op">)</span>;</span></code></pre></div>
 <p>The above prints:</p>
 <pre class="text"><code>| Temperature    |   Room reference   |     Ice point      |   Absolute zero    |
 |================|====================|====================|====================|
@@ -3824,6 +3839,13 @@ edition). <a href="https://jcgm.bipm.org/vim/en"><div class="csl-block">https://
 <div id="ref-MP-UNITS" class="csl-entry" role="doc-biblioentry">
 [mp-units] mp-units - A Physical Quantities and Units library for C++.
 <a href="https://mpusz.github.io/mp-units"><div class="csl-block">https://mpusz.github.io/mp-units</div></a>
+</div>
+<div id="ref-P2993_PRE" class="csl-entry" role="doc-biblioentry">
+[P2993] Luke Valenty. Constrained Numbers. <a href="https://wg21.link/p2993"><div class="csl-block">https://wg21.link/p2993</div></a>
+</div>
+<div id="ref-P3003_PRE" class="csl-entry" role="doc-biblioentry">
+[P3003] Johel Ernesto Guerrero Peña. The design of a library of number
+concepts. <a href="https://wg21.link/p3003"><div class="csl-block">https://wg21.link/p3003</div></a>
 </div>
 <div id="ref-PINT" class="csl-entry" role="doc-biblioentry">
 [Pint] Pint: makes units easy. <a href="https://pint.readthedocs.io/en/stable/index.html"><div class="csl-block">https://pint.readthedocs.io/en/stable/index.html</div></a>
