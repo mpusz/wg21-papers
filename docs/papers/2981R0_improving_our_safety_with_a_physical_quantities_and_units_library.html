@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-14" />
+  <meta name="dcterms.date" content="2023-10-15" />
   <title>Improving our safety with a physical quantities and units
 library</title>
   <style>
@@ -429,7 +429,7 @@ physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-14</td>
+    <td>2023-10-15</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -876,12 +876,13 @@ to a one using the unit of a lower resolution while dealing with an
 integral representation type for a quantity. In the example above,
 converting <code class="sourceCode default">5</code> meters would result
 in <code class="sourceCode default">0</code> kilometers if internal
-conversion is performed using regular integer arithmetic. While this
-could be a valid behavior, the problem arises when the user expects to
-be able to convert the quantity back to the original unit without loss
-of information. So the library should prevent such conversions from
-happening implicitly; whether the library should offer explicitly marked
-unsafe conversions for these cases is yet to be discussed.</p>
+conversion is performed using regular integer arithmetic.</p>
+<p>While this could be a valid behavior, the problem arises when the
+user expects to be able to convert the quantity back to the original
+unit without loss of information. So the library should prevent such
+conversions from happening implicitly; whether the library should offer
+explicitly marked unsafe conversions for these cases is yet to be
+discussed.</p>
 <p><em>Please note that it is always assumed that one can convert a
 quantity into another one with a unit of a higher resolution. There is
 no protection against overflow of the representation type. In case the
@@ -1523,6 +1524,12 @@ vectors</li>
 vector</li>
 <li><code class="sourceCode default">a ⊗ b</code> - tensor product of
 two vectors or tensors</li>
+<li><code class="sourceCode default">a ⋅ b</code> - inner product of two
+tensors</li>
+<li><code class="sourceCode default">a ⋅ b</code> - inner product of
+tensor and vector</li>
+<li><code class="sourceCode default">a : b</code> - scalar product of
+two tensors</li>
 </ul></li>
 </ol>
 <p>Additionally, the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library

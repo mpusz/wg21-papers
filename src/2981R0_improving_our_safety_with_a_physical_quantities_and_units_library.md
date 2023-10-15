@@ -359,6 +359,7 @@ We can't preserve the value of a source quantity when we convert it to a one usi
 a lower resolution while dealing with an integral representation type for a quantity.
 In the example above, converting `5` meters would result in `0` kilometers if internal conversion
 is performed using regular integer arithmetic.
+
 While this could be a valid behavior, the problem arises when the user expects to be able to convert
 the quantity back to the original unit without loss of information.
 So the library should prevent such conversions from happening implicitly; whether the library
@@ -1103,6 +1104,9 @@ Vector and tensor quantities can be implemented in two ways:
     - `a × b` - cross product of two vectors
     - `|a|` - magnitude of a vector
     - `a ⊗ b` - tensor product of two vectors or tensors
+    - `a ⋅ b` - inner product of two tensors
+    - `a ⋅ b` - inner product of tensor and vector
+    - `a : b` - scalar product of two tensors
 
 Additionally, the [@MP-UNITS] library knows the expected quantity character which is provided
 (implicitly or explicitly) in the definition of each quantity type.
