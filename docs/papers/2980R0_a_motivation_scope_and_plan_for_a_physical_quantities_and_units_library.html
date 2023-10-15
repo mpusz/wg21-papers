@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-14" />
+  <meta name="dcterms.date" content="2023-10-15" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-14</td>
+    <td>2023-10-15</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -598,14 +598,34 @@ hundred lines of game development. He got up to opening the game window,
 so this milestone was not reached until years later. Instead, he looked
 for the missing piece of abstraction, called “pixel” in the GUI
 framework, but modeled as an
-<code class="sourceCode default">int</code>. He found out about
-<code class="sourceCode default">nholthaus/units</code>, and got
-fascinated with the idea of a library that succinctly allows expressing
-his domain’s units (<a href="https://github.com/nholthaus/units/issues/124#issuecomment-390773279" class="uri">https://github.com/nholthaus/units/issues/124#issuecomment-390773279</a>).</p>
+<code class="sourceCode default">int</code>. He found out about <span class="citation" data-cites="NHOLTHAUS-UNITS">[<a href="#ref-NHOLTHAUS-UNITS" role="doc-biblioref">nholthaus/units</a>]</span>, and got fascinated
+with the idea of a library that succinctly allows expressing his
+domain’s units (<a href="https://github.com/nholthaus/units/issues/124#issuecomment-390773279" class="uri">https://github.com/nholthaus/units/issues/124#issuecomment-390773279</a>).</p>
+<p>Johel became a contributor to <span class="citation" data-cites="NHOLTHAUS-UNITS">[<a href="#ref-NHOLTHAUS-UNITS" role="doc-biblioref">nholthaus/units</a>]</span> v3 from 2018 to 2020.
+He improved the interfaces and implementations by remodeling them after
+<code class="sourceCode default">std::chrono::duration</code>. This
+included parameterizing the representation type with a template
+parameter instead of a macro. He also improved the error messages by
+mapping a list of types to an user-defined name.</p>
+<p>By 2020, Johel had been aware of <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> v0 <code class="sourceCode default">quantity&lt;dim_length, length, int&gt;</code>,
+put off by its verbosity. But then, he watched a talk by Mateusz Pusz on
+<span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>. It described how good error
+messages was a stake in the ground for the library. Thanks to his
+experience in the domain, Johel was convinced that <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> was the future.</p>
+<p>Since 2020, Johel has been contributing to <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>. He added
+<code class="sourceCode default">quantity_point</code>, the
+generalization of
+<code class="sourceCode default">std::chrono::time_point</code>, closing
+#1. He also added <code class="sourceCode default">quantity_kind</code>,
+which explored the need of representing distinct quantities of the same
+dimension. To help guide its evolution, he’s been constantly pointing in
+the direction of <span class="citation" data-cites="BIPM-VIM">[<a href="#ref-BIPM-VIM" role="doc-biblioref">JCGM 200:2012</a>]</span> as a
+source of truth. And more recently, to the ISO/IEC 80000 series, also
+helping interpret it.</p>
 <p>Computing systems engineer. (C++) programmer since 2014. Lives at
 HEAD with C++Next and good practices. Performs in-depth code reviews of
 familiarized code bases. Has an eye for identifying automation
-opportunities, and acts on them. Contributor to <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, and previously <span class="citation" data-cites="NHOLTHAUS-UNITS">[<a href="#ref-NHOLTHAUS-UNITS" role="doc-biblioref">nholthaus/units</a>]</span> v3. Mostly at <a href="https://github.com/JohelEGP/" class="uri">https://github.com/JohelEGP/</a>.</p>
+opportunities, and acts on them. Mostly at <a href="https://github.com/JohelEGP/" class="uri">https://github.com/JohelEGP/</a>.</p>
 <h2 data-number="3.3" id="charles-hogg"><span class="header-section-number">3.3</span> Charles Hogg<a href="#charles-hogg" class="self-link"></a></h2>
 <p>Chip Hogg is a Staff Software Engineer on the Motion Planning Team at
 Aurora Innovation, the self-driving vehicle company that is developing
@@ -736,13 +756,13 @@ the aim of enforcing the creation of safe code in C++, they are
 cumbersome to use and tend to shift the burden on the discipline of the
 programmers to enforce these. At the time of writing, the C++ language
 does not change fast enough to enforce safe-by-construction code.</p>
-<p>One of the areas where C++ can significantly improve the safety of
-applications being written by thousands of developers is introducing a
-type-safe, well-tested, standardized way to handle physical quantities
-and their units. The rationale for this is that people tend to have
-problems communicating or using proper units both in the code and in
-daily life. Numerous expensive failures and accidents happened due to
-using an invalid unit or a quantity type.</p>
+<p>One of the ways C++ can significantly improve the safety of
+applications being written by thousands of developers is by introducing
+a type-safe, well-tested, standardized way to handle physical quantities
+and their units. The rationale is that people tend to have problems
+communicating or using proper units in code and daily life. Numerous
+expensive failures and accidents happened due to using an invalid unit
+or a quantity type.</p>
 <p>The most famous and probably the most expensive example in the
 software engineering domain is the Mars Climate Orbiter that in 1999
 failed to enter Mars’ orbit and crashed while entering its atmosphere

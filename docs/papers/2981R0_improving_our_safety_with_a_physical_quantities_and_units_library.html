@@ -490,7 +490,7 @@ space<span></span></a></li>
 <li><a href="#explicit-is-not-explicit-enough" id="toc-explicit-is-not-explicit-enough"><span class="toc-section-number">7.4</span>
 <code class="sourceCode default">explicit</code> is not explicit
 enough<span></span></a></li>
-<li><a href="#obtaining-a-numerical-value-of-a-quantity" id="toc-obtaining-a-numerical-value-of-a-quantity"><span class="toc-section-number">7.5</span> Obtaining a numerical value of a
+<li><a href="#obtaining-the-numerical-value-of-a-quantity" id="toc-obtaining-the-numerical-value-of-a-quantity"><span class="toc-section-number">7.5</span> Obtaining the numerical value of a
 quantity<span></span></a></li>
 <li><a href="#preventing-dangling-references" id="toc-preventing-dangling-references"><span class="toc-section-number">7.6</span> Preventing dangling
 references<span></span></a></li>
@@ -530,17 +530,17 @@ Acknowledgements<span></span></a></li>
 </ul>
 </div>
 <h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
-<p>One of the areas where C++ can significantly improve the safety of
-applications being written by thousands of developers is introducing a
-type-safe, well-tested, proven in production, standardized way to handle
-physical quantities and their units. The rationale is that people tend
-to have problems communicating or using proper units in code and daily
-life. Another benefit of adding strongly typed quantities and units to
-the language is that it will allow catching some mistakes already at
-compile time instead of relying on runtime checks which might have
+<p>One of the ways C++ can significantly improve the safety of
+applications being written by thousands of developers is by introducing
+a type-safe, well-tested, proven in production, standardized way to
+handle physical quantities and their units. The rationale is that people
+tend to have problems communicating or using proper units in code and
+daily life. Another benefit of adding strongly typed quantities and
+units to the standard is that it will allow catching some mistakes at
+compile-time instead of relying on runtime checks which might have
 spotty coverage.</p>
 <p>This paper scopes on the safety aspects of introducing such a library
-to the C++ language. In the following chapters, we will describe which
+to the C++ standard. In the following chapters, we will describe which
 industries are desperately looking for such standardized solutions,
 enumerate some failures and accidents caused by misinterpretation of
 quantities and units in human history, review all the features of such a
@@ -565,18 +565,19 @@ adopted.</p>
 benefit from the autonomous operations of some machines. We live in a
 world where more and more ordinary people trust machines with their
 lives daily. The autonomous car is just one example which will affect
-our daily life. Medical devices such as surgical robots and smart health
-care devices are already a thing and will see wider adoption in the
-future. And there will be more machines with safety- or even
+our daily life. Medical devices, such as surgical robots and smart
+health care devices, are already a thing and will see wider adoption in
+the future. And there will be more machines with safety- or even
 life-critical tasks in the future. As a result, many more C++ engineers
-are expected to write life-critical software today than a few years ago.
-Unfortunately, experience in this domain is hard to come by and training
-alone might not solve the issue of mistakes caused by confusing units or
-quantities with each other. Additionally, the C++ language does not
-change fast enough to enforce a safe-by-construction code, which becomes
-even more critical if the code handling the physical computation is
-written by domain experts such as physicists that are not necessarily
-fluent in C++.</p>
+are expected to write life-critical software today than a few years
+ago.</p>
+<p>Unfortunately, experience in this domain is hard to come by, and
+training alone will not solve the issue of mistakes caused by confusing
+units or quantities. Additionally, the C++ standard does not change fast
+enough to enforce a safe-by-construction code, which becomes even more
+critical if the code handling the physical computation is written by
+domain experts such as physicists that are not necessarily fluent in
+C++.</p>
 <h1 data-number="4" id="affected-industries"><span class="header-section-number">4</span> Affected industries<a href="#affected-industries" class="self-link"></a></h1>
 <p>When people think about industries that could use physical quantities
 and unit libraries, they think of a few companies related to aerospace,
@@ -597,16 +598,15 @@ many other potential users for such a library.</p>
 <li>scientific institutions and universities,</li>
 <li>all kinds of navigation and charting,</li>
 <li>GUI frameworks,</li>
-<li>finance (including HFT),</li>
-<li>and many more.</li>
+<li>finance (including HFT).</li>
 </ul>
-<p>As we can see, the applications of such a library are vast and are
+<p>As we can see, the range of domains for such a library is vast and
 not limited to applications involving specifically physical units. Any
 software that involves measurements, or operations on counts of some
 standard or domain-specific quantities, could benefit from a zero-cost
 abstraction for operating on quantity values and their units. The
 library also provides affine space abstractions, which may prove useful
-in many other domains.</p>
+in many applications.</p>
 <h1 data-number="5" id="mismeasure-for-measure"><span class="header-section-number">5</span> Mismeasure for measure<a href="#mismeasure-for-measure" class="self-link"></a></h1>
 <p>Human history knows many expensive failures and accidents caused by
 mistakes in calculations involving different physical units. The most
@@ -624,23 +624,23 @@ the wrong estimation of the equator and his expected travel distance
 <li>In 1628, a new warship, Vasa, accidentally had an asymmetrical hull
 (being thicker on the port side than the starboard side), which was one
 of the reasons for her sinking less than a mile into her maiden voyage,
-with the death of 30 people on board. This asymmetry could be caused by
-the usage of different systems of measurement, as archaeologists have
-found four rulers used by the workers who built the ship. Two were
-calibrated in Swedish feet, which had 12 inches, while the other two
-measured Amsterdam feet, which had 11 inches <span class="citation" data-cites="VASA">[<a href="#ref-VASA" role="doc-biblioref">Vasa</a>]</span>.</li>
+resulting in the death of 30 people on board. This asymmetry could have
+been caused by the use of different systems of measurement, as
+archaeologists have found four rulers used by the workers who built the
+ship. Two were calibrated in Swedish feet, which had 12 inches, while
+the other two measured Amsterdam feet, which had 11 inches <span class="citation" data-cites="VASA">[<a href="#ref-VASA" role="doc-biblioref">Vasa</a>]</span>.</li>
 <li>Air Canada Flight 143 ran out of fuel on July 23, 1983, at an
 altitude of 41 000 feet (12 000 metres), midway through the flight
 because the fuel had been calculated in pounds instead of kilograms by
 the ground crew <span class="citation" data-cites="GIMLI_GLIDER">[<a href="#ref-GIMLI_GLIDER" role="doc-biblioref">Gimli
 Glider</a>]</span>.</li>
 <li>The British rock band Black Sabbath, during its Born Again tour in
-1983, ordered a replica of Stonehenge as props for the scene, but
-unfortunately, they had to leave them in the storage area because, while
+1983, ordered a replica of Stonehenge as props for the scene.
+Unfortunately, they had to leave them in the storage area because, while
 submitting the order, their manager wrote dimensions down in meters when
-he meant feet, and the stones didn’t fit the scene. “It cost a fortune
-to make but there was not a building on earth that you could fit it
-into” <span class="citation" data-cites="STONEHENGE">[<a href="#ref-STONEHENGE" role="doc-biblioref">Stonehenge</a>]</span>.</li>
+he meant feet, and so the stones didn’t fit the scene. “It cost a
+fortune to make, but there was not a building on Earth that you could
+fit it into” <span class="citation" data-cites="STONEHENGE">[<a href="#ref-STONEHENGE" role="doc-biblioref">Stonehenge</a>]</span>.</li>
 <li>On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a
 miscommunication between pilots about the desired flight altitude <span class="citation" data-cites="FLIGHT_6316">[<a href="#ref-FLIGHT_6316" role="doc-biblioref">Flight 6316</a>]</span>.</li>
 <li>In February 2001, the crew of the Moorpark College Zoo built an
@@ -690,14 +690,15 @@ code here</a>.</p>
 <p>There are several problems with such an approach: The abundance of
 <code class="sourceCode default">double</code> parameters makes it easy
 to accidentally switch values and there is no way of noticing such a
-mistake at compile time. The code is not self-documenting in what units
+mistake at compile-time. The code is not self-documenting in what units
 the parameters are expected. Is
 <code class="sourceCode default">Distance</code> in meters or
 kilometers? Is <code class="sourceCode default">WindSpeed</code> in
 meters per second or knots? Different code bases choose different ways
 to encode this information, which may be internally inconsistent. A
-strong type system would help answering these questions at compile
-time.</p>
+strong type system would help answer these questions at the time the
+interface is written, and the compiler would verify it at
+compile-time.</p>
 <h2 data-number="6.2" id="the-proliferation-of-magic-numbers"><span class="header-section-number">6.2</span> The proliferation of magic
 numbers<a href="#the-proliferation-of-magic-numbers" class="self-link"></a></h2>
 <p>There are a lot of constants and conversion factors involved in the
@@ -747,13 +748,13 @@ base:</p>
 <p><a href="https://github.com/LK8000/LK8000/blob/052bbc20a106fda4db41874e788e39020fb86512/Common/Header/Defines.h#L901-L924">Original
 code here</a>.</p>
 <p>Again, the question of which unit the constant is in remains. Without
-looking at the code it is impossible to tell from which unit
+looking at the code, it is impossible to tell from which unit
 <code class="sourceCode default">TOMETER</code> converts. Also, macros
 have the problem that they are not scoped to a namespace and thus can
 easily clash with other macros or functions, especially if they have
 such common names like <code class="sourceCode default">PI</code> or
 <code class="sourceCode default">RAD_TO_DEG</code>. A quick search
-through open source C++ code bases reveals that for example the
+through open source C++ code bases reveals that, for example, the
 <code class="sourceCode default">RAD_TO_DEG</code> macro is defined in a
 multitude of different ways – sometimes even within the same
 repository:</p>
@@ -777,7 +778,7 @@ for a value to be exact for a specific type
 (e.g. <code class="sourceCode default">float</code>).</p>
 <h2 data-number="6.4" id="lack-of-consistency"><span class="header-section-number">6.4</span> Lack of consistency<a href="#lack-of-consistency" class="self-link"></a></h2>
 <p>If we not only lack strong types to isolate the abstractions from
-each other but also lack discipline to keep our code consistent, we end
+each other, but also lack discipline to keep our code consistent, we end
 up in an awful place:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> DistanceBearing<span class="op">(</span><span class="dt">double</span> lat1, <span class="dt">double</span> lon1,</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                     <span class="dt">double</span> lat2, <span class="dt">double</span> lon2,</span>
@@ -810,11 +811,11 @@ latitude or <code class="sourceCode default">Distance</code> is in the
 front.</p>
 <h2 data-number="6.5" id="lack-of-a-conceptual-framework"><span class="header-section-number">6.5</span> Lack of a conceptual
 framework<a href="#lack-of-a-conceptual-framework" class="self-link"></a></h2>
-<p>The previous points mean that the fundamental types aren’t leveraged
-to model the different concepts of quantities and units frameworks.
-There is no shared vocabulary between different libraries. User-facing
-APIs use ad-hoc conventions. Even internal interfaces are inconsistent
-between themselves.</p>
+<p>The previous points mean that the fundamental types can’t be
+leveraged to model the different concepts of quantities and units
+frameworks. There is no shared vocabulary between different libraries.
+User-facing APIs use ad-hoc conventions. Even internal interfaces are
+inconsistent between themselves.</p>
 <p>Arithmetic types such as <code class="sourceCode default">int</code>
 and <code class="sourceCode default">double</code> are used to model
 different concepts. They are used to represent any abstraction (be it a
@@ -825,10 +826,10 @@ mixing up parameters and using operations that are not part of the
 represented quantity.</p>
 <h1 data-number="7" id="safety-features"><span class="header-section-number">7</span> Safety features<a href="#safety-features" class="self-link"></a></h1>
 <p>This chapter describes the features that enforce safety in our code
-bases. It starts with obvious things but then it moves to probably less
+bases. It starts with obvious things, but then it moves to probably less
 known benefits of using physical quantities and units libraries. This
 chapter also serves as a proof that it is not easy to implement such a
-library correctly, and that there are many cases where lack of
+library correctly, and that there are many cases where the lack of
 experience or time for the development of such a utility may easily lead
 to safety issues as well.</p>
 <p>Before we go through all the features, it is essential to note that
@@ -848,41 +849,41 @@ constructor or a dedicated conversion function:</p>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> q1<span class="op">.</span>in<span class="op">(</span>m<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> q1;</span></code></pre></div>
 <p>Such a feature benefits from the fact that the library knows about
-the magnitudes of source and destination units at compile-time and may
-use that information to calculate and apply a conversion factor
+the magnitudes of the source and destination units at compile-time, and
+may use that information to calculate and apply a conversion factor
 automatically for the user.</p>
 <p>In <code class="sourceCode default">std::chrono::duration</code>, the
 magnitude of a unit is always expressed with
 <code class="sourceCode default">std::ratio</code>. This is not enough
 for a general-purpose physical units library. Some of the derived units
-have great or tiny ratios. The difference from the base units is so huge
+have huge or tiny ratios. The difference from the base units is so huge
 that it cannot be expressed with
 <code class="sourceCode default">std::ratio</code>, which is implemented
 in terms of <code class="sourceCode default">std::intmax_t</code>. This
-makes it impossible to define units like electronvolt (eV) where 1eV =
-1.602176634×10<sup>−19</sup> J or Dalton where 1 Da =
+makes it impossible to define units like electronvolt (eV), where 1 eV =
+1.602176634×10<sup>−19</sup> J, or Dalton (Da), where 1 Da =
 1.660539040(20)×10<sup>−27</sup> kg. Moreover, some conversions, such as
 radian to a degree, require a conversion factor based on an irrational
 number like pi.</p>
 <h2 data-number="7.2" id="preventing-truncation-of-data"><span class="header-section-number">7.2</span> Preventing truncation of data<a href="#preventing-truncation-of-data" class="self-link"></a></h2>
 <p>The second safety feature of such libraries is preventing accidental
-truncation of quantity value. If we try similar, but this time opposite,
-operations to the above, both conversions should fail to compile:</p>
+truncation of a quantity value. If we try the operations above with
+swapped units, both conversions should fail to compile:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="dv">5</span> <span class="op">*</span> m;</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> q1<span class="op">.</span>in<span class="op">(</span>km<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;              <span class="co">// Compile-time error</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span>, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> q1;  <span class="co">// Compile-time error</span></span></code></pre></div>
 <p>We can’t preserve the value of a source quantity when we convert it
-to a one using the unit of a lower resolution while dealing with an
-integral representation type for a quantity. In the example above,
-converting <code class="sourceCode default">5</code> meters would result
-in <code class="sourceCode default">0</code> kilometers if internal
+to one with an unit of a lower resolution while dealing with an integral
+representation type for a quantity. In the example above, converting
+<code class="sourceCode default">5</code> meters would result in
+<code class="sourceCode default">0</code> kilometers if internal
 conversion is performed using regular integer arithmetic.</p>
 <p>While this could be a valid behavior, the problem arises when the
 user expects to be able to convert the quantity back to the original
 unit without loss of information. So the library should prevent such
-conversions from happening implicitly; whether the library should offer
-explicitly marked unsafe conversions for these cases is yet to be
-discussed.</p>
+conversions from happening implicitly; <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> offers the named cast
+<code class="sourceCode default">value_cast</code> for these conversions
+marked as unsafe.</p>
 <p>To make the above conversions compile, we could use a floating-point
 representation type:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="fl">5.</span> <span class="op">*</span> m;    <span class="co">// source quantity uses `double` as a representation type</span></span>
@@ -891,7 +892,7 @@ representation type:</p>
 <p>or:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="dv">5</span> <span class="op">*</span> m;     <span class="co">// source quantity uses `int` as a representation type</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> value_cast<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;(</span>q1<span class="op">).</span>in<span class="op">(</span>km<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;&gt;</span> q2 <span class="op">=</span> q1;  <span class="co">// double by default</span></span></code></pre></div>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;&gt;</span> q2 <span class="op">=</span> q1;  <span class="co">// `double` by default</span></span></code></pre></div>
 <p><em>The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
 follows <code class="sourceCode default">std::chrono::duration</code>
 logic and treats floating-point types as value-preserving.</em></p>
@@ -912,8 +913,8 @@ such a truncation, we have to be explicit in the code:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="fl">2.5</span> <span class="op">*</span> m;</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>q1<span class="op">)</span>;</span></code></pre></div>
 <p>As we can see, it is essential not to allow such truncating
-conversions to happen implicitly and a good physical quantities and
-units library should fail at compile time in case a user makes such a
+conversions to happen implicitly, and a good physical quantities and
+units library should fail at compile-time in case an user makes such a
 mistake.</p>
 <h2 data-number="7.3" id="the-affine-space"><span class="header-section-number">7.3</span> The affine space<a href="#the-affine-space" class="self-link"></a></h2>
 <p>The affine space has two types of entities:</p>
@@ -927,8 +928,8 @@ displacement, duration, etc.)</li>
 vectors. This greatly helps to prevent quantity equations that do not
 have physical sense.</p>
 <p>People often think that affine space is needed only to model
-temperatures and maybe time points (following <a href="https://en.cppreference.com/w/cpp/chrono/time_point"><code class="sourceCode default">std::chrono::time_point</code></a>
-example). Still, the applicability of this domain is much wider.</p>
+temperatures and maybe time points (following the <a href="https://en.cppreference.com/w/cpp/chrono/time_point"><code class="sourceCode default">std::chrono::time_point</code></a>
+example). Still, the applicability of this concept is much wider.</p>
 <p>For example, if we would like to model a Mount Everest climbing
 expedition, we would deal with two kinds of altitude-related entities.
 The first would be absolute altitudes above the mean sea level (points)
@@ -937,11 +938,11 @@ be the heights of daily climbs (vectors). As long as it makes physical
 sense to add heights of daily climbs, there is no sense in adding
 altitudes. What does adding the altitude of a base camp and the mountain
 peak mean after all?</p>
-<p>Modeling such affine space entities with
+<p>Modeling such affine space entities with the
 <code class="sourceCode default">quantity</code> (vector) and
 <code class="sourceCode default">quantity_point</code> (point) class
-templates improve overall project’s safety by eliminating accidental
-equations at compile time.</p>
+templates improves the overall project’s safety by only providing the
+operators defined by the concepts.</p>
 <h2 data-number="7.4" id="explicit-is-not-explicit-enough"><span class="header-section-number">7.4</span>
 <code class="sourceCode default">explicit</code> is not explicit
 enough<a href="#explicit-is-not-explicit-enough" class="self-link"></a></h2>
@@ -958,9 +959,10 @@ the structure to:</p>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>vector<span class="op">&lt;</span>std<span class="op">::</span>chrono<span class="op">::</span>microseconds<span class="op">&gt;</span> vec;</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
-<p>The code continues to compile fine, but all the calculations are off
-now. This is why a good physical quantities and units library should not
-provide an explicit quantity constructor taking a raw value.</p>
+<p>The code continues to compile fine, but all the calculations are now
+off by orders of magnitude. This is why a good physical quantities and
+units library should not provide an explicit quantity constructor taking
+a raw value.</p>
 <p>To solve this issue, a quantity in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library always requires
 information about both a number and a unit during construction:</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> X <span class="op">{</span></span>
@@ -971,15 +973,15 @@ information about both a number and a unit during construction:</p>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span><span class="op">)</span>;       <span class="co">// Compile-time error</span></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span> <span class="op">*</span> ms<span class="op">)</span>;  <span class="co">// OK</span></span></code></pre></div>
 <p>For consistency and to prevent similar safety issues, the
-<code class="sourceCode default">quantity_point</code> in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library0 can’t be created from
+<code class="sourceCode default">quantity_point</code> in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library can’t be created from
 a standalone value of a <code class="sourceCode default">quantity</code>
 (contrary to the
 <code class="sourceCode default">std::chrono::time_point</code> design).
 Such a point has to always be associated with an explicit origin:</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>quantity_point qp1 <span class="op">=</span> mean_sea_level <span class="op">+</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>quantity_point qp2 <span class="op">=</span> si<span class="op">::</span>ice_point <span class="op">+</span> <span class="dv">21</span> <span class="op">*</span> deg_C;</span></code></pre></div>
-<h2 data-number="7.5" id="obtaining-a-numerical-value-of-a-quantity"><span class="header-section-number">7.5</span> Obtaining a numerical value of
-a quantity<a href="#obtaining-a-numerical-value-of-a-quantity" class="self-link"></a></h2>
+<h2 data-number="7.5" id="obtaining-the-numerical-value-of-a-quantity"><span class="header-section-number">7.5</span> Obtaining the numerical value
+of a quantity<a href="#obtaining-the-numerical-value-of-a-quantity" class="self-link"></a></h2>
 <p>Continuing our previous example, let’s assume that we have an
 underlying “legacy” API that requires us to pass a raw numerical value
 of a quantity and that we do the following to use it:</p>
@@ -988,10 +990,10 @@ of a quantity and that we do the following to use it:</p>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span><span class="bu">s</span><span class="op">)</span>;</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>x<span class="op">.</span>vec<span class="op">[</span><span class="dv">0</span><span class="op">].</span>count<span class="op">())</span>;</span></code></pre></div>
 <p>The following code is incorrect. Even though the duration stores a
-quantity equivalent to 42 s, it is not internally stored exactly in this
-unit (either microseconds or milliseconds, depending on which of the
-interfaces from the previous chapter is the current one at this moment).
-Such issues can be prevented with the usage of
+quantity equal to 42 s, it is not stored in seconds (it’s either
+microseconds or milliseconds, depending on which of the interfaces from
+the previous chapter is the current one). Such issues can be prevented
+with the usage of
 <code class="sourceCode default">std::chrono::duration_cast</code>:</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>duration_cast<span class="op">&lt;</span>seconds<span class="op">&gt;(</span>x<span class="op">.</span>vec<span class="op">[</span><span class="dv">0</span><span class="op">]).</span>count<span class="op">())</span>;</span></code></pre></div>
 <p>However, users often forget about this step, especially when, at the
@@ -1011,19 +1013,19 @@ to ensure that no data truncation happens:</p>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span> <span class="op">*</span> s<span class="op">)</span>;</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>x<span class="op">.</span>vec<span class="op">[</span><span class="dv">0</span><span class="op">].</span>force_numerical_value_in<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span>;</span></code></pre></div>
 <p>As the above member functions may need to do a conversion to provide
-a value in the expected unit, their results are returned as
-prvalues.</p>
+a value in the expected unit, their results are prvalues.</p>
 <h2 data-number="7.6" id="preventing-dangling-references"><span class="header-section-number">7.6</span> Preventing dangling
 references<a href="#preventing-dangling-references" class="self-link"></a></h2>
 <p>Besides returning prvalues, sometimes users need to get an actual
 reference to the underlying numerical value stored in a
-<code class="sourceCode default">quantity</code>. For those cases <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library exposes <code class="sourceCode default">quantity::numerical_value_ref_in(Unit)</code>
+<code class="sourceCode default">quantity</code>. For those cases, the
+<span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library exposes <code class="sourceCode default">quantity::numerical_value_ref_in(Unit)</code>
 that participates in overload resolution only:</p>
 <ul>
 <li>for lvalues (rvalue reference qualified overload is explicitly
 deleted),</li>
-<li>when provided <code class="sourceCode default">Unit</code> has the
-same magnitude as the one currently used by the quantity.</li>
+<li>when the provided <code class="sourceCode default">Unit</code> has
+the same magnitude as the one currently used by the quantity.</li>
 </ul>
 <p>The first condition above limits the possibility of dangling
 references. We want to increase the chances that the reference/pointer
@@ -1037,7 +1039,7 @@ following code doesn’t compile:</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> legacy_func<span class="op">(</span><span class="kw">const</span> <span class="dt">int</span><span class="op">&amp;</span> seconds<span class="op">)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">((</span><span class="dv">4</span> <span class="op">*</span> s <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> s<span class="op">).</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span>;  <span class="co">// Compile-time error</span></span></code></pre></div>
 <p>The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
-goes one step further by implementing all compound assignment,
+goes one step further, by implementing all compound assignments,
 pre-increment, and pre-decrement operators as non-member functions that
 preserve the initial value category. Thanks to that, the following will
 also not compile:</p>
@@ -1057,11 +1059,11 @@ as the same numerical value should be returned for all of them.</p>
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>q1<span class="op">.</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>joule<span class="op">))</span>; <span class="co">// OK</span></span>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>q2<span class="op">.</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>joule<span class="op">))</span>; <span class="co">// OK</span></span>
 <span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>q3<span class="op">.</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>joule<span class="op">))</span>; <span class="co">// Compile-time error</span></span></code></pre></div>
-<p>Here are a few examples provided by our users where enabling quantity
-type to return a reference to its underlying numerical value is
+<p>Here are a few examples provided by our users where enabling a
+quantity type to return a reference to its underlying numerical value is
 required:</p>
 <ul>
-<li><p>interoperability with the <a href="https://github.com/ocornut/imgui/blob/19ae142bdddf9fcb840549b4b1279739a36c3fa6/imgui.h#L551">Dear
+<li><p>Interoperability with the <a href="https://github.com/ocornut/imgui/blob/19ae142bdddf9fcb840549b4b1279739a36c3fa6/imgui.h#L551">Dear
 ImGui</a>:</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>IMGUI_API <span class="dt">bool</span> DragInt<span class="op">(</span><span class="kw">const</span> <span class="dt">char</span><span class="op">*</span> label, <span class="dt">int</span><span class="op">*</span> v,</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>                       <span class="dt">float</span> v_speed <span class="op">=</span> <span class="fl">1.0</span><span class="bu">f</span>, <span class="dt">int</span> v_min <span class="op">=</span> <span class="dv">0</span>, <span class="dt">int</span> v_max <span class="op">=</span> <span class="dv">0</span>,</span>
@@ -1070,7 +1072,7 @@ ImGui</a>:</p>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>               frame_frequency<span class="op">.</span>min<span class="op">.</span>numerical_value_in<span class="op">(</span>Hz<span class="op">)</span>, </span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>               frame_frequency<span class="op">.</span>max<span class="op">.</span>numerical_value_in<span class="op">(</span>Hz<span class="op">)</span>, </span>
 <span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>               <span class="st">&quot;</span><span class="sc">%d</span><span class="st"> Hz&quot;</span><span class="op">)</span>;</span></code></pre></div></li>
-<li><p>obtaining a temperature via the C library:</p>
+<li><p>Obtaining a temperature via the C library:</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">// read_temperature is in the BSP defined as </span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> read_temperature<span class="op">(</span><span class="dt">float</span><span class="op">*</span> temp_in_celsius<span class="op">)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> Celsius_point <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>Celsius_temperature<span class="op">[</span>deg_C<span class="op">]</span>, si<span class="op">::</span>ice_point, <span class="dt">float</span><span class="op">&gt;</span>;</span>
@@ -1079,14 +1081,14 @@ ImGui</a>:</p>
 <span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>read_temperature<span class="op">(&amp;</span>temp<span class="op">.</span>quantity_ref_from<span class="op">(</span>si<span class="op">::</span>ice_point<span class="op">).</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>degree_Celsius<span class="op">))</span>;</span></code></pre></div></li>
 </ul>
 <p>As we can see in the second example,
-<code class="sourceCode default">quantity_point</code> also provides
+<code class="sourceCode default">quantity_point</code> also provides an
 lvalue-ref-qualified
 <code class="sourceCode default">quantity_ref_from(PointOrigin)</code>
-member function that returns a reference to the underlying
-<code class="sourceCode default">quantity</code> type stored inside.
-Also, for reasons similar to the ones described in the previous chapter,
-this function requires that the argument provided by the user is the
-same as the origin of a quantity point.</p>
+member function that returns a reference to its stored
+<code class="sourceCode default">quantity</code>. Also, for reasons
+similar to the ones described in the previous chapter, this function
+requires that the argument provided by the user is the same as the
+origin of a quantity point.</p>
 <h2 data-number="7.7" id="quantity-kinds"><span class="header-section-number">7.7</span> Quantity kinds<a href="#quantity-kinds" class="self-link"></a></h2>
 <p>What should be the result of the following quantity equation?</p>
 <div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> res <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> Hz <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> Bq <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> Bd;</span></code></pre></div>
@@ -1135,14 +1137,13 @@ is used as a unit of energy, but never as a unit of moment of force,
 i.e. the newton metre (N · m).</p>
 </blockquote>
 <p>To summarize the above, <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO
-80000</a>]</span> explicitly states that frequency measured in Hz and
-activity measured in Bq are quantities of different kinds. As such, they
-should not be able to be compared, added, or subtracted. So, the only
-library from the above that was correct was <span class="citation" data-cites="JSR-385">[<a href="#ref-JSR-385" role="doc-biblioref">JSR
-385</a>]</span>. The rest of them are wrong to allow such operations.
-Doing so may lead to vulnerable safety issues when two unrelated
-quantities of the same dimension are accidentally added or assigned to
-each other.</p>
+80000</a>]</span> explicitly states that frequency is measured in Hz and
+activity is measured in Bq, which are quantities of different kinds. As
+such, they should not be able to be compared, added, or subtracted. So,
+the only library from the above that was correct was <span class="citation" data-cites="JSR-385">[<a href="#ref-JSR-385" role="doc-biblioref">JSR 385</a>]</span>. The rest of them are wrong to
+allow such operations. Doing so may lead to vulnerable safety issues
+when two unrelated quantities of the same dimension are accidentally
+added or assigned to each other.</p>
 <p>The reason for most of the libraries on the market to be wrong in
 this field is the fact that their quantities are implemented only in
 terms of the concept of dimension. However, we’ve just learned that a
@@ -1151,7 +1152,7 @@ dimension is not enough to express a quantity type.</p>
 goes beyond that and properly models quantity kinds. We believe that it
 is a significant feature that improves the safety of the library, and
 that is why we also plan to propose quantity kinds for standardization
-as specified in <span class="citation" data-cites="P2980_PRE">[<a href="#ref-P2980_PRE" role="doc-biblioref">P2980</a>]</span>.</p>
+as mentioned in <span class="citation" data-cites="P2980_PRE">[<a href="#ref-P2980_PRE" role="doc-biblioref">P2980</a>]</span>.</p>
 <h2 data-number="7.8" id="various-quantities-of-the-same-kind"><span class="header-section-number">7.8</span> Various quantities of the same
 kind<a href="#various-quantities-of-the-same-kind" class="self-link"></a></h2>
 <p>Proper modeling of distinct kinds for quantities of the same
@@ -1172,16 +1173,16 @@ than one quantity of the same kind:</p>
 <span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">{}</span></span>
 <span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
 <span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
-<p>This does not provide strong interfaces anymore.</p>
+<p>This does not provide strongly typed interfaces anymore.</p>
 <p>Again, it turns out that <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO
 80000</a>]</span> has an answer. This specification standardizes
 hundreds of quantities, many of which are of the same kind. For example,
 for quantities of the kind length, it provides the following:</p>
-<p><img src="data:image/svg+xml;base64,PHN2ZyBhcmlhLXJvbGVkZXNjcmlwdGlvbj0iZmxvd2NoYXJ0LXYyIiByb2xlPSJncmFwaGljcy1kb2N1bWVudCBkb2N1bWVudCIgdmlld0JveD0iLTggLTggMTA3Mi43ODUxNTYyNSAzNDYiIHN0eWxlPSJtYXgtd2lkdGg6IDEwMCU7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBpZD0iZ3JhcGgtZGl2IiBoZWlnaHQ9IjEwMCUiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48c3R5bGU+QGltcG9ydCB1cmwoImh0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL2ZvbnQtYXdlc29tZS82LjQuMi9jc3MvYWxsLm1pbi5jc3MiKTsnPC9zdHlsZT48c3R5bGU+I2dyYXBoLWRpdntmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7ZmlsbDojMzMzO30jZ3JhcGgtZGl2IC5lcnJvci1pY29ue2ZpbGw6IzU1MjIyMjt9I2dyYXBoLWRpdiAuZXJyb3ItdGV4dHtmaWxsOiM1NTIyMjI7c3Ryb2tlOiM1NTIyMjI7fSNncmFwaC1kaXYgLmVkZ2UtdGhpY2tuZXNzLW5vcm1hbHtzdHJva2Utd2lkdGg6MnB4O30jZ3JhcGgtZGl2IC5lZGdlLXRoaWNrbmVzcy10aGlja3tzdHJva2Utd2lkdGg6My41cHg7fSNncmFwaC1kaXYgLmVkZ2UtcGF0dGVybi1zb2xpZHtzdHJva2UtZGFzaGFycmF5OjA7fSNncmFwaC1kaXYgLmVkZ2UtcGF0dGVybi1kYXNoZWR7c3Ryb2tlLWRhc2hhcnJheTozO30jZ3JhcGgtZGl2IC5lZGdlLXBhdHRlcm4tZG90dGVke3N0cm9rZS1kYXNoYXJyYXk6Mjt9I2dyYXBoLWRpdiAubWFya2Vye2ZpbGw6IzMzMzMzMztzdHJva2U6IzMzMzMzMzt9I2dyYXBoLWRpdiAubWFya2VyLmNyb3Nze3N0cm9rZTojMzMzMzMzO30jZ3JhcGgtZGl2IHN2Z3tmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7fSNncmFwaC1kaXYgLmxhYmVse2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtjb2xvcjojMzMzO30jZ3JhcGgtZGl2IC5jbHVzdGVyLWxhYmVsIHRleHR7ZmlsbDojMzMzO30jZ3JhcGgtZGl2IC5jbHVzdGVyLWxhYmVsIHNwYW4sI2dyYXBoLWRpdiBwe2NvbG9yOiMzMzM7fSNncmFwaC1kaXYgLmxhYmVsIHRleHQsI2dyYXBoLWRpdiBzcGFuLCNncmFwaC1kaXYgcHtmaWxsOiMzMzM7Y29sb3I6IzMzMzt9I2dyYXBoLWRpdiAubm9kZSByZWN0LCNncmFwaC1kaXYgLm5vZGUgY2lyY2xlLCNncmFwaC1kaXYgLm5vZGUgZWxsaXBzZSwjZ3JhcGgtZGl2IC5ub2RlIHBvbHlnb24sI2dyYXBoLWRpdiAubm9kZSBwYXRoe2ZpbGw6I0VDRUNGRjtzdHJva2U6IzkzNzBEQjtzdHJva2Utd2lkdGg6MXB4O30jZ3JhcGgtZGl2IC5mbG93Y2hhcnQtbGFiZWwgdGV4dHt0ZXh0LWFuY2hvcjptaWRkbGU7fSNncmFwaC1kaXYgLm5vZGUgLmxhYmVse3RleHQtYWxpZ246Y2VudGVyO30jZ3JhcGgtZGl2IC5ub2RlLmNsaWNrYWJsZXtjdXJzb3I6cG9pbnRlcjt9I2dyYXBoLWRpdiAuYXJyb3doZWFkUGF0aHtmaWxsOiMzMzMzMzM7fSNncmFwaC1kaXYgLmVkZ2VQYXRoIC5wYXRoe3N0cm9rZTojMzMzMzMzO3N0cm9rZS13aWR0aDoyLjBweDt9I2dyYXBoLWRpdiAuZmxvd2NoYXJ0LWxpbmt7c3Ryb2tlOiMzMzMzMzM7ZmlsbDpub25lO30jZ3JhcGgtZGl2IC5lZGdlTGFiZWx7YmFja2dyb3VuZC1jb2xvcjojZThlOGU4O3RleHQtYWxpZ246Y2VudGVyO30jZ3JhcGgtZGl2IC5lZGdlTGFiZWwgcmVjdHtvcGFjaXR5OjAuNTtiYWNrZ3JvdW5kLWNvbG9yOiNlOGU4ZTg7ZmlsbDojZThlOGU4O30jZ3JhcGgtZGl2IC5sYWJlbEJrZ3tiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLCAyMzIsIDIzMiwgMC41KTt9I2dyYXBoLWRpdiAuY2x1c3RlciByZWN0e2ZpbGw6I2ZmZmZkZTtzdHJva2U6I2FhYWEzMztzdHJva2Utd2lkdGg6MXB4O30jZ3JhcGgtZGl2IC5jbHVzdGVyIHRleHR7ZmlsbDojMzMzO30jZ3JhcGgtZGl2IC5jbHVzdGVyIHNwYW4sI2dyYXBoLWRpdiBwe2NvbG9yOiMzMzM7fSNncmFwaC1kaXYgZGl2Lm1lcm1haWRUb29sdGlwe3Bvc2l0aW9uOmFic29sdXRlO3RleHQtYWxpZ246Y2VudGVyO21heC13aWR0aDoyMDBweDtwYWRkaW5nOjJweDtmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjEycHg7YmFja2dyb3VuZDpoc2woODAsIDEwMCUsIDk2LjI3NDUwOTgwMzklKTtib3JkZXI6MXB4IHNvbGlkICNhYWFhMzM7Ym9yZGVyLXJhZGl1czoycHg7cG9pbnRlci1ldmVudHM6bm9uZTt6LWluZGV4OjEwMDt9I2dyYXBoLWRpdiAuZmxvd2NoYXJ0VGl0bGVUZXh0e3RleHQtYW5jaG9yOm1pZGRsZTtmb250LXNpemU6MThweDtmaWxsOiMzMzM7fSNncmFwaC1kaXYgOnJvb3R7LS1tZXJtYWlkLWZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjt9PC9zdHlsZT48Zz48bWFya2VyIG9yaWVudD0iYXV0byIgbWFya2VySGVpZ2h0PSIxMiIgbWFya2VyV2lkdGg9IjEyIiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIHJlZlk9IjUiIHJlZlg9IjYiIHZpZXdCb3g9IjAgMCAxMCAxMCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LXBvaW50RW5kIj48cGF0aCBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgZD0iTSAwIDAgTCAxMCA1IEwgMCAxMCB6Ij48L3BhdGg+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTIiIG1hcmtlcldpZHRoPSIxMiIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1IiByZWZYPSI0LjUiIHZpZXdCb3g9IjAgMCAxMCAxMCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LXBvaW50U3RhcnQiPjxwYXRoIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBkPSJNIDAgNSBMIDEwIDEwIEwgMTAgMCB6Ij48L3BhdGg+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTEiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1IiByZWZYPSIxMSIgdmlld0JveD0iMCAwIDEwIDEwIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydCIgaWQ9ImdyYXBoLWRpdl9mbG93Y2hhcnQtY2lyY2xlRW5kIj48Y2lyY2xlIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiByPSI1IiBjeT0iNSIgY3g9IjUiPjwvY2lyY2xlPjwvbWFya2VyPjxtYXJrZXIgb3JpZW50PSJhdXRvIiBtYXJrZXJIZWlnaHQ9IjExIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgcmVmWT0iNSIgcmVmWD0iLTEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LWNpcmNsZVN0YXJ0Ij48Y2lyY2xlIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiByPSI1IiBjeT0iNSIgY3g9IjUiPjwvY2lyY2xlPjwvbWFya2VyPjxtYXJrZXIgb3JpZW50PSJhdXRvIiBtYXJrZXJIZWlnaHQ9IjExIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgcmVmWT0iNS4yIiByZWZYPSIxMiIgdmlld0JveD0iMCAwIDExIDExIiBjbGFzcz0ibWFya2VyIGNyb3NzIGZsb3djaGFydCIgaWQ9ImdyYXBoLWRpdl9mbG93Y2hhcnQtY3Jvc3NFbmQiPjxwYXRoIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBkPSJNIDEsMSBsIDksOSBNIDEwLDEgbCAtOSw5Ij48L3BhdGg+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTEiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1LjIiIHJlZlg9Ii0xIiB2aWV3Qm94PSIwIDAgMTEgMTEiIGNsYXNzPSJtYXJrZXIgY3Jvc3MgZmxvd2NoYXJ0IiBpZD0iZ3JhcGgtZGl2X2Zsb3djaGFydC1jcm9zc1N0YXJ0Ij48cGF0aCBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgZD0iTSAxLDEgbCA5LDkgTSAxMCwxIGwgLTksOSI+PC9wYXRoPjwvbWFya2VyPjxnIGNsYXNzPSJyb290Ij48ZyBjbGFzcz0iY2x1c3RlcnMiPjwvZz48ZyBjbGFzcz0iZWRnZVBhdGhzIj48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXdpZHRoIiBpZD0iTC1sZW5ndGgtd2lkdGgtMCIgZD0iTTYwNy4yODUsMjIuMTQ5TDUyNy44NzEsMjkuMTI0QzQ0OC40NTcsMzYuMDk5LDI4OS42MjksNTAuMDUsMjEwLjIxNSw2My4xOTFDMTMwLjgwMSw3Ni4zMzMsMTMwLjgwMSw4OC42NjcsMTMwLjgwMSw5NC44MzNMMTMwLjgwMSwxMDEiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLWhlaWdodCIgaWQ9IkwtbGVuZ3RoLWhlaWdodC0wIiBkPSJNNjA3LjI4NSwyMy44OTNMNTYxLjQwMiwzMC41NzhDNTE1LjUyLDM3LjI2Miw0MjMuNzU0LDUwLjYzMSwzNzcuODcxLDYzLjQ4MkMzMzEuOTg4LDc2LjMzMywzMzEuOTg4LDg4LjY2NywzMzEuOTg4LDk0LjgzM0wzMzEuOTg4LDEwMSI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy13aWR0aCBMRS10aGlja25lc3MiIGlkPSJMLXdpZHRoLXRoaWNrbmVzcy0wIiBkPSJNOTkuNjQ2LDE0MEw4OS43OTMsMTQ2LjE2N0M3OS45NDEsMTUyLjMzMyw2MC4yMzYsMTY0LjY2Nyw1MC4zODQsMTc1QzQwLjUzMSwxODUuMzMzLDQwLjUzMSwxOTMuNjY3LDQwLjUzMSwxOTcuODMzTDQwLjUzMSwyMDIiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtd2lkdGggTEUtZGlhbWV0ZXIiIGlkPSJMLXdpZHRoLWRpYW1ldGVyLTAiIGQ9Ik0xNDQuNzI5LDE0MEwxNDkuMTMzLDE0Ni4xNjdDMTUzLjUzOCwxNTIuMzMzLDE2Mi4zNDcsMTY0LjY2NywxNjYuNzUyLDE3NUMxNzEuMTU2LDE4NS4zMzMsMTcxLjE1NiwxOTMuNjY3LDE3MS4xNTYsMTk3LjgzM0wxNzEuMTU2LDIwMiI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy13aWR0aCBMRS1yYWRpdXMiIGlkPSJMLXdpZHRoLXJhZGl1cy0wIiBkPSJNMTg1Ljg4OSwxNDBMMjAzLjMwOSwxNDYuMTY3QzIyMC43MywxNTIuMzMzLDI1NS41NzIsMTY0LjY2NywyNzIuOTkzLDE3NUMyOTAuNDE0LDE4NS4zMzMsMjkwLjQxNCwxOTMuNjY3LDI5MC40MTQsMTk3LjgzM0wyOTAuNDE0LDIwMiI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1sZW5ndGggTEUtcGF0aF9sZW5ndGgiIGlkPSJMLWxlbmd0aC1wYXRoX2xlbmd0aC0wIiBkPSJNNjA3LjI4NSwzMS4xNzZMNTkzLjE1NiwzNi42NDdDNTc5LjAyNyw0Mi4xMTgsNTUwLjc3LDUzLjA1OSw1MzYuNjQxLDY0LjY5NkM1MjIuNTEyLDc2LjMzMyw1MjIuNTEyLDg4LjY2Nyw1MjIuNTEyLDk0LjgzM0w1MjIuNTEyLDEwMSI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1wYXRoX2xlbmd0aCBMRS1kaXN0YW5jZSIgaWQ9IkwtcGF0aF9sZW5ndGgtZGlzdGFuY2UtMCIgZD0iTTUyMi41MTIsMTQwTDUyMi41MTIsMTQ2LjE2N0M1MjIuNTEyLDE1Mi4zMzMsNTIyLjUxMiwxNjQuNjY3LDUyMi41MTIsMTc1QzUyMi41MTIsMTg1LjMzMyw1MjIuNTEyLDE5My42NjcsNTIyLjUxMiwxOTcuODMzTDUyMi41MTIsMjAyIj48L3BhdGg+PHBhdGggc3R5bGU9ImZpbGw6bm9uZTsiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIExTLWRpc3RhbmNlIExFLXJhZGlhbF9kaXN0YW5jZSIgaWQ9IkwtZGlzdGFuY2UtcmFkaWFsX2Rpc3RhbmNlLTAiIGQ9Ik01MjIuNTEyLDI0MUw1MjIuNTEyLDI0NS4xNjdDNTIyLjUxMiwyNDkuMzMzLDUyMi41MTIsMjU3LjY2Nyw1MjIuNTEyLDI2NkM1MjIuNTEyLDI3NC4zMzMsNTIyLjUxMiwyODIuNjY3LDUyMi41MTIsMjg2LjgzM0w1MjIuNTEyLDI5MSI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1sZW5ndGggTEUtd2F2ZWxlbmd0aCIgaWQ9IkwtbGVuZ3RoLXdhdmVsZW5ndGgtMCIgZD0iTTY1Mi40MzYsMzlMNjU1LjY0LDQzLjE2N0M2NTguODQ0LDQ3LjMzMyw2NjUuMjUyLDU1LjY2Nyw2NjguNDU2LDY2QzY3MS42Niw3Ni4zMzMsNjcxLjY2LDg4LjY2Nyw2NzEuNjYsOTQuODMzTDY3MS42NiwxMDEiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXBvc2l0aW9uX3ZlY3RvciIgaWQ9IkwtbGVuZ3RoLXBvc2l0aW9uX3ZlY3Rvci0wIiBkPSJNNjY3LjU5OCwyNi4zNTdMNjk1LjE5LDMyLjYzMUM3MjIuNzgzLDM4LjkwNSw3NzcuOTY3LDUxLjQ1Miw4MDUuNTYsNjEuODkzQzgzMy4xNTIsNzIuMzMzLDgzMy4xNTIsODAuNjY3LDgzMy4xNTIsODQuODMzTDgzMy4xNTIsODkiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLWRpc3BsYWNlbWVudCIgaWQ9IkwtbGVuZ3RoLWRpc3BsYWNlbWVudC0wIiBkPSJNNjY3LjU5OCwyMy4xODdMNzIzLjIzNCwyOS45ODlDNzc4Ljg3MSwzNi43OTEsODkwLjE0NSw1MC4zOTYsOTQ1Ljc4MSw2MS4zNjRDMTAwMS40MTgsNzIuMzMzLDEwMDEuNDE4LDgwLjY2NywxMDAxLjQxOCw4NC44MzNMMTAwMS40MTgsODkiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtcmFkaXVzIExFLXJhZGl1c19vZl9jdXJ2YXR1cmUiIGlkPSJMLXJhZGl1cy1yYWRpdXNfb2ZfY3VydmF0dXJlLTAiIGQ9Ik0yOTAuNDE0LDI0MUwyOTAuNDE0LDI0NS4xNjdDMjkwLjQxNCwyNDkuMzMzLDI5MC40MTQsMjU3LjY2NywyOTAuNDE0LDI2NkMyOTAuNDE0LDI3NC4zMzMsMjkwLjQxNCwyODIuNjY3LDI5MC40MTQsMjg2LjgzM0wyOTAuNDE0LDI5MSI+PC9wYXRoPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVscyI+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSJub2RlcyI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjM3LjQ0MTQwNjI1LCAxOS41KSIgaWQ9ImZsb3djaGFydC1sZW5ndGgtMjQ4IiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iNjAuMzEyNSIgeT0iLTE5LjUiIHg9Ii0zMC4xNTYyNSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTIyLjY1NjI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iNDUuMzEyNSI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPmxlbmd0aDwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMzAuODAwNzgxMjUsIDEyMC41KSIgaWQ9ImZsb3djaGFydC13aWR0aC0yNDkiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxMjIuNDM3NSIgeT0iLTE5LjUiIHg9Ii02MS4yMTg3NSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUzLjcxODc1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iMTA3LjQzNzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj53aWR0aCwgYnJlYWR0aDwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMzEuOTg4MjgxMjUsIDEyMC41KSIgaWQ9ImZsb3djaGFydC1oZWlnaHQtMjUxIiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iMTc5LjkzNzUiIHk9Ii0xOS41IiB4PSItODkuOTY4NzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC04Mi40Njg3NSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjE2NC45Mzc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+aGVpZ2h0LCBkZXB0aCwgYWx0aXR1ZGU8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDAuNTMxMjUsIDIyMS41KSIgaWQ9ImZsb3djaGFydC10aGlja25lc3MtMjUzIiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iODEuMDYyNSIgeT0iLTE5LjUiIHg9Ii00MC41MzEyNSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTMzLjAzMTI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iNjYuMDYyNSI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPnRoaWNrbmVzczwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNzEuMTU2MjUsIDIyMS41KSIgaWQ9ImZsb3djaGFydC1kaWFtZXRlci0yNTUiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSI4MC4xODc1IiB5PSItMTkuNSIgeD0iLTQwLjA5Mzc1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMzIuNTkzNzUsIC0xMikiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMjQiIHdpZHRoPSI2NS4xODc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+ZGlhbWV0ZXI8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjkwLjQxNDA2MjUsIDIyMS41KSIgaWQ9ImZsb3djaGFydC1yYWRpdXMtMjU3IiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iNTguMzI4MTI1IiB5PSItMTkuNSIgeD0iLTI5LjE2NDA2MjUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMS42NjQwNjI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iNDMuMzI4MTI1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+cmFkaXVzPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUyMi41MTE3MTg3NSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXBhdGhfbGVuZ3RoLTI1OSIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9IjEwMS4xMDkzNzUiIHk9Ii0xOS41IiB4PSItNTAuNTU0Njg3NSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQzLjA1NDY4NzUsIC0xMikiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMjQiIHdpZHRoPSI4Ni4xMDkzNzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5wYXRoX2xlbmd0aDwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MjIuNTExNzE4NzUsIDIyMS41KSIgaWQ9ImZsb3djaGFydC1kaXN0YW5jZS0yNjEiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSI3NS4wOTM3NSIgeT0iLTE5LjUiIHg9Ii0zNy41NDY4NzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zMC4wNDY4NzUsIC0xMikiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMjQiIHdpZHRoPSI2MC4wOTM3NSI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPmRpc3RhbmNlPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUyMi41MTE3MTg3NSwgMzEwLjUpIiBpZD0iZmxvd2NoYXJ0LXJhZGlhbF9kaXN0YW5jZS0yNjMiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxMjQuNzE4NzUiIHk9Ii0xOS41IiB4PSItNjIuMzU5Mzc1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTQuODU5Mzc1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iMTA5LjcxODc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+cmFkaWFsX2Rpc3RhbmNlPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY3MS42NjAxNTYyNSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXdhdmVsZW5ndGgtMjY1IiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iOTcuMTg3NSIgeT0iLTE5LjUiIHg9Ii00OC41OTM3NSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQxLjA5Mzc1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iODIuMTg3NSI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPndhdmVsZW5ndGg8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODMzLjE1MjM0Mzc1LCAxMjAuNSkiIGlkPSJmbG93Y2hhcnQtcG9zaXRpb25fdmVjdG9yLTI2NyIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSI2MyIgd2lkdGg9IjEyNS43OTY4NzUiIHk9Ii0zMS41IiB4PSItNjIuODk4NDM3NSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTU1LjM5ODQzNzUsIC0yNCkiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iNDgiIHdpZHRoPSIxMTAuNzk2ODc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+cG9zaXRpb25fdmVjdG9yPGJyLz57dmVjdG9yfTwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMDAxLjQxNzk2ODc1LCAxMjAuNSkiIGlkPSJmbG93Y2hhcnQtZGlzcGxhY2VtZW50LTI2OSIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSI2MyIgd2lkdGg9IjExMC43MzQzNzUiIHk9Ii0zMS41IiB4PSItNTUuMzY3MTg3NSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQ3Ljg2NzE4NzUsIC0yNCkiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iNDgiIHdpZHRoPSI5NS43MzQzNzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5kaXNwbGFjZW1lbnQ8YnIvPnt2ZWN0b3J9PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI5MC40MTQwNjI1LCAzMTAuNSkiIGlkPSJmbG93Y2hhcnQtcmFkaXVzX29mX2N1cnZhdHVyZS0yNzEiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxNTguNzY1NjI1IiB5PSItMTkuNSIgeD0iLTc5LjM4MjgxMjUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC03MS44ODI4MTI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iMTQzLjc2NTYyNSI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPnJhZGl1c19vZl9jdXJ2YXR1cmU8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PC9nPjwvZz48L2c+PC9zdmc+" /></p>
-<p>As we can see, various quantities of the same kind are not just a
-flat set but they form a hierarchy tree which influence:</p>
+<p><img src="data:image/svg+xml;base64,PHN2ZyBhcmlhLXJvbGVkZXNjcmlwdGlvbj0iZmxvd2NoYXJ0LXYyIiByb2xlPSJncmFwaGljcy1kb2N1bWVudCBkb2N1bWVudCIgdmlld0JveD0iLTggLTggMTA3Ny4xOTE0MDYyNSAzNDYiIHN0eWxlPSJtYXgtd2lkdGg6IDEwMCU7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBpZD0iZ3JhcGgtZGl2IiBoZWlnaHQ9IjEwMCUiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48c3R5bGU+QGltcG9ydCB1cmwoImh0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL2ZvbnQtYXdlc29tZS82LjQuMi9jc3MvYWxsLm1pbi5jc3MiKTsnPC9zdHlsZT48c3R5bGU+I2dyYXBoLWRpdntmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7ZmlsbDojMzMzO30jZ3JhcGgtZGl2IC5lcnJvci1pY29ue2ZpbGw6IzU1MjIyMjt9I2dyYXBoLWRpdiAuZXJyb3ItdGV4dHtmaWxsOiM1NTIyMjI7c3Ryb2tlOiM1NTIyMjI7fSNncmFwaC1kaXYgLmVkZ2UtdGhpY2tuZXNzLW5vcm1hbHtzdHJva2Utd2lkdGg6MnB4O30jZ3JhcGgtZGl2IC5lZGdlLXRoaWNrbmVzcy10aGlja3tzdHJva2Utd2lkdGg6My41cHg7fSNncmFwaC1kaXYgLmVkZ2UtcGF0dGVybi1zb2xpZHtzdHJva2UtZGFzaGFycmF5OjA7fSNncmFwaC1kaXYgLmVkZ2UtcGF0dGVybi1kYXNoZWR7c3Ryb2tlLWRhc2hhcnJheTozO30jZ3JhcGgtZGl2IC5lZGdlLXBhdHRlcm4tZG90dGVke3N0cm9rZS1kYXNoYXJyYXk6Mjt9I2dyYXBoLWRpdiAubWFya2Vye2ZpbGw6IzMzMzMzMztzdHJva2U6IzMzMzMzMzt9I2dyYXBoLWRpdiAubWFya2VyLmNyb3Nze3N0cm9rZTojMzMzMzMzO30jZ3JhcGgtZGl2IHN2Z3tmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7fSNncmFwaC1kaXYgLmxhYmVse2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtjb2xvcjojMzMzO30jZ3JhcGgtZGl2IC5jbHVzdGVyLWxhYmVsIHRleHR7ZmlsbDojMzMzO30jZ3JhcGgtZGl2IC5jbHVzdGVyLWxhYmVsIHNwYW4sI2dyYXBoLWRpdiBwe2NvbG9yOiMzMzM7fSNncmFwaC1kaXYgLmxhYmVsIHRleHQsI2dyYXBoLWRpdiBzcGFuLCNncmFwaC1kaXYgcHtmaWxsOiMzMzM7Y29sb3I6IzMzMzt9I2dyYXBoLWRpdiAubm9kZSByZWN0LCNncmFwaC1kaXYgLm5vZGUgY2lyY2xlLCNncmFwaC1kaXYgLm5vZGUgZWxsaXBzZSwjZ3JhcGgtZGl2IC5ub2RlIHBvbHlnb24sI2dyYXBoLWRpdiAubm9kZSBwYXRoe2ZpbGw6I0VDRUNGRjtzdHJva2U6IzkzNzBEQjtzdHJva2Utd2lkdGg6MXB4O30jZ3JhcGgtZGl2IC5mbG93Y2hhcnQtbGFiZWwgdGV4dHt0ZXh0LWFuY2hvcjptaWRkbGU7fSNncmFwaC1kaXYgLm5vZGUgLmxhYmVse3RleHQtYWxpZ246Y2VudGVyO30jZ3JhcGgtZGl2IC5ub2RlLmNsaWNrYWJsZXtjdXJzb3I6cG9pbnRlcjt9I2dyYXBoLWRpdiAuYXJyb3doZWFkUGF0aHtmaWxsOiMzMzMzMzM7fSNncmFwaC1kaXYgLmVkZ2VQYXRoIC5wYXRoe3N0cm9rZTojMzMzMzMzO3N0cm9rZS13aWR0aDoyLjBweDt9I2dyYXBoLWRpdiAuZmxvd2NoYXJ0LWxpbmt7c3Ryb2tlOiMzMzMzMzM7ZmlsbDpub25lO30jZ3JhcGgtZGl2IC5lZGdlTGFiZWx7YmFja2dyb3VuZC1jb2xvcjojZThlOGU4O3RleHQtYWxpZ246Y2VudGVyO30jZ3JhcGgtZGl2IC5lZGdlTGFiZWwgcmVjdHtvcGFjaXR5OjAuNTtiYWNrZ3JvdW5kLWNvbG9yOiNlOGU4ZTg7ZmlsbDojZThlOGU4O30jZ3JhcGgtZGl2IC5sYWJlbEJrZ3tiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLCAyMzIsIDIzMiwgMC41KTt9I2dyYXBoLWRpdiAuY2x1c3RlciByZWN0e2ZpbGw6I2ZmZmZkZTtzdHJva2U6I2FhYWEzMztzdHJva2Utd2lkdGg6MXB4O30jZ3JhcGgtZGl2IC5jbHVzdGVyIHRleHR7ZmlsbDojMzMzO30jZ3JhcGgtZGl2IC5jbHVzdGVyIHNwYW4sI2dyYXBoLWRpdiBwe2NvbG9yOiMzMzM7fSNncmFwaC1kaXYgZGl2Lm1lcm1haWRUb29sdGlwe3Bvc2l0aW9uOmFic29sdXRlO3RleHQtYWxpZ246Y2VudGVyO21heC13aWR0aDoyMDBweDtwYWRkaW5nOjJweDtmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjEycHg7YmFja2dyb3VuZDpoc2woODAsIDEwMCUsIDk2LjI3NDUwOTgwMzklKTtib3JkZXI6MXB4IHNvbGlkICNhYWFhMzM7Ym9yZGVyLXJhZGl1czoycHg7cG9pbnRlci1ldmVudHM6bm9uZTt6LWluZGV4OjEwMDt9I2dyYXBoLWRpdiAuZmxvd2NoYXJ0VGl0bGVUZXh0e3RleHQtYW5jaG9yOm1pZGRsZTtmb250LXNpemU6MThweDtmaWxsOiMzMzM7fSNncmFwaC1kaXYgOnJvb3R7LS1tZXJtYWlkLWZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjt9PC9zdHlsZT48Zz48bWFya2VyIG9yaWVudD0iYXV0byIgbWFya2VySGVpZ2h0PSIxMiIgbWFya2VyV2lkdGg9IjEyIiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIHJlZlk9IjUiIHJlZlg9IjYiIHZpZXdCb3g9IjAgMCAxMCAxMCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LXBvaW50RW5kIj48cGF0aCBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgZD0iTSAwIDAgTCAxMCA1IEwgMCAxMCB6Ij48L3BhdGg+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTIiIG1hcmtlcldpZHRoPSIxMiIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1IiByZWZYPSI0LjUiIHZpZXdCb3g9IjAgMCAxMCAxMCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LXBvaW50U3RhcnQiPjxwYXRoIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBkPSJNIDAgNSBMIDEwIDEwIEwgMTAgMCB6Ij48L3BhdGg+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTEiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1IiByZWZYPSIxMSIgdmlld0JveD0iMCAwIDEwIDEwIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydCIgaWQ9ImdyYXBoLWRpdl9mbG93Y2hhcnQtY2lyY2xlRW5kIj48Y2lyY2xlIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiByPSI1IiBjeT0iNSIgY3g9IjUiPjwvY2lyY2xlPjwvbWFya2VyPjxtYXJrZXIgb3JpZW50PSJhdXRvIiBtYXJrZXJIZWlnaHQ9IjExIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgcmVmWT0iNSIgcmVmWD0iLTEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQiIGlkPSJncmFwaC1kaXZfZmxvd2NoYXJ0LWNpcmNsZVN0YXJ0Ij48Y2lyY2xlIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiByPSI1IiBjeT0iNSIgY3g9IjUiPjwvY2lyY2xlPjwvbWFya2VyPjxtYXJrZXIgb3JpZW50PSJhdXRvIiBtYXJrZXJIZWlnaHQ9IjExIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgcmVmWT0iNS4yIiByZWZYPSIxMiIgdmlld0JveD0iMCAwIDExIDExIiBjbGFzcz0ibWFya2VyIGNyb3NzIGZsb3djaGFydCIgaWQ9ImdyYXBoLWRpdl9mbG93Y2hhcnQtY3Jvc3NFbmQiPjxwYXRoIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBkPSJNIDEsMSBsIDksOSBNIDEwLDEgbCAtOSw5Ij48L3BhdGg+PC9tYXJrZXI+PG1hcmtlciBvcmllbnQ9ImF1dG8iIG1hcmtlckhlaWdodD0iMTEiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiByZWZZPSI1LjIiIHJlZlg9Ii0xIiB2aWV3Qm94PSIwIDAgMTEgMTEiIGNsYXNzPSJtYXJrZXIgY3Jvc3MgZmxvd2NoYXJ0IiBpZD0iZ3JhcGgtZGl2X2Zsb3djaGFydC1jcm9zc1N0YXJ0Ij48cGF0aCBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgZD0iTSAxLDEgbCA5LDkgTSAxMCwxIGwgLTksOSI+PC9wYXRoPjwvbWFya2VyPjxnIGNsYXNzPSJyb290Ij48ZyBjbGFzcz0iY2x1c3RlcnMiPjwvZz48ZyBjbGFzcz0iZWRnZVBhdGhzIj48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXdpZHRoIiBpZD0iTC1sZW5ndGgtd2lkdGgtMCIgZD0iTTYxNi4wOTgsMjIuMDgxTDUzNC40OCwyOS4wNjhDNDUyLjg2MywzNi4wNTQsMjg5LjYyOSw1MC4wMjcsMjA4LjAxMiw2My4xOEMxMjYuMzk1LDc2LjMzMywxMjYuMzk1LDg4LjY2NywxMjYuMzk1LDk0LjgzM0wxMjYuMzk1LDEwMSI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1sZW5ndGggTEUtaGVpZ2h0IiBpZD0iTC1sZW5ndGgtaGVpZ2h0LTAiIGQ9Ik02MTYuMDk4LDIzLjc5TDU2OC45OTEsMzAuNDkyQzUyMS44ODQsMzcuMTkzLDQyNy42NzEsNTAuNTk3LDM4MC41NjQsNjMuNDY1QzMzMy40NTcsNzYuMzMzLDMzMy40NTcsODguNjY3LDMzMy40NTcsOTQuODMzTDMzMy40NTcsMTAxIj48L3BhdGg+PHBhdGggc3R5bGU9ImZpbGw6bm9uZTsiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIExTLXdpZHRoIExFLXRoaWNrbmVzcyIgaWQ9Ikwtd2lkdGgtdGhpY2tuZXNzLTAiIGQ9Ik05Ni43NiwxNDBMODcuMzg5LDE0Ni4xNjdDNzguMDE3LDE1Mi4zMzMsNTkuMjc0LDE2NC42NjcsNDkuOTAzLDE3NUM0MC41MzEsMTg1LjMzMyw0MC41MzEsMTkzLjY2Nyw0MC41MzEsMTk3LjgzM0w0MC41MzEsMjAyIj48L3BhdGg+PHBhdGggc3R5bGU9ImZpbGw6bm9uZTsiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIExTLXdpZHRoIExFLWRpYW1ldGVyIiBpZD0iTC13aWR0aC1kaWFtZXRlci0wIiBkPSJNMTQxLjg0MywxNDBMMTQ2LjcyOSwxNDYuMTY3QzE1MS42MTQsMTUyLjMzMywxNjEuMzg1LDE2NC42NjcsMTY2LjI3MSwxNzVDMTcxLjE1NiwxODUuMzMzLDE3MS4xNTYsMTkzLjY2NywxNzEuMTU2LDE5Ny44MzNMMTcxLjE1NiwyMDIiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtd2lkdGggTEUtcmFkaXVzIiBpZD0iTC13aWR0aC1yYWRpdXMtMCIgZD0iTTE4My4wMDMsMTQwTDIwMC45MDUsMTQ2LjE2N0MyMTguODA3LDE1Mi4zMzMsMjU0LjYxLDE2NC42NjcsMjcyLjUxMiwxNzVDMjkwLjQxNCwxODUuMzMzLDI5MC40MTQsMTkzLjY2NywyOTAuNDE0LDE5Ny44MzNMMjkwLjQxNCwyMDIiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXBhdGhfbGVuZ3RoIiBpZD0iTC1sZW5ndGgtcGF0aF9sZW5ndGgtMCIgZD0iTTYxNi4wOTgsMzAuNzQ1TDYwMS4yMzQsMzYuMjg4QzU4Ni4zNzEsNDEuODMsNTU2LjY0NSw1Mi45MTUsNTQxLjc4MSw2NC42MjRDNTI2LjkxOCw3Ni4zMzMsNTI2LjkxOCw4OC42NjcsNTI2LjkxOCw5NC44MzNMNTI2LjkxOCwxMDEiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtcGF0aF9sZW5ndGggTEUtZGlzdGFuY2UiIGlkPSJMLXBhdGhfbGVuZ3RoLWRpc3RhbmNlLTAiIGQ9Ik01MjYuOTE4LDE0MEw1MjYuOTE4LDE0Ni4xNjdDNTI2LjkxOCwxNTIuMzMzLDUyNi45MTgsMTY0LjY2Nyw1MjYuOTE4LDE3NUM1MjYuOTE4LDE4NS4zMzMsNTI2LjkxOCwxOTMuNjY3LDUyNi45MTgsMTk3LjgzM0w1MjYuOTE4LDIwMiI+PC9wYXRoPjxwYXRoIHN0eWxlPSJmaWxsOm5vbmU7IiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayBMUy1kaXN0YW5jZSBMRS1yYWRpYWxfZGlzdGFuY2UiIGlkPSJMLWRpc3RhbmNlLXJhZGlhbF9kaXN0YW5jZS0wIiBkPSJNNTI2LjkxOCwyNDFMNTI2LjkxOCwyNDUuMTY3QzUyNi45MTgsMjQ5LjMzMyw1MjYuOTE4LDI1Ny42NjcsNTI2LjkxOCwyNjZDNTI2LjkxOCwyNzQuMzMzLDUyNi45MTgsMjgyLjY2Nyw1MjYuOTE4LDI4Ni44MzNMNTI2LjkxOCwyOTEiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXdhdmVsZW5ndGgiIGlkPSJMLWxlbmd0aC13YXZlbGVuZ3RoLTAiIGQ9Ik02NTkuMzE4LDM5TDY2Mi4xMDksNDMuMTY3QzY2NC45MDEsNDcuMzMzLDY3MC40ODQsNTUuNjY3LDY3My4yNzUsNjZDNjc2LjA2Niw3Ni4zMzMsNjc2LjA2Niw4OC42NjcsNjc2LjA2Niw5NC44MzNMNjc2LjA2NiwxMDEiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLXBvc2l0aW9uX3ZlY3RvciIgaWQ9IkwtbGVuZ3RoLXBvc2l0aW9uX3ZlY3Rvci0wIiBkPSJNNjc2LjQxLDI2LjUxNUw3MDMuMjY4LDMyLjc2MkM3MzAuMTI2LDM5LjAxLDc4My44NDIsNTEuNTA1LDgxMC43MDEsNjEuOTE5QzgzNy41NTksNzIuMzMzLDgzNy41NTksODAuNjY3LDgzNy41NTksODQuODMzTDgzNy41NTksODkiPjwvcGF0aD48cGF0aCBzdHlsZT0iZmlsbDpub25lOyIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsgTFMtbGVuZ3RoIExFLWRpc3BsYWNlbWVudCIgaWQ9IkwtbGVuZ3RoLWRpc3BsYWNlbWVudC0wIiBkPSJNNjc2LjQxLDIzLjIzMkw3MzEuMzEzLDMwLjAyN0M3ODYuMjE1LDM2LjgyMSw4OTYuMDIsNTAuNDExLDk1MC45MjIsNjEuMzcyQzEwMDUuODI0LDcyLjMzMywxMDA1LjgyNCw4MC42NjcsMTAwNS44MjQsODQuODMzTDEwMDUuODI0LDg5Ij48L3BhdGg+PHBhdGggc3R5bGU9ImZpbGw6bm9uZTsiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIExTLXJhZGl1cyBMRS1yYWRpdXNfb2ZfY3VydmF0dXJlIiBpZD0iTC1yYWRpdXMtcmFkaXVzX29mX2N1cnZhdHVyZS0wIiBkPSJNMjkwLjQxNCwyNDFMMjkwLjQxNCwyNDUuMTY3QzI5MC40MTQsMjQ5LjMzMywyOTAuNDE0LDI1Ny42NjcsMjkwLjQxNCwyNjZDMjkwLjQxNCwyNzQuMzMzLDI5MC40MTQsMjgyLjY2NywyOTAuNDE0LDI4Ni44MzNMMjkwLjQxNCwyOTEiPjwvcGF0aD48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbHMiPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIiBjbGFzcz0ibGFiZWwiPjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMCIgd2lkdGg9IjAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiIGNsYXNzPSJsYWJlbCI+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIwIiB3aWR0aD0iMCI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyB3aGl0ZS1zcGFjZTogbm93cmFwOyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSIgY2xhc3M9ImxhYmVsIj48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjAiIHdpZHRoPSIwIj48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvZz48ZyBjbGFzcz0ibm9kZXMiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY0Ni4yNTM5MDYyNSwgMTkuNSkiIGlkPSJmbG93Y2hhcnQtbGVuZ3RoLTY4ODIiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSI2MC4zMTI1IiB5PSItMTkuNSIgeD0iLTMwLjE1NjI1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjIuNjU2MjUsIC0xMikiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iMjQiIHdpZHRoPSI0NS4zMTI1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+bGVuZ3RoPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEyNi4zOTQ1MzEyNSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXdpZHRoLTY4ODMiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxMjguMzEyNSIgeT0iLTE5LjUiIHg9Ii02NC4xNTYyNSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTU2LjY1NjI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iMTEzLjMxMjUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj53aWR0aCAoYnJlYWR0aCk8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzMzLjQ1NzAzMTI1LCAxMjAuNSkiIGlkPSJmbG93Y2hhcnQtaGVpZ2h0LTY4ODUiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxODUuODEyNSIgeT0iLTE5LjUiIHg9Ii05Mi45MDYyNSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTg1LjQwNjI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iMTcwLjgxMjUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5oZWlnaHQgKGRlcHRoLCBhbHRpdHVkZSk8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDAuNTMxMjUsIDIyMS41KSIgaWQ9ImZsb3djaGFydC10aGlja25lc3MtNjg4NyIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9IjgxLjA2MjUiIHk9Ii0xOS41IiB4PSItNDAuNTMxMjUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zMy4wMzEyNSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjY2LjA2MjUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj50aGlja25lc3M8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTcxLjE1NjI1LCAyMjEuNSkiIGlkPSJmbG93Y2hhcnQtZGlhbWV0ZXItNjg4OSIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9IjgwLjE4NzUiIHk9Ii0xOS41IiB4PSItNDAuMDkzNzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zMi41OTM3NSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjY1LjE4NzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5kaWFtZXRlcjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyOTAuNDE0MDYyNSwgMjIxLjUpIiBpZD0iZmxvd2NoYXJ0LXJhZGl1cy02ODkxIiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iNTguMzI4MTI1IiB5PSItMTkuNSIgeD0iLTI5LjE2NDA2MjUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMS42NjQwNjI1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iNDMuMzI4MTI1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+cmFkaXVzPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUyNi45MTc5Njg3NSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXBhdGhfbGVuZ3RoLTY4OTMiIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxMDEuMTA5Mzc1IiB5PSItMTkuNSIgeD0iLTUwLjU1NDY4NzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00My4wNTQ2ODc1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iODYuMTA5Mzc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+cGF0aF9sZW5ndGg8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTI2LjkxNzk2ODc1LCAyMjEuNSkiIGlkPSJmbG93Y2hhcnQtZGlzdGFuY2UtNjg5NSIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9Ijc1LjA5Mzc1IiB5PSItMTkuNSIgeD0iLTM3LjU0Njg3NSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTMwLjA0Njg3NSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjYwLjA5Mzc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+ZGlzdGFuY2U8L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTI2LjkxNzk2ODc1LCAzMTAuNSkiIGlkPSJmbG93Y2hhcnQtcmFkaWFsX2Rpc3RhbmNlLTY4OTciIGNsYXNzPSJub2RlIGRlZmF1bHQgZGVmYXVsdCBmbG93Y2hhcnQtbGFiZWwiPjxyZWN0IGhlaWdodD0iMzkiIHdpZHRoPSIxMjQuNzE4NzUiIHk9Ii0xOS41IiB4PSItNjIuMzU5Mzc1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTQuODU5Mzc1LCAtMTIpIiBzdHlsZT0iIiBjbGFzcz0ibGFiZWwiPjxyZWN0PjwvcmVjdD48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9IjI0IiB3aWR0aD0iMTA5LjcxODc1Ij48ZGl2IHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7IHdoaXRlLXNwYWNlOiBub3dyYXA7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+cmFkaWFsX2Rpc3RhbmNlPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY3Ni4wNjY0MDYyNSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXdhdmVsZW5ndGgtNjg5OSIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSIzOSIgd2lkdGg9Ijk3LjE4NzUiIHk9Ii0xOS41IiB4PSItNDguNTkzNzUiIHJ5PSIwIiByeD0iMCIgc3R5bGU9IiIgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciI+PC9yZWN0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00MS4wOTM3NSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjgyLjE4NzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj53YXZlbGVuZ3RoPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDgzNy41NTg1OTM3NSwgMTIwLjUpIiBpZD0iZmxvd2NoYXJ0LXBvc2l0aW9uX3ZlY3Rvci02OTAxIiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjYzIiB3aWR0aD0iMTI1Ljc5Njg3NSIgeT0iLTMxLjUiIHg9Ii02Mi44OTg0Mzc1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTUuMzk4NDM3NSwgLTI0KSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSI0OCIgd2lkdGg9IjExMC43OTY4NzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5wb3NpdGlvbl92ZWN0b3I8YnIvPnt2ZWN0b3J9PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEwMDUuODI0MjE4NzUsIDEyMC41KSIgaWQ9ImZsb3djaGFydC1kaXNwbGFjZW1lbnQtNjkwMyIgY2xhc3M9Im5vZGUgZGVmYXVsdCBkZWZhdWx0IGZsb3djaGFydC1sYWJlbCI+PHJlY3QgaGVpZ2h0PSI2MyIgd2lkdGg9IjExMC43MzQzNzUiIHk9Ii0zMS41IiB4PSItNTUuMzY3MTg3NSIgcnk9IjAiIHJ4PSIwIiBzdHlsZT0iIiBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIj48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQ3Ljg2NzE4NzUsIC0yNCkiIHN0eWxlPSIiIGNsYXNzPSJsYWJlbCI+PHJlY3Q+PC9yZWN0Pjxmb3JlaWduT2JqZWN0IGhlaWdodD0iNDgiIHdpZHRoPSI5NS43MzQzNzUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5kaXNwbGFjZW1lbnQ8YnIvPnt2ZWN0b3J9PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI5MC40MTQwNjI1LCAzMTAuNSkiIGlkPSJmbG93Y2hhcnQtcmFkaXVzX29mX2N1cnZhdHVyZS02OTA1IiBjbGFzcz0ibm9kZSBkZWZhdWx0IGRlZmF1bHQgZmxvd2NoYXJ0LWxhYmVsIj48cmVjdCBoZWlnaHQ9IjM5IiB3aWR0aD0iMTU4Ljc2NTYyNSIgeT0iLTE5LjUiIHg9Ii03OS4zODI4MTI1IiByeT0iMCIgcng9IjAiIHN0eWxlPSIiIGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiPjwvcmVjdD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNzEuODgyODEyNSwgLTEyKSIgc3R5bGU9IiIgY2xhc3M9ImxhYmVsIj48cmVjdD48L3JlY3Q+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PSIyNCIgd2lkdGg9IjE0My43NjU2MjUiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgd2hpdGUtc3BhY2U6IG5vd3JhcDsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj5yYWRpdXNfb2ZfY3VydmF0dXJlPC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvZz48L2c+PC9nPjwvc3ZnPg==" /></p>
+<p>As we can see, various quantities of the same kind are not a flat
+set. They form a hierarchy tree which influences</p>
 <ul>
-<li>conversion rules,</li>
+<li>conversion rules, and</li>
 <li>the quantity type being the result of adding or subtracting
 different quantities of the same kind.</li>
 </ul>
@@ -1203,7 +1204,7 @@ of quantities of kind length.</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>width, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>radius, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>radius, isq<span class="op">::</span>width<span class="op">))</span>;</span></code></pre></div>
-<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library,
 implicit conversions are allowed on copy-initialization:</p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">(</span>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&lt;</span>m<span class="op">&gt;&gt;</span> q<span class="op">)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>width<span class="op">&lt;</span>m<span class="op">&gt;&gt;</span> q1 <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
@@ -1222,7 +1223,7 @@ implicit conversions are allowed on copy-initialization:</p>
 <span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>length, isq<span class="op">::</span>width<span class="op">))</span>;</span>
 <span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>length, isq<span class="op">::</span>radius<span class="op">))</span>;</span>
 <span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>width, isq<span class="op">::</span>radius<span class="op">))</span>;</span></code></pre></div>
-<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library,
 explicit conversions are forced by passing the quantity to a call
 operator of a <code class="sourceCode default">quantity_spec</code>
 type:</p>
@@ -1230,8 +1231,8 @@ type:</p>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">&lt;</span>m<span class="op">&gt;&gt;</span> q2 <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span>q1<span class="op">)</span>;  <span class="co">// explicit quantity conversion</span></span></code></pre></div></li>
 <li><p><strong>Explicit casts</strong></p>
 <ul>
-<li><code class="sourceCode default">height</code> is not a
-<code class="sourceCode default">width</code>.</li>
+<li><code class="sourceCode default">height</code> is never a
+<code class="sourceCode default">width</code>, and vice versa.</li>
 <li>Both <code class="sourceCode default">height</code> and
 <code class="sourceCode default">width</code> are quantities of kind
 <code class="sourceCode default">length</code>.</li>
@@ -1239,7 +1240,7 @@ type:</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>height, isq<span class="op">::</span>width<span class="op">))</span>;</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>height, isq<span class="op">::</span>width<span class="op">))</span>;</span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>castable<span class="op">(</span>isq<span class="op">::</span>height, isq<span class="op">::</span>width<span class="op">))</span>;</span></code></pre></div>
-<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library,
 explicit casts are forced with a dedicated
 <code class="sourceCode default">quantity_cast</code> function:</p>
 <div class="sourceCode" id="cb43"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>width<span class="op">&lt;</span>m<span class="op">&gt;&gt;</span> q1 <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
@@ -1252,15 +1253,15 @@ with <code class="sourceCode default">length</code>.</li>
 <div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>time, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>time, isq<span class="op">::</span>length<span class="op">))</span>;</span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>castable<span class="op">(</span>isq<span class="op">::</span>time, isq<span class="op">::</span>length<span class="op">))</span>;</span></code></pre></div>
-<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
+<p>In the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library,
 even the explicit casts will not force such a conversion:</p>
 <div class="sourceCode" id="cb45"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">(</span>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">[</span>m<span class="op">]&gt;)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb46"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>foo<span class="op">(</span>quantity_cast<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;(</span><span class="dv">42</span> <span class="op">*</span> s<span class="op">))</span>; <span class="co">// Compile-time error</span></span></code></pre></div></li>
 </ol>
-<p>With the above rules one can write a following short application to
-calculate the fuel consumption:</p>
+<p>With the above rules, one can write the following short application
+to calculate a fuel consumption:</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> fuel_volume <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>volume<span class="op">&gt;</span> <span class="op">{}</span> fuel_volume;</span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> fuel_consumption  <span class="op">:</span> quantity_spec<span class="op">&lt;</span>fuel_volume <span class="op">/</span> isq<span class="op">::</span>distance<span class="op">&gt;</span> <span class="op">{}</span> fuel_consumption;</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> fuel_consumption <span class="op">:</span> quantity_spec<span class="op">&lt;</span>fuel_volume <span class="op">/</span> isq<span class="op">::</span>distance<span class="op">&gt;</span> <span class="op">{}</span> fuel_consumption;</span>
 <span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity fuel <span class="op">=</span> fuel_volume<span class="op">(</span><span class="fl">40.</span> <span class="op">*</span> l<span class="op">)</span>;</span>
 <span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity distance <span class="op">=</span> isq<span class="op">::</span>distance<span class="op">(</span><span class="fl">550.</span> <span class="op">*</span> km<span class="op">)</span>;</span>
@@ -1268,12 +1269,12 @@ calculate the fuel consumption:</p>
 <span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Fuel consumption: &quot;</span> <span class="op">&lt;&lt;</span> q <span class="op">&lt;&lt;</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>;</span></code></pre></div>
 <p>The above code prints:</p>
 <pre class="text"><code>Fuel consumption: 7.27273 × 10⁻² l/km</code></pre>
-<p>Please note that despite the dimensions of
+<p>Please note that, despite the dimensions of
 <code class="sourceCode default">fuel_consumption</code> and
-<code class="sourceCode default">isq::area</code> are the same
-(<code class="sourceCode default">L²</code>), the constructor of a
-quantity <code class="sourceCode default">q</code> below will fail to
-compile when we pass an argument being the quantity of area:</p>
+<code class="sourceCode default">isq::area</code> being the same (L²),
+the constructor of a quantity <code class="sourceCode default">q</code>
+below will fail to compile when we pass an argument being the quantity
+of area:</p>
 <div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>fuel_consumption<span class="op">.</span>dimension <span class="op">==</span> isq<span class="op">::</span>area<span class="op">.</span>dimension<span class="op">)</span>;</span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>area<span class="op">[</span>m2<span class="op">]&gt;</span> football_field <span class="op">=</span> isq<span class="op">::</span>length<span class="op">(</span><span class="dv">105</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">*</span> isq<span class="op">::</span>width<span class="op">(</span><span class="dv">68</span> <span class="op">*</span> m<span class="op">)</span>;</span>
@@ -1283,9 +1284,9 @@ subtracting quantities of the same kind<a href="#comparing-adding-and-subtractin
 <p><span class="citation" data-cites="ISO-GUIDE">[<a href="#ref-ISO-GUIDE" role="doc-biblioref">ISO/IEC Guide 99</a>]</span>
 explicitly states that <code class="sourceCode default">width</code> and
 <code class="sourceCode default">height</code> are quantities of the
-same kind and as such they:</p>
+same kind and as such they</p>
 <ul>
-<li>are mutually comparable,</li>
+<li>are mutually comparable, and</li>
 <li>can be added and subtracted.</li>
 </ul>
 <p>If we take the above for granted, the only reasonable result of
@@ -1293,19 +1294,19 @@ same kind and as such they:</p>
 <code class="sourceCode default">2 * length</code>, where the result of
 <code class="sourceCode default">length</code> is known as a common
 quantity type. A result of such an equation is always the first common
-branch in a hierarchy tree of the same kind. For example:</p>
+node in a hierarchy tree of the same kind. For example:</p>
 <div class="sourceCode" id="cb49"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>common_quantity_spec<span class="op">(</span>isq<span class="op">::</span>width, isq<span class="op">::</span>height<span class="op">)</span> <span class="op">==</span> isq<span class="op">::</span>length<span class="op">)</span>;</span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>common_quantity_spec<span class="op">(</span>isq<span class="op">::</span>thickness, isq<span class="op">::</span>radius<span class="op">)</span> <span class="op">==</span> isq<span class="op">::</span>width<span class="op">)</span>;</span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>common_quantity_spec<span class="op">(</span>isq<span class="op">::</span>distance, isq<span class="op">::</span>path_length<span class="op">)</span> <span class="op">==</span> isq<span class="op">::</span>path_length<span class="op">)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb50"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> isq<span class="op">::</span>thickness<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">+</span> isq<span class="op">::</span>radius<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> m<span class="op">)</span>;</span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>q<span class="op">.</span>quantity_spec <span class="op">==</span> isq<span class="op">::</span>width<span class="op">)</span>;</span></code></pre></div>
-<p>One could argue that allowing adding or comparing quantities of
-height and width might be a safety issue, but we need to be consistent
-with the requirements of <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO
-80000</a>]</span>. Moreover, from our experience, disallowing such
-operations and requiring an explicit cast to a common quantity in every
-single place makes the code so cluttered with casts that it nearly
-renders the library unusable.</p>
+<p>One could argue that allowing to add or compare quantities of height
+and width might be a safety issue, but we need to be consistent with the
+requirements of <span class="citation" data-cites="ISO80000">[<a href="#ref-ISO80000" role="doc-biblioref">ISO 80000</a>]</span>.
+Moreover, from our experience, disallowing such operations and requiring
+an explicit cast to a common quantity in every single place makes the
+code so cluttered with casts that it nearly renders the library
+unusable.</p>
 <p>Fortunately, the above-mentioned conversion rules make the code safe
 by construction anyway. Let’s analyze the following example:</p>
 <div class="sourceCode" id="cb51"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> horizontal_length <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="op">{}</span> horizontal_length;</span>
@@ -1340,11 +1341,11 @@ by construction anyway. Let’s analyze the following example:</p>
 <code class="sourceCode default">horizontal_length</code> of a kind
 length, which then, together with
 <code class="sourceCode default">isq::width</code> and
-<code class="sourceCode default">isq::height</code> are used to define
+<code class="sourceCode default">isq::height</code>, are used to define
 the dimensions of a Christmas gift. Next, we provide a function that
 calculates the dimensions of a gift wrapping paper with some wraparound.
 The result of both those expressions is a quantity of
-<code class="sourceCode default">isq::length</code> as this is the
+<code class="sourceCode default">isq::length</code>, as this is the
 closest common quantity for the arguments used in this quantity
 equation.</p>
 <p>Regarding safety, it is important to mention here, that thanks to the
@@ -1373,7 +1374,7 @@ model quantity kinds.</p>
 an entire family of quantities of the same kind. Such quantities have
 not only the same dimension but also can be expressed in the same
 units.</p>
-<p>To annotate a quantity to represent its kind we introduced a
+<p>To annotate a quantity to represent its kind we introduced the
 <code class="sourceCode default">kind_of&lt;&gt;</code> specifier. For
 example, to express any quantity of length, we need to type
 <code class="sourceCode default">kind_of&lt;isq::length&gt;</code>. Such
@@ -1435,11 +1436,11 @@ current rules, we type:</p>
 <span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>                                                                <span class="dv">36&#39;010</span> <span class="op">*</span> m, <span class="dv">37&#39;265</span> <span class="op">*</span> m <span class="op">}</span>;</span></code></pre></div>
 <p>which is more user-friendly.</p>
 <p>Having such two options also gives users a choice. When we use
-different quantities of the same kind in a project (i.e. radius,
-wavelength, altitude, …), we should probably reach for strongly-typed
+different quantities of the same kind in a project (e.g., radius,
+wavelength, altitude), we should probably reach for strongly-typed
 quantities to bring additional safety for those cases. Otherwise, we can
-just use simple mode for the remaining quantities. We can easily mix
-simple and strongly-typed quantities in our projects and the library
+just use the simple mode for the remaining quantities. We can easily mix
+simple and strongly-typed quantities in our projects, and the library
 will do its best to protect us based on the information provided.</p>
 <h2 data-number="7.9" id="non-negative-quantities"><span class="header-section-number">7.9</span> Non-negative quantities<a href="#non-negative-quantities" class="self-link"></a></h2>
 <p>Some quantities are defined by ISO/IEC 80000 as explicitly
@@ -1475,7 +1476,7 @@ quantities. First, the multiplication or division of two vectors or
 tensors is not even mathematically defined. Such operations should be
 impossible on quantities using vector or tensor representation
 types.</p>
-<p>What multiplication and division are for scalars, the dot and cross
+<p>While multiplication and division are with scalars, the dot and cross
 products are for vector quantities. The result of the first one is a
 scalar. The second one results in a vector perpendicular to both vectors
 passed as arguments. A good physical quantities and units library should
@@ -1489,24 +1490,25 @@ tensor representation type</p>
 quantities library to provide only basic arithmetic operations
 (addition, subtraction, multiplication, and division) which are being
 used to calculate the result of linear algebra math. However, this
-solution can’t provide any compile-time safety described above and will
-also crash when someone pass a proper vector and tensor representation
+solution can’t provide any compile-time safety described above, and will
+also crash when someone passes a proper vector and tensor representation
 type to a quantity, expecting it to work.</p></li>
 <li><p>Encapsulating a vector or tensor as a representation type of a
 quantity</p>
-<p>This provides all the required type safety but requires the library
+<p>This provides all the required type safety, but requires the library
 to implement more operations on quantities and properly constrain them
 so they are selectively enabled when needed. Besides <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, the only library that
 supports such an approach is <span class="citation" data-cites="PINT">[<a href="#ref-PINT" role="doc-biblioref">Pint</a>]</span>. Such a solution requires the
-following operations to be exposed for quantity types:</p>
+following operations to be exposed for quantity types (note that
+character refers to the algebraic structure of either scalar, vector and
+tensor):</p>
 <ul>
 <li><code class="sourceCode default">a + b</code> - addition where both
 arguments should be of the same quantity kind and character</li>
 <li><code class="sourceCode default">a - b</code> - subtraction where
 both arguments should be of the same quantity kind and character</li>
-<li><code class="sourceCode default">a % b</code> - reminder/modulo
-where both arguments should be of the same quantity kind and
-character</li>
+<li><code class="sourceCode default">a % b</code> - modulo where both
+arguments should be of the same quantity kind and character</li>
 <li><code class="sourceCode default">a * b</code> - multiplication where
 one of the arguments has to be a scalar</li>
 <li><code class="sourceCode default">a / b</code> - division where the
@@ -1528,7 +1530,7 @@ two tensors</li>
 </ul></li>
 </ol>
 <p>Additionally, the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
-knows the expected quantity character which is provided (implicitly or
+knows the expected quantity character, which is provided (implicitly or
 explicitly) in the definition of each quantity type. Thanks to that, it
 prevents the user, for example, from providing a scalar representation
 type for force or a vector representation for power quantities.</p>
@@ -1539,10 +1541,10 @@ type for force or a vector representation for power quantities.</p>
 <span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>power<span class="op">&gt;</span> q5 <span class="op">=</span> q2 <span class="op">*</span> q4;                                    <span class="co">// Compile-time error</span></span>
 <span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>power<span class="op">&gt;</span> q5 <span class="op">=</span> dot<span class="op">(</span>q2, q4<span class="op">)</span>;                                <span class="co">// OK</span></span></code></pre></div>
 <p><em>Note: <code class="sourceCode default">q1</code> and
-<code class="sourceCode default">q3</code> could be allowed to compile
-with an explicit opt-in via the partial specialization of
-<code class="sourceCode default">is_vector&lt;T&gt;</code> trait for
-fundamental types.</em></p>
+<code class="sourceCode default">q3</code> can be permitted to compile
+by explicitly specializing the
+<code class="sourceCode default">is_vector&lt;T&gt;</code> trait for the
+representation type.</em></p>
 <p>As we can see above, such features additionally improves the
 compile-time safety of the library by ensuring that quantities are
 created with proper quantity equations and are using correct
@@ -1584,12 +1586,12 @@ type.</p>
 <p>Floating-point types may lose precision during assignment to a
 narrower type. Conversion from
 <code class="sourceCode default">std::int64_t</code> to
-<code class="sourceCode default">double</code> may also be
-truncating.</p>
-<p>If we had safe numeric types in the C++ standard library they could
+<code class="sourceCode default">double</code> may also lose
+precision.</p>
+<p>If we had safe numeric types in the C++ standard library, they could
 easily be used as a <code class="sourceCode default">quantity</code>
-representation type in the physical quantities and units library which
-would address those safety concerns.</p>
+representation type in the physical quantities and units library, which
+would address these safety concerns.</p>
 <h2 data-number="8.3" id="potential-surprises-during-units-composition"><span class="header-section-number">8.3</span> Potential surprises during
 units composition<a href="#potential-surprises-during-units-composition" class="self-link"></a></h2>
 <p>One of the most essential requirements for a good physical quantities
@@ -1611,7 +1613,7 @@ the following expression:</p>
 right? But it is not. Thanks to the operators’ associativity, it results
 in <code class="sourceCode default">30 km⋅h</code>. In case we want to
 divide <code class="sourceCode default">60 km</code> by
-<code class="sourceCode default">2 h</code> a parenthesis is needed:</p>
+<code class="sourceCode default">2 h</code>, parentheses are needed:</p>
 <div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
 <p>Another surprising issue may result from the following code:</p>
 <div class="sourceCode" id="cb67"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
@@ -1620,21 +1622,21 @@ divide <code class="sourceCode default">60 km</code> by
 <span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span>;</span>
 <span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
 <p>This might look like a good idea, but let’s consider what would
-happen if the user provided an already existing quantity:</p>
+happen if the user provided a quantity as input:</p>
 <div class="sourceCode" id="cb68"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
 <span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
-<p>The above function invocation will result with a quantity of area
-instead of expected quantity of length.</p>
+<p>The above function call will result in a quantity of area instead of
+the expected quantity of length.</p>
 <p>The issues mentioned above could be turned into compilation errors by
-disallowing multiplying or dividing a quantity by a unit. The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library initially provided
-such an approach, but with time, we decided this to be not
+disallowing multiplying or dividing a quantity by an unit. The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library initially provided
+such an approach, but with time, we decided this to not be
 user-friendly. Forcing the user to put the parenthesis around all
 derived units in quantity equations like the one below, was too verbose
 and confusing:</p>
 <div class="sourceCode" id="cb69"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> <span class="op">(</span>km <span class="op">/</span> h<span class="op">)</span>;</span></code></pre></div>
 <p>It is important to notice that the problems mentioned above will
-always surface with a compile-time error at some point in the users code
-when they assign the resulting quantity to the one with explicitly
+always surface with a compile-time error at some point in the user’s
+code when they assign the resulting quantity to one with an explicitly
 provided quantity type.</p>
 <p>Below, we provide a few examples that correctly detect such issues at
 compile-time:</p>
@@ -1659,10 +1661,10 @@ compile-time:</p>
 <span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
 <span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// Compile-time error</span></span></code></pre></div>
 <h2 data-number="8.4" id="structural-types"><span class="header-section-number">8.4</span> Structural types<a href="#structural-types" class="self-link"></a></h2>
-<p><code class="sourceCode default">quantity</code> and
+<p>The <code class="sourceCode default">quantity</code> and
 <code class="sourceCode default">quantity_point</code> class templates
-are structural types to allow them to be passed as Non-Type Template
-Parameters (NTTPs). For example we can write the following:</p>
+are structural types to allow them to be passed as template arguments.
+For example, we can write the following:</p>
 <div class="sourceCode" id="cb74"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> amsterdam_sea_level <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">&gt;</span> <span class="op">{</span></span>
 <span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> amsterdam_sea_level;</span>
 <span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1673,10 +1675,10 @@ Parameters (NTTPs). For example we can write the following:</p>
 <span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> altitude_CH <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, mediterranean_sea_level<span class="op">&gt;</span>;</span></code></pre></div>
 <p>Unfortunately, current language rules require that all member data of
 a structural type are public. This could be considered a safety issue.
-We try really hard to provide unit-safe interfaces but at the same time
+We try really hard to provide unit-safe interfaces, but at the same time
 expose the public “naked” data member that can be freely read or
 manipulated by anyone.</p>
-<p>Hopefully, the requirements for structural types with be improved
+<p>Hopefully, this requirement on structural types will be relaxed
 before the library gets standardized.</p>
 <h1 data-number="9" id="acknowledgements"><span class="header-section-number">9</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
