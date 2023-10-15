@@ -2293,6 +2293,16 @@ Those functions will work with any type `T` that exposes a `zero()` member funct
 something comparable to `T`. Thanks to that, we can use them not only with quantities but also
 with `std::chrono::duration` or any other type that exposes such an interface.
 
+This approach has a downside, though: it produces a set of new APIs which users must learn.  Nor are these six
+the only such functions that will need to exist: for example, `max` and `min` are perfectly reasonable to use
+with `0` regardless of the units, but supporting them under this strategy would require adding a new utility
+function for each --- and coming up with a name for those functions.
+
+It also introduces small opportunities for error and diffs that are harder to review, because we're replacing
+a pattern that uses an operator (say, `a > 0`) with a named function call (say, `is_gt_zero(a)`).
+
+These pitfalls motivate us to consider other approaches as well.
+
 #### `Zero` type
 
 The [@AU] library takes a different approach to this problem.  It provides an empty type, `Zero`, which
@@ -2318,40 +2328,43 @@ This has significant advantages.  It preserves the _form_ of the code, making th
 than replacement with a function such as `is_gt_zero`.  It also reduces the number of new comparison APIs
 a user must learn: `Zero` handles them all.
 
-`Zero` has a few downsides though:
+`Zero` has one downside: it will not work when passed across _generic quantity_ interfaces.  `Zero`'s value
+comes in situations where the surrounding context makes it unambiguous which quantity type it should
+construct.  While it converts to any _specific_ quantity type, it is not itself a quantity.  This could
+confuse users.
 
-1. CTAD can't deduce the quantity type as there is no unit provided. So if we try to refactor the
-   following:
+This downside manifests in several different ways.  Here are some examples:
 
-    ```cpp
-    quantity<si::metre / si::second> q1 = 0 * m / s;  // OK
-    quantity q2 = 0 * m / s;                          // OK
-    ```
-
-   only the first one will work and the second one will fail to compile:
-
-    ```cpp
-    quantity<si::metre / si::second> q1 = ZERO;  // OK
-    quantity q2 = ZERO;                          // Compile-time error
-    ```
-
-2. While refactoring the [@MP-UNITS] code to try out this approach we found out also some other places
+1. While refactoring the [@MP-UNITS] code to try out this approach we found out a perfectly reasonable place
    where we could not replace numerical value `0` with `ZERO`:
 
    ```cpp
-   for (auto tt = 0 * ms; tt <= 50 * ms; ++tt) { /* ... */ }
+   msl_altitude alt = mean_sea_level + 0 * si::metre;  // OK
+   msl_altitude alt = mean_sea_level + ZERO;           // Compile-time error
    ```
 
-   ```cpp
-   msl_altitude alt = mean_sea_level + 0 * si::metre; 
-   ```
+   This would not work because the `mean_sea_level` is an absolute point origin that stores the information
+   about the quantity type but not its value and unit.
 
-   The second example, would not work because the `mean_sea_level` is an absolute point origin that
-   stores the information about the quantity type but not its value and unit.
+2. Callsites passing `ZERO` can add friction when refactoring a concrete interface to be more generic.
 
-3. It works for addition but not multiplication as we do not know if we should multiply by a scalar or
-   a quantity. In the latter case, we do not have enough information to produce not only a unit but even
-   quantity type and dimension of the result:
+    ```cpp
+    namespace v1 { void foo(quantity<si::metre> q); }
+    namespace v2 { void foo(QuantityOf<isq::length> auto q); }
+
+    v1::foo(ZERO);   // OK
+    v2::foo(ZERO);   // Compile-time error
+    ```
+
+   In practice, this issue will be discovered at the point of refactoring, so it mainly affects library
+   authors, not their clients.  They can handle this by adding an overload for `Zero`, if appropriate.
+   However, this wouldn't scale well for APIs with _multiple_ parameters where users would want to pass
+   `Zero`.
+
+3. For completeness, we mention that `Zero` works for addition but not multiplication.  When multiplying, we
+   do not know what units (or even what dimension!) is desired for the result.  However, this is not a problem
+   in practice because users would not be motivated to write this in the first place, as simple multiplication
+   with `0` (including any necessary units, if the result has a different dimension) would work.
 
     ```cpp
     quantity q1 = 1 * m / s;
@@ -2361,30 +2374,13 @@ a user must learn: `Zero` handles them all.
 
     ```cpp
     quantity q1 = 1 * m / s;
-    quantity q1 = q1 + ZERO;        // OK
-    quantity q2 = q1 * ZERO;        // Compile-time error
+    quantity q2 = q1 + ZERO;        // OK
+    quantity q3 = q1 * ZERO;        // Compile-time error
     ```
 
-4. It will not work when passed across generic quantity interfaces. Even though the `quantity` class
-   template is implicitly convertible from `Zero`, the `Zero` type is not a quantity and thus does
-   not satisfy a `Quantity` concept:
-
-    ```cpp
-    void foo(quantity<si::metre> q);
-    void boo(QuantityOf<isq::length> auto q);
-
-    foo(ZERO);   // OK
-    boo(ZERO);   // Compile-time error
-    ```
-
-   The above issue may be even more problematic to the users if the `foo()` was used with `ZERO`
-   for a long time, and after that, it was refactored to become a generic function template `boo()`,
-   which would make the previously correct code to not compile.
-
-Of course, we can argue that it is obvious that the above cases do not compile because there are
-good reasons for that. As long as it might not surprise the domain experts that have lots of
-experience with coding in such a library, novices will try to replace every numeric value `0`
-with `ZERO` and often will be confused when it does not work.
+The main concern with the `Zero` feature is that novices might be tempted to replace every numeric value `0`
+with the instance `ZERO`, becoming confused when it doesn't work.  We could address this with easy-to-read
+documentation that clarifies its use cases and mental models.
 
 #### Comparison against zero: Summary
 
