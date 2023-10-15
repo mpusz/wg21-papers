@@ -2242,8 +2242,10 @@ static_assert(1 * h % (59 * min) == 1 * min);
 
 ### Comparison against zero
 
-In our code, we often want to compare the value of a quantity against zero. For example, we do it
-every time when we want to ensure that we deal with a non-zero or positive value.
+Zero is special.  It is the only number that unambiguously defines the value of any kind of quantity,
+regardless of its units: zero inches and zero meters and zero miles are all identical.  For this reason, it's
+very common to compare the value of a quantity against zero --- for example, when checking the sign of
+a quantity, or when making sure that it's nonzero.
 
 We could implement such checks in the following way:
 
@@ -2252,17 +2254,18 @@ if (q1 / q2 != 0 * m / s)
   // ...
 ```
 
-The above would work (assuming we are dealing with the quantity of speed), but could be suboptimal
-if the result of `q1 / q2` is not expressed in `m / s`. To eliminate the need for conversion, we
-need to write:
+The above would work (assuming we are dealing with the quantity of speed), but it's not ideal.  If the result
+of `q1 / q2` is not expressed in `m / s`, we'll incur an extra unit conversion.  Even if it is in `m / s`,
+it's cumbersome to repeat the unit in a context where it makes no difference.
+
+We could avoid repeating the unit, and guarantee there won't be an extra conversion, by writing:
 
 ```cpp
 if (auto q = q1 / q2; q != q.zero())
   // ...
 ```
 
-but that is a bit inconvenient, and inexperienced users could be unaware of this technique
-and its reasons.
+but that is a bit inconvenient, and inexperienced users could be unaware of this technique and its reasons.
 
 For the above reasons, the library provides dedicated interfaces to compare against zero that
 follow the naming convention of
@@ -2284,9 +2287,89 @@ if (is_neq_zero(q1 / q2))
   // ...
 ```
 
-Those functions will work with any type `T` that exposes `zero()` member function returning
+Those functions will work with any type `T` that exposes a `zero()` member function returning
 something comparable to `T`. Thanks to that, we can use them not only with quantities but also
 with quantity points, `std::chrono::duration` or any other type that exposes such an interface.
+
+#### Alternative: `Zero` type
+
+The [@AU] library takes a different approach to this problem.  It provides an empty type, `Zero`, which
+represents a value of exactly 0 (in any units).  It also provides an instance `ZERO` of this type.  Every
+quantity is implicitly constructible from `Zero`.
+
+Consider this example legacy (i.e., pre-units-library) code:
+
+```cpp
+if (speed_squared_m2ps2 > 0) { /* ... */ }
+```
+
+When users upgrade to a units library, they will replace the raw number `speed_squared_m2ps2` with a strongly
+typed quantity `speed_squared`.  Unfortunately, this replacement won't compile, because quantities can't be
+constructed from raw numeric values such as `0`.  They can fix this problem by using the instance, `ZERO`,
+which encodes its value _in the type_:
+
+```cpp
+if (speed_squared > ZERO) { /* ... */ }
+```
+
+This has significant advantages.  It preserves the _form_ of the code, making the transition less error prone
+than replacement with a function such as `is_gt_zero`.  It also reduces the number of new comparison APIs
+a user must learn: `Zero` handles them all.
+
+`Zero` has one downside: it will not work when passed across _generic quantity_ interfaces.  The benefit of `Zero`
+comes in situations where the surrounding context makes it unambiguous which quantity type it should
+construct.  While it converts to any _specific_ quantity type, it is not itself a quantity.  This could
+confuse users.
+
+When we examine these failures, we find two categories.
+
+1. **Non-regretted failures:** In these cases, the failure is a blessing in disguise, because it prevents us
+   from forming an underspecified request.
+
+2. **Regretted failures:** These are failures where the user's request is perfectly reasonable and
+   unambiguous. We'd prefer that the user's code works, and does what they expect.
+
+One example of a "non-regretted failure" is a generic speed function, which divides a distance by a time and
+returns the results in the natural derived unit:
+
+```cpp
+QuantityOf<isq::speed> auto average_speed(
+    QuantityOf<isq::distance> auto ds,
+    QuantityOf<isq::time> auto dt)
+{
+    return ds / dt;
+}
+```
+
+In this case, we might be tempted to write `average_speed(ZERO, 10 * si::second)`, but this wouldn't provide
+enough information to determine the units of the return type.  The compilation failure draws our attention to
+this omission.
+
+An example "regretted failure" is the unit-aware `max()` function from [@AU].  This function template takes
+two different quantity types, and returns whichever quantity is larger, expressed in their common unit.  In
+principle, it's perfectly meaningful to pass `Zero` as one of the arguments of `max()`.  (For example,
+a quantity which is known to be non-negative can come from a computation that sometimes returns slightly
+negative results, due to floating point errors).  With `max()`, it's also perfectly clear (in principle) which
+quantity type we should construct from `Zero`: That of the other argument.  But in _practice_, template
+deduction fails because `Zero` is not itself a quantity.
+
+The remedy is to provide new overloads that handle `Zero`, making the `max()` API feel more seamless and less
+surprising for the end user.  This does have its costs.  For one thing, it creates extra work on the
+implementation side.  It also scales poorly as `Zero` becomes meaningful for more and more parameters in our
+API.  On the other hand, there are hidden benefits as well: If `Zero` becomes a vocabulary type that is useful
+beyond simple quantities, then a single pair of overloads for `max()` will cover every possible type to which
+`Zero` is convertible.
+
+For completeness, we should consider how the special function approach would handle this same case, where one
+of the arguments to `max` is 0.  It fares slightly better on the implementation side, because it requires only
+one new function instead of two; there is only one "slot" to put the nonzero argument.  However, the end user
+experience is worse, because they have to learn another new function name.  Moreover, the best name for that
+function is not immediately clear.  Finally, if there are other types where this "max-with-zero" functionality
+makes sense, we will have to manually add a new overload for every such new type.
+
+Overall, these two approaches --- special functions, and a `Zero` type --- represent two local optima in
+design space.  Each has its strengths and weaknesses; each makes different tradeoffs.  It's currently an open
+question as to which approach would be best suited for a quantity type in the standard library.
 
 ### Other maths
 
