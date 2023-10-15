@@ -365,11 +365,6 @@ the quantity back to the original unit without loss of information.
 So the library should prevent such conversions from happening implicitly; whether the library
 should offer explicitly marked unsafe conversions for these cases is yet to be discussed.
 
-_Please note that it is always assumed that one can convert a quantity into another one with a unit
-of a higher resolution. There is no protection against overflow of the representation type.
-In case the target quantity ends up with a value bigger than the representation type can handle,
-we will be facing Undefined Behavior._
-
 To make the above conversions compile, we could use a floating-point representation type:
 
 ```cpp

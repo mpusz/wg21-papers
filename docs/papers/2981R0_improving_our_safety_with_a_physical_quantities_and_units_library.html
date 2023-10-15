@@ -883,11 +883,6 @@ unit without loss of information. So the library should prevent such
 conversions from happening implicitly; whether the library should offer
 explicitly marked unsafe conversions for these cases is yet to be
 discussed.</p>
-<p><em>Please note that it is always assumed that one can convert a
-quantity into another one with a unit of a higher resolution. There is
-no protection against overflow of the representation type. In case the
-target quantity ends up with a value bigger than the representation type
-can handle, we will be facing Undefined Behavior.</em></p>
 <p>To make the above conversions compile, we could use a floating-point
 representation type:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> q1 <span class="op">=</span> <span class="fl">5.</span> <span class="op">*</span> m;    <span class="co">// source quantity uses `double` as a representation type</span></span>
@@ -1577,12 +1572,9 @@ use of floating-point representation types may be a good idea, it is not
 always possible. Especially in close-to-the-metal applications and small
 embedded systems, the use of floating-point types is sometimes not an
 option, either for performance reasons or lack of hardware support.
-Having different operators for safe-floating point operations and unsafe
-integer operations would force users to use different symbols for
-quantities using floating-point or integral values which decreases
-usability significantly. As such, the need of explicitly enabling such
-unsafe operations for integers only through a compiler flag could be an
-option.</p>
+Having different operators for safe floating-point operations and unsafe
+integer operations would hurt generic programming. As such, users should
+instead use safer representation types.</p>
 <h2 data-number="8.2" id="lack-of-safe-numeric-types"><span class="header-section-number">8.2</span> Lack of safe numeric types<a href="#lack-of-safe-numeric-types" class="self-link"></a></h2>
 <p>Integers can overflow on arithmetics. This has already caused some
 expensive failures in engineering <span class="citation" data-cites="ARIANE">[<a href="#ref-ARIANE" role="doc-biblioref">Ariane
