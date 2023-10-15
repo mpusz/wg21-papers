@@ -991,7 +991,7 @@ The above program will produce the following types for acceleration quantities
 - `acceleration2`
 
     ```text
-    quantity<reference<isq::speed, per<isq::time>>{}, 
+    quantity<reference<isq::acceleration,
                        derived_unit<si::metre, per<power<si::second, 2>>>{}>{},
              double>>
     ```
