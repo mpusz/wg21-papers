@@ -78,16 +78,31 @@ Johel got interested in the units domain while writing his first hundred lines o
 He got up to opening the game window, so this milestone was not reached until years later.
 Instead, he looked for the missing piece of abstraction,
 called "pixel" in the GUI framework, but modeled as an `int`.
-He found out about `nholthaus/units`, and
+He found out about [@NHOLTHAUS-UNITS], and
 got fascinated with the idea of a library that succinctly allows expressing his domain's units
 (<https://github.com/nholthaus/units/issues/124#issuecomment-390773279>).
+
+Johel became a contributor to [@NHOLTHAUS-UNITS] v3 from 2018 to 2020.
+He improved the interfaces and implementations by remodeling them after `std::chrono::duration`.
+This included parameterizing the representation type with a template parameter instead of a macro.
+He also improved the error messages by mapping a list of types to an user-defined name.
+
+By 2020, Johel had been aware of [@MP-UNITS] v0 `quantity<dim_length, length, int>`, put off by its verbosity.
+But then, he watched a talk by Mateusz Pusz on [@MP-UNITS].
+It described how good error messages was a stake in the ground for the library.
+Thanks to his experience in the domain, Johel was convinced that [@MP-UNITS] was the future.
+
+Since 2020, Johel has been contributing to [@MP-UNITS].
+He added `quantity_point`, the generalization of `std::chrono::time_point`, closing #1.
+He also added `quantity_kind`, which explored the need of representing distinct quantities of the same dimension.
+To help guide its evolution, he's been constantly pointing in the direction of [@BIPM-VIM] as a source of truth.
+And more recently, to the ISO/IEC 80000 series, also helping interpret it.
 
 Computing systems engineer.
 (C++) programmer since 2014.
 Lives at HEAD with C++Next and good practices.
 Performs in-depth code reviews of familiarized code bases.
 Has an eye for identifying automation opportunities, and acts on them.
-Contributor to [@MP-UNITS], and previously [@NHOLTHAUS-UNITS] v3.
 Mostly at <https://github.com/JohelEGP/>.
 
 ## Charles Hogg
