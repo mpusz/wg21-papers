@@ -11,7 +11,7 @@ author:
     email: <dominik.berner@gmail.com>
   - name: Johel Ernesto Guerrero Peña
     email: <johelegp@gmail.com>
-  - name: Chip Hogg
+  - name: Chip Hogg ([Aurora Innovation](https://aurora.tech/))
     email: <charles.r.hogg@gmail.com>
   - name: Nicolas Holthaus
     email: <nholthaus@gmail.com>
