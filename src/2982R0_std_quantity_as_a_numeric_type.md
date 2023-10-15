@@ -1006,7 +1006,7 @@ number.  For example, the ratio between one foot and one inch is 12.
 
 ### Unit magnitudes
 
-In principle, this scaling factor can be any positive real number.  In [@MP-UNITS] and [@Au],
+In principle, this scaling factor can be any positive real number.  In [@MP-UNITS] and [@AU],
 we have used the term "magnitude" to refer to this scaling factor.
 (This should not be confused with other uses of the term, such as the logarithmic "magnitude"
 unit commonly used in astronomy.)
