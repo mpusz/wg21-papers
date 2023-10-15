@@ -341,7 +341,7 @@ In `std::chrono::duration`, the magnitude of a unit is always expressed with `st
 not enough for a general-purpose physical units library. Some of the derived units have huge
 or tiny ratios. The difference from the base units is so huge that it cannot be expressed with
 `std::ratio`, which is implemented in terms of `std::intmax_t`. This makes it impossible to define
-units like electronvolt,  (eV) where 1 eV = 1.602176634×10<sup>−19</sup> J, or Dalton, where
+units like electronvolt (eV), where 1 eV = 1.602176634×10<sup>−19</sup> J, or Dalton (Da), where
 1 Da = 1.660539040(20)×10<sup>−27</sup> kg. Moreover, some conversions, such as radian to a degree,
 require a conversion factor based on an irrational number like pi.
 
