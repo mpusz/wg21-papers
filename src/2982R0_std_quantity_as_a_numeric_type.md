@@ -2601,15 +2601,19 @@ Here are some more concepts exposed in the library and dependencies between them
 
 # Custom representation types
 
-TBD
+The library physical quantities and units library should work with any custom representation type.
+Those can be used to:
 
-- improve safety
-- provide additional info like measurement
-- linear algebra
-- minimal requirements
-- representation type constraints
+- improve safety (e.g., prevent overflows, restrict the range of accepted values, etc.),
+- provide additional information (e.g., not only a quantity value but also the uncertainty of the
+  measurement),
+- enable linear algebra usage.
 
-## Non-negative quantities
+As of right now, we have two other concurrent proposals to SG6 in this subject on the fly
+([@P2993_PRE] and [@P3003_PRE]), we do not provide any concrete requirements or recommendations here.
+Based on the results of discussions on the mentioned proposals, we will provide correct guidelines
+in the next revisions of this paper.
+
 
 # The affine space
 
@@ -2962,6 +2966,20 @@ references:
   citation-label: mp-units
   title: "mp-units - A Physical Quantities and Units library for C++"
   URL: <https://mpusz.github.io/mp-units>
+- id: P2993_PRE
+  citation-label: P2993
+  author:
+    - family: Valenty
+      given: Luke
+  title: "Constrained Numbers"
+  URL: <https://wg21.link/p2993>
+- id: P3003_PRE
+  citation-label: P3003
+  author:
+    - family: Guerrero Peña
+      given: Johel Ernesto
+  title: "The design of a library of number concepts"
+  URL: <https://wg21.link/p3003>
 - id: PINT
   citation-label: Pint
   title: "Pint: makes units easy"
