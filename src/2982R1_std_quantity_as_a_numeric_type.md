@@ -2610,7 +2610,7 @@ Those can be used to:
 - enable linear algebra usage.
 
 As of right now, we have two other concurrent proposals to SG6 in this subject on the fly
-([@P2993_PRE] and [@P3003_PRE]), we do not provide any concrete requirements or recommendations here.
+([@P2993_PRE] and [@P3003R0]), we do not provide any concrete requirements or recommendations here.
 Based on the results of discussions on the mentioned proposals, we will provide correct guidelines
 in the next revisions of this paper.
 
@@ -2973,13 +2973,6 @@ references:
       given: Luke
   title: "Constrained Numbers"
   URL: <https://wg21.link/p2993>
-- id: P3003_PRE
-  citation-label: P3003
-  author:
-    - family: Guerrero Peña
-      given: Johel Ernesto
-  title: "The design of a library of number concepts"
-  URL: <https://wg21.link/p3003>
 - id: PINT
   citation-label: Pint
   title: "Pint: makes units easy"

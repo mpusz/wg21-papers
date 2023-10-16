@@ -277,7 +277,7 @@ quite often. We see similar errors occurring in various domains over the years:
   39 cents per pound, but the customer thought the quote was for 39 cents per kilogram [@WILD_RICE].
 - A whole set of [@MEDICATION_DOSE_ERRORS]...
 
-The safety subject is so vast and essential by itself that we dedicated a separate paper [@P2981_PRE]
+The safety subject is so vast and essential by itself that we dedicated a separate paper [@P2981R0]
 that discusses all the nuances in detail.
 
 ## Vocabulary types
@@ -422,7 +422,7 @@ In some cases we are even eager to prioritize safe interfaces over the general u
 (e.g. getters of the underlying raw numerical value will always require a unit in which the value should
 be returned in, which results in more typing and is sometimes redundant).
 
-More information on this subject can be found in [@P2981_PRE].
+More information on this subject can be found in [@P2981R0].
 
 ## Performance
 
@@ -913,7 +913,7 @@ In the above table:
 - `std::quantity` is a class template that is the workhorse of the library.
   It is an incompatible generalization of `std::chrono::duration`.
 - Expression templates are used to provide user-friendly error messages and great debugging experience.
-  More information on this subject can be found in [@P2982_PRE].
+  More information on this subject can be found in [@P2982R0].
 - Quantity specifications include at least the following information: quantity type, quantity character,
   quantity equation (in case of derived quantities), quantity kind, and dimension.
 - References (temporary name to be bikeshedded) are numeric wrappers over a quantity specification and
@@ -1157,26 +1157,6 @@ references:
   citation-label: nholthaus/units
   title: "UNITS - A compile-time, header-only, dimensional analysis and unit conversion library built on c++14 with no dependencies."
   URL: <https://github.com/nholthaus/units>
-- id: P2981_PRE
-  citation-label: P2981
-  author:
-    - family: Pusz
-      given: Mateusz
-    - family: Berner
-      given: Dominik
-    - family: Guerrero Peña
-      given: Johel Ernesto
-  title: "Improving our safety with a physical quantities and units library"
-  URL: <https://wg21.link/p2981>
-- id: P2982_PRE
-  citation-label: P2982
-  author:
-    - family: Hogg
-      given: Chip
-    - family: Pusz
-      given: Mateusz
-  title: "`std::quantity` as a numeric type"
-  URL: <https://wg21.link/p2982>
 - id: SI
   citation-label: SI
   title: "SI Brochure: The International System of Units (SI)"
