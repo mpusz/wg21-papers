@@ -46,6 +46,9 @@ to this activity.
 
 ### Under Development
 
+- [P2980R1: A motivation, scope, and plan for a physical quantities and units library](papers/2980R1_a_motivation_scope_and_plan_for_a_physical_quantities_and_units_library.html)
+- [P2981R1: Improving our safety with a physical quantities and units library](papers/2981R1_improving_our_safety_with_a_physical_quantities_and_units_library.html)
+- [P2982R1: `std::quantity` as a numeric type](papers/2982R1_std_quantity_as_a_numeric_type.html)
 
 ## More Papers
 

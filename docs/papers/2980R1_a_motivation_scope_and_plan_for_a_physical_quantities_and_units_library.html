@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2023-10-16" />
+  <title>A motivation, scope, and plan for a physical quantities and
+units library</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+      div.csl-block{margin-left: 1.5em;}
+      ul.task-list{list-style: none;}
+      pre > code.sourceCode { white-space: pre; position: relative; }
+      pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+      pre > code.sourceCode > span:empty { height: 1.2em; }
+      .sourceCode { overflow: visible; }
+      code.sourceCode > span { color: inherit; text-decoration: inherit; }
+      div.sourceCode { margin: 1em 0; }
+      pre.sourceCode { margin: 0; }
+      @media screen {
+      div.sourceCode { overflow: auto; }
+      }
+      @media print {
+      pre > code.sourceCode { white-space: pre-wrap; }
+      pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+      }
+      pre.numberSource code
+        { counter-reset: source-line 0; }
+      pre.numberSource code > span
+        { position: relative; left: -4em; counter-increment: source-line; }
+      pre.numberSource code > span > a:first-child::before
+        { content: counter(source-line);
+          position: relative; left: -1em; text-align: right; vertical-align: baseline;
+          border: none; display: inline-block;
+          -webkit-touch-callout: none; -webkit-user-select: none;
+          -khtml-user-select: none; -moz-user-select: none;
+          -ms-user-select: none; user-select: none;
+          padding: 0 4px; width: 4em;
+          color: #aaaaaa;
+        }
+      pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+      div.sourceCode
+        {  background-color: #f6f8fa; }
+      @media screen {
+      pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+      }
+      code span { } /* Normal */
+      code span.al { color: #ff0000; } /* Alert */
+      code span.an { } /* Annotation */
+      code span.at { } /* Attribute */
+      code span.bn { color: #9f6807; } /* BaseN */
+      code span.bu { color: #9f6807; } /* BuiltIn */
+      code span.cf { color: #00607c; } /* ControlFlow */
+      code span.ch { color: #9f6807; } /* Char */
+      code span.cn { } /* Constant */
+      code span.co { color: #008000; font-style: italic; } /* Comment */
+      code span.cv { color: #008000; font-style: italic; } /* CommentVar */
+      code span.do { color: #008000; } /* Documentation */
+      code span.dt { color: #00607c; } /* DataType */
+      code span.dv { color: #9f6807; } /* DecVal */
+      code span.er { color: #ff0000; font-weight: bold; } /* Error */
+      code span.ex { } /* Extension */
+      code span.fl { color: #9f6807; } /* Float */
+      code span.fu { } /* Function */
+      code span.im { } /* Import */
+      code span.in { color: #008000; } /* Information */
+      code span.kw { color: #00607c; } /* Keyword */
+      code span.op { color: #af1915; } /* Operator */
+      code span.ot { } /* Other */
+      code span.pp { color: #6f4e37; } /* Preprocessor */
+      code span.re { } /* RegionMarker */
+      code span.sc { color: #9f6807; } /* SpecialChar */
+      code span.ss { color: #9f6807; } /* SpecialString */
+      code span.st { color: #9f6807; } /* String */
+      code span.va { } /* Variable */
+      code span.vs { color: #9f6807; } /* VerbatimString */
+      code span.wa { color: #008000; font-weight: bold; } /* Warning */
+      code.diff {color: #898887}
+      code.diff span.va {color: #006e28}
+      code.diff span.st {color: #bf0303}
+  </style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+text-align: justify;
+}
+@media screen and (max-width: 30em) {
+body {
+margin: 1.5em;
+}
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+</style>
+  <link href="data:image/x-icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">A motivation, scope, and
+plan for a physical quantities and units library</h1>
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #:</td>
+    <td>P2980R0</td>
+  </tr>
+  <tr>
+    <td>Date:</td>
+    <td>2023-10-16</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project:</td>
+    <td>Programming Language C++</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Audience:</td>
+    <td>
+      Library Evolution Working Group<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to:</td>
+    <td>
+      Mateusz Pusz (<a href="http://www.epam.com">Epam
+Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateusz.pusz@gmail.com</a>&gt;<br>
+      Dominik Berner<br>&lt;<a href="mailto:dominik.berner@gmail.com" class="email">dominik.berner@gmail.com</a>&gt;<br>
+      Johel Ernesto Guerrero Peña<br>&lt;<a href="mailto:johelegp@gmail.com" class="email">johelegp@gmail.com</a>&gt;<br>
+      Chip Hogg (<a href="https://aurora.tech/">Aurora
+Innovation</a>)<br>&lt;<a href="mailto:charles.r.hogg@gmail.com" class="email">charles.r.hogg@gmail.com</a>&gt;<br>
+      Nicolas Holthaus<br>&lt;<a href="mailto:nholthaus@gmail.com" class="email">nholthaus@gmail.com</a>&gt;<br>
+      Roth Michaels (<a href="https://www.native-instruments.com">Native
+Instruments</a>)<br>&lt;<a href="mailto:isocxx@rothmichaels.us" class="email">isocxx@rothmichaels.us</a>&gt;<br>
+      Vincent Reverdy<br>&lt;<a href="mailto:vince.rev@gmail.com" class="email">vince.rev@gmail.com</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">1</span> Introduction<span></span></a></li>
+<li><a href="#terms-and-definitions" id="toc-terms-and-definitions"><span class="toc-section-number">2</span>
+Terms and definitions<span></span></a></li>
+<li><a href="#about-authors" id="toc-about-authors"><span class="toc-section-number">3</span> About authors<span></span></a>
+<ul>
+<li><a href="#dominik-berner" id="toc-dominik-berner"><span class="toc-section-number">3.1</span> Dominik
+Berner<span></span></a></li>
+<li><a href="#johel-ernesto-guerrero-peña" id="toc-johel-ernesto-guerrero-peña"><span class="toc-section-number">3.2</span> Johel Ernesto Guerrero
+Peña<span></span></a></li>
+<li><a href="#charles-hogg" id="toc-charles-hogg"><span class="toc-section-number">3.3</span> Charles Hogg<span></span></a></li>
+<li><a href="#nicolas-holthaus" id="toc-nicolas-holthaus"><span class="toc-section-number">3.4</span> Nicolas
+Holthaus<span></span></a></li>
+<li><a href="#roth-michaels" id="toc-roth-michaels"><span class="toc-section-number">3.5</span> Roth
+Michaels<span></span></a></li>
+<li><a href="#mateusz-pusz" id="toc-mateusz-pusz"><span class="toc-section-number">3.6</span> Mateusz Pusz<span></span></a></li>
+<li><a href="#vincent-reverdy" id="toc-vincent-reverdy"><span class="toc-section-number">3.7</span> Vincent
+Reverdy<span></span></a></li>
+</ul></li>
+<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">4</span> Motivation<span></span></a>
+<ul>
+<li><a href="#safety" id="toc-safety"><span class="toc-section-number">4.1</span> Safety<span></span></a></li>
+<li><a href="#vocabulary-types" id="toc-vocabulary-types"><span class="toc-section-number">4.2</span> Vocabulary
+types<span></span></a></li>
+<li><a href="#certification" id="toc-certification"><span class="toc-section-number">4.3</span>
+Certification<span></span></a></li>
+<li><a href="#complex-and-complicated" id="toc-complex-and-complicated"><span class="toc-section-number">4.4</span> Complex and
+complicated<span></span></a></li>
+<li><a href="#extensibility" id="toc-extensibility"><span class="toc-section-number">4.5</span>
+Extensibility<span></span></a></li>
+<li><a href="#broad-industry-value" id="toc-broad-industry-value"><span class="toc-section-number">4.6</span> Broad industry
+value<span></span></a></li>
+<li><a href="#standardizing-existing-practice" id="toc-standardizing-existing-practice"><span class="toc-section-number">4.7</span> Standardizing existing
+practice<span></span></a></li>
+</ul></li>
+<li><a href="#design-goals" id="toc-design-goals"><span class="toc-section-number">5</span> Design goals<span></span></a>
+<ul>
+<li><a href="#compile-time-safety" id="toc-compile-time-safety"><span class="toc-section-number">5.1</span> Compile-time
+safety<span></span></a></li>
+<li><a href="#performance" id="toc-performance"><span class="toc-section-number">5.2</span> Performance<span></span></a></li>
+<li><a href="#great-user-experience" id="toc-great-user-experience"><span class="toc-section-number">5.3</span> Great user
+experience<span></span></a></li>
+<li><a href="#feature-rich" id="toc-feature-rich"><span class="toc-section-number">5.4</span> Feature rich<span></span></a></li>
+<li><a href="#easy-to-extend" id="toc-easy-to-extend"><span class="toc-section-number">5.5</span> Easy to
+extend<span></span></a></li>
+<li><a href="#low-standardization-cost" id="toc-low-standardization-cost"><span class="toc-section-number">5.6</span> Low standardization
+cost<span></span></a></li>
+</ul></li>
+<li><a href="#look-and-feel" id="toc-look-and-feel"><span class="toc-section-number">6</span> Look and feel<span></span></a>
+<ul>
+<li><a href="#basic-quantity-equations" id="toc-basic-quantity-equations"><span class="toc-section-number">6.1</span> Basic quantity
+equations<span></span></a></li>
+<li><a href="#hello-units" id="toc-hello-units"><span class="toc-section-number">6.2</span> Hello units<span></span></a></li>
+<li><a href="#bridge-across-the-rhine" id="toc-bridge-across-the-rhine"><span class="toc-section-number">6.3</span> Bridge across the
+Rhine<span></span></a></li>
+<li><a href="#storage-tank" id="toc-storage-tank"><span class="toc-section-number">6.4</span> Storage tank<span></span></a></li>
+<li><a href="#user-defined-quantities-and-units" id="toc-user-defined-quantities-and-units"><span class="toc-section-number">6.5</span> User defined quantities and
+units<span></span></a></li>
+</ul></li>
+<li><a href="#scope" id="toc-scope"><span class="toc-section-number">7</span> Scope<span></span></a>
+<ul>
+<li><a href="#basic-framework" id="toc-basic-framework"><span class="toc-section-number">7.1</span> Basic
+framework<span></span></a></li>
+<li><a href="#the-affine-space" id="toc-the-affine-space"><span class="toc-section-number">7.2</span> The affine
+space<span></span></a></li>
+<li><a href="#text-output" id="toc-text-output"><span class="toc-section-number">7.3</span> Text output<span></span></a></li>
+<li><a href="#text-input" id="toc-text-input"><span class="toc-section-number">7.4</span> Text input<span></span></a></li>
+<li><a href="#systems-of-quantities" id="toc-systems-of-quantities"><span class="toc-section-number">7.5</span> Systems of
+quantities<span></span></a></li>
+<li><a href="#systems-of-units" id="toc-systems-of-units"><span class="toc-section-number">7.6</span> Systems of
+units<span></span></a></li>
+<li><a href="#utilities" id="toc-utilities"><span class="toc-section-number">7.7</span> Utilities<span></span></a></li>
+<li><a href="#external-dependencies" id="toc-external-dependencies"><span class="toc-section-number">7.8</span> External
+dependencies<span></span></a></li>
+</ul></li>
+<li><a href="#plan-for-standardization" id="toc-plan-for-standardization"><span class="toc-section-number">8</span> Plan for
+standardization<span></span></a></li>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">9</span>
+Acknowledgements<span></span></a></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">10</span> References<span></span></a></li>
+</ul>
+</div>
+<h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
+<p>Several groups in the ISO C++ Committee reviewed the “P1935: A C++
+Approach to Physical Units” <span class="citation" data-cites="P1935R2">[<a href="#ref-P1935R2" role="doc-biblioref">P1935R2</a>]</span> proposal in Belfast 2019 and
+Prague 2020. All those groups expressed interest in the potential
+standardization of such a library and encouraged further work. The
+authors also got valuable initial feedback that highly influenced the
+design of the V2 version of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library.</p>
+<p>In the following years, the library’s authors scoped on getting more
+feedback from the production and design and developed version 2 of the
+<span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library that resolves the
+issues raised by the users and Committee members. The features and
+interfaces of this version are close to being the best we can get with
+the current version of the C++ language standard.</p>
+<p>This paper is authored by not only the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library developers but also by
+the authors of other actively maintained similar libraries on the market
+and other active members of the C++ physical quantities and units
+community who have worked on this subject for many years. We join our
+forces to say with one voice that we deeply care about standardizing
+such features as a part of the C++ Standard Library. Based on our long
+and broad experience in the subject, we agree that the interfaces we
+will provide in the upcoming proposals are the best we can get today in
+the C++ language.</p>
+<h1 data-number="2" id="terms-and-definitions"><span class="header-section-number">2</span> Terms and definitions<a href="#terms-and-definitions" class="self-link"></a></h1>
+<p>This document consistently uses the official metrology vocabulary
+defined in the <span class="citation" data-cites="ISO-GUIDE">[<a href="#ref-ISO-GUIDE" role="doc-biblioref">ISO/IEC Guide 99</a>]</span>
+and <span class="citation" data-cites="BIPM-VIM">[<a href="#ref-BIPM-VIM" role="doc-biblioref">JCGM 200:2012</a>]</span>.</p>
+<h1 data-number="3" id="about-authors"><span class="header-section-number">3</span> About authors<a href="#about-authors" class="self-link"></a></h1>
+<h2 data-number="3.1" id="dominik-berner"><span class="header-section-number">3.1</span> Dominik Berner<a href="#dominik-berner" class="self-link"></a></h2>
+<p>Dominik is a strong believer that the C++ language can provide very
+high safety guarantees when programming through strong typing; a type
+error caught during compilation saves hours of debugging. For the last
+15 years, he has mainly coded in C++ and actively follows its evolution
+through the new standards.</p>
+<p>When working on regulated projects at Med-Tech, there usually were
+very tight requirements on which data types were to be used for what,
+which turned out to be lists of primitives to be memorized by each
+developer. However, throughout his career, Dominik spent way too many
+hours debugging and fixing issues caused by these types being incorrect.
+In an attempt to bring a closer semantic meaning to these lists, he
+eventually wrote <span class="citation" data-cites="SI_LIB">[<a href="#ref-SI_LIB" role="doc-biblioref">SI library</a>]</span> as a side
+project.</p>
+<p>While <span class="citation" data-cites="SI_LIB">[<a href="#ref-SI_LIB" role="doc-biblioref">SI library</a>]</span> provides
+many useful features, such as type-safe conversion between physical
+quantities as well as zero-overhead computation for values of the same
+units, there are some shortcomings which would require major rework.
+Instead of creating yet another library, Dominik decided to join forces
+with the other authors of this paper to push for standardizing support
+for more type-safety for physical quantities. He hopes that this will
+eventually lead to a safer and more robust C++ and open many more
+opportunities for the language.</p>
+<h2 data-number="3.2" id="johel-ernesto-guerrero-peña"><span class="header-section-number">3.2</span> Johel Ernesto Guerrero Peña<a href="#johel-ernesto-guerrero-peña" class="self-link"></a></h2>
+<p>Johel got interested in the units domain while writing his first
+hundred lines of game development. He got up to opening the game window,
+so this milestone was not reached until years later. Instead, he looked
+for the missing piece of abstraction, called “pixel” in the GUI
+framework, but modeled as an
+<code class="sourceCode default">int</code>. He found out about <span class="citation" data-cites="NHOLTHAUS-UNITS">[<a href="#ref-NHOLTHAUS-UNITS" role="doc-biblioref">nholthaus/units</a>]</span>, and got fascinated
+with the idea of a library that succinctly allows expressing his
+domain’s units (<a href="https://github.com/nholthaus/units/issues/124#issuecomment-390773279" class="uri">https://github.com/nholthaus/units/issues/124#issuecomment-390773279</a>).</p>
+<p>Johel became a contributor to <span class="citation" data-cites="NHOLTHAUS-UNITS">[<a href="#ref-NHOLTHAUS-UNITS" role="doc-biblioref">nholthaus/units</a>]</span> v3 from 2018 to 2020.
+He improved the interfaces and implementations by remodeling them after
+<code class="sourceCode default">std::chrono::duration</code>. This
+included parameterizing the representation type with a template
+parameter instead of a macro. He also improved the error messages by
+mapping a list of types to an user-defined name.</p>
+<p>By 2020, Johel had been aware of <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> v0 <code class="sourceCode default">quantity&lt;dim_length, length, int&gt;</code>,
+put off by its verbosity. But then, he watched a talk by Mateusz Pusz on
+<span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>. It described how good error
+messages was a stake in the ground for the library. Thanks to his
+experience in the domain, Johel was convinced that <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> was the future.</p>
+<p>Since 2020, Johel has been contributing to <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>. He added
+<code class="sourceCode default">quantity_point</code>, the
+generalization of
+<code class="sourceCode default">std::chrono::time_point</code>, closing
+#1. He also added <code class="sourceCode default">quantity_kind</code>,
+which explored the need of representing distinct quantities of the same
+dimension. To help guide its evolution, he’s been constantly pointing in
+the direction of <span class="citation" data-cites="BIPM-VIM">[<a href="#ref-BIPM-VIM" role="doc-biblioref">JCGM 200:2012</a>]</span> as a
+source of truth. And more recently, to the ISO/IEC 80000 series, also
+helping interpret it.</p>
+<p>Computing systems engineer. (C++) programmer since 2014. Lives at
+HEAD with C++Next and good practices. Performs in-depth code reviews of
+familiarized code bases. Has an eye for identifying automation
+opportunities, and acts on them. Mostly at <a href="https://github.com/JohelEGP/" class="uri">https://github.com/JohelEGP/</a>.</p>
+<h2 data-number="3.3" id="charles-hogg"><span class="header-section-number">3.3</span> Charles Hogg<a href="#charles-hogg" class="self-link"></a></h2>
+<p>Chip Hogg is a Staff Software Engineer on the Motion Planning Team at
+Aurora Innovation, the self-driving vehicle company that is developing
+the Aurora Driver. After obtaining his PhD in Physics from Carnegie
+Mellon in 2010, he was a postdoctoral researcher and then staff
+scientist at the National Institute of Standards and Technology (NIST),
+doing Bayesian data analysis. He joined Google in 2012 as a software
+engineer, leaving in 2016 to work on autonomous vehicles at Uber’s
+Advanced Technologies Group (ATG), where he stayed until their
+acquisition by Aurora in 2021.</p>
+<p>Chip built his first C++ units library at Uber ATG in 2018, where he
+first developed the concept of unit-safe interfaces. At Aurora in 2021,
+he ported over only the test cases, writing a new and more powerful
+units library from scratch. This included novel features such as vector
+space magnitudes, and an adaptive conversion policy which guards against
+overflow in integers.</p>
+<p>He soon realized that there was a much broader need for Aurora’s
+units library. No publicly available units library for C++14 or C++17
+could match its ergonomics, developer experience, and performance. This
+motivated him to create <span class="citation" data-cites="AU">[<a href="#ref-AU" role="doc-biblioref">Au</a>]</span> in 2022: a new,
+zero-dependency units library, which was a drop-in replacement for
+Aurora’s original units library, but offered far more composable
+interfaces, and was built on simpler, stronger foundations. Once Au
+proved its value internally, Chip migrated it to a separate repository
+and led the open-sourcing process, culminating in its public release in
+2023.</p>
+<p>While Au provides excellent ergonomics and robustness for pre-C++20
+users, Chip also believes the C++ community would benefit from a
+standard units library. For that reason, he has joined forces with the
+mp-units project, contributing code and design ideas.</p>
+<h2 data-number="3.4" id="nicolas-holthaus"><span class="header-section-number">3.4</span> Nicolas Holthaus<a href="#nicolas-holthaus" class="self-link"></a></h2>
+<p>Nicolas graduated Summa Cum Laude from Northwestern University with a
+B.S. in Computer Engineering. He worked for several years at the United
+States Naval Air Warfare Center - Manned Flight Simulator - designing
+real-time C++ software for aircraft survivability simulation. He has
+subsequently continued in the field at various start-ups, MIT Lincoln
+Laboratory, and most recently, STR (Science and Technology
+Research).</p>
+<p>Nicolas became obsessed with dimensional analysis as a high school
+JETS team member after learning that the $125M Mars Climate Orbiter was
+destroyed due to a simple feet-to-meters miscalculation. He developed
+the widely adopted C++ <span class="citation" data-cites="NHOLTHAUS-UNITS">[<a href="#ref-NHOLTHAUS-UNITS" role="doc-biblioref">nholthaus/units</a>]</span> library based on the
+findings of the 2002 white paper “Dimensional Analysis in C++” by Scott
+Meyers. Astounded that no one smarter had already written such a
+library, he continued with <code class="sourceCode default">units</code>
+2.0 and 3.0 based on modern C++. Those libraries have been extensively
+adopted in many fields, including modeling &amp; simulation,
+agriculture, and geodesy.</p>
+<p>In 2023, recognizing the limits of
+<code class="sourceCode default">units</code>, he joined forces with
+Mateusz Pusz in his effort to standardize his evolutionary dimensional
+analysis library, with the goal of providing the highest-quality
+dimensional analysis to all C++ users via the C++ standard library.</p>
+<h2 data-number="3.5" id="roth-michaels"><span class="header-section-number">3.5</span> Roth Michaels<a href="#roth-michaels" class="self-link"></a></h2>
+<p>Roth Michaels is a Principal Software Engineer at <a href="https://www.native-instruments.com">Native Instruments</a>, a
+leading manufacturer of audio, and music, software and hardware. Working
+in this domain, he has been involved with the creation of ad hoc typed
+quantities/units for digital signal processing and GUI library
+use-cases. Seeing both the complexity of development and practical uses
+where developers need to leave the safety of these simple wrappers
+encouraged Roth to explore various quantity/units libraries to see if
+they would apply to this domain. He has been doing research into
+defining and using digital audio and music domain-specific quantities
+and units using first <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> as
+proposed in <span class="citation" data-cites="P1935R2">[<a href="#ref-P1935R2" role="doc-biblioref">P1935R2</a>]</span> and the new
+V2 library described in this paper.</p>
+<p>Before working for Native Instruments, Roth worked as a consultant in
+multiple industries using a variety of programming languages. He was
+involved with the Swift Evolution community in its early days before
+focusing primarily on C++ after joining <a href="https://www.izotope.com">iZotope</a> and now Native
+Instruments.</p>
+<p>Holding a degree in music composition, Roth has over a decade of
+experience working with quantities and units of measure related to
+music, digital signal processing, analog audio, and acoustics. He has
+joined the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> project
+as a domain expert in these areas and to provide perspective on
+logarithmic and non-linear quantity/unit relationships.</p>
+<h2 data-number="3.6" id="mateusz-pusz"><span class="header-section-number">3.6</span> Mateusz Pusz<a href="#mateusz-pusz" class="self-link"></a></h2>
+<p>Mateusz got interested in the physical units subject while
+contributing to the <span class="citation" data-cites="LK8000">[<a href="#ref-LK8000" role="doc-biblioref">LK8000</a>]</span> Tactical
+Flight Computer Open Source project over 10 years ago. The project’s
+code was far from being “safe” in the C++ sense, and this is when
+Mateusz started to explore alternatives.</p>
+<p>Through the following years, he tried to use several existing
+solutions, which were always far from being user-friendly, so he also
+tried to write a better framework a few times from scratch by
+himself.</p>
+<p>Finally, with the availability of brand new Concepts TS in the gcc-7,
+the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> project
+was created. It was designed with safety and user experience in mind.
+After many years of working on the project, the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library is probably the most
+modern and complete solution in the C++ market.</p>
+<p>Through the last few years, Mateusz has put much effort into building
+a community around physical units. He provided many talks and workshops
+on this subject at various C++ conferences. He also approached the
+authors of other actively maintained libraries to get their feedback and
+invited them to work together to find and agree on the best solution for
+the C++ language. This paper is the result of those actions.</p>
+<h2 data-number="3.7" id="vincent-reverdy"><span class="header-section-number">3.7</span> Vincent Reverdy<a href="#vincent-reverdy" class="self-link"></a></h2>
+<p>Vincent is an astrophysicist, computer scientist, and a member of the
+French delegation to the ISO C++ Committee, currently working as a full
+researcher at the French National Centre for Scientific Research (CNRS).
+He has been interested for years in units and quantities for programming
+languages to ensure higher levels of both expressivity and safety in
+computational physics codes. Back in 2019, he authored <span class="citation" data-cites="P1930R0">[<a href="#ref-P1930R0" role="doc-biblioref">P1930R0</a>]</span> to provide some context of what
+could be a quantity and unit library for C++.</p>
+<p>After designing and implementing several Domain-Specific Language
+(DSL) demonstrators dedicated to units of measurements in C++, he became
+more interested in the theoretical side of the problem. Today, one of
+his research activities is dedicated to the mathematical formalization
+of systems of quantities and systems of units as an interdisciplinary
+problem between physics, mathematics, and computer science.</p>
+<h1 data-number="4" id="motivation"><span class="header-section-number">4</span> Motivation<a href="#motivation" class="self-link"></a></h1>
+<p>This chapter describes why we believe that physical quantities and
+units should be part of a C++ Standard Library.</p>
+<h2 data-number="4.1" id="safety"><span class="header-section-number">4.1</span> Safety<a href="#safety" class="self-link"></a></h2>
+<p>It is no longer only the space industry or experienced pilots that
+benefit from the autonomous operations of some machines. We live in a
+world where more and more ordinary people trust machines with their
+lives daily. In the near future, we will be allowed to sleep while our
+car autonomously drives us home from a late party. As a result, many
+more C++ engineers are expected to write life-critical software today
+than it was a few years ago. However, writing safety-critical code
+requires extensive training and experience, both of which are in short
+demand. While there exists some standards and guidelines such as MISRA
+C++ <span class="citation" data-cites="MISRA_CPP">[<a href="#ref-MISRA_CPP" role="doc-biblioref">MISRA C++</a>]</span> with
+the aim of enforcing the creation of safe code in C++, they are
+cumbersome to use and tend to shift the burden on the discipline of the
+programmers to enforce these. At the time of writing, the C++ language
+does not change fast enough to enforce safe-by-construction code.</p>
+<p>One of the ways C++ can significantly improve the safety of
+applications being written by thousands of developers is by introducing
+a type-safe, well-tested, standardized way to handle physical quantities
+and their units. The rationale is that people tend to have problems
+communicating or using proper units in code and daily life. Numerous
+expensive failures and accidents happened due to using an invalid unit
+or a quantity type.</p>
+<p>The most famous and probably the most expensive example in the
+software engineering domain is the Mars Climate Orbiter that in 1999
+failed to enter Mars’ orbit and crashed while entering its atmosphere
+<span class="citation" data-cites="MARS_ORBITER">[<a href="#ref-MARS_ORBITER" role="doc-biblioref">Mars Orbiter</a>]</span>.
+This is one of many examples here. People tend to confuse units quite
+often. We see similar errors occurring in various domains over the
+years:</p>
+<ul>
+<li>On October 12, 1492, Christopher Columbus unintentionally discovered
+the sea route from Europe to America because, during his travel
+preparations, he mixed the Arabic mile with a Roman mile, which led to
+the wrong estimation of the equator and his expected travel distance
+<span class="citation" data-cites="COLUMBUS">[<a href="#ref-COLUMBUS" role="doc-biblioref">Columbus</a>]</span>.</li>
+<li>In 1628, a new warship, Vasa, accidentally had an asymmetrical hull
+(being thicker on the port side than the starboard side), which was one
+of the reasons for her sinking less than a mile into her maiden voyage,
+resulting in the death of 30 people on board. This asymmetry could have
+been caused by the use of different systems of measurement, as
+archaeologists have found four rulers used by the workers who built the
+ship. Two were calibrated in Swedish feet, which had 12 inches, while
+the other two measured Amsterdam feet, which had 11 inches <span class="citation" data-cites="VASA">[<a href="#ref-VASA" role="doc-biblioref">Vasa</a>]</span>.</li>
+<li>Air Canada Flight 143 ran out of fuel on July 23, 1983, at an
+altitude of 41 000 feet (12 000 metres), midway through the flight
+because the fuel had been calculated in pounds instead of kilograms by
+the ground crew <span class="citation" data-cites="GIMLI_GLIDER">[<a href="#ref-GIMLI_GLIDER" role="doc-biblioref">Gimli
+Glider</a>]</span>.</li>
+<li>The British rock band Black Sabbath, during its Born Again tour in
+1983, ordered a replica of Stonehenge as props for the scene.
+Unfortunately, they had to leave them in the storage area because, while
+submitting the order, their manager wrote dimensions down in meters when
+he meant feet, and so the stones didn’t fit the scene. “It cost a
+fortune to make, but there was not a building on Earth that you could
+fit it into” <span class="citation" data-cites="STONEHENGE">[<a href="#ref-STONEHENGE" role="doc-biblioref">Stonehenge</a>]</span>.</li>
+<li>On April 15, 1999, Korean Air Cargo Flight 6316 crashed due to a
+miscommunication between pilots about the desired flight altitude <span class="citation" data-cites="FLIGHT_6316">[<a href="#ref-FLIGHT_6316" role="doc-biblioref">Flight 6316</a>]</span>.</li>
+<li>In February 2001, the crew of the Moorpark College Zoo built an
+enclosure for Clarence the Tortoise with a weight of 250 pounds instead
+of 250 kilograms <span class="citation" data-cites="CLARENCE">[<a href="#ref-CLARENCE" role="doc-biblioref">Clarence</a>]</span>.</li>
+<li>In December 2003, one of the roller coaster’s cars at Tokyo
+Disneyland’s Space Mountain attraction suddenly derailed due to a broken
+axle caused by confusion after upgrading the specification from imperial
+to metric units <span class="citation" data-cites="DISNEY">[<a href="#ref-DISNEY" role="doc-biblioref">Disney</a>]</span>.</li>
+<li>During the construction of the Hochrheinbrücke bridge to connect the
+small German town of Laufenburg with Swiss Laufenburg, the construction
+team made a sign error that resulted in a discrepancy of 54 cm between
+the two outer ends of the bridge <span class="citation" data-cites="HOCHRHEINBRÜCKE">[<a href="#ref-HOCHRHEINBRÜCKE" role="doc-biblioref">Hochrheinbrücke</a>]</span>.</li>
+<li>An American company sold a shipment of wild rice to a Japanese
+customer, quoting a price of 39 cents per pound, but the customer
+thought the quote was for 39 cents per kilogram <span class="citation" data-cites="WILD_RICE">[<a href="#ref-WILD_RICE" role="doc-biblioref">Wild Rice</a>]</span>.</li>
+<li>A whole set of <span class="citation" data-cites="MEDICATION_DOSE_ERRORS">[<a href="#ref-MEDICATION_DOSE_ERRORS" role="doc-biblioref">Medication dose
+errors</a>]</span>…</li>
+</ul>
+<p>The safety subject is so vast and essential by itself that we
+dedicated a separate paper <span class="citation" data-cites="P2981_PRE">[<a href="#ref-P2981_PRE" role="doc-biblioref">P2981</a>]</span> that discusses all the nuances in
+detail.</p>
+<h2 data-number="4.2" id="vocabulary-types"><span class="header-section-number">4.2</span> Vocabulary types<a href="#vocabulary-types" class="self-link"></a></h2>
+<p>We standardized many library features mostly used in the
+implementation details (fmt, ranges, random-number generators, etc.).
+However, we believe that the most important role of the C++ Standard is
+to provide a standardized way of communication between different
+vendors.</p>
+<p>Let’s imagine a world without
+<code class="sourceCode default">std::string</code> or
+<code class="sourceCode default">std::vector</code>. Every vendor has
+their version of it, and of course, they are highly incompatible with
+each other. As a result, when someone needs to integrate software from
+different vendors, it turns out to be an unnecessarily arduous task.</p>
+<p>Introducing
+<code class="sourceCode default">std::chrono::duration</code> and
+<code class="sourceCode default">std::chrono::time_point</code> improved
+the interfaces a lot, but time is only one of many quantities that we
+deal with in our software on a daily basis. We desperately need to be
+able to express more quantities and units in a standardized way so
+different libraries get means to communicate with each other.</p>
+<p>If Lockheed Martin and NASA could have used standardized vocabulary
+types in their interfaces, maybe they would not interpret pound-force
+seconds as newton seconds, and the <span class="citation" data-cites="MARS_ORBITER">[<a href="#ref-MARS_ORBITER" role="doc-biblioref">Mars Orbiter</a>]</span> would not have crashed
+during the Mars orbital insertion maneuver.</p>
+<h2 data-number="4.3" id="certification"><span class="header-section-number">4.3</span> Certification<a href="#certification" class="self-link"></a></h2>
+<p>Mission and life-critical projects, or those for embedded devices,
+often have to obey the safety norms that care about software for
+safety-critical systems (e.g., ISO 61508 is a basic functional safety
+standard applicable to all industries, and ISO 26262 for automotive). As
+a result, their company policy often forbid third-party tooling that
+lacks official certification. Such certification requires a
+specification to be certified against, and those tools often do not have
+one. The risk and cost of self-certifying an Open Source project is too
+high for many as well.</p>
+<p>Companies often have a policy that the software they use must obey
+all the rules MISRA provides. This is a common misconception, as many of
+those rules are intended to be deviated from. However, those deviations
+require rationale and documentation, which is also considered to be
+risky and expensive by many.</p>
+<p>All of those reasons often prevent the usage of an Open Source
+product in a company, which is a huge issue, as those companies
+typically are natural users of physical quantities and units
+libraries.</p>
+<p>Having the physical quantities and units library standardized would
+solve those issues for many customers, and would allow them to produce
+safer code for projects on which human life depends every single
+day.</p>
+<h2 data-number="4.4" id="complex-and-complicated"><span class="header-section-number">4.4</span> Complex and complicated<a href="#complex-and-complicated" class="self-link"></a></h2>
+<p>Suppose vendors can’t use an Open Source library in a production
+project for the above reasons. They are forced to write their own
+abstractions by themselves. Besides being costly and time-consuming, it
+also happens that writing a physical quantities and units library by
+yourself is far from easy. Doing this is complex and complicated,
+especially for engineers who are not experts in the domain. There are
+many exceptional corner cases to cover that most developers do not even
+realize before falling into a trap in production. On the other hand,
+domain experts might find it difficult to put their knowledge into code
+and create a correct implementation in C++. As a result, companies
+either use really simple and unsafe numeric wrappers, or abandon the
+effort entirely and just use built-in types, such as
+<code class="sourceCode default">float</code> or
+<code class="sourceCode default">int</code>, to express quantity values,
+thus losing all semantic categorization. This often leads to safety
+issues caused by accidentally using values representing the wrong
+quantity or having an incorrect unit.</p>
+<h2 data-number="4.5" id="extensibility"><span class="header-section-number">4.5</span> Extensibility<a href="#extensibility" class="self-link"></a></h2>
+<p>Many applications of a quantity and units library may need to operate
+on a combination of standard (e.g. SI) and domain-specific quantities
+and units. The complexity of developing domain-specific solutions
+highlights the value in being able to define new quantities and units
+that have all the expressivity and safety as those provided by the
+library.</p>
+<p>Experience with writing ad hoc typed quantities without library
+support that can be combined with or converted to
+<code class="sourceCode default">std::chrono::duration</code> has shown
+the downside of bespoke solutions: If not all operations or conversions
+are handled, users will need to leave the safety of typed quantities to
+operate on primitive types.</p>
+<p>The interfaces of the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library were designed with
+ease of extensibility in mind. Each definition of a dimension, quantity
+type, or unit typically takes only a single line of code. This is
+possible thanks to the extensive usage of C++20 class types as Non-Type
+Template Parameters (NTTP). For example, the following code presents how
+second (a unit of time in the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>) and hertz (a unit of
+frequency in the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span>) can be defined:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> second <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;s&quot;</span>, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;&gt;</span> <span class="op">{}</span> second;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> hertz <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;Hz&quot;</span>, <span class="dv">1</span> <span class="op">/</span> second, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>frequency<span class="op">&gt;&gt;</span> <span class="op">{}</span> hertz;</span></code></pre></div>
+<h2 data-number="4.6" id="broad-industry-value"><span class="header-section-number">4.6</span> Broad industry value<a href="#broad-industry-value" class="self-link"></a></h2>
+<p>When people think about industries that could use physical quantities
+and unit libraries, they think of a few companies related to aerospace,
+autonomous cars, or embedded industries. That is all true, but there are
+many other potential users for such a library.</p>
+<p>Here is a list of some less obvious candidates:</p>
+<ul>
+<li>Manufacturing,</li>
+<li>maritime industry,</li>
+<li>freight transport,</li>
+<li>military,</li>
+<li>astronomy,</li>
+<li>3D design,</li>
+<li>robotics,</li>
+<li>audio,</li>
+<li>medical devices,</li>
+<li>national laboratories,</li>
+<li>scientific institutions and universities,</li>
+<li>all kinds of navigation and charting,</li>
+<li>GUI frameworks,</li>
+<li>finance (including HFT).</li>
+</ul>
+<p>As we can see, the range of domains for such a library is vast and
+not limited to applications involving specifically physical units. Any
+software that involves measurements, or operations on counts of some
+standard or domain-specific quantities, could benefit from a zero-cost
+abstraction for operating on quantity values and their units. The
+library also provides affine space abstractions, which may prove useful
+in many applications.</p>
+<h2 data-number="4.7" id="standardizing-existing-practice"><span class="header-section-number">4.7</span> Standardizing existing
+practice<a href="#standardizing-existing-practice" class="self-link"></a></h2>
+<p>Plenty of physical units libraries have been available to the public
+for many years. Throughout the years, we have learned the best practices
+for handling specific cases in the domain. Various products may have
+different scopes and support different C++ versions. Still, taking that
+aside, they use really similar concepts, types, and operations under the
+hood. We know how to do those things already.</p>
+<p>The authors of this paper developed and delivered multiple successful
+C++ libraries for this domain. They joined forces and are working
+together to propose the best physical quantities and units library we
+can get with the latest version of the C++ language. They spend their
+private time and efforts hoping that the ISO C++ Committee will be
+willing to include such a feature in the C++ standard library.</p>
+<h1 data-number="5" id="design-goals"><span class="header-section-number">5</span> Design goals<a href="#design-goals" class="self-link"></a></h1>
+<p>The library facilities that we plan to propose in the upcoming papers
+will be designed with the following goals in mind.</p>
+<h2 data-number="5.1" id="compile-time-safety"><span class="header-section-number">5.1</span> Compile-time safety<a href="#compile-time-safety" class="self-link"></a></h2>
+<p>The most important property of such a library is the safety it brings
+to C++ projects. The correct handling of physical quantities, units, and
+numerical values should be verified both by the compiler during the
+compilation process and by humans with manual inspection in each
+individual line.</p>
+<p>In some cases we are even eager to prioritize safe interfaces over
+the general usability experience (e.g. getters of the underlying raw
+numerical value will always require a unit in which the value should be
+returned in, which results in more typing and is sometimes
+redundant).</p>
+<p>More information on this subject can be found in <span class="citation" data-cites="P2981_PRE">[<a href="#ref-P2981_PRE" role="doc-biblioref">P2981</a>]</span>.</p>
+<h2 data-number="5.2" id="performance"><span class="header-section-number">5.2</span> Performance<a href="#performance" class="self-link"></a></h2>
+<p>The library should be as fast or even faster than working with
+fundamental types. The should be no runtime overhead and no space size
+overhead should be needed to implement high-level abstractions.</p>
+<h2 data-number="5.3" id="great-user-experience"><span class="header-section-number">5.3</span> Great user experience<a href="#great-user-experience" class="self-link"></a></h2>
+<p>The primary purpose of such a library is to generate compile-time
+errors. If the developers did not introduce any bugs in the manual
+handling of quantities and units, such a library would be of little use.
+This is why such a library should be optimized for readable compilation
+errors and great debugging experience.</p>
+<p>Such a library should be also easy to use and flexible. The
+interfaces should be straight-forward and safe by default. Users should
+be able to easily express any quantity and unit, which requires them to
+compose.</p>
+<p>The above constraints imply the usage of special implementation
+techniques. The library will not only provides types but also
+compile-time known values that will enable users to write easy to
+understand and efficient equations on quantities and units.</p>
+<h2 data-number="5.4" id="feature-rich"><span class="header-section-number">5.4</span> Feature rich<a href="#feature-rich" class="self-link"></a></h2>
+<p>There are plenty of expectations from different parties regarding
+such a library. It should support at least:</p>
+<ul>
+<li>Systems of Quantities,</li>
+<li>Systems of Units,</li>
+<li>Scalar, vector, and tensor quantities,</li>
+<li>The affine space,</li>
+<li>Natural units systems,</li>
+<li>Strong angular system,</li>
+<li>Any unit’s magnitude (huge, small, floating-point),</li>
+<li>Faster-than-lightspeed constants,</li>
+<li>Highly adjustable text-output formatting.</li>
+</ul>
+<h2 data-number="5.5" id="easy-to-extend"><span class="header-section-number">5.5</span> Easy to extend<a href="#easy-to-extend" class="self-link"></a></h2>
+<p>Most entities in the library should be possible to be defined with a
+single line of code with no need to use preprocessor macros. Users
+should be able to easily extend provided systems with custom dimensions,
+quantities, and units.</p>
+<h2 data-number="5.6" id="low-standardization-cost"><span class="header-section-number">5.6</span> Low standardization cost<a href="#low-standardization-cost" class="self-link"></a></h2>
+<p>The set of entities required for standardization should be limited to
+the bare minimum.</p>
+<p>Derived units should not require separate library types but should be
+obtained through the composition of predefined named units. Units should
+not be associated with User-Defined Literals (UDLs), as it is the case
+of <code class="sourceCode default">std::chrono::duration</code>. UDLs
+do not compose, have very limited scope and functionality, and are
+expensive to standardize.</p>
+<p>There should be no preprocessor macros in the user interface.</p>
+<p>Most proposed features (besides text output) should be possible to be
+standardized as a freestanding part of the C++ standard library.</p>
+<h1 data-number="6" id="look-and-feel"><span class="header-section-number">6</span> Look and feel<a href="#look-and-feel" class="self-link"></a></h1>
+<p><em>Note: The code examples presented in this paper may not exactly
+reflect the final interface design that is going to be proposed in the
+follow-up papers. We are still doing some small fine-tuning to improve
+the library.</em></p>
+<p>So far, no papers have been submitted on a working interface of
+physical quantities and units. To allow the reader to better understand
+the features and scope of the library, this chapter presents a few
+simple examples.</p>
+<h2 data-number="6.1" id="basic-quantity-equations"><span class="header-section-number">6.1</span> Basic quantity equations<a href="#basic-quantity-equations" class="self-link"></a></h2>
+<p>Let’s start with a really simple example presenting basic operations
+that every physical quantities and units library should provide:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">// simple numeric operations</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">10</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">5</span> <span class="op">*</span> km<span class="op">)</span>;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">// unit conversions</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h <span class="op">==</span> <span class="dv">3600</span> <span class="op">*</span> s<span class="op">)</span>;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">==</span> <span class="dv">1001</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">// derived quantities</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> s<span class="op">)</span> <span class="op">==</span> <span class="dv">1000</span> <span class="op">*</span> m <span class="op">/</span> s<span class="op">)</span>;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> h <span class="op">*</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">==</span> <span class="dv">4</span> <span class="op">*</span> km<span class="op">)</span>;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> km <span class="op">/</span> h<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">2</span> <span class="op">*</span> m <span class="op">*</span> <span class="op">(</span><span class="dv">3</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">==</span> <span class="dv">6</span> <span class="op">*</span> m2<span class="op">)</span>;</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">10</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> km<span class="op">)</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> one<span class="op">)</span>;</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1000</span> <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> s<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> kHz<span class="op">)</span>;</span></code></pre></div>
+<p>Try it in <a href="https://godbolt.org/z/sYfoPzTvT">the Compiler
+Explorer</a>.</p>
+<h2 data-number="6.2" id="hello-units"><span class="header-section-number">6.2</span> Hello units<a href="#hello-units" class="self-link"></a></h2>
+<p>The next example serves as a showcase of various features available
+in the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>
+library.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/format.h&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/ostream.h&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/international/international.h&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/isq.h&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> avg_speed<span class="op">(</span>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> d,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                                                QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> t<span class="op">)</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> d <span class="op">/</span> t;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>international<span class="op">::</span>unit_symbols;</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v1 <span class="op">=</span> <span class="dv">110</span> <span class="op">*</span> km <span class="op">/</span> h;</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v2 <span class="op">=</span> <span class="dv">70</span> <span class="op">*</span> mph;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v3 <span class="op">=</span> avg_speed<span class="op">(</span><span class="fl">220.</span> <span class="op">*</span> km, <span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v4 <span class="op">=</span> avg_speed<span class="op">(</span>isq<span class="op">::</span>distance<span class="op">(</span><span class="fl">140.</span> <span class="op">*</span> mi<span class="op">)</span>, <span class="dv">2</span> <span class="op">*</span> isq<span class="op">::</span>duration<span class="op">[</span>h<span class="op">])</span>;</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v5 <span class="op">=</span> v3<span class="op">.</span>in<span class="op">(</span>m <span class="op">/</span> s<span class="op">)</span>;</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v6 <span class="op">=</span> value_cast<span class="op">&lt;</span>m <span class="op">/</span> s<span class="op">&gt;(</span>v4<span class="op">)</span>;</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> quantity v7 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>v6<span class="op">)</span>;</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> v1 <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;                <span class="co">// 110 km/h</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> v2 <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;                <span class="co">// 70 mi/h</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{}&quot;</span>, v3<span class="op">)</span>;                 <span class="co">// 110 km/h</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{:*^14}&quot;</span>, v4<span class="op">)</span>;            <span class="co">// ***70 mi/h****</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{:%Q in %q}&quot;</span>, v5<span class="op">)</span>;        <span class="co">// 30.5556 in m/s</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{0:%Q} in {0:%q}&quot;</span>, v6<span class="op">)</span>;   <span class="co">// 31.2928 in m/s</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{:%Q}&quot;</span>, v7<span class="op">)</span>;              <span class="co">// 31</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Try it in <a href="https://godbolt.org/z/3E7q5P6jq">the Compiler
+Explorer</a>.</p>
+<h2 data-number="6.3" id="bridge-across-the-rhine"><span class="header-section-number">6.3</span> Bridge across the Rhine<a href="#bridge-across-the-rhine" class="self-link"></a></h2>
+<p>The following example codifies the history of a famous issue during
+the construction of a bridge across the Rhine River between the German
+and Swiss parts of the town Laufenburg <span class="citation" data-cites="HOCHRHEINBRÜCKE">[<a href="#ref-HOCHRHEINBRÜCKE" role="doc-biblioref">Hochrheinbrücke</a>]</span>. It also nicely
+presents how <a href="https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/">the
+Affine Space is being modeled in the library</a>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/ostream.h&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/quantity_point.h&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/space_and_time.h&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> amsterdam_sea_level <span class="op">:</span> absolute_point_origin<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> amsterdam_sea_level;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">struct</span> mediterranean_sea_level <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>amsterdam_sea_level <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(-</span><span class="dv">27</span> <span class="op">*</span> cm<span class="op">)&gt;</span> <span class="op">{</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> mediterranean_sea_level;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> altitude_DE <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, amsterdam_sea_level<span class="op">&gt;</span>;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> altitude_CH <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>altitude<span class="op">[</span>m<span class="op">]</span>, mediterranean_sea_level<span class="op">&gt;</span>;</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">auto</span> R, <span class="kw">typename</span> Rep<span class="op">&gt;</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>ostream<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>std<span class="op">::</span>ostream<span class="op">&amp;</span> os, quantity_point<span class="op">&lt;</span>R, altitude_DE<span class="op">::</span>point_origin, Rep<span class="op">&gt;</span> alt<span class="op">)</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_ref_from<span class="op">(</span>alt<span class="op">.</span>point_origin<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(DE)&quot;</span>;</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">auto</span> R, <span class="kw">typename</span> Rep<span class="op">&gt;</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>ostream<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>std<span class="op">::</span>ostream<span class="op">&amp;</span> os, quantity_point<span class="op">&lt;</span>R, altitude_CH<span class="op">::</span>point_origin, Rep<span class="op">&gt;</span> alt<span class="op">)</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> os <span class="op">&lt;&lt;</span> alt<span class="op">.</span>quantity_ref_from<span class="op">(</span>alt<span class="op">.</span>point_origin<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; AMSL(CH)&quot;</span>;</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  <span class="co">// expected bridge altitude in a specific reference system</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  quantity_point expected_bridge_alt <span class="op">=</span> amsterdam_sea_level <span class="op">+</span> isq<span class="op">::</span>altitude<span class="op">(</span><span class="dv">330</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  <span class="co">// some nearest landmark altitudes on both sides of the river</span></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="co">// equal but not equal ;-)</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  altitude_DE landmark_alt_DE <span class="op">=</span> altitude_DE<span class="op">::</span>point_origin <span class="op">+</span> <span class="dv">300</span> <span class="op">*</span> m;</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>  altitude_CH landmark_alt_CH <span class="op">=</span> altitude_CH<span class="op">::</span>point_origin <span class="op">+</span> <span class="dv">300</span> <span class="op">*</span> m;</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artifical deltas from landmarks of the bridge base on both sides of the river</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  quantity delta_DE <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span><span class="dv">3</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>  quantity delta_CH <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(-</span><span class="dv">2</span> <span class="op">*</span> m<span class="op">)</span>;</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artificial altitude of the bridge base on both sides of the river</span></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_base_alt_DE <span class="op">=</span> landmark_alt_DE <span class="op">+</span> delta_DE;</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_base_alt_CH <span class="op">=</span> landmark_alt_CH <span class="op">+</span> delta_CH;</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artificial height of the required bridge pilar height on both sides of the river</span></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>  quantity bridge_pilar_height_DE <span class="op">=</span> expected_bridge_alt <span class="op">-</span> bridge_base_alt_DE;</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>  quantity bridge_pilar_height_CH <span class="op">=</span> expected_bridge_alt <span class="op">-</span> bridge_base_alt_CH;</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Bridge pillars height:</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Germany:     &quot;</span> <span class="op">&lt;&lt;</span> bridge_pilar_height_DE <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Switzerland: &quot;</span> <span class="op">&lt;&lt;</span> bridge_pilar_height_CH <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">// artificial bridge altitude on both sides of the river in both systems</span></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_road_alt_DE <span class="op">=</span> bridge_base_alt_DE <span class="op">+</span> bridge_pilar_height_DE;</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>  quantity_point bridge_road_alt_CH <span class="op">=</span> bridge_base_alt_CH <span class="op">+</span> bridge_pilar_height_CH;</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Bridge road altitude:</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Germany:     &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_DE <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Switzerland: &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_CH <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Bridge road altitude relative to the Amsterdam Sea Level:</span><span class="sc">\n</span><span class="st">&quot;</span>;</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Germany:     &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_DE <span class="op">-</span> amsterdam_sea_level <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;- Switzerland: &quot;</span> <span class="op">&lt;&lt;</span> bridge_road_alt_CH <span class="op">-</span> amsterdam_sea_level <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The above provides the following text output:</p>
+<pre class="text"><code>Bridge pillars height:
+- Germany:     27 m
+- Switzerland: 3227 cm
+Bridge road altitude:
+- Germany:     330 m AMSL(DE)
+- Switzerland: 33027 cm AMSL(CH)
+Bridge road altitude relative to the Amsterdam Sea Level:
+- Germany:     330 m
+- Switzerland: 33000 cm</code></pre>
+<p>Try it in <a href="https://godbolt.org/z/c17TWGhc5">the Compiler
+Explorer</a>.</p>
+<h2 data-number="6.4" id="storage-tank"><span class="header-section-number">6.4</span> Storage tank<a href="#storage-tank" class="self-link"></a></h2>
+<p>This example estimates the process of filling a storage tank with
+some contents. It presents:</p>
+<ul>
+<li><a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds">The
+importance of supporting more than one distinct quantity of the same
+kind</a>,</li>
+<li><a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/">faster-than-lightspeed
+constants</a>,</li>
+<li>how easy it is to <a href="https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#defining-quantities">add
+custom quantity types</a> when needed, and</li>
+<li><a href="https://mpusz.github.io/mp-units/2.1/users_guide/framework_basics/basic_concepts/#QuantityLike">interoperability
+with
+<code class="sourceCode default">std::chrono::duration</code></a>.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/chrono.h&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/format.h&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/math.h&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/isq.h&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;chrono&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;format&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;numbers&gt;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;utility&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">// allows standard gravity (acceleration) and weight (force) to be expressed with scalar representation</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">// types instead of requiring the usage of Linear Algebra library for this simple example</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> mp_units<span class="op">::</span>is_scalar<span class="op">&lt;</span>T<span class="op">&gt;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="dt">bool</span> mp_units<span class="op">::</span>is_vector<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> <span class="op">{</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co">// add a custom quantity type of kind isq::length</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> horizontal_length <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="op">{}</span> horizontal_length;</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co">// add a custom derived quantity type of kind isq::area with a constrained quantity equation</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> horizontal_area <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>area, horizontal_length <span class="op">*</span> isq<span class="op">::</span>width<span class="op">&gt;</span> <span class="op">{}</span> horizontal_area;</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> g <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> si<span class="op">::</span>standard_gravity;</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> air_density <span class="op">=</span> isq<span class="op">::</span>mass_density<span class="op">(</span><span class="fl">1.225</span> <span class="op">*</span> kg <span class="op">/</span> m3<span class="op">)</span>;</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StorageTank <span class="op">{</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;</span> base_;</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;</span> height_;</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass_density<span class="op">[</span>kg <span class="op">/</span> m3<span class="op">]&gt;</span> density_ <span class="op">=</span> air_density;</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> StorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>horizontal_area<span class="op">[</span>m2<span class="op">]&gt;&amp;</span> base, <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>      base_<span class="op">(</span>base<span class="op">)</span>, height_<span class="op">(</span>height<span class="op">)</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">void</span> set_contents_density<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass_density<span class="op">[</span>kg <span class="op">/</span> m3<span class="op">]&gt;&amp;</span> density<span class="op">)</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>density <span class="op">&gt;</span> air_density<span class="op">)</span>;</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    density_ <span class="op">=</span> density;</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">constexpr</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>weight<span class="op">&gt;</span> <span class="kw">auto</span> filled_weight<span class="op">()</span> <span class="kw">const</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> <span class="kw">auto</span> volume <span class="op">=</span> isq<span class="op">::</span>volume<span class="op">(</span>base_ <span class="op">*</span> height_<span class="op">)</span>;</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">&gt;</span> <span class="kw">auto</span> mass <span class="op">=</span> density_ <span class="op">*</span> volume;</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> isq<span class="op">::</span>weight<span class="op">(</span>mass <span class="op">*</span> g<span class="op">)</span>;</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">constexpr</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;</span> fill_level<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&amp;</span> measured_mass<span class="op">)</span> <span class="kw">const</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> height_ <span class="op">*</span> measured_mass <span class="op">*</span> g <span class="op">/</span> filled_weight<span class="op">()</span>;</span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">constexpr</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>volume<span class="op">[</span>m3<span class="op">]&gt;</span> spare_capacity<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&amp;</span> measured_mass<span class="op">)</span> <span class="kw">const</span></span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">(</span>height_ <span class="op">-</span> fill_level<span class="op">(</span>measured_mass<span class="op">))</span> <span class="op">*</span> base_;</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CylindricalStorageTank <span class="op">:</span> <span class="kw">public</span> StorageTank <span class="op">{</span></span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> CylindricalStorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>radius<span class="op">[</span>m<span class="op">]&gt;&amp;</span> radius,</span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>      StorageTank<span class="op">(</span>quantity_cast<span class="op">&lt;</span>horizontal_area<span class="op">&gt;(</span>std<span class="op">::</span>numbers<span class="op">::</span>pi <span class="op">*</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>radius<span class="op">))</span>, height<span class="op">)</span></span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> RectangularStorageTank <span class="op">:</span> <span class="kw">public</span> StorageTank <span class="op">{</span></span>
+<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-78"><a href="#cb5-78" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> RectangularStorageTank<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>horizontal_length<span class="op">[</span>m<span class="op">]&gt;&amp;</span> length,</span>
+<span id="cb5-79"><a href="#cb5-79" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>width<span class="op">[</span>m<span class="op">]&gt;&amp;</span> width,</span>
+<span id="cb5-80"><a href="#cb5-80" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>height<span class="op">[</span>m<span class="op">]&gt;&amp;</span> height<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb5-81"><a href="#cb5-81" aria-hidden="true" tabindex="-1"></a>      StorageTank<span class="op">(</span>length <span class="op">*</span> width, height<span class="op">)</span></span>
+<span id="cb5-82"><a href="#cb5-82" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb5-83"><a href="#cb5-83" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-84"><a href="#cb5-84" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb5-85"><a href="#cb5-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-86"><a href="#cb5-86" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>  <span class="co">// namespace</span></span>
+<span id="cb5-87"><a href="#cb5-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-88"><a href="#cb5-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-89"><a href="#cb5-89" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb5-90"><a href="#cb5-90" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-91"><a href="#cb5-91" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> height <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span><span class="dv">200</span> <span class="op">*</span> mm<span class="op">)</span>;</span>
+<span id="cb5-92"><a href="#cb5-92" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> tank <span class="op">=</span> RectangularStorageTank<span class="op">(</span>horizontal_length<span class="op">(</span><span class="dv">1&#39;000</span> <span class="op">*</span> mm<span class="op">)</span>, isq<span class="op">::</span>width<span class="op">(</span><span class="dv">500</span> <span class="op">*</span> mm<span class="op">)</span>, height<span class="op">)</span>;</span>
+<span id="cb5-93"><a href="#cb5-93" aria-hidden="true" tabindex="-1"></a>  tank<span class="op">.</span>set_contents_density<span class="op">(</span><span class="dv">1&#39;000</span> <span class="op">*</span> kg <span class="op">/</span> m3<span class="op">)</span>;</span>
+<span id="cb5-94"><a href="#cb5-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-95"><a href="#cb5-95" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> duration <span class="op">=</span> std<span class="op">::</span>chrono<span class="op">::</span>seconds<span class="op">{</span><span class="dv">200</span><span class="op">}</span>;</span>
+<span id="cb5-96"><a href="#cb5-96" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> quantity fill_time <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>quantity<span class="op">{</span>duration<span class="op">})</span>;  <span class="co">// time since starting fill</span></span>
+<span id="cb5-97"><a href="#cb5-97" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> quantity measured_mass <span class="op">=</span> <span class="fl">20.</span> <span class="op">*</span> kg;                         <span class="co">// measured mass at fill_time</span></span>
+<span id="cb5-98"><a href="#cb5-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-99"><a href="#cb5-99" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> fill_level <span class="op">=</span> tank<span class="op">.</span>fill_level<span class="op">(</span>measured_mass<span class="op">)</span>;</span>
+<span id="cb5-100"><a href="#cb5-100" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> spare_capacity <span class="op">=</span> tank<span class="op">.</span>spare_capacity<span class="op">(</span>measured_mass<span class="op">)</span>;</span>
+<span id="cb5-101"><a href="#cb5-101" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> filled_weight <span class="op">=</span> tank<span class="op">.</span>filled_weight<span class="op">()</span>;</span>
+<span id="cb5-102"><a href="#cb5-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-103"><a href="#cb5-103" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>mass_change_rate<span class="op">&gt;</span> <span class="kw">auto</span> input_flow_rate <span class="op">=</span> measured_mass <span class="op">/</span> fill_time;</span>
+<span id="cb5-104"><a href="#cb5-104" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> float_rise_rate <span class="op">=</span> fill_level <span class="op">/</span> fill_time;</span>
+<span id="cb5-105"><a href="#cb5-105" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> fill_time_left <span class="op">=</span> <span class="op">(</span>height <span class="op">/</span> fill_level <span class="op">-</span> <span class="dv">1</span> <span class="op">*</span> one<span class="op">)</span> <span class="op">*</span> fill_time;</span>
+<span id="cb5-106"><a href="#cb5-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-107"><a href="#cb5-107" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> fill_ratio <span class="op">=</span> fill_level <span class="op">/</span> height;</span>
+<span id="cb5-108"><a href="#cb5-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-109"><a href="#cb5-109" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;fill height at {} = {} ({} full)&quot;</span>, fill_time, fill_level, fill_ratio<span class="op">.</span>in<span class="op">(</span>percent<span class="op">))</span>;</span>
+<span id="cb5-110"><a href="#cb5-110" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;fill weight at {} = {} ({})&quot;</span>, fill_time, filled_weight, filled_weight<span class="op">.</span>in<span class="op">(</span>N<span class="op">))</span>;</span>
+<span id="cb5-111"><a href="#cb5-111" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;spare capacity at {} = {}&quot;</span>, fill_time, spare_capacity<span class="op">)</span>;</span>
+<span id="cb5-112"><a href="#cb5-112" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;input flow rate = {}&quot;</span>, input_flow_rate<span class="op">)</span>;</span>
+<span id="cb5-113"><a href="#cb5-113" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;float rise rate = {}&quot;</span>, float_rise_rate<span class="op">)</span>;</span>
+<span id="cb5-114"><a href="#cb5-114" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;tank full E.T.A. at current flow rate = {}&quot;</span>, fill_time_left<span class="op">.</span>in<span class="op">(</span>s<span class="op">))</span>;</span>
+<span id="cb5-115"><a href="#cb5-115" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The above code outputs:</p>
+<pre class="text"><code>fill height at 200 s = 0.04 m (20 % full)
+fill weight at 200 s = 100 g₀ kg (980.665 N)
+spare capacity at 200 s = 0.08 m³
+input flow rate = 0.1 kg/s
+float rise rate = 0.0002 m/s
+tank full E.T.A. at current flow rate = 800 s</code></pre>
+<p>Try it in <a href="https://godbolt.org/z/cx8Pr6ne9">the Compiler
+Explorer</a>.</p>
+<h2 data-number="6.5" id="user-defined-quantities-and-units"><span class="header-section-number">6.5</span> User defined quantities and
+units<a href="#user-defined-quantities-and-units" class="self-link"></a></h2>
+<p>Users can easily define new quantities and units for domain-specific
+use-cases. This example from digital signal processing will show how to
+define custom units for counting <a href="https://en.wikipedia.org/wiki/Sampling_(signal_processing)">digital
+samples</a> and how they can be converted to time measured in
+milliseconds:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/format.h&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/isq/isq.h&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mp-units/systems/si/si.h&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;format&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> dsp_dsq <span class="op">{</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> mp_units;</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> SampleCount <span class="op">:</span> quantity_spec<span class="op">&lt;</span>dimensionless, is_kind<span class="op">&gt;</span> <span class="op">{}</span> SampleCount;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> SampleDuration <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="op">{}</span> SampleDuration;</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> SamplingRate <span class="op">:</span> quantity_spec<span class="op">&lt;</span>isq<span class="op">::</span>frequency, SampleCount <span class="op">/</span> isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="op">{}</span> SamplingRate;</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> Sample <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;Smpl&quot;</span>, one, kind_of<span class="op">&lt;</span>SampleCount<span class="op">&gt;&gt;</span> <span class="op">{}</span> Sample;</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> unit_symbols <span class="op">{</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> Smpl <span class="op">=</span> Sample;</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> dsp_dsq<span class="op">::</span>unit_symbols;</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <span class="kw">namespace</span> mp_units<span class="op">::</span>si<span class="op">::</span>unit_symbols;</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sr1 <span class="op">=</span> <span class="fl">44100.</span><span class="bu">f</span> <span class="op">*</span> Hz;</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sr2 <span class="op">=</span> <span class="fl">48000.</span><span class="bu">f</span> <span class="op">*</span> Smpl <span class="op">/</span> s;</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> bufferSize <span class="op">=</span> <span class="dv">512</span> <span class="op">*</span> Smpl;</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleTime1 <span class="op">=</span> <span class="op">(</span>bufferSize <span class="op">/</span> sr1<span class="op">).</span>in<span class="op">(</span>s<span class="op">)</span>;</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleTime2 <span class="op">=</span> <span class="op">(</span>bufferSize <span class="op">/</span> sr2<span class="op">).</span>in<span class="op">(</span>ms<span class="op">)</span>;</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleDuration1 <span class="op">=</span> <span class="op">(</span><span class="dv">1</span> <span class="op">/</span> sr1<span class="op">).</span>in<span class="op">(</span>ms<span class="op">)</span>;</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> sampleDuration2 <span class="op">=</span> dsp_dsq<span class="op">::</span>SampleDuration<span class="op">(</span><span class="dv">1</span> <span class="op">/</span> sr2<span class="op">).</span>in<span class="op">(</span>ms<span class="op">)</span>;</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> rampTime <span class="op">=</span> <span class="fl">35.</span><span class="bu">f</span> <span class="op">*</span> ms;</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> rampSamples1 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;((</span>rampTime <span class="op">*</span> sr1<span class="op">).</span>in<span class="op">(</span>Smpl<span class="op">))</span>;</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">auto</span> rampSamples2 <span class="op">=</span> value_cast<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;((</span>rampTime <span class="op">*</span> sr2<span class="op">).</span>in<span class="op">(</span>Smpl<span class="op">))</span>;</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;Sample rate 1 is: {}&quot;</span>, sr1<span class="op">)</span>;</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;Sample rate 2 is: {}&quot;</span>, sr2<span class="op">)</span>;</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} @ {} is {}&quot;</span>, bufferSize, sr1, sampleTime1<span class="op">)</span>;</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} @ {} is {}&quot;</span>, bufferSize, sr2, sampleTime2<span class="op">)</span>;</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;One sample @ {} is {}&quot;</span>, sr1, sampleDuration1<span class="op">)</span>;</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;One sample @ {} is {}&quot;</span>, sr2, sampleDuration2<span class="op">)</span>;</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} is {} @ {}&quot;</span>, rampTime, rampSamples1, sr1<span class="op">)</span>;</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;{} is {} @ {}&quot;</span>, rampTime, rampSamples2, sr2<span class="op">)</span>;</span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The above code outputs:</p>
+<pre class="text"><code>Sample rate 1 is: 44100 Hz
+Sample rate 2 is: 48000 Smpl/s
+512 Smpl @ 44100 Hz is 0.01161 s
+512 Smpl @ 48000 Smpl/s is 10.6667 ms
+One sample @ 44100 Hz is 0.0226757 ms
+One sample @ 48000 Smpl/s is 0.0208333 ms
+35 ms is 1543 Smpl @ 44100 Hz
+35 ms is 1680 Smpl @ 48000 Smpl/s</code></pre>
+<p>Try it in <a href="https://godbolt.org/z/KeT3MsfcG">the Compiler
+Explorer</a>.</p>
+<h1 data-number="7" id="scope"><span class="header-section-number">7</span> Scope<a href="#scope" class="self-link"></a></h1>
+<p>The tables below briefly highlight the expected scope and feature
+set. Each of the features will be described in detail in the upcoming
+papers. To learn more right away and to be able to provide early
+feedback, we encourage everyone to check out the documentation of the
+<span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> project.</p>
+<p><em>Note: The priorities provided in the below tables are the
+recommendations by authors based on their experience in the domain, but
+are in no way final. This is just an entry point for the discussion in
+the Committee.</em></p>
+<h2 data-number="7.1" id="basic-framework"><span class="header-section-number">7.1</span> Basic framework<a href="#basic-framework" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
+<table>
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 4%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Feature</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Priority</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Description</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Core library</td>
+<td style="text-align: center;">1</td>
+<td><code class="sourceCode default">std::quantity</code>, expression
+templates, dimensions, quantity specifications, units,
+<em>references</em>, and concepts for them</td>
+</tr>
+<tr class="even">
+<td>Quantity kinds</td>
+<td style="text-align: center;">1</td>
+<td>Support quantities of the same dimension that should be distinct,
+e.g., <code class="sourceCode default">frequency</code>,
+<code class="sourceCode default">activity</code>, and
+<code class="sourceCode default">modulation_rate</code>, or
+<code class="sourceCode default">energy</code> and
+<code class="sourceCode default">moment_of_force</code></td>
+</tr>
+<tr class="odd">
+<td>Various quantities of the same kind</td>
+<td style="text-align: center;">1</td>
+<td>Support quantities of the same kind that should be distinct, e.g.,
+<code class="sourceCode default">width</code>,
+<code class="sourceCode default">height</code>,
+<code class="sourceCode default">wavelength</code> (all of the kind
+<code class="sourceCode default">length</code>)</td>
+</tr>
+<tr class="even">
+<td>Vector and tensor representation types</td>
+<td style="text-align: center;">2</td>
+<td>Support for quantities of vector and tensor representation types
+(without intrusive changes on vector and tensor types)</td>
+</tr>
+<tr class="odd">
+<td>Logarithmic units support</td>
+<td style="text-align: center;">2</td>
+<td>Support for logarithmic units, e.g., decibel</td>
+</tr>
+<tr class="even">
+<td>Polymorphic unit</td>
+<td style="text-align: center;">???</td>
+<td>Runtime-known type-erased unit of a specified quantity type</td>
+</tr>
+</tbody>
+</table>
+<!-- markdownlint-enable MD013 -->
+<p>In the above table:</p>
+<ul>
+<li><code class="sourceCode default">std::quantity</code> is a class
+template that is the workhorse of the library. It is an incompatible
+generalization of
+<code class="sourceCode default">std::chrono::duration</code>.</li>
+<li>Expression templates are used to provide user-friendly error
+messages and great debugging experience. More information on this
+subject can be found in <span class="citation" data-cites="P2982_PRE">[<a href="#ref-P2982_PRE" role="doc-biblioref">P2982</a>]</span>.</li>
+<li>Quantity specifications include at least the following information:
+quantity type, quantity character, quantity equation (in case of derived
+quantities), quantity kind, and dimension.</li>
+<li>References (temporary name to be bikeshedded) are numeric wrappers
+over a quantity specification and an unit.</li>
+</ul>
+<p>Below, we provide a short overview of estimated additional
+framework-related costs associated with providing support for the
+following features (based on our current implementation experience):</p>
+<ul>
+<li>Quantity kinds
+<ul>
+<li><code class="sourceCode default">is_kind</code> tag type</li>
+<li>additional conversion rules to improve safety</li>
+</ul></li>
+<li>Quantities of the same kind
+<ul>
+<li><code class="sourceCode default">kind_of&lt;QS&gt;</code> class and
+variable templates</li>
+<li>additional conversion rules to improve safety</li>
+<li><code class="sourceCode default">common_quantity_spec()</code>
+function that finds a common node in the hierarchy tree</li>
+</ul></li>
+<li>Vector and tensor representation types
+<ul>
+<li><code class="sourceCode default">quantity_character</code> enum</li>
+<li><code class="sourceCode default">is_scalar&lt;T&gt;</code>,
+<code class="sourceCode default">is_vector&lt;T&gt;</code>,
+<code class="sourceCode default">is_tensor&lt;T&gt;</code>
+customizations points</li>
+<li>a few concepts
+(e.g. <code class="sourceCode default">RepresentationOf&lt;Ch&gt;</code>,
+<code class="sourceCode default">VectorRepresntation&lt;T&gt;</code>,
+…)</li>
+</ul></li>
+<li>Logarithmic units
+<ul>
+<li>the design is TBD</li>
+</ul></li>
+<li>Natural units
+<ul>
+<li><code class="sourceCode default">system_reference</code> class
+template</li>
+</ul></li>
+<li>Polymorphic unit
+<ul>
+<li>the design is TBD</li>
+</ul></li>
+</ul>
+<h2 data-number="7.2" id="the-affine-space"><span class="header-section-number">7.2</span> The affine space<a href="#the-affine-space" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 11%" />
+<col style="width: 68%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Feature</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Priority</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Description</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>The Affine Space</td>
+<td style="text-align: center;">1</td>
+<td><code class="sourceCode default">std::quantity_point</code>,
+absolute and relative point origins</td>
+</tr>
+</tbody>
+</table>
+<!-- markdownlint-enable MD013 -->
+<p>In the above table:</p>
+<ul>
+<li><code class="sourceCode default">std::quantity_point</code> is an
+incompatible generalization of
+<code class="sourceCode default">std::chrono::time_point</code>.</li>
+<li>Absolute point origin is a compile-time constant defining an
+absolute origin for
+<code class="sourceCode default">std::quantity_point</code> of a
+specific quantity type.</li>
+<li>Relative point origin is a compile-time constant defining an origin
+relative to another point origin.</li>
+</ul>
+<h2 data-number="7.3" id="text-output"><span class="header-section-number">7.3</span> Text output<a href="#text-output" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 9%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Feature</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Priority</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Description</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code class="sourceCode default">quantity</code> text output</td>
+<td style="text-align: center;">1</td>
+<td>Text output for quantity variables (number + unit)</td>
+</tr>
+<tr class="even">
+<td>Units text output</td>
+<td style="text-align: center;">2</td>
+<td>Text output for unit variables</td>
+</tr>
+<tr class="odd">
+<td>Dimensions text output</td>
+<td style="text-align: center;">2</td>
+<td>Text output for dimension variables</td>
+</tr>
+<tr class="even">
+<td><code class="sourceCode default">std::format</code> support</td>
+<td style="text-align: center;">1</td>
+<td>Custom grammar and support for all the standard formatting
+facilities</td>
+</tr>
+<tr class="odd">
+<td><code class="sourceCode default">std::ostream</code> support</td>
+<td style="text-align: center;">2</td>
+<td>Stream insertion operators support</td>
+</tr>
+</tbody>
+</table>
+<!-- markdownlint-enable MD013 -->
+<p><em>Note:</em> There is no built-in support to output
+<code class="sourceCode default">quantity_point</code> as text.</p>
+<h2 data-number="7.4" id="text-input"><span class="header-section-number">7.4</span> Text input<a href="#text-input" class="self-link"></a></h2>
+<p>As long as the C++ Standard doesn’t provide a generic facility to
+parse localized text, we do not plan to propose any support for doing
+that for physical quantities and their units.</p>
+<h2 data-number="7.5" id="systems-of-quantities"><span class="header-section-number">7.5</span> Systems of quantities<a href="#systems-of-quantities" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 3%" />
+<col style="width: 83%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Feature</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Priority</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Description</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>The most important ISQ quantities</td>
+<td style="text-align: center;">1</td>
+<td>Specification of the most commonly used ISQ quantities</td>
+</tr>
+<tr class="even">
+<td>ISQ 3-6</td>
+<td style="text-align: center;">1</td>
+<td>Specification of the ISQ quantities specified in ISO/IEC 80000 parts
+3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)</td>
+</tr>
+<tr class="odd">
+<td>ISQ 7-12</td>
+<td style="text-align: center;">3</td>
+<td>Specification of the ISQ quantities specified in ISO 80000 parts 7 -
+12 (Light and radiation, Acoustics, Physical chemistry and molecular
+physics, Atomic and nuclear physics, Characteristic numbers, Condensed
+matter physics)</td>
+</tr>
+<tr class="even">
+<td>ISQ 13</td>
+<td style="text-align: center;">1</td>
+<td>Specification of the ISQ quantities specified in IEC 80000-13
+(Information science and technology)</td>
+</tr>
+<tr class="odd">
+<td>Angular</td>
+<td style="text-align: center;">1</td>
+<td>Strong angular quantities</td>
+</tr>
+<tr class="even">
+<td>Angular ISQ</td>
+<td style="text-align: center;">3</td>
+<td>Changes to the ISQ to support strong angular quantities</td>
+</tr>
+</tbody>
+</table>
+<!-- markdownlint-enable MD013 -->
+<h2 data-number="7.6" id="systems-of-units"><span class="header-section-number">7.6</span> Systems of units<a href="#systems-of-units" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 9%" />
+<col style="width: 77%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Feature</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Priority</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Description</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SI</td>
+<td style="text-align: center;">1</td>
+<td>All the units, prefixes, and symbols (including prefixed versions)
+of the SI</td>
+</tr>
+<tr class="even">
+<td>IEC 80000-13</td>
+<td style="text-align: center;">1</td>
+<td>All the units, prefixes, and symbols (including prefixed versions)
+of IEC 80000-13</td>
+</tr>
+<tr class="odd">
+<td>International</td>
+<td style="text-align: center;">1</td>
+<td>International yard and pound units (common to Imperial and USC
+systems)</td>
+</tr>
+<tr class="even">
+<td>Angular</td>
+<td style="text-align: center;">1</td>
+<td>Strong angular quantities and units system</td>
+</tr>
+<tr class="odd">
+<td>Imperial</td>
+<td style="text-align: center;">2</td>
+<td>Imperial system-specific units</td>
+</tr>
+<tr class="even">
+<td>USC system</td>
+<td style="text-align: center;">2</td>
+<td>United States Customary system-specific units</td>
+</tr>
+<tr class="odd">
+<td>CGS system</td>
+<td style="text-align: center;">2</td>
+<td>Centimetre-Gram-Second system</td>
+</tr>
+<tr class="even">
+<td>IAU system</td>
+<td style="text-align: center;">3</td>
+<td>International Astronomical Union units system</td>
+</tr>
+</tbody>
+</table>
+<!-- markdownlint-enable MD013 -->
+<h2 data-number="7.7" id="utilities"><span class="header-section-number">7.7</span> Utilities<a href="#utilities" class="self-link"></a></h2>
+<!-- markdownlint-disable MD013 -->
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 6%" />
+<col style="width: 79%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Feature</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Priority</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Description</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code class="sourceCode default">std::chrono</code> support</td>
+<td style="text-align: center;">2</td>
+<td>Customization points that enable support for
+<code class="sourceCode default">std::chrono_duration</code> and
+<code class="sourceCode default">std::chrono_time_point</code> and other
+external libraries</td>
+</tr>
+<tr class="even">
+<td>Math</td>
+<td style="text-align: center;">2</td>
+<td>Common mathematical functions on quantities</td>
+</tr>
+<tr class="odd">
+<td>Random</td>
+<td style="text-align: center;">3</td>
+<td>Random number generators of quantities</td>
+</tr>
+</tbody>
+</table>
+<!-- markdownlint-enable MD013 -->
+<h2 data-number="7.8" id="external-dependencies"><span class="header-section-number">7.8</span> External dependencies<a href="#external-dependencies" class="self-link"></a></h2>
+<p>The features in this chapter are heavily used in the library, but are
+not domain-specific. Having them standardized (instead of left as
+exposition-only) could not only improve the specification of this
+library, but also could serve as an important building block for tools
+in other domains that we can get in the future from other authors.</p>
+<!-- markdownlint-disable MD013 -->
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 6%" />
+<col style="width: 69%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Feature</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Priority</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Description</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Number concepts</td>
+<td style="text-align: center;">1</td>
+<td>Concepts for vector- and point-space numbers</td>
+</tr>
+<tr class="even">
+<td><code class="sourceCode default">fixed_string</code></td>
+<td style="text-align: center;">1</td>
+<td>String-like structural type (can be used as an NTTP)</td>
+</tr>
+<tr class="odd">
+<td>Compile-time prime numbers</td>
+<td style="text-align: center;">1</td>
+<td>Compile-time facilities to break any integral value to a product of
+prime numbers and their powers</td>
+</tr>
+<tr class="even">
+<td>Standardized type and NTTP lists</td>
+<td style="text-align: center;">2</td>
+<td>Common library providing algorithms to handle type and NTTP
+lists</td>
+</tr>
+</tbody>
+</table>
+<!-- markdownlint-enable MD013 -->
+<h1 data-number="8" id="plan-for-standardization"><span class="header-section-number">8</span> Plan for standardization<a href="#plan-for-standardization" class="self-link"></a></h1>
+<p>Having physical quantities and units support in C++ would be
+extremely useful for many C++ developers, and ideally, we should ship it
+in C++29. We believe that it can be done, and we propose a plan to get
+there. The plan below is, of course, not an irrevocable commitment. If
+things get delayed or controversial for whatever reason, physical
+quantities and units (or some parts of it) will miss the train and we
+will have to wait three more years. However, having a clear plan
+approved by LEWG will help to keep the efforts on track.</p>
+<!-- markdownlint-disable MD013 -->
+<table>
+<colgroup>
+<col style="width: 6%" />
+<col style="width: 17%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Meeting</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>C++ Milestones</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Activities</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2023.3 (Kona)</td>
+<td></td>
+<td>Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper
+about safety benefits and concerns to SG23<br>Papers about quantity
+arithmetics and number concepts to SG6</td>
+</tr>
+<tr class="even">
+<td>2024.1 (Tokyo)</td>
+<td></td>
+<td>Paper on the Basic Framework (priority 1 features) to LEWG<br>Paper
+on <code class="sourceCode default">fixed_string</code> to SG16<br>Paper
+about text output to SG16<br>Paper about math utilities to SG6<br>Paper
+about prime numbers to SG6</td>
+</tr>
+<tr class="odd">
+<td>2024.2 (St. Louis)</td>
+<td></td>
+<td>Papers on the Basic Framework (priority 2 &amp; 3 features) to
+SG6<br>Paper about the Affine Space to LEWG<br>Move quantity arithmetics
+and number concepts papers to LEWG</td>
+</tr>
+<tr class="even">
+<td>2024.3 (Wrocław)</td>
+<td></td>
+<td>Paper of type and NTTP lists to LEWG<br>Papers on systems to
+SG6<br>Paper about <code class="sourceCode default">std::chrono</code>
+support to LEWG<BR>Move text output and
+<code class="sourceCode default">fixed_string</code> papers to
+LEWG<br>Move math utilities and prime numbers papers to LEWG</td>
+</tr>
+<tr class="odd">
+<td>2025.1</td>
+<td>Last meeting for LEWG review of new C++26 features</td>
+<td>Move Basic Framework (priority 2 &amp; 3 features) to LEWG</td>
+</tr>
+<tr class="even">
+<td>2025.2</td>
+<td>C++26 CD finalized</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>2025.3</td>
+<td></td>
+<td>Move papers on systems to LEWG</td>
+</tr>
+<tr class="even">
+<td>2026.1</td>
+<td>C++26 DIS finalized</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>2026.2</td>
+<td>C++29 WP opens</td>
+<td>Wording for Basic Framework (priority 1 features) and number
+concepts to LWG</td>
+</tr>
+<tr class="even">
+<td>2026.3</td>
+<td></td>
+<td>Wording for Basic Framework (priority 2 features), the Affine Space,
+<code class="sourceCode default">std::chrono</code> support, the text
+output, and <code class="sourceCode default">fixed_string</code> to
+LWG</td>
+</tr>
+<tr class="odd">
+<td>2027.1</td>
+<td></td>
+<td>Wording for math utilities, prime numbers, systems, and type and
+NTTP lists to LWG</td>
+</tr>
+<tr class="even">
+<td>2027.2</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>2027.3</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>2028.1</td>
+<td>Last meeting for LEWG review of new C++29 features</td>
+<td>Finalize wording review in LWG and merge into C++29 WP</td>
+</tr>
+<tr class="odd">
+<td>2028.2</td>
+<td>C++29 CS finalized</td>
+<td>Resolve any outstanding design/wording issues</td>
+</tr>
+<tr class="even">
+<td>2028.3</td>
+<td></td>
+<td>Resolve NB comments</td>
+</tr>
+<tr class="odd">
+<td>2029.1</td>
+<td>C++29 DIS finalized</td>
+<td>Resolve NB comments</td>
+</tr>
+</tbody>
+</table>
+<!-- markdownlint-enable MD013 -->
+<h1 data-number="9" id="acknowledgements"><span class="header-section-number">9</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
+membership in the ISO C++ Committee and the production of this
+proposal.</p>
+<p>We would also like to thank Peter Sommerlad for providing valuable
+feedback that helped us shape the final version of this document.</p>
+<!-- markdownlint-disable -->
+<h1 data-number="10" id="bibliography"><span class="header-section-number">10</span> References<a href="#bibliography" class="self-link"></a></h1>
+<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-AU" class="csl-entry" role="doc-biblioentry">
+[Au] The Au Units library. <a href="https://aurora-opensource.github.io/au"><div class="csl-block">https://aurora-opensource.github.io/au</div></a>
+</div>
+<div id="ref-CLARENCE" class="csl-entry" role="doc-biblioentry">
+[Clarence] Steve Chawkins. Mismeasure for Measure. <a href="https://www.latimes.com/archives/la-xpm-2001-feb-09-me-23253-story.html"><div class="csl-block">https://www.latimes.com/archives/la-xpm-2001-feb-09-me-23253-story.html</div></a>
+</div>
+<div id="ref-COLUMBUS" class="csl-entry" role="doc-biblioentry">
+[Columbus] Christopher Columbus. <a href="https://en.wikipedia.org/wiki/Christopher_Columbus"><div class="csl-block">https://en.wikipedia.org/wiki/Christopher_Columbus</div></a>
+</div>
+<div id="ref-DISNEY" class="csl-entry" role="doc-biblioentry">
+[Disney] Cause of the Space Mountain Incident Determined at Tokyo
+Disneyland Park. <a href="https://web.archive.org/web/20040209033827/http://www.olc.co.jp/news/20040121_01en.html"><div class="csl-block">https://web.archive.org/web/20040209033827/http://www.olc.co.jp/news/20040121_01en.html</div></a>
+</div>
+<div id="ref-FLIGHT_6316" class="csl-entry" role="doc-biblioentry">
+[Flight 6316] Korean Air Flight 6316 MD-11, Shanghai, China - April 15,
+1999. <a href="https://web.archive.org/web/20210917190721/https://www.ntsb.gov/news/press-releases/Pages/Korean_Air_Flight_6316_MD-11_Shanghai_China_-_April_15_1999.aspx"><div class="csl-block">https://web.archive.org/web/20210917190721/https://www.ntsb.gov/news/press-releases/Pages/Korean_Air_Flight_6316_MD-11_Shanghai_China_-_April_15_1999.aspx</div></a>
+</div>
+<div id="ref-GIMLI_GLIDER" class="csl-entry" role="doc-biblioentry">
+[Gimli Glider] Gimli Glider. <a href="https://en.wikipedia.org/wiki/Gimli_Glider"><div class="csl-block">https://en.wikipedia.org/wiki/Gimli_Glider</div></a>
+</div>
+<div id="ref-HOCHRHEINBRÜCKE" class="csl-entry" role="doc-biblioentry">
+[Hochrheinbrücke] An embarrassing discovery during the construction of a
+bridge. <a href="https://www.normaalamsterdamspeil.nl/wp-content/uploads/2015/03/website_bridge.pdf"><div class="csl-block">https://www.normaalamsterdamspeil.nl/wp-content/uploads/2015/03/website_bridge.pdf</div></a>
+</div>
+<div id="ref-ISO-GUIDE" class="csl-entry" role="doc-biblioentry">
+[ISO/IEC Guide 99] ISO/IEC Guide 99: International vocabulary of
+metrology — Basic and general concepts and associated terms (VIM). <a href="https://www.iso.org/obp/ui#iso:std:iso-iec:guide:99"><div class="csl-block">https://www.iso.org/obp/ui#iso:std:iso-iec:guide:99</div></a>
+</div>
+<div id="ref-BIPM-VIM" class="csl-entry" role="doc-biblioentry">
+[JCGM 200:2012] International vocabulary of metrology - Basic and
+general concepts and associated terms (VIM) (JCGM 200:2012, 3rd
+edition). <a href="https://jcgm.bipm.org/vim/en"><div class="csl-block">https://jcgm.bipm.org/vim/en</div></a>
+</div>
+<div id="ref-LK8000" class="csl-entry" role="doc-biblioentry">
+[LK8000] LK8000 - Tactical Flight Computer. <a href="http://lk8000.it"><div class="csl-block">http://lk8000.it</div></a>
+</div>
+<div id="ref-MARS_ORBITER" class="csl-entry" role="doc-biblioentry">
+[Mars Orbiter] Mars Climate Orbiter. <a href="https://en.wikipedia.org/wiki/Mars_Climate_Orbiter"><div class="csl-block">https://en.wikipedia.org/wiki/Mars_Climate_Orbiter</div></a>
+</div>
+<div id="ref-MEDICATION_DOSE_ERRORS" class="csl-entry" role="doc-biblioentry">
+[Medication dose errors] Alma Mulac, Ellen Hagesaether, and Anne Gerd
+Granas. Medication dose calculation errors and other numeracy mishaps in
+hospitals: Analysis of the nature and enablers of incident reports. <a href="https://onlinelibrary.wiley.com/doi/10.1111/jan.15072"><div class="csl-block">https://onlinelibrary.wiley.com/doi/10.1111/jan.15072</div></a>
+</div>
+<div id="ref-MISRA_CPP" class="csl-entry" role="doc-biblioentry">
+[MISRA C++] MISRA C++:2008 Guidelines for the use of the C++ language in
+critical systems. <a href="https://misra.org.uk/misra-c-plus-plus/"><div class="csl-block">https://misra.org.uk/misra-c-plus-plus/</div></a>
+</div>
+<div id="ref-MP-UNITS" class="csl-entry" role="doc-biblioentry">
+[mp-units] mp-units - A Physical Quantities and Units library for C++.
+<a href="https://mpusz.github.io/mp-units"><div class="csl-block">https://mpusz.github.io/mp-units</div></a>
+</div>
+<div id="ref-NHOLTHAUS-UNITS" class="csl-entry" role="doc-biblioentry">
+[nholthaus/units] UNITS - A compile-time, header-only, dimensional
+analysis and unit conversion library built on c++14 with no
+dependencies. <a href="https://github.com/nholthaus/units"><div class="csl-block">https://github.com/nholthaus/units</div></a>
+</div>
+<div id="ref-P1930R0" class="csl-entry" role="doc-biblioentry">
+[P1930R0] Vincent Reverdy. 2019-10-07. Towards a standard unit systems
+library. <a href="https://wg21.link/p1930r0"><div class="csl-block">https://wg21.link/p1930r0</div></a>
+</div>
+<div id="ref-P1935R2" class="csl-entry" role="doc-biblioentry">
+[P1935R2] Mateusz Pusz. 2020-01-13. A C++ Approach to Physical Units. <a href="https://wg21.link/p1935r2"><div class="csl-block">https://wg21.link/p1935r2</div></a>
+</div>
+<div id="ref-P2981_PRE" class="csl-entry" role="doc-biblioentry">
+[P2981] Mateusz Pusz, Dominik Berner, and Johel Ernesto Guerrero Peña.
+Improving our safety with a physical quantities and units library. <a href="https://wg21.link/p2981"><div class="csl-block">https://wg21.link/p2981</div></a>
+</div>
+<div id="ref-P2982_PRE" class="csl-entry" role="doc-biblioentry">
+[P2982] Chip Hogg and Mateusz Pusz.
+<code class="sourceCode default">std::quantity</code> as a numeric type.
+<a href="https://wg21.link/p2982"><div class="csl-block">https://wg21.link/p2982</div></a>
+</div>
+<div id="ref-SI" class="csl-entry" role="doc-biblioentry">
+[SI] SI Brochure: The International System of Units (SI). <a href="https://www.bipm.org/en/publications/si-brochure"><div class="csl-block">https://www.bipm.org/en/publications/si-brochure</div></a>
+</div>
+<div id="ref-SI_LIB" class="csl-entry" role="doc-biblioentry">
+[SI library] SI - Type safety for physical units”. <a href="https://si.dominikberner.ch/doc"><div class="csl-block">https://si.dominikberner.ch/doc</div></a>
+</div>
+<div id="ref-STONEHENGE" class="csl-entry" role="doc-biblioentry">
+[Stonehenge] Tim Robey. Tiny stones, giant laughs: the story behind
+Spinal Tap’s Stonehenge. <a href="https://www.telegraph.co.uk/films/2020/05/01/tiny-stones-giant-laughs-story-behind-spinal-taps-stonehenge"><div class="csl-block">https://www.telegraph.co.uk/films/2020/05/01/tiny-stones-giant-laughs-story-behind-spinal-taps-stonehenge</div></a>
+</div>
+<div id="ref-VASA" class="csl-entry" role="doc-biblioentry">
+[Vasa] Rhitu Chatterjee and Lisa Mullins. New Clues Emerge in
+Centuries-Old Swedish Shipwreck. <a href="https://theworld.org/stories/2012-02-23/new-clues-emerge-centuries-old-swedish-shipwreck"><div class="csl-block">https://theworld.org/stories/2012-02-23/new-clues-emerge-centuries-old-swedish-shipwreck</div></a>
+</div>
+<div id="ref-WILD_RICE" class="csl-entry" role="doc-biblioentry">
+[Wild Rice] Manufacturers, exporters think metric. <a href="https://www.bizjournals.com/eastbay/stories/2001/07/09/focus3.html"><div class="csl-block">https://www.bizjournals.com/eastbay/stories/2001/07/09/focus3.html</div></a>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
