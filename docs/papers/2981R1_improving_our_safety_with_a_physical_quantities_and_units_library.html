@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-16" />
+  <meta name="dcterms.date" content="2023-10-23" />
   <title>Improving our safety with a physical quantities and units
 library</title>
   <style>
@@ -425,11 +425,11 @@ physical quantities and units library</h1>
 <table style="border:none;float:right">
   <tr>
     <td>Document #:</td>
-    <td>P2981R0</td>
+    <td>D2981R1</td>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-16</td>
+    <td>2023-10-23</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -456,80 +456,91 @@ Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateus
 <div id="TOC" role="doc-toc">
 <h1 id="toctitle">Contents</h1>
 <ul>
-<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">1</span> Introduction<span></span></a></li>
-<li><a href="#terms-and-definitions" id="toc-terms-and-definitions"><span class="toc-section-number">2</span>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision History<span></span></a>
+<ul>
+<li><a href="#changes-since-p2981r0" id="toc-changes-since-p2981r0"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<span>P2981R0</span>]</span><span></span></a></li>
+</ul></li>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">2</span> Introduction<span></span></a></li>
+<li><a href="#terms-and-definitions" id="toc-terms-and-definitions"><span class="toc-section-number">3</span>
 Terms and definitions<span></span></a></li>
-<li><a href="#the-future-is-here" id="toc-the-future-is-here"><span class="toc-section-number">3</span> The future is
+<li><a href="#the-future-is-here" id="toc-the-future-is-here"><span class="toc-section-number">4</span> The future is
 here<span></span></a></li>
-<li><a href="#affected-industries" id="toc-affected-industries"><span class="toc-section-number">4</span> Affected
+<li><a href="#affected-industries" id="toc-affected-industries"><span class="toc-section-number">5</span> Affected
 industries<span></span></a></li>
-<li><a href="#mismeasure-for-measure" id="toc-mismeasure-for-measure"><span class="toc-section-number">5</span> Mismeasure for
+<li><a href="#mismeasure-for-measure" id="toc-mismeasure-for-measure"><span class="toc-section-number">6</span> Mismeasure for
 measure<span></span></a></li>
-<li><a href="#common-smells-when-there-is-no-library-for-physical-quantities" id="toc-common-smells-when-there-is-no-library-for-physical-quantities"><span class="toc-section-number">6</span> Common smells when there is no
+<li><a href="#common-smells-when-there-is-no-library-for-physical-quantities" id="toc-common-smells-when-there-is-no-library-for-physical-quantities"><span class="toc-section-number">7</span> Common smells when there is no
 library for physical quantities<span></span></a>
 <ul>
-<li><a href="#the-proliferation-of-double" id="toc-the-proliferation-of-double"><span class="toc-section-number">6.1</span> The proliferation of
+<li><a href="#the-proliferation-of-double" id="toc-the-proliferation-of-double"><span class="toc-section-number">7.1</span> The proliferation of
 <code class="sourceCode default">double</code><span></span></a></li>
-<li><a href="#the-proliferation-of-magic-numbers" id="toc-the-proliferation-of-magic-numbers"><span class="toc-section-number">6.2</span> The proliferation of magic
+<li><a href="#the-proliferation-of-magic-numbers" id="toc-the-proliferation-of-magic-numbers"><span class="toc-section-number">7.2</span> The proliferation of magic
 numbers<span></span></a></li>
-<li><a href="#the-proliferation-of-conversion-macros" id="toc-the-proliferation-of-conversion-macros"><span class="toc-section-number">6.3</span> The proliferation of conversion
+<li><a href="#the-proliferation-of-conversion-macros" id="toc-the-proliferation-of-conversion-macros"><span class="toc-section-number">7.3</span> The proliferation of conversion
 macros<span></span></a></li>
-<li><a href="#lack-of-consistency" id="toc-lack-of-consistency"><span class="toc-section-number">6.4</span> Lack of
+<li><a href="#lack-of-consistency" id="toc-lack-of-consistency"><span class="toc-section-number">7.4</span> Lack of
 consistency<span></span></a></li>
-<li><a href="#lack-of-a-conceptual-framework" id="toc-lack-of-a-conceptual-framework"><span class="toc-section-number">6.5</span> Lack of a conceptual
+<li><a href="#lack-of-a-conceptual-framework" id="toc-lack-of-a-conceptual-framework"><span class="toc-section-number">7.5</span> Lack of a conceptual
 framework<span></span></a></li>
 </ul></li>
-<li><a href="#safety-features" id="toc-safety-features"><span class="toc-section-number">7</span> Safety features<span></span></a>
+<li><a href="#safety-features" id="toc-safety-features"><span class="toc-section-number">8</span> Safety features<span></span></a>
 <ul>
-<li><a href="#unit-conversions" id="toc-unit-conversions"><span class="toc-section-number">7.1</span> Unit
+<li><a href="#unit-conversions" id="toc-unit-conversions"><span class="toc-section-number">8.1</span> Unit
 conversions<span></span></a></li>
-<li><a href="#preventing-truncation-of-data" id="toc-preventing-truncation-of-data"><span class="toc-section-number">7.2</span> Preventing truncation of
+<li><a href="#preventing-truncation-of-data" id="toc-preventing-truncation-of-data"><span class="toc-section-number">8.2</span> Preventing truncation of
 data<span></span></a></li>
-<li><a href="#the-affine-space" id="toc-the-affine-space"><span class="toc-section-number">7.3</span> The affine
+<li><a href="#the-affine-space" id="toc-the-affine-space"><span class="toc-section-number">8.3</span> The affine
 space<span></span></a></li>
-<li><a href="#explicit-is-not-explicit-enough" id="toc-explicit-is-not-explicit-enough"><span class="toc-section-number">7.4</span>
+<li><a href="#explicit-is-not-explicit-enough" id="toc-explicit-is-not-explicit-enough"><span class="toc-section-number">8.4</span>
 <code class="sourceCode default">explicit</code> is not explicit
 enough<span></span></a></li>
-<li><a href="#obtaining-the-numerical-value-of-a-quantity" id="toc-obtaining-the-numerical-value-of-a-quantity"><span class="toc-section-number">7.5</span> Obtaining the numerical value of a
+<li><a href="#obtaining-the-numerical-value-of-a-quantity" id="toc-obtaining-the-numerical-value-of-a-quantity"><span class="toc-section-number">8.5</span> Obtaining the numerical value of a
 quantity<span></span></a></li>
-<li><a href="#preventing-dangling-references" id="toc-preventing-dangling-references"><span class="toc-section-number">7.6</span> Preventing dangling
+<li><a href="#preventing-dangling-references" id="toc-preventing-dangling-references"><span class="toc-section-number">8.6</span> Preventing dangling
 references<span></span></a></li>
-<li><a href="#quantity-kinds" id="toc-quantity-kinds"><span class="toc-section-number">7.7</span> Quantity
+<li><a href="#quantity-kinds" id="toc-quantity-kinds"><span class="toc-section-number">8.7</span> Quantity
 kinds<span></span></a></li>
-<li><a href="#various-quantities-of-the-same-kind" id="toc-various-quantities-of-the-same-kind"><span class="toc-section-number">7.8</span> Various quantities of the same
+<li><a href="#various-quantities-of-the-same-kind" id="toc-various-quantities-of-the-same-kind"><span class="toc-section-number">8.8</span> Various quantities of the same
 kind<span></span></a>
 <ul>
-<li><a href="#converting-between-quantities-of-the-same-kind" id="toc-converting-between-quantities-of-the-same-kind"><span class="toc-section-number">7.8.1</span> Converting between quantities of
+<li><a href="#converting-between-quantities-of-the-same-kind" id="toc-converting-between-quantities-of-the-same-kind"><span class="toc-section-number">8.8.1</span> Converting between quantities of
 the same kind<span></span></a></li>
-<li><a href="#comparing-adding-and-subtracting-quantities-of-the-same-kind" id="toc-comparing-adding-and-subtracting-quantities-of-the-same-kind"><span class="toc-section-number">7.8.2</span> Comparing, adding, and
+<li><a href="#comparing-adding-and-subtracting-quantities-of-the-same-kind" id="toc-comparing-adding-and-subtracting-quantities-of-the-same-kind"><span class="toc-section-number">8.8.2</span> Comparing, adding, and
 subtracting quantities of the same kind<span></span></a></li>
-<li><a href="#modeling-a-quantity-kind" id="toc-modeling-a-quantity-kind"><span class="toc-section-number">7.8.3</span> Modeling a quantity
+<li><a href="#modeling-a-quantity-kind" id="toc-modeling-a-quantity-kind"><span class="toc-section-number">8.8.3</span> Modeling a quantity
 kind<span></span></a></li>
-<li><a href="#restricting-units-to-specific-quantity-kinds" id="toc-restricting-units-to-specific-quantity-kinds"><span class="toc-section-number">7.8.4</span> Restricting units to specific
+<li><a href="#restricting-units-to-specific-quantity-kinds" id="toc-restricting-units-to-specific-quantity-kinds"><span class="toc-section-number">8.8.4</span> Restricting units to specific
 quantity kinds<span></span></a></li>
 </ul></li>
-<li><a href="#non-negative-quantities" id="toc-non-negative-quantities"><span class="toc-section-number">7.9</span> Non-negative
+<li><a href="#non-negative-quantities" id="toc-non-negative-quantities"><span class="toc-section-number">8.9</span> Non-negative
 quantities<span></span></a></li>
-<li><a href="#vector-and-tensor-quantities" id="toc-vector-and-tensor-quantities"><span class="toc-section-number">7.10</span> Vector and tensor
+<li><a href="#vector-and-tensor-quantities" id="toc-vector-and-tensor-quantities"><span class="toc-section-number">8.10</span> Vector and tensor
 quantities<span></span></a></li>
 </ul></li>
-<li><a href="#safety-pitfalls" id="toc-safety-pitfalls"><span class="toc-section-number">8</span> Safety pitfalls<span></span></a>
+<li><a href="#safety-pitfalls" id="toc-safety-pitfalls"><span class="toc-section-number">9</span> Safety pitfalls<span></span></a>
 <ul>
-<li><a href="#integer-division" id="toc-integer-division"><span class="toc-section-number">8.1</span> Integer
+<li><a href="#integer-division" id="toc-integer-division"><span class="toc-section-number">9.1</span> Integer
 division<span></span></a></li>
-<li><a href="#lack-of-safe-numeric-types" id="toc-lack-of-safe-numeric-types"><span class="toc-section-number">8.2</span> Lack of safe numeric
+<li><a href="#lack-of-safe-numeric-types" id="toc-lack-of-safe-numeric-types"><span class="toc-section-number">9.2</span> Lack of safe numeric
 types<span></span></a></li>
-<li><a href="#potential-surprises-during-units-composition" id="toc-potential-surprises-during-units-composition"><span class="toc-section-number">8.3</span> Potential surprises during units
+<li><a href="#potential-surprises-during-units-composition" id="toc-potential-surprises-during-units-composition"><span class="toc-section-number">9.3</span> Potential surprises during units
 composition<span></span></a></li>
-<li><a href="#structural-types" id="toc-structural-types"><span class="toc-section-number">8.4</span> Structural
+<li><a href="#structural-types" id="toc-structural-types"><span class="toc-section-number">9.4</span> Structural
 types<span></span></a></li>
 </ul></li>
-<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">9</span>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">10</span>
 Acknowledgements<span></span></a></li>
-<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">10</span> References<span></span></a></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">11</span> References<span></span></a></li>
 </ul>
 </div>
-<h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
+<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
+<h2 data-number="1.1" id="changes-since-p2981r0"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<a href="#ref-P2981R0" role="doc-biblioref">P2981R0</a>]</span><a href="#changes-since-p2981r0" class="self-link"></a></h2>
+<ul>
+<li>Added The Guardian’s Fahrenheit issue to <a href="#mismeasure-for-measure">Mismeasure for measure</a>.</li>
+<li>Fuel consumption example extended in <a href="#converting-between-quantities-of-the-same-kind">Converting
+between quantities of the same kind</a>.</li>
+</ul>
+<h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
 <p>One of the ways C++ can significantly improve the safety of
 applications being written by thousands of developers is by introducing
 a type-safe, well-tested, proven in production, standardized way to
@@ -551,11 +562,11 @@ examples using its interfaces. Those may not exactly reflect the final
 interface design that is going to be proposed in the follow-up papers.
 We are still doing some small fine-tuning to improve the
 library.</em></p>
-<h1 data-number="2" id="terms-and-definitions"><span class="header-section-number">2</span> Terms and definitions<a href="#terms-and-definitions" class="self-link"></a></h1>
+<h1 data-number="3" id="terms-and-definitions"><span class="header-section-number">3</span> Terms and definitions<a href="#terms-and-definitions" class="self-link"></a></h1>
 <p>This document consistently uses the official metrology vocabulary
 defined in the <span class="citation" data-cites="ISO-GUIDE">[<a href="#ref-ISO-GUIDE" role="doc-biblioref">ISO/IEC Guide 99</a>]</span>
 and <span class="citation" data-cites="BIPM-VIM">[<a href="#ref-BIPM-VIM" role="doc-biblioref">JCGM 200:2012</a>]</span>.</p>
-<h1 data-number="3" id="the-future-is-here"><span class="header-section-number">3</span> The future is here<a href="#the-future-is-here" class="self-link"></a></h1>
+<h1 data-number="4" id="the-future-is-here"><span class="header-section-number">4</span> The future is here<a href="#the-future-is-here" class="self-link"></a></h1>
 <p>Not that long ago, self-driving cars were a thing from SciFi movies.
 It was something so futuristic and hard to imagine that it only appeared
 in movies set in the very far future. Today, autonomous cars are
@@ -578,7 +589,7 @@ enough to enforce a safe-by-construction code, which becomes even more
 critical if the code handling the physical computation is written by
 domain experts such as physicists that are not necessarily fluent in
 C++.</p>
-<h1 data-number="4" id="affected-industries"><span class="header-section-number">4</span> Affected industries<a href="#affected-industries" class="self-link"></a></h1>
+<h1 data-number="5" id="affected-industries"><span class="header-section-number">5</span> Affected industries<a href="#affected-industries" class="self-link"></a></h1>
 <p>When people think about industries that could use physical quantities
 and unit libraries, they think of a few companies related to aerospace,
 autonomous cars, or embedded industries. That is all true, but there are
@@ -607,7 +618,7 @@ standard or domain-specific quantities, could benefit from a zero-cost
 abstraction for operating on quantity values and their units. The
 library also provides affine space abstractions, which may prove useful
 in many applications.</p>
-<h1 data-number="5" id="mismeasure-for-measure"><span class="header-section-number">5</span> Mismeasure for measure<a href="#mismeasure-for-measure" class="self-link"></a></h1>
+<h1 data-number="6" id="mismeasure-for-measure"><span class="header-section-number">6</span> Mismeasure for measure<a href="#mismeasure-for-measure" class="self-link"></a></h1>
 <p>Human history knows many expensive failures and accidents caused by
 mistakes in calculations involving different physical units. The most
 famous and probably the most expensive example in the software
@@ -657,17 +668,27 @@ the two outer ends of the bridge <span class="citation" data-cites="HOCHRHEINBR�
 <li>An American company sold a shipment of wild rice to a Japanese
 customer, quoting a price of 39 cents per pound, but the customer
 thought the quote was for 39 cents per kilogram <span class="citation" data-cites="WILD_RICE">[<a href="#ref-WILD_RICE" role="doc-biblioref">Wild Rice</a>]</span>.</li>
+<li>On October 17, 2023, The Guardian published an article titled
+“Record Heat: Malawi swelters with temperatures nearly 68F above
+average” with many issues related to the affine space types and
+temperature units. Due to incorrect logic, probably during the
+translation of the article to the U.S. market,
+<code class="sourceCode default">20 °C</code> above the average
+temperature was converted to
+<code class="sourceCode default">68 °F</code>. The actual temperature
+increase was <code class="sourceCode default">32 °F</code>, not
+<code class="sourceCode default">68 °F</code> <span class="citation" data-cites="THE_GUARDIAN">[<a href="#ref-THE_GUARDIAN" role="doc-biblioref">The Guardian</a>]</span>.</li>
 <li>A whole set of <span class="citation" data-cites="MEDICATION_DOSE_ERRORS">[<a href="#ref-MEDICATION_DOSE_ERRORS" role="doc-biblioref">Medication dose
 errors</a>]</span>…</li>
 </ul>
-<h1 data-number="6" id="common-smells-when-there-is-no-library-for-physical-quantities"><span class="header-section-number">6</span> Common smells when there is no
+<h1 data-number="7" id="common-smells-when-there-is-no-library-for-physical-quantities"><span class="header-section-number">7</span> Common smells when there is no
 library for physical quantities<a href="#common-smells-when-there-is-no-library-for-physical-quantities" class="self-link"></a></h1>
 <p>In this chapter, we are going to review typical safety issues related
 to physical quantities and units in the C++ code when a proper library
 is not used. Even though all the examples come from the Open Source
 projects, expensive revenue-generating production source code often is
 similar.</p>
-<h2 data-number="6.1" id="the-proliferation-of-double"><span class="header-section-number">6.1</span> The proliferation of
+<h2 data-number="7.1" id="the-proliferation-of-double"><span class="header-section-number">7.1</span> The proliferation of
 <code class="sourceCode default">double</code><a href="#the-proliferation-of-double" class="self-link"></a></h2>
 <p>It turns out that in the C++ software, most of our calculations in
 the physical quantities and units domain are handled with fundamental
@@ -699,7 +720,7 @@ to encode this information, which may be internally inconsistent. A
 strong type system would help answer these questions at the time the
 interface is written, and the compiler would verify it at
 compile-time.</p>
-<h2 data-number="6.2" id="the-proliferation-of-magic-numbers"><span class="header-section-number">6.2</span> The proliferation of magic
+<h2 data-number="7.2" id="the-proliferation-of-magic-numbers"><span class="header-section-number">7.2</span> The proliferation of magic
 numbers<a href="#the-proliferation-of-magic-numbers" class="self-link"></a></h2>
 <p>There are a lot of constants and conversion factors involved in the
 quantity equations. Source code responsible for such computations is
@@ -716,7 +737,7 @@ side. While it would be easy to replace these numbers with named
 constants, the question of which unit the constant is in remains. Is
 <code class="sourceCode default">287.06</code> in pounds per square inch
 (psi) or millibars (mbar)?</p>
-<h2 data-number="6.3" id="the-proliferation-of-conversion-macros"><span class="header-section-number">6.3</span> The proliferation of conversion
+<h2 data-number="7.3" id="the-proliferation-of-conversion-macros"><span class="header-section-number">7.3</span> The proliferation of conversion
 macros<a href="#the-proliferation-of-conversion-macros" class="self-link"></a></h2>
 <p>The lack of automated unit conversions often results in handwritten
 conversion functions or macros that are spread everywhere among the code
@@ -776,7 +797,7 @@ necessary parentheses are missing, processing in a preprocessor ends up
 with redundant casts, or some compile-time constants use too many digits
 for a value to be exact for a specific type
 (e.g. <code class="sourceCode default">float</code>).</p>
-<h2 data-number="6.4" id="lack-of-consistency"><span class="header-section-number">6.4</span> Lack of consistency<a href="#lack-of-consistency" class="self-link"></a></h2>
+<h2 data-number="7.4" id="lack-of-consistency"><span class="header-section-number">7.4</span> Lack of consistency<a href="#lack-of-consistency" class="self-link"></a></h2>
 <p>If we not only lack strong types to isolate the abstractions from
 each other, but also lack discipline to keep our code consistent, we end
 up in an awful place:</p>
@@ -809,7 +830,7 @@ function takes latitude or
 <code class="sourceCode default">Bearing</code> first and when a
 latitude or <code class="sourceCode default">Distance</code> is in the
 front.</p>
-<h2 data-number="6.5" id="lack-of-a-conceptual-framework"><span class="header-section-number">6.5</span> Lack of a conceptual
+<h2 data-number="7.5" id="lack-of-a-conceptual-framework"><span class="header-section-number">7.5</span> Lack of a conceptual
 framework<a href="#lack-of-a-conceptual-framework" class="self-link"></a></h2>
 <p>The previous points mean that the fundamental types can’t be
 leveraged to model the different concepts of quantities and units
@@ -824,7 +845,7 @@ These are weak types that make up weakly-typed interfaces. The resulting
 interfaces and implementations built with these types easily allow
 mixing up parameters and using operations that are not part of the
 represented quantity.</p>
-<h1 data-number="7" id="safety-features"><span class="header-section-number">7</span> Safety features<a href="#safety-features" class="self-link"></a></h1>
+<h1 data-number="8" id="safety-features"><span class="header-section-number">8</span> Safety features<a href="#safety-features" class="self-link"></a></h1>
 <p>This chapter describes the features that enforce safety in our code
 bases. It starts with obvious things, but then it moves to probably less
 known benefits of using physical quantities and units libraries. This
@@ -836,7 +857,7 @@ to safety issues as well.</p>
 they do not introduce any runtime overhead over the raw unsafe code
 doing the same thing. This is a massive benefit of C++ compared to other
 programming languages (e.g., Python, Java, etc.).</p>
-<h2 data-number="7.1" id="unit-conversions"><span class="header-section-number">7.1</span> Unit conversions<a href="#unit-conversions" class="self-link"></a></h2>
+<h2 data-number="8.1" id="unit-conversions"><span class="header-section-number">8.1</span> Unit conversions<a href="#unit-conversions" class="self-link"></a></h2>
 <p>The first thing that comes to our mind when discussing the safety of
 such libraries is automated unit conversions between values of the same
 physical quantity. This is probably the most important subject here. We
@@ -865,7 +886,7 @@ makes it impossible to define units like electronvolt (eV), where 1 eV =
 1.660539040(20)×10<sup>−27</sup> kg. Moreover, some conversions, such as
 radian to a degree, require a conversion factor based on an irrational
 number like pi.</p>
-<h2 data-number="7.2" id="preventing-truncation-of-data"><span class="header-section-number">7.2</span> Preventing truncation of data<a href="#preventing-truncation-of-data" class="self-link"></a></h2>
+<h2 data-number="8.2" id="preventing-truncation-of-data"><span class="header-section-number">8.2</span> Preventing truncation of data<a href="#preventing-truncation-of-data" class="self-link"></a></h2>
 <p>The second safety feature of such libraries is preventing accidental
 truncation of a quantity value. If we try the operations above with
 swapped units, both conversions should fail to compile:</p>
@@ -873,7 +894,7 @@ swapped units, both conversions should fail to compile:</p>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> q1<span class="op">.</span>in<span class="op">(</span>km<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="ch">&#39;</span><span class="sc">\n</span><span class="ch">&#39;</span>;              <span class="co">// Compile-time error</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span>, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> q1;  <span class="co">// Compile-time error</span></span></code></pre></div>
 <p>We can’t preserve the value of a source quantity when we convert it
-to one with an unit of a lower resolution while dealing with an integral
+to one with a unit of a lower resolution while dealing with an integral
 representation type for a quantity. In the example above, converting
 <code class="sourceCode default">5</code> meters would result in
 <code class="sourceCode default">0</code> kilometers if internal
@@ -916,7 +937,7 @@ such a truncation, we have to be explicit in the code:</p>
 conversions to happen implicitly, and a good physical quantities and
 units library should fail at compile-time in case an user makes such a
 mistake.</p>
-<h2 data-number="7.3" id="the-affine-space"><span class="header-section-number">7.3</span> The affine space<a href="#the-affine-space" class="self-link"></a></h2>
+<h2 data-number="8.3" id="the-affine-space"><span class="header-section-number">8.3</span> The affine space<a href="#the-affine-space" class="self-link"></a></h2>
 <p>The affine space has two types of entities:</p>
 <ul>
 <li>point - a position specified with coordinate values (i.e., location,
@@ -943,7 +964,7 @@ peak mean after all?</p>
 <code class="sourceCode default">quantity_point</code> (point) class
 templates improves the overall project’s safety by only providing the
 operators defined by the concepts.</p>
-<h2 data-number="7.4" id="explicit-is-not-explicit-enough"><span class="header-section-number">7.4</span>
+<h2 data-number="8.4" id="explicit-is-not-explicit-enough"><span class="header-section-number">8.4</span>
 <code class="sourceCode default">explicit</code> is not explicit
 enough<a href="#explicit-is-not-explicit-enough" class="self-link"></a></h2>
 <p>Consider the following structure and a code using it:</p>
@@ -980,7 +1001,7 @@ a standalone value of a <code class="sourceCode default">quantity</code>
 Such a point has to always be associated with an explicit origin:</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>quantity_point qp1 <span class="op">=</span> mean_sea_level <span class="op">+</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>quantity_point qp2 <span class="op">=</span> si<span class="op">::</span>ice_point <span class="op">+</span> <span class="dv">21</span> <span class="op">*</span> deg_C;</span></code></pre></div>
-<h2 data-number="7.5" id="obtaining-the-numerical-value-of-a-quantity"><span class="header-section-number">7.5</span> Obtaining the numerical value
+<h2 data-number="8.5" id="obtaining-the-numerical-value-of-a-quantity"><span class="header-section-number">8.5</span> Obtaining the numerical value
 of a quantity<a href="#obtaining-the-numerical-value-of-a-quantity" class="self-link"></a></h2>
 <p>Continuing our previous example, let’s assume that we have an
 underlying “legacy” API that requires us to pass a raw numerical value
@@ -1014,7 +1035,7 @@ to ensure that no data truncation happens:</p>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>x<span class="op">.</span>vec<span class="op">[</span><span class="dv">0</span><span class="op">].</span>force_numerical_value_in<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span>;</span></code></pre></div>
 <p>As the above member functions may need to do a conversion to provide
 a value in the expected unit, their results are prvalues.</p>
-<h2 data-number="7.6" id="preventing-dangling-references"><span class="header-section-number">7.6</span> Preventing dangling
+<h2 data-number="8.6" id="preventing-dangling-references"><span class="header-section-number">8.6</span> Preventing dangling
 references<a href="#preventing-dangling-references" class="self-link"></a></h2>
 <p>Besides returning prvalues, sometimes users need to get an actual
 reference to the underlying numerical value stored in a
@@ -1069,11 +1090,11 @@ ImGui</a>:</p>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>                       <span class="dt">float</span> v_speed <span class="op">=</span> <span class="fl">1.0</span><span class="bu">f</span>, <span class="dt">int</span> v_min <span class="op">=</span> <span class="dv">0</span>, <span class="dt">int</span> v_max <span class="op">=</span> <span class="dv">0</span>,</span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>                       <span class="kw">const</span> <span class="dt">char</span><span class="op">*</span> format <span class="op">=</span> <span class="st">&quot;</span><span class="sc">%d</span><span class="st">&quot;</span>, ImGuiSliderFlags flags <span class="op">=</span> <span class="dv">0</span><span class="op">)</span>;  <span class="co">// If v_min &gt;= v_max we have no bound</span></span></code></pre></div>
 <div class="sourceCode" id="cb31"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>ImGui<span class="op">::</span>DragInt<span class="op">(</span><span class="st">&quot;Frames&quot;</span>, <span class="op">&amp;</span>frame_frequency<span class="op">.</span>value<span class="op">.</span>numerical_value_ref_in<span class="op">(</span>Hz<span class="op">)</span>, <span class="dv">1</span>,</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>               frame_frequency<span class="op">.</span>min<span class="op">.</span>numerical_value_in<span class="op">(</span>Hz<span class="op">)</span>, </span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>               frame_frequency<span class="op">.</span>max<span class="op">.</span>numerical_value_in<span class="op">(</span>Hz<span class="op">)</span>, </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>               frame_frequency<span class="op">.</span>min<span class="op">.</span>numerical_value_in<span class="op">(</span>Hz<span class="op">)</span>,</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>               frame_frequency<span class="op">.</span>max<span class="op">.</span>numerical_value_in<span class="op">(</span>Hz<span class="op">)</span>,</span>
 <span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>               <span class="st">&quot;</span><span class="sc">%d</span><span class="st"> Hz&quot;</span><span class="op">)</span>;</span></code></pre></div></li>
 <li><p>Obtaining a temperature via the C library:</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">// read_temperature is in the BSP defined as </span></span>
+<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">// read_temperature is in the BSP defined as</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> read_temperature<span class="op">(</span><span class="dt">float</span><span class="op">*</span> temp_in_celsius<span class="op">)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> Celsius_point <span class="op">=</span> quantity_point<span class="op">&lt;</span>isq<span class="op">::</span>Celsius_temperature<span class="op">[</span>deg_C<span class="op">]</span>, si<span class="op">::</span>ice_point, <span class="dt">float</span><span class="op">&gt;</span>;</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1089,7 +1110,7 @@ member function that returns a reference to its stored
 similar to the ones described in the previous chapter, this function
 requires that the argument provided by the user is the same as the
 origin of a quantity point.</p>
-<h2 data-number="7.7" id="quantity-kinds"><span class="header-section-number">7.7</span> Quantity kinds<a href="#quantity-kinds" class="self-link"></a></h2>
+<h2 data-number="8.7" id="quantity-kinds"><span class="header-section-number">8.7</span> Quantity kinds<a href="#quantity-kinds" class="self-link"></a></h2>
 <p>What should be the result of the following quantity equation?</p>
 <div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> res <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> Hz <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> Bq <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> Bd;</span></code></pre></div>
 <p>We have checked a few leading libraries on the market, and here are
@@ -1153,7 +1174,7 @@ goes beyond that and properly models quantity kinds. We believe that it
 is a significant feature that improves the safety of the library, and
 that is why we also plan to propose quantity kinds for standardization
 as mentioned in <span class="citation" data-cites="P2980R0">[<a href="#ref-P2980R0" role="doc-biblioref">P2980R0</a>]</span>.</p>
-<h2 data-number="7.8" id="various-quantities-of-the-same-kind"><span class="header-section-number">7.8</span> Various quantities of the same
+<h2 data-number="8.8" id="various-quantities-of-the-same-kind"><span class="header-section-number">8.8</span> Various quantities of the same
 kind<a href="#various-quantities-of-the-same-kind" class="self-link"></a></h2>
 <p>Proper modeling of distinct kinds for quantities of the same
 dimension is often not enough from the safety point of view. Most of the
@@ -1189,7 +1210,7 @@ different quantities of the same kind.</li>
 <p>The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
 is probably the first one on the market (in any programming language)
 that models such abstractions.</p>
-<h3 data-number="7.8.1" id="converting-between-quantities-of-the-same-kind"><span class="header-section-number">7.8.1</span> Converting between quantities
+<h3 data-number="8.8.1" id="converting-between-quantities-of-the-same-kind"><span class="header-section-number">8.8.1</span> Converting between quantities
 of the same kind<a href="#converting-between-quantities-of-the-same-kind" class="self-link"></a></h3>
 <p>Quantity conversion rules can be defined based on the same hierarchy
 of quantities of kind length.</p>
@@ -1278,8 +1299,12 @@ of area:</p>
 <div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>fuel_consumption<span class="op">.</span>dimension <span class="op">==</span> isq<span class="op">::</span>area<span class="op">.</span>dimension<span class="op">)</span>;</span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity<span class="op">&lt;</span>isq<span class="op">::</span>area<span class="op">[</span>m2<span class="op">]&gt;</span> football_field <span class="op">=</span> isq<span class="op">::</span>length<span class="op">(</span><span class="dv">105</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">*</span> isq<span class="op">::</span>width<span class="op">(</span><span class="dv">68</span> <span class="op">*</span> m<span class="op">)</span>;</span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity<span class="op">&lt;</span>fuel_consumption<span class="op">[</span>l <span class="op">/</span> <span class="op">(</span>mag<span class="op">&lt;</span><span class="dv">100</span><span class="op">&gt;</span> <span class="op">*</span> km<span class="op">)]&gt;</span> q <span class="op">=</span> football_field;  <span class="co">// Compile-time error</span></span></code></pre></div>
-<h3 data-number="7.8.2" id="comparing-adding-and-subtracting-quantities-of-the-same-kind"><span class="header-section-number">7.8.2</span> Comparing, adding, and
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity<span class="op">&lt;</span>fuel_consumption<span class="op">[</span>l <span class="op">/</span> <span class="op">(</span>mag<span class="op">&lt;</span><span class="dv">100</span><span class="op">&gt;</span> <span class="op">*</span> km<span class="op">)]&gt;</span> q2 <span class="op">=</span> football_field;  <span class="co">// Compile-time error</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quantity q3 <span class="op">=</span> q <span class="op">+</span> football_field;                                     <span class="co">// Compile-time error</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>q <span class="op">==</span> football_field<span class="op">)</span> <span class="op">{</span>                                                  <span class="co">// Compile-time error</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 data-number="8.8.2" id="comparing-adding-and-subtracting-quantities-of-the-same-kind"><span class="header-section-number">8.8.2</span> Comparing, adding, and
 subtracting quantities of the same kind<a href="#comparing-adding-and-subtracting-quantities-of-the-same-kind" class="self-link"></a></h3>
 <p><span class="citation" data-cites="ISO-GUIDE">[<a href="#ref-ISO-GUIDE" role="doc-biblioref">ISO/IEC Guide 99</a>]</span>
 explicitly states that <code class="sourceCode default">width</code> and
@@ -1369,7 +1394,7 @@ code compile, an explicit conversion of a quantity type is needed:</p>
 quantities improve the library usability, while the conversion rules
 enhance the safety of the library compared to the libraries that do not
 model quantity kinds.</p>
-<h3 data-number="7.8.3" id="modeling-a-quantity-kind"><span class="header-section-number">7.8.3</span> Modeling a quantity kind<a href="#modeling-a-quantity-kind" class="self-link"></a></h3>
+<h3 data-number="8.8.3" id="modeling-a-quantity-kind"><span class="header-section-number">8.8.3</span> Modeling a quantity kind<a href="#modeling-a-quantity-kind" class="self-link"></a></h3>
 <p>In the physical units library, we also need an abstraction describing
 an entire family of quantities of the same kind. Such quantities have
 not only the same dimension but also can be expressed in the same
@@ -1390,7 +1415,7 @@ becomes a “strong” quantity where all the kinds are converted to the
 hierarchy tree’s root quantities:</p>
 <div class="sourceCode" id="cb56"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>same_type<span class="op">&lt;</span>kind_of<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="op">/</span> isq<span class="op">::</span>time, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>length <span class="op">/</span> isq<span class="op">::</span>time<span class="op">&gt;&gt;)</span>;</span>
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>same_type<span class="op">&lt;</span>kind_of<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="op">/</span> isq<span class="op">::</span>time, isq<span class="op">::</span>length <span class="op">/</span> isq<span class="op">::</span>time<span class="op">&gt;)</span>;</span></code></pre></div>
-<h3 data-number="7.8.4" id="restricting-units-to-specific-quantity-kinds"><span class="header-section-number">7.8.4</span> Restricting units to specific
+<h3 data-number="8.8.4" id="restricting-units-to-specific-quantity-kinds"><span class="header-section-number">8.8.4</span> Restricting units to specific
 quantity kinds<a href="#restricting-units-to-specific-quantity-kinds" class="self-link"></a></h3>
 <p>By default, units can be used to measure any kind of quantity with
 the same dimension. However, as we have mentioned above, some units
@@ -1442,7 +1467,7 @@ quantities to bring additional safety for those cases. Otherwise, we can
 just use the simple mode for the remaining quantities. We can easily mix
 simple and strongly-typed quantities in our projects, and the library
 will do its best to protect us based on the information provided.</p>
-<h2 data-number="7.9" id="non-negative-quantities"><span class="header-section-number">7.9</span> Non-negative quantities<a href="#non-negative-quantities" class="self-link"></a></h2>
+<h2 data-number="8.9" id="non-negative-quantities"><span class="header-section-number">8.9</span> Non-negative quantities<a href="#non-negative-quantities" class="self-link"></a></h2>
 <p>Some quantities are defined by ISO/IEC 80000 as explicitly
 non-negative. Others are implicitly non-negative from their definition.
 For example, those specified as magnitudes of a vector, like speed,
@@ -1462,7 +1487,7 @@ negative values, e.g., a contract-checked type. This means that
 <code class="sourceCode default">int</code>). And also that <code class="sourceCode default">height(mylib::non_negative(obj.top - obj.bottom));</code>
 will catch logic errors in the formula.</p>
 <!-- Lots of exciting discussion at https://github.com/mpusz/mp-units/issues/468 -->
-<h2 data-number="7.10" id="vector-and-tensor-quantities"><span class="header-section-number">7.10</span> Vector and tensor quantities<a href="#vector-and-tensor-quantities" class="self-link"></a></h2>
+<h2 data-number="8.10" id="vector-and-tensor-quantities"><span class="header-section-number">8.10</span> Vector and tensor quantities<a href="#vector-and-tensor-quantities" class="self-link"></a></h2>
 <p>While talking about physical quantities and units libraries, everyone
 expects that the library will protect (preferably at compile-time) from
 accidentally replacing multiplication with division operations or vice
@@ -1549,8 +1574,8 @@ representation type.</em></p>
 compile-time safety of the library by ensuring that quantities are
 created with proper quantity equations and are using correct
 representation types.</p>
-<h1 data-number="8" id="safety-pitfalls"><span class="header-section-number">8</span> Safety pitfalls<a href="#safety-pitfalls" class="self-link"></a></h1>
-<h2 data-number="8.1" id="integer-division"><span class="header-section-number">8.1</span> Integer division<a href="#integer-division" class="self-link"></a></h2>
+<h1 data-number="9" id="safety-pitfalls"><span class="header-section-number">9</span> Safety pitfalls<a href="#safety-pitfalls" class="self-link"></a></h1>
+<h2 data-number="9.1" id="integer-division"><span class="header-section-number">9.1</span> Integer division<a href="#integer-division" class="self-link"></a></h2>
 <p>The physical units library can’t do any runtime branching logic for
 the division operator. All logic has to be done at compile-time when the
 actual values are not known, and the quantity types can’t change at
@@ -1577,7 +1602,7 @@ option, either for performance reasons or lack of hardware support.
 Having different operators for safe floating-point operations and unsafe
 integer operations would hurt generic programming. As such, users should
 instead use safer representation types.</p>
-<h2 data-number="8.2" id="lack-of-safe-numeric-types"><span class="header-section-number">8.2</span> Lack of safe numeric types<a href="#lack-of-safe-numeric-types" class="self-link"></a></h2>
+<h2 data-number="9.2" id="lack-of-safe-numeric-types"><span class="header-section-number">9.2</span> Lack of safe numeric types<a href="#lack-of-safe-numeric-types" class="self-link"></a></h2>
 <p>Integers can overflow on arithmetics. This has already caused some
 expensive failures in engineering <span class="citation" data-cites="ARIANE">[<a href="#ref-ARIANE" role="doc-biblioref">Ariane
 flight V88</a>]</span>.</p>
@@ -1592,7 +1617,7 @@ precision.</p>
 easily be used as a <code class="sourceCode default">quantity</code>
 representation type in the physical quantities and units library, which
 would address these safety concerns.</p>
-<h2 data-number="8.3" id="potential-surprises-during-units-composition"><span class="header-section-number">8.3</span> Potential surprises during
+<h2 data-number="9.3" id="potential-surprises-during-units-composition"><span class="header-section-number">9.3</span> Potential surprises during
 units composition<a href="#potential-surprises-during-units-composition" class="self-link"></a></h2>
 <p>One of the most essential requirements for a good physical quantities
 and units library is to implement units in such a way that they compose.
@@ -1628,7 +1653,7 @@ happen if the user provided a quantity as input:</p>
 <p>The above function call will result in a quantity of area instead of
 the expected quantity of length.</p>
 <p>The issues mentioned above could be turned into compilation errors by
-disallowing multiplying or dividing a quantity by an unit. The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library initially provided
+disallowing multiplying or dividing a quantity by a unit. The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library initially provided
 such an approach, but with time, we decided this to not be
 user-friendly. Forcing the user to put the parenthesis around all
 derived units in quantity equations like the one below, was too verbose
@@ -1660,7 +1685,7 @@ compile-time:</p>
 <span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
 <span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// Compile-time error</span></span></code></pre></div>
-<h2 data-number="8.4" id="structural-types"><span class="header-section-number">8.4</span> Structural types<a href="#structural-types" class="self-link"></a></h2>
+<h2 data-number="9.4" id="structural-types"><span class="header-section-number">9.4</span> Structural types<a href="#structural-types" class="self-link"></a></h2>
 <p>The <code class="sourceCode default">quantity</code> and
 <code class="sourceCode default">quantity_point</code> class templates
 are structural types to allow them to be passed as template arguments.
@@ -1680,14 +1705,14 @@ expose the public “naked” data member that can be freely read or
 manipulated by anyone.</p>
 <p>Hopefully, this requirement on structural types will be relaxed
 before the library gets standardized.</p>
-<h1 data-number="9" id="acknowledgements"><span class="header-section-number">9</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<h1 data-number="10" id="acknowledgements"><span class="header-section-number">10</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
 proposal.</p>
 <p>We would also like to thank Peter Sommerlad for providing valuable
 feedback that helped us shape the final version of this document.</p>
 <!-- markdownlint-disable -->
-<h1 data-number="10" id="bibliography"><span class="header-section-number">10</span> References<a href="#bibliography" class="self-link"></a></h1>
+<h1 data-number="11" id="bibliography"><span class="header-section-number">11</span> References<a href="#bibliography" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
 <div id="ref-ARIANE" class="csl-entry" role="doc-biblioentry">
 [Ariane flight V88] Ariane flight V88. <a href="https://en.wikipedia.org/wiki/Ariane_flight_V88"><div class="csl-block">https://en.wikipedia.org/wiki/Ariane_flight_V88</div></a>
@@ -1752,12 +1777,21 @@ Charles Hogg, Nicolas Holthaus, Roth Michaels, Vincent Reverdy.
 2023-10-15. A motivation, scope, and plan for a physical quantities and
 units library. <a href="https://wg21.link/p2980r0"><div class="csl-block">https://wg21.link/p2980r0</div></a>
 </div>
+<div id="ref-P2981R0" class="csl-entry" role="doc-biblioentry">
+[P2981R0] Mateusz Pusz, Dominik Berner, Johel Ernesto Guerrero Peña.
+2023-10-15. Improving our safety with a physical quantities and units
+library. <a href="https://wg21.link/p2981r0"><div class="csl-block">https://wg21.link/p2981r0</div></a>
+</div>
 <div id="ref-PINT" class="csl-entry" role="doc-biblioentry">
 [Pint] Pint: makes units easy. <a href="https://pint.readthedocs.io/en/stable/index.html"><div class="csl-block">https://pint.readthedocs.io/en/stable/index.html</div></a>
 </div>
 <div id="ref-STONEHENGE" class="csl-entry" role="doc-biblioentry">
 [Stonehenge] Tim Robey. Tiny stones, giant laughs: the story behind
 Spinal Tap’s Stonehenge. <a href="https://www.telegraph.co.uk/films/2020/05/01/tiny-stones-giant-laughs-story-behind-spinal-taps-stonehenge"><div class="csl-block">https://www.telegraph.co.uk/films/2020/05/01/tiny-stones-giant-laughs-story-behind-spinal-taps-stonehenge</div></a>
+</div>
+<div id="ref-THE_GUARDIAN" class="csl-entry" role="doc-biblioentry">
+[The Guardian] Charles Pensulo. Record Heat: Malawi swelters with
+temperatures nearly 68F above average. <a href="https://randomascii.wordpress.com/2023/10/17/localization-failure-temperature-is-hard"><div class="csl-block">https://randomascii.wordpress.com/2023/10/17/localization-failure-temperature-is-hard</div></a>
 </div>
 <div id="ref-VASA" class="csl-entry" role="doc-biblioentry">
 [Vasa] Rhitu Chatterjee and Lisa Mullins. New Clues Emerge in
