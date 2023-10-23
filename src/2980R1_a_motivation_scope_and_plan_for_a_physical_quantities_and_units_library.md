@@ -930,7 +930,7 @@ In the above table:
 - Quantity specifications include at least the following information: quantity type, quantity character,
   quantity equation (in case of derived quantities), quantity kind, and dimension.
 - References (temporary name to be bikeshedded) are numeric wrappers over a quantity specification and
-  an unit.
+  a unit.
 
 Below, we provide a short overview of estimated additional framework-related costs associated with
 providing support for the following features (based on our current implementation experience):

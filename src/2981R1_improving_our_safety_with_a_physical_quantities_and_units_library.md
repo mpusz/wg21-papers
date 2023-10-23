@@ -370,7 +370,7 @@ std::cout << q1.in(km) << '\n';              // Compile-time error
 quantity<si::kilo<si::metre>, int> q2 = q1;  // Compile-time error
 ```
 
-We can't preserve the value of a source quantity when we convert it to one with an unit of
+We can't preserve the value of a source quantity when we convert it to one with a unit of
 a lower resolution while dealing with an integral representation type for a quantity.
 In the example above, converting `5` meters would result in `0` kilometers if internal conversion
 is performed using regular integer arithmetic.
@@ -625,15 +625,15 @@ a reference to its underlying numerical value is required:
 
     ```cpp
     ImGui::DragInt("Frames", &frame_frequency.value.numerical_value_ref_in(Hz), 1,
-                   frame_frequency.min.numerical_value_in(Hz), 
-                   frame_frequency.max.numerical_value_in(Hz), 
+                   frame_frequency.min.numerical_value_in(Hz),
+                   frame_frequency.max.numerical_value_in(Hz),
                    "%d Hz");
     ```
 
 - Obtaining a temperature via the C library:
 
     ```cpp
-    // read_temperature is in the BSP defined as 
+    // read_temperature is in the BSP defined as
     void read_temperature(float* temp_in_celsius);
     ```
 
@@ -1165,7 +1165,7 @@ static_assert(5 * h / (120 * min) == 0 * one);
 
 This is why floating-point representation types are recommended as a default to store the numerical
 value of a quantity. Some popular physical units libraries even
-[forbid integer division at all](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden). 
+[forbid integer division at all](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden).
 
 The problem is similar to the one described in the section about accidental truncation of values
 through conversion. While the consequent use of floating-point representation types may be a good idea,
@@ -1246,7 +1246,7 @@ The above function call will result in a quantity of area instead of the expecte
 of length.
 
 The issues mentioned above could be turned into compilation errors by disallowing multiplying or
-dividing a quantity by an unit. The [@MP-UNITS] library initially provided such an approach, but with
+dividing a quantity by a unit. The [@MP-UNITS] library initially provided such an approach, but with
 time, we decided this to not be user-friendly. Forcing the user to put the parenthesis around all
 derived units in quantity equations like the one below, was too verbose and confusing:
 
