@@ -553,6 +553,9 @@ Acknowledgements<span></span></a></li>
 <li>Added The Guardian’s Fahrenheit issue to <a href="#safety">Safety</a>.</li>
 <li><a href="#plan-for-standardization">Plan for standardization</a>
 table updated.</li>
+<li><a href="#standardizing-existing-practice">Standardizing existing
+practice</a> extended with <span class="citation" data-cites="CHEP98">[<a href="#ref-CHEP98" role="doc-biblioref">CHEP’98</a>]</span> reference and GitHub
+stats.</li>
 </ul>
 <h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
 <p>Several groups in the ISO C++ Committee reviewed the “P1935: A C++
@@ -958,17 +961,33 @@ in many applications.</p>
 <h2 data-number="5.7" id="standardizing-existing-practice"><span class="header-section-number">5.7</span> Standardizing existing
 practice<a href="#standardizing-existing-practice" class="self-link"></a></h2>
 <p>Plenty of physical units libraries have been available to the public
-for many years. Throughout the years, we have learned the best practices
-for handling specific cases in the domain. Various products may have
-different scopes and support different C++ versions. Still, taking that
-aside, they use really similar concepts, types, and operations under the
-hood. We know how to do those things already.</p>
+for many years. In 1998 Walter Brown provided an “Introduction to the SI
+Library of Unit-Based Computation” paper for the International
+Conference on Computing in High Energy Physics <span class="citation" data-cites="CHEP98">[<a href="#ref-CHEP98" role="doc-biblioref">CHEP’98</a>]</span>. It emphasizes the importance
+of strong types and static type-checking. After that, it describes a
+library modeling the <span class="citation" data-cites="SI">[<a href="#ref-SI" role="doc-biblioref">SI</a>]</span> to provide “strict
+compile-time type-checking without run-time overhead”.</p>
+<p>It also states that at this time, “in numeric programming,
+programmers make heavy, near-exclusive, use of a language’s native
+numeric types (e.g., <code class="sourceCode default">double</code>)”.
+Today, twenty-five years later, plenty of “Modern C++” production code
+bases still use <code class="sourceCode default">double</code> to
+represent various quantities and units. It is high time to change
+this.</p>
+<p>Throughout the years, we have learned the best practices for handling
+specific cases in the domain. Various products may have different scopes
+and support different C++ versions. Still, taking that aside, they use
+really similar concepts, types, and operations under the hood. We know
+how to do those things already.</p>
 <p>The authors of this paper developed and delivered multiple successful
-C++ libraries for this domain. They joined forces and are working
-together to propose the best physical quantities and units library we
-can get with the latest version of the C++ language. They spend their
-private time and efforts hoping that the ISO C++ Committee will be
-willing to include such a feature in the C++ standard library.</p>
+C++ libraries for this domain. Libraries developed by them <a href="https://github.com/topics/dimensional-analysis?l=c%2B%2B">have
+more than 90% of all the stars on GitHub in the field of physical units
+libraries for C++</a>.</p>
+<p>The authors joined forces and are working together to propose the
+best physical quantities and units library we can get with the latest
+version of the C++ language. They spend their private time and efforts
+hoping that the ISO C++ Committee will be willing to include such a
+feature in the C++ standard library.</p>
 <h1 data-number="6" id="design-goals"><span class="header-section-number">6</span> Design goals<a href="#design-goals" class="self-link"></a></h1>
 <p>The library facilities that we plan to propose in the upcoming papers
 will be designed with the following goals in mind.</p>
@@ -2013,6 +2032,10 @@ feedback that helped us shape the final version of this document.</p>
 <div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
 <div id="ref-AU" class="csl-entry" role="doc-biblioentry">
 [Au] The Au Units library. <a href="https://aurora-opensource.github.io/au"><div class="csl-block">https://aurora-opensource.github.io/au</div></a>
+</div>
+<div id="ref-CHEP98" class="csl-entry" role="doc-biblioentry">
+[CHEP’98] Walter E. Brown. Introduction to the SI Library of Unit-Based
+Computation. <a href="https://digital.library.unt.edu/ark:/67531/metadc668099"><div class="csl-block">https://digital.library.unt.edu/ark:/67531/metadc668099</div></a>
 </div>
 <div id="ref-CLARENCE" class="csl-entry" role="doc-biblioentry">
 [Clarence] Steve Chawkins. Mismeasure for Measure. <a href="https://www.latimes.com/archives/la-xpm-2001-feb-09-me-23253-story.html"><div class="csl-block">https://www.latimes.com/archives/la-xpm-2001-feb-09-me-23253-story.html</div></a>

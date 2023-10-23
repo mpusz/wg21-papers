@@ -28,6 +28,7 @@ author:
 
 - Added The Guardian's Fahrenheit issue to [Safety].
 - [Plan for standardization] table updated.
+- [Standardizing existing practice] extended with [@CHEP98] reference and GitHub stats.
 
 
 # Introduction
@@ -407,15 +408,29 @@ applications.
 
 ## Standardizing existing practice
 
-Plenty of physical units libraries have been available to the public for many years. Throughout the years,
-we have learned the best practices for handling specific cases in the domain. Various products
-may have different scopes and support different C++ versions. Still, taking that aside, they use
-really similar concepts, types, and operations under the hood. We know how to do those things already.
+Plenty of physical units libraries have been available to the public for many years. In 1998
+Walter Brown provided an "Introduction to the SI Library of Unit-Based Computation" paper
+for the International Conference on Computing in High Energy Physics [@CHEP98]. It emphasizes
+the importance of strong types and static type-checking. After that, it describes a library
+modeling the [@SI] to provide "strict compile-time type-checking without run-time overhead".
+
+It also states that at this time, "in numeric programming, programmers make heavy, near-exclusive,
+use of a language's native numeric types (e.g., `double`)". Today, twenty-five years later,
+plenty of "Modern C++" production code bases still use `double` to represent various quantities
+and units. It is high time to change this.
+
+Throughout the years, we have learned the best practices for handling specific cases in the domain.
+Various products may have different scopes and support different C++ versions. Still, taking that
+aside, they use really similar concepts, types, and operations under the hood. We know how to do
+those things already.
 
 The authors of this paper developed and delivered multiple successful C++ libraries for this domain.
-They joined forces and are working together to propose the best physical quantities and units
-library we can get with the latest version of the C++ language. They spend their private time and
-efforts hoping that the ISO C++ Committee will be willing to include such a feature in
+Libraries developed by them [have more than 90% of all the stars on GitHub in the field of
+physical units libraries for C++](https://github.com/topics/dimensional-analysis?l=c%2B%2B).
+
+The authors joined forces and are working together to propose the best physical quantities and
+units library we can get with the latest version of the C++ language. They spend their private
+time and efforts hoping that the ISO C++ Committee will be willing to include such a feature in
 the C++ standard library.
 
 
@@ -1108,6 +1123,13 @@ references:
   citation-label: JCGM 200:2012
   title: "International vocabulary of metrology - Basic and general concepts and associated terms (VIM) (JCGM 200:2012, 3rd edition)"
   URL: <https://jcgm.bipm.org/vim/en>
+- id: CHEP98
+  citation-label: CHEP'98
+  author:
+    - family: Brown
+      given: Walter E.
+  title: "Introduction to the SI Library of Unit-Based Computation"
+  URL: <https://digital.library.unt.edu/ark:/67531/metadc668099>
 - id: CLARENCE
   citation-label: Clarence
   author:
