@@ -2923,7 +2923,7 @@ The following operations are not allowed in the affine space:
 - **multiplying/dividing** two `quantity_point` objects
     - What would multiplying the home and DEN airport location mean?
 - **mixing** `quantity_points` of different quantity kinds
-    - It is physically impossible to subtract time from length.
+    - It is physically impossible to subtract ISQ time from ISQ length.
 - **mixing** `quantity_points` of inconvertible quantities
     - What does it mean to subtract a distance point to DEN airport from the Mount Everest base camp
       altitude?
