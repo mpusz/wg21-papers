@@ -1,6 +1,6 @@
 ---
 title: "Improving our safety with a physical quantities and units library"
-document: P2981R0
+document: D2981R1
 date: today
 audience:
   - SG23 Safety and Security
@@ -12,6 +12,14 @@ author:
   - name: Johel Ernesto Guerrero Peña
     email: <johelegp@gmail.com>
 ---
+
+
+# Revision History
+
+## Changes since [@P2981R0]
+
+- Added The Guardian's Fahrenheit issue to [Mismeasure for measure].
+- Fuel consumption example extended in [Converting between quantities of the same kind].
 
 
 # Introduction
@@ -135,6 +143,11 @@ confuse units quite often. We see similar errors occurring in various domains ov
   of 54 cm between the two outer ends of the bridge [@HOCHRHEINBRÜCKE].
 - An American company sold a shipment of wild rice to a Japanese customer, quoting a price of
   39 cents per pound, but the customer thought the quote was for 39 cents per kilogram [@WILD_RICE].
+- On October 17, 2023, The Guardian published an article titled "Record Heat: Malawi swelters with
+  temperatures nearly 68F above average" with many issues related to the affine space types and
+  temperature units. Due to incorrect logic, probably during the translation of the article to
+  the U.S.  market, `20 °C` above the average temperature was converted to `68 °F`. The actual
+  temperature increase was `32 °F`, not `68 °F` [@THE_GUARDIAN].
 - A whole set of [@MEDICATION_DOSE_ERRORS]...
 
 
@@ -847,7 +860,11 @@ quantity of area:
 static_assert(fuel_consumption.dimension == isq::area.dimension);
 
 const quantity<isq::area[m2]> football_field = isq::length(105 * m) * isq::width(68 * m);
-const quantity<fuel_consumption[l / (mag<100> * km)]> q = football_field;  // Compile-time error
+const quantity<fuel_consumption[l / (mag<100> * km)]> q2 = football_field;  // Compile-time error
+const quantity q3 = q + football_field;                                     // Compile-time error
+if (q == football_field) {                                                  // Compile-time error
+  // ...
+}
 ```
 
 ### Comparing, adding, and subtracting quantities of the same kind
@@ -1406,6 +1423,13 @@ references:
       given: Tim
   title: "Tiny stones, giant laughs: the story behind Spinal Tap's Stonehenge"
   URL: <https://www.telegraph.co.uk/films/2020/05/01/tiny-stones-giant-laughs-story-behind-spinal-taps-stonehenge>
+- id: THE_GUARDIAN
+  citation-label: The Guardian
+  author:
+    - family: Pensulo
+      given: Charles
+  title: "Record Heat: Malawi swelters with temperatures nearly 68F above average"
+  URL: <https://randomascii.wordpress.com/2023/10/17/localization-failure-temperature-is-hard>
 - id: VASA
   citation-label: Vasa
   author:
