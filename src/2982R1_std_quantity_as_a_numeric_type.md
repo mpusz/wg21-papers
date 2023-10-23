@@ -1464,7 +1464,7 @@ static_assert(std::is_same_v<decltype(q1), decltype(q2)>);
 static_assert(q1.quantity_spec == kind_of<isq::length / isq::time>);
 ```
 
-- typed quantities (quantities of a specified kind)
+- typed quantities (quantities of a specific type within a kind)
 
 ```cpp
 quantity<isq::speed[si::metre / si::second], int> q3 = 42 * m / s;
