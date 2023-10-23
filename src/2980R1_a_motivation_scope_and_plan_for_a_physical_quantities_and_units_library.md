@@ -1,6 +1,6 @@
 ---
 title: "A motivation, scope, and plan for a physical quantities and units library"
-document: P2980R0
+document: D2980R0
 date: today
 audience:
   - Library Evolution Working Group
@@ -20,6 +20,14 @@ author:
   - name: Vincent Reverdy
     email: <vince.rev@gmail.com>
 ---
+
+
+# Revision History
+
+## Changes since [@P2980R0]
+
+- Added The Guardian's Fahrenheit issue to [Safety].
+- [Plan for standardization] table updated.
 
 
 # Introduction
@@ -275,6 +283,11 @@ quite often. We see similar errors occurring in various domains over the years:
   of 54 cm between the two outer ends of the bridge [@HOCHRHEINBRÜCKE].
 - An American company sold a shipment of wild rice to a Japanese customer, quoting a price of
   39 cents per pound, but the customer thought the quote was for 39 cents per kilogram [@WILD_RICE].
+- On October 17, 2023, The Guardian published an article titled "Record Heat: Malawi swelters with
+  temperatures nearly 68F above average" with many issues related to the affine space types and
+  temperature units. Due to incorrect logic, probably during the translation of the article to
+  the U.S.  market, `20 °C` above the average temperature was converted to `68 °F`. The actual
+  temperature increase was `32 °F`, not `68 °F` [@THE_GUARDIAN].
 - A whole set of [@MEDICATION_DOSE_ERRORS]...
 
 The safety subject is so vast and essential by itself that we dedicated a separate paper [@P2981R0]
@@ -1052,25 +1065,25 @@ by LEWG will help to keep the efforts on track.
 
 <!-- markdownlint-disable MD013 -->
 
-| Meeting            | C++ Milestones                                     | Activities                                                                                                                                                                                                                  |
-|--------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper about safety benefits and concerns to SG23<br>Papers about quantity arithmetics and number concepts to SG6                                             |
-| 2024.1 (Tokyo)     |                                                    | Paper on the Basic Framework (priority 1 features) to LEWG<br>Paper on `fixed_string` to SG16<br>Paper about text output to SG16<br>Paper about math utilities to SG6<br>Paper about prime numbers to SG6                   |
-| 2024.2 (St. Louis) |                                                    | Papers on the Basic Framework (priority 2 & 3 features) to SG6<br>Paper about the Affine Space to LEWG<br>Move quantity arithmetics and number concepts papers to LEWG                                                      |
-| 2024.3 (Wrocław)   |                                                    | Paper of type and NTTP lists to LEWG<br>Papers on systems to SG6<br>Paper about `std::chrono` support to LEWG<BR>Move text output and `fixed_string` papers to LEWG<br>Move math utilities and prime numbers papers to LEWG |
-| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Basic Framework (priority 2 & 3 features) to LEWG                                                                                                                                                                      |
-| 2025.2             | C++26 CD finalized                                 |                                                                                                                                                                                                                             |
-| 2025.3             |                                                    | Move papers on systems to LEWG                                                                                                                                                                                              |
-| 2026.1             | C++26 DIS finalized                                |                                                                                                                                                                                                                             |
-| 2026.2             | C++29 WP opens                                     | Wording for Basic Framework (priority 1 features) and number concepts to LWG                                                                                                                                                |
-| 2026.3             |                                                    | Wording for Basic Framework (priority 2 features), the Affine Space, `std::chrono` support, the text output, and `fixed_string` to LWG                                                                                      |
-| 2027.1             |                                                    | Wording for math utilities, prime numbers, systems, and type and NTTP lists to LWG                                                                                                                                          |
-| 2027.2             |                                                    |                                                                                                                                                                                                                             |
-| 2027.3             |                                                    |                                                                                                                                                                                                                             |
-| 2028.1             | Last meeting for LEWG review of new C++29 features | Finalize wording review in LWG and merge into C++29 WP                                                                                                                                                                      |
-| 2028.2             | C++29 CS finalized                                 | Resolve any outstanding design/wording issues                                                                                                                                                                               |
-| 2028.3             |                                                    | Resolve NB comments                                                                                                                                                                                                         |
-| 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                                                                                                         |
+| Meeting            | C++ Milestones                                     | Activities                                                                                                                                                                                |
+|--------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper about safety benefits and concerns to SG23<br>Papers about quantity arithmetics and number concepts to SG6           |
+| 2024.1 (Tokyo)     |                                                    | Paper on type and NTTP lists to LEWG<br>Papers on the Basic Framework (priority 1 features), math utilities, and prime numbers to SG6<br>Papers on `fixed_string` and text output to SG16 |
+| 2024.2 (St. Louis) |                                                    | Papers on the Basic Framework (priority 2 & 3 features) and the Affine Space to SG6<br>Move quantity arithmetics and number concepts papers to LEWG                                       |
+| 2024.3 (Wrocław)   |                                                    | Papers on systems and `std::chrono` support to SG6<BR>Move text output, `fixed_string`, Basic Framework (priority 1 features), math utilities, and prime numbers papers to LEWG           |
+| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Basic Framework (priority 2 & 3 features) and the Affine Space to LEWG                                                                                                               |
+| 2025.2             | C++26 CD finalized                                 | Move paper on `std::chrono` support to LEWG                                                                                                                                               |
+| 2025.3             |                                                    | Move papers on systems to LEWG                                                                                                                                                            |
+| 2026.1             | C++26 DIS finalized                                |                                                                                                                                                                                           |
+| 2026.2             | C++29 WP opens                                     | Wording for Basic Framework (priority 1 features) and number concepts to LWG                                                                                                              |
+| 2026.3             |                                                    | Wording for Basic Framework (priority 2 features), the Affine Space, `std::chrono` support, the text output, and `fixed_string` to LWG                                                    |
+| 2027.1             |                                                    | Wording for math utilities, prime numbers, systems, and type and NTTP lists to LWG                                                                                                        |
+| 2027.2             |                                                    |                                                                                                                                                                                           |
+| 2027.3             |                                                    |                                                                                                                                                                                           |
+| 2028.1             | Last meeting for LEWG review of new C++29 features | Finalize wording review in LWG and merge into C++29 WP                                                                                                                                    |
+| 2028.2             | C++29 CS finalized                                 | Resolve any outstanding design/wording issues                                                                                                                                             |
+| 2028.3             |                                                    | Resolve NB comments                                                                                                                                                                       |
+| 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                                                                       |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -1172,6 +1185,13 @@ references:
       given: Tim
   title: "Tiny stones, giant laughs: the story behind Spinal Tap's Stonehenge"
   URL: <https://www.telegraph.co.uk/films/2020/05/01/tiny-stones-giant-laughs-story-behind-spinal-taps-stonehenge>
+- id: THE_GUARDIAN
+  citation-label: The Guardian
+  author:
+    - family: Pensulo
+      given: Charles
+  title: "Record Heat: Malawi swelters with temperatures nearly 68F above average"
+  URL: <https://randomascii.wordpress.com/2023/10/17/localization-failure-temperature-is-hard>
 - id: VASA
   citation-label: Vasa
   author:
