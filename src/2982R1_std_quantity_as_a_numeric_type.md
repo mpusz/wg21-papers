@@ -1,6 +1,6 @@
 ---
 title: "`std::quantity` as a numeric type"
-document: P2982R0
+document: D2982R1
 date: today
 audience:
   - SG6 Numerics
@@ -10,6 +10,14 @@ author:
   - name: Chip Hogg ([Aurora Innovation](https://aurora.tech/))
     email: <charles.r.hogg@gmail.com>
 ---
+
+
+# Revision History
+
+## Changes since [@P2982R0]
+
+- Fuel consumption example extended in [Converting between quantities of the same kind].
+- Some small editorial fixes.
 
 
 # Introduction
@@ -280,7 +288,11 @@ quantity of area:
 static_assert(fuel_consumption.dimension == isq::area.dimension);
 
 const quantity<isq::area[m2]> football_field = isq::length(105 * m) * isq::width(68 * m);
-const quantity<fuel_consumption[l / (mag<100> * km)]> q = football_field;  // Compile-time error
+const quantity<fuel_consumption[l / (mag<100> * km)]> q2 = football_field;  // Compile-time error
+const quantity q3 = q + football_field;                                     // Compile-time error
+if (q == football_field) {                                                  // Compile-time error
+  // ...
+}
 ```
 
 ### Comparing, adding, and subtracting quantities of the same kind
