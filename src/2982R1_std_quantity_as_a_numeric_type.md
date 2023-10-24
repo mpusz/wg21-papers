@@ -17,6 +17,7 @@ author:
 ## Changes since [@P2982R0]
 
 - Fuel consumption example extended in [Converting between quantities of the same kind].
+- [Dimension is not enough to describe a quantity] extended with [@MSRMT_DATA]
 - Some small editorial fixes.
 
 
@@ -49,12 +50,15 @@ the International System of Quantities (ISQ) defined by the series of [@ISO80000
 ## Dimension is not enough to describe a quantity
 
 Most of the products on the market are aware of physical dimensions. However, a dimension is not
-enough to describe a quantity. This has been known for a long time now.
+enough to describe a quantity. This has been known for a long time now. The [@MSRMT_DATA] report
+from 1996 says explicitly, "Dimensional analysis does not adequately model the semantics of
+measurement data".
 
-A typical problem that most similar libraries struggle with is supporting quantities
-of energy and a moment of force as independent, strong types. The problem here arises from the fact
-that both of them have exactly the same dimension `L²MT⁻²`, but a totally different physical meaning.
-As a result, they do not participate in same-set operations, e.g., comparison, addition.
+A typical problem that most similar libraries struggle with is supporting quantities like work and
+toque as being independent, strong types. The problem here arises from the fact that both of them
+have exactly the same dimension `L²MT⁻²`, but a totally different physical meaning. As a result,
+it is possible to mathematically add or compare them in a quantity equation even though such
+an operation has no sense from the physical point of view.
 
 A similar question that we could ask ourselves is what should be the result of:
 
@@ -70,6 +74,10 @@ where:
 
 All of those quantities have the same dimension, namely `T⁻¹`, but it is probably not wise to allow
 adding, subtracting, or comparing them, as they describe vastly different physical properties.
+
+It also is really tricky to separate handling of the quantities of dimension one. For example,
+angular measure expressed in radians and solid angular measure expressed in steradians should
+be independent. Any attempts to add or compare them should be detected at compile-time.
 
 Last but not least, let's see the following implementation:
 
@@ -2979,6 +2987,19 @@ references:
   citation-label: mp-units
   title: "mp-units - A Physical Quantities and Units library for C++"
   URL: <https://mpusz.github.io/mp-units>
+- id: MSRMT_DATA
+  citation-label: Measurement Data
+  author:
+    - family: Kent
+      given: William
+    - family: Leichner Janowski
+      given: Stephanie
+    - family: Hamilton
+      given: Bruce
+    - family: Hepner
+      given: Dan
+  title: "Measurement Data (Archive Report)"
+  URL: <https://www.bkent.net/Doc/mdarchiv.pdf>
 - id: P2993_PRE
   citation-label: P2993
   author:
