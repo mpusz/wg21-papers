@@ -17,7 +17,8 @@ author:
 ## Changes since [@P2982R0]
 
 - Fuel consumption example extended in [Converting between quantities of the same kind].
-- [Dimension is not enough to describe a quantity] extended with [@MSRMT_DATA]
+- [Dimension is not enough to describe a quantity] extended with [@MSRMT_DATA].
+- [Lack of convertibility from fundamental types] added.
 - Some small editorial fixes.
 
 
@@ -1936,6 +1937,90 @@ Thanks to assigning strong names to such quantities,
 they can be used in the quantity equation of other quantities.
 For example, `rotational_frequency` is defined by `rotation / duration`.
 
+### Lack of convertibility from fundamental types
+
+As stated [before](#dividing-two-quantities-of-the-same-kind), the division of two quantities of the
+same kind results in a quantity of dimension one. Even though it does not have a specific physical
+dimension it still uses units with various ratios such as `one`, `percent`, `radian`, `degree`,
+etc. It is essential to be explicit about which unit we want to use for such a quantity.
+
+However, in some cases, this might look like an overkill. The [@P2980R0] provides the motivation
+for standardizing this library and some examples to allow the reader to understand how the code
+looks and feels when such a library is used.
+[One of the examples provides the following line:](https://wg21.link/p2980r0#basic-quantity-equations)
+
+```cpp
+static_assert(10 * km / (5 * km) == 2 * one);
+```
+
+Another example could be subtracting a value `1` from the dimensionless quantity:
+
+```cpp
+const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
+```
+
+Some physical quantities and units libraries (e.g. [@BOOST-UNITS]) provide
+[implicit conversions from the values of representation types to such quantities](https://www.boost.org/doc/libs/1_83_0/doc/html/boost_units/Quantities.html#boost_units.Quantities.Quantity_Construction_and_Conversion).
+
+With such support, the above examples would look in the following way:
+
+```cpp
+static_assert(10 * km / (5 * km) == 2);
+```
+
+```cpp
+const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1) * fill_time;
+```
+
+Such simplification might look tempting, and the [@MP-UNITS] initially provided a special support
+that allowed the above to compile. However, in the V2 version of the library, it was removed.
+There are a few reasons for that:
+
+- Such support has sense only for quantities of dimension one with a unit `one`. In the case of all
+  the other units, the specific unit should still be provided.
+
+- If we provide implicit conversions from the representation type to a quantity of dimension one
+  with a unit `one` and we start depending on such a feature, we might end up with compile-time
+  errors after refactoring the unit in a type of such a quantity. For example:
+
+::: cmptable
+
+#### Before
+
+```cpp
+struct my_data {
+  quantity<dimensionless[one]> value;
+};
+
+my_data data1{.value = 42};
+my_data data2{.value = 42 * one};
+```
+
+#### After
+
+```cpp
+struct my_data {
+  quantity<dimensionless[percent]> value;
+};
+
+my_data data1{.value = 42};        // Compile-time error
+my_data data2{.value = 42 * one};  // OK
+```
+
+:::
+
+- Such support is purely additive (it can be added later) and requires a bunch of additional
+  overloads not only for a constructor but for arithmetic operators and comparisons as well.
+
+Please also note that we will still need to use explicit units to create a quantity for some cases.
+For example, in the following code, `asin(-1)` would use the overload from the `<math>` header of
+the C++ standard library rather than the one for quantities provided in `<mp-units/math.h>`
+header file:
+
+```cpp
+REQUIRE_THAT(asin(-1 * one), AlmostEquals(-90. * deg));
+```
+
 ### Predefined units of the dimensionless quantity
 
 As we observed above, the most common unit for dimensionless quantities is `one`. It has the
@@ -2975,6 +3060,15 @@ references:
   citation-label: JCGM 200:2012
   title: "International vocabulary of metrology - Basic and general concepts and associated terms (VIM) (JCGM 200:2012, 3rd edition)"
   URL: <https://jcgm.bipm.org/vim/en>
+- id: BOOST-UNITS
+  citation-label: Boost.Units
+  author:
+    - family: Schabel
+      given: Matthias C.
+    - family: Watanabe
+      given: Steven
+  title: "Boost.Units"
+  URL: <https://www.boost.org/doc/libs/1_83_0/doc/html/boost_units.html>
 - id: ISO80000
   citation-label: ISO/IEC 80000
   title: "ISO/IEC 80000: Quantities and units"
