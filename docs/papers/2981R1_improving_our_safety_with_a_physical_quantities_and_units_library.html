@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-23" />
+  <meta name="dcterms.date" content="2023-10-29" />
   <title>Improving our safety with a physical quantities and units
 library</title>
   <style>
@@ -429,7 +429,7 @@ physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-23</td>
+    <td>2023-10-29</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -458,7 +458,7 @@ Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateus
 <ul>
 <li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision History<span></span></a>
 <ul>
-<li><a href="#changes-since-p2981r0" id="toc-changes-since-p2981r0"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<span>P2981R0</span>]</span><span></span></a></li>
+<li><a href="#changes-since-p2981r0" id="toc-changes-since-p2981r0"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<span><strong>P2981R0?</strong></span>]</span><span></span></a></li>
 </ul></li>
 <li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">2</span> Introduction<span></span></a></li>
 <li><a href="#terms-and-definitions" id="toc-terms-and-definitions"><span class="toc-section-number">3</span>
@@ -534,7 +534,7 @@ Acknowledgements<span></span></a></li>
 </ul>
 </div>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
-<h2 data-number="1.1" id="changes-since-p2981r0"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<a href="#ref-P2981R0" role="doc-biblioref">P2981R0</a>]</span><a href="#changes-since-p2981r0" class="self-link"></a></h2>
+<h2 data-number="1.1" id="changes-since-p2981r0"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<a href="#ref-P2981R0" role="doc-biblioref"><strong>P2981R0?</strong></a>]</span><a href="#changes-since-p2981r0" class="self-link"></a></h2>
 <ul>
 <li>Added The Guardian’s Fahrenheit issue to <a href="#mismeasure-for-measure">Mismeasure for measure</a>.</li>
 <li>Fuel consumption example extended in <a href="#converting-between-quantities-of-the-same-kind">Converting
@@ -955,7 +955,7 @@ example). Still, the applicability of this concept is much wider.</p>
 expedition, we would deal with two kinds of altitude-related entities.
 The first would be absolute altitudes above the mean sea level (points)
 like base camp altitude, mount peak altitude, etc. The second one would
-be the heights of daily climbs (vectors). As long as it makes physical
+be the heights of daily climbs (vectors). Although it makes physical
 sense to add heights of daily climbs, there is no sense in adding
 altitudes. What does adding the altitude of a base camp and the mountain
 peak mean after all?</p>
@@ -1010,7 +1010,7 @@ of a quantity and that we do the following to use it:</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>X x;</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span>vec<span class="op">.</span>emplace_back<span class="op">(</span><span class="dv">42</span><span class="bu">s</span><span class="op">)</span>;</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">(</span>x<span class="op">.</span>vec<span class="op">[</span><span class="dv">0</span><span class="op">].</span>count<span class="op">())</span>;</span></code></pre></div>
-<p>The following code is incorrect. Even though the duration stores a
+<p>The preceding code is incorrect. Even though the duration stores a
 quantity equal to 42 s, it is not stored in seconds (it’s either
 microseconds or milliseconds, depending on which of the interfaces from
 the previous chapter is the current one). Such issues can be prevented
@@ -1048,15 +1048,21 @@ deleted),</li>
 <li>when the provided <code class="sourceCode default">Unit</code> has
 the same magnitude as the one currently used by the quantity.</li>
 </ul>
-<p>The first condition above limits the possibility of dangling
+<p>The first condition above aims to limit the possibility of dangling
 references. We want to increase the chances that the reference/pointer
 provided to an underlying API remains valid for the time of its usage.
-Performance aspects for a
-<code class="sourceCode default">quantity</code> type are secondary here
-as we expect the majority (if not all) of representation types to be
-cheap to copy, so we do not need to optimize for moving the value out
-from the temporary object. With this condition unsatisfied, the
-following code doesn’t compile:</p>
+(We’re much less concerned about performance aspects for a
+<code class="sourceCode default">quantity</code> here, as we expect the
+majority (if not all) of representation types to be cheap to copy.)</p>
+<p>That said, we acknowledge that this approach to preventing dangling
+references conflates value category with lifetime. While it may prevent
+the majority of dangling references, it also admits both false positives
+and false negatives, as explained in <span class="citation" data-cites="VCINL">[<a href="#ref-VCINL" role="doc-biblioref">Value
+Category Is Not Liftime</a>]</span>. We want to highlight this dilemma
+for the committee’s consideration.</p>
+<p>In case we do decide to keep this policy of deleting rvalue
+overloads, here’s an example of code that it would prevent from
+compiling.</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> legacy_func<span class="op">(</span><span class="kw">const</span> <span class="dt">int</span><span class="op">&amp;</span> seconds<span class="op">)</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>legacy_func<span class="op">((</span><span class="dv">4</span> <span class="op">*</span> s <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> s<span class="op">).</span>numerical_value_ref_in<span class="op">(</span>si<span class="op">::</span>second<span class="op">))</span>;  <span class="co">// Compile-time error</span></span></code></pre></div>
 <p>The <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library
@@ -1173,7 +1179,7 @@ dimension is not enough to express a quantity type.</p>
 goes beyond that and properly models quantity kinds. We believe that it
 is a significant feature that improves the safety of the library, and
 that is why we also plan to propose quantity kinds for standardization
-as mentioned in <span class="citation" data-cites="P2980R0">[<a href="#ref-P2980R0" role="doc-biblioref">P2980R0</a>]</span>.</p>
+as mentioned in <span class="citation" data-cites="P2980R0">[<a href="#ref-P2980R0" role="doc-biblioref"><strong>P2980R0?</strong></a>]</span>.</p>
 <h2 data-number="8.8" id="various-quantities-of-the-same-kind"><span class="header-section-number">8.8</span> Various quantities of the same
 kind<a href="#various-quantities-of-the-same-kind" class="self-link"></a></h2>
 <p>Proper modeling of distinct kinds for quantities of the same
@@ -1635,8 +1641,8 @@ such a syntax. Inexperienced users are often surprised by the results of
 the following expression:</p>
 <div class="sourceCode" id="cb65"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;</span></code></pre></div>
 <p>This looks like like <code class="sourceCode default">30 km/h</code>,
-right? But it is not. Thanks to the operators’ associativity, it results
-in <code class="sourceCode default">30 km⋅h</code>. In case we want to
+right? But it is not. Thanks to the order of operations, it results in
+<code class="sourceCode default">30 km⋅h</code>. In case we want to
 divide <code class="sourceCode default">60 km</code> by
 <code class="sourceCode default">2 h</code>, parentheses are needed:</p>
 <div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
@@ -1771,17 +1777,6 @@ hospitals: Analysis of the nature and enablers of incident reports. <a href="htt
 <div id="ref-NIC-UNITS" class="csl-entry" role="doc-biblioentry">
 [nholthaus/units] UNITS. <a href="https://github.com/nholthaus/units"><div class="csl-block">https://github.com/nholthaus/units</div></a>
 </div>
-<div id="ref-P2980R0" class="csl-entry" role="doc-biblioentry">
-[P2980R0] Mateusz Pusz, Dominik Berner, Johel Ernesto Guerrero Peña,
-Charles Hogg, Nicolas Holthaus, Roth Michaels, Vincent Reverdy.
-2023-10-15. A motivation, scope, and plan for a physical quantities and
-units library. <a href="https://wg21.link/p2980r0"><div class="csl-block">https://wg21.link/p2980r0</div></a>
-</div>
-<div id="ref-P2981R0" class="csl-entry" role="doc-biblioentry">
-[P2981R0] Mateusz Pusz, Dominik Berner, Johel Ernesto Guerrero Peña.
-2023-10-15. Improving our safety with a physical quantities and units
-library. <a href="https://wg21.link/p2981r0"><div class="csl-block">https://wg21.link/p2981r0</div></a>
-</div>
 <div id="ref-PINT" class="csl-entry" role="doc-biblioentry">
 [Pint] Pint: makes units easy. <a href="https://pint.readthedocs.io/en/stable/index.html"><div class="csl-block">https://pint.readthedocs.io/en/stable/index.html</div></a>
 </div>
@@ -1792,6 +1787,9 @@ Spinal Tap’s Stonehenge. <a href="https://www.telegraph.co.uk/films/2020/05/01
 <div id="ref-THE_GUARDIAN" class="csl-entry" role="doc-biblioentry">
 [The Guardian] Charles Pensulo. Record Heat: Malawi swelters with
 temperatures nearly 68F above average. <a href="https://randomascii.wordpress.com/2023/10/17/localization-failure-temperature-is-hard"><div class="csl-block">https://randomascii.wordpress.com/2023/10/17/localization-failure-temperature-is-hard</div></a>
+</div>
+<div id="ref-VCINL" class="csl-entry" role="doc-biblioentry">
+[Value Category Is Not Liftime] Value Category Is Not Liftime. <a href="https://quuxplusone.github.io/blog/2019/03/11/value-category-is-not-lifetime/"><div class="csl-block">https://quuxplusone.github.io/blog/2019/03/11/value-category-is-not-lifetime/</div></a>
 </div>
 <div id="ref-VASA" class="csl-entry" role="doc-biblioentry">
 [Vasa] Rhitu Chatterjee and Lisa Mullins. New Clues Emerge in
