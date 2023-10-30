@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-24" />
+  <meta name="dcterms.date" content="2023-10-29" />
   <title>`std::quantity` as a numeric type</title>
   <style>
       code{white-space: pre-wrap;}
@@ -462,7 +462,7 @@ as a numeric type</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-24</td>
+    <td>2023-10-29</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -491,7 +491,7 @@ Innovation</a>)<br>&lt;<a href="mailto:charles.r.hogg@gmail.com" class="email">c
 <ul>
 <li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision History<span></span></a>
 <ul>
-<li><a href="#changes-since-p2982r0" id="toc-changes-since-p2982r0"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P2982R0">[<span>P2982R0</span>]</span><span></span></a></li>
+<li><a href="#changes-since-p2982r0" id="toc-changes-since-p2982r0"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P2982R0">[<span><strong>P2982R0?</strong></span>]</span><span></span></a></li>
 </ul></li>
 <li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">2</span> Introduction<span></span></a></li>
 <li><a href="#terms-and-definitions" id="toc-terms-and-definitions"><span class="toc-section-number">3</span>
@@ -693,7 +693,7 @@ Acknowledgements<span></span></a></li>
 </ul>
 </div>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
-<h2 data-number="1.1" id="changes-since-p2982r0"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P2982R0">[<a href="#ref-P2982R0" role="doc-biblioref">P2982R0</a>]</span><a href="#changes-since-p2982r0" class="self-link"></a></h2>
+<h2 data-number="1.1" id="changes-since-p2982r0"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P2982R0">[<a href="#ref-P2982R0" role="doc-biblioref"><strong>P2982R0?</strong></a>]</span><a href="#changes-since-p2982r0" class="self-link"></a></h2>
 <ul>
 <li>Fuel consumption example extended in <a href="#converting-between-quantities-of-the-same-kind">Converting
 between quantities of the same kind</a>.</li>
@@ -1981,6 +1981,8 @@ the magnitude of the common unit.</p>
 3^2), (2^4 \cdot 3^{-1} \cdot 5)\right] \\
 &amp;= \text{COM}\left[(2^1 \cdot 3^2 \cdot 5^0), (2^4 \cdot 3^{-1}
 \cdot 5^1)\right] \\
+&amp;= 2^{\text{min}[1, 4]} \cdot 3^{\text{min}[2, -1]} \cdot
+5^{\text{min}[0, 1]} \\
 &amp;= 2^1 \cdot 3^{-1} \cdot 5^0 \\
 &amp;= \frac{2}{3}
 \end{align}
@@ -2816,10 +2818,11 @@ dimension it still uses units with various ratios such as
 <code class="sourceCode default">radian</code>,
 <code class="sourceCode default">degree</code>, etc. It is essential to
 be explicit about which unit we want to use for such a quantity.</p>
-<p>However, in some cases, this might look like an overkill. The <span class="citation" data-cites="P2980R0">[<a href="#ref-P2980R0" role="doc-biblioref">P2980R0</a>]</span> provides the motivation for
-standardizing this library and some examples to allow the reader to
-understand how the code looks and feels when such a library is used. <a href="https://wg21.link/p2980r0#basic-quantity-equations">One of the
-examples provides the following line:</a></p>
+<p>However, in some cases, this might look like an overkill. The <span class="citation" data-cites="P2980R0">[<a href="#ref-P2980R0" role="doc-biblioref"><strong>P2980R0?</strong></a>]</span> provides the
+motivation for standardizing this library and some examples to allow the
+reader to understand how the code looks and feels when such a library is
+used. <a href="https://wg21.link/p2980r0#basic-quantity-equations">One
+of the examples provides the following line:</a></p>
 <div class="sourceCode" id="cb87"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">10</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> km<span class="op">)</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> one<span class="op">)</span>;</span></code></pre></div>
 <p>Another example could be subtracting a value
 <code class="sourceCode default">1</code> from the dimensionless
@@ -3610,10 +3613,10 @@ also the uncertainty of the measurement), and</li>
 <li>enable linear algebra usage.</li>
 </ul>
 <p>As of right now, we have two other concurrent proposals to SG6 in
-this subject on the fly (<span class="citation" data-cites="P2993_PRE">[<a href="#ref-P2993_PRE" role="doc-biblioref">P2993</a>]</span> and <span class="citation" data-cites="P3003R0">[<a href="#ref-P3003R0" role="doc-biblioref">P3003R0</a>]</span>), so we do not provide any
-concrete requirements or recommendations here. Based on the results of
-discussions on the mentioned proposals, we will provide correct
-guidelines in the next revisions of this paper.</p>
+this subject on the fly (<span class="citation" data-cites="P2993_PRE">[<a href="#ref-P2993_PRE" role="doc-biblioref">P2993</a>]</span> and <span class="citation" data-cites="P3003R0">[<a href="#ref-P3003R0" role="doc-biblioref"><strong>P3003R0?</strong></a>]</span>), so we do
+not provide any concrete requirements or recommendations here. Based on
+the results of discussions on the mentioned proposals, we will provide
+correct guidelines in the next revisions of this paper.</p>
 <h1 data-number="10" id="the-affine-space"><span class="header-section-number">10</span> The affine space<a href="#the-affine-space" class="self-link"></a></h1>
 <p>The affine space has two types of entities:</p>
 <ul>
@@ -3971,22 +3974,8 @@ Hamilton, and Dan Hepner. Measurement Data (Archive Report). <a href="https://ww
 [mp-units] mp-units - A Physical Quantities and Units library for C++.
 <a href="https://mpusz.github.io/mp-units"><div class="csl-block">https://mpusz.github.io/mp-units</div></a>
 </div>
-<div id="ref-P2980R0" class="csl-entry" role="doc-biblioentry">
-[P2980R0] Mateusz Pusz, Dominik Berner, Johel Ernesto Guerrero Peña,
-Charles Hogg, Nicolas Holthaus, Roth Michaels, Vincent Reverdy.
-2023-10-15. A motivation, scope, and plan for a physical quantities and
-units library. <a href="https://wg21.link/p2980r0"><div class="csl-block">https://wg21.link/p2980r0</div></a>
-</div>
-<div id="ref-P2982R0" class="csl-entry" role="doc-biblioentry">
-[P2982R0] Mateusz Pusz, Chip Hogg. 2023-10-15. `std::quantity` as a
-numeric type. <a href="https://wg21.link/p2982r0"><div class="csl-block">https://wg21.link/p2982r0</div></a>
-</div>
 <div id="ref-P2993_PRE" class="csl-entry" role="doc-biblioentry">
 [P2993] Luke Valenty. Constrained Numbers. <a href="https://wg21.link/p2993"><div class="csl-block">https://wg21.link/p2993</div></a>
-</div>
-<div id="ref-P3003R0" class="csl-entry" role="doc-biblioentry">
-[P3003R0] Johel Ernesto Guerrero Peña. 2023-10-14. The design of a
-library of number concepts. <a href="https://wg21.link/p3003r0"><div class="csl-block">https://wg21.link/p3003r0</div></a>
 </div>
 <div id="ref-PINT" class="csl-entry" role="doc-biblioentry">
 [Pint] Pint: makes units easy. <a href="https://pint.readthedocs.io/en/stable/index.html"><div class="csl-block">https://pint.readthedocs.io/en/stable/index.html</div></a>

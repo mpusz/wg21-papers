@@ -1144,6 +1144,7 @@ $$
 \begin{align}
 \text{COM}\left[18, \frac{80}{3}\right] &= \text{COM}\left[(2 \cdot 3^2), (2^4 \cdot 3^{-1} \cdot 5)\right] \\
 &= \text{COM}\left[(2^1 \cdot 3^2 \cdot 5^0), (2^4 \cdot 3^{-1} \cdot 5^1)\right] \\
+&= 2^{\text{min}[1, 4]} \cdot 3^{\text{min}[2, -1]} \cdot 5^{\text{min}[0, 1]} \\
 &= 2^1 \cdot 3^{-1} \cdot 5^0 \\
 &= \frac{2}{3}
 \end{align}
