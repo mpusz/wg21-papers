@@ -446,7 +446,7 @@ Still, the applicability of this concept is much wider.
 For example, if we would like to model a Mount Everest climbing expedition, we would deal with
 two kinds of altitude-related entities. The first would be absolute altitudes above the mean sea
 level (points) like base camp altitude, mount peak altitude, etc. The second one would be the
-heights of daily climbs (vectors). As long as it makes physical sense to add heights of daily climbs,
+heights of daily climbs (vectors). Although it makes physical sense to add heights of daily climbs,
 there is no sense in adding altitudes. What does adding the altitude of a base camp and
 the mountain peak mean after all?
 
@@ -522,7 +522,7 @@ x.vec.emplace_back(42s);
 legacy_func(x.vec[0].count());
 ```
 
-The following code is incorrect. Even though the duration stores a quantity equal to 42 s, it
+The preceding code is incorrect. Even though the duration stores a quantity equal to 42 s, it
 is not stored in seconds (it's either microseconds or milliseconds, depending on which
 of the interfaces from the previous chapter is the current one). Such issues
 can be prevented with the usage of `std::chrono::duration_cast`:
@@ -565,12 +565,18 @@ numerical value stored in a `quantity`. For those cases, the [@MP-UNITS] library
 - for lvalues (rvalue reference qualified overload is explicitly deleted),
 - when the provided `Unit` has the same magnitude as the one currently used by the quantity.
 
-The first condition above limits the possibility of dangling references. We want to increase the
-chances that the reference/pointer provided to an underlying API remains valid for the time of its
-usage. Performance aspects for a `quantity` type are secondary here as we expect the majority
-(if not all) of representation types to be cheap to copy, so we do not need to optimize for moving
-the value out from the temporary object. With this condition unsatisfied, the following code doesn't
-compile:
+The first condition above aims to limit the possibility of dangling references. We want to increase
+the chances that the reference/pointer provided to an underlying API remains valid for the time of
+its usage. (We're much less concerned about performance aspects for a `quantity` here, as we expect
+the majority (if not all) of representation types to be cheap to copy.)
+
+That said, we acknowledge that this approach to preventing dangling references conflates value
+category with lifetime.  While it may prevent the majority of dangling references, it also admits
+both false positives and false negatives, as explained in [@VCINL].  We want to highlight this
+dilemma for the committee's consideration.
+
+In case we do decide to keep this policy of deleting rvalue overloads, here's an example of code
+that it would prevent from compiling.
 
 ```cpp
 void legacy_func(const int& seconds);
@@ -1217,7 +1223,7 @@ results of the following expression:
 quantity q = 60 * km / 2 * h;
 ```
 
-This looks like like `30 km/h`, right? But it is not. Thanks to the operators' associativity, it results
+This looks like like `30 km/h`, right? But it is not. Thanks to the order of operations, it results
 in `30 km⋅h`. In case we want to divide `60 km` by `2 h`, parentheses are needed:
 
 ```cpp
@@ -1439,6 +1445,10 @@ references:
       given: Lisa
   title: "New Clues Emerge in Centuries-Old Swedish Shipwreck"
   URL: <https://theworld.org/stories/2012-02-23/new-clues-emerge-centuries-old-swedish-shipwreck>
+- id: VCINL
+  citation-label: Value Category Is Not Liftime
+  title: "Value Category Is Not Liftime"
+  URL: <https://quuxplusone.github.io/blog/2019/03/11/value-category-is-not-lifetime/>
 - id: WILD_RICE
   citation-label: Wild Rice
   title: "Manufacturers, exporters think metric"
