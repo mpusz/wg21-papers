@@ -12,7 +12,7 @@ author:
 ---
 
 
-# Revision History
+# Revision history
 
 ## Changes since [@P2982R0]
 

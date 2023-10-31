@@ -22,7 +22,7 @@ author:
 ---
 
 
-# Revision History
+# Revision history
 
 ## Changes since [@P2980R0]
 
