@@ -29,6 +29,7 @@ author:
 - Added The Guardian's Fahrenheit issue to [Safety].
 - [Plan for standardization] table updated.
 - [Standardizing existing practice] extended with [@CHEP98] reference and GitHub stats.
+- Some small editorial fixes (mostly in the [Design goals] chapter).
 
 
 # Introduction

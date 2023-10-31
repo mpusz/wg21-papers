@@ -20,6 +20,8 @@ author:
 
 - Added The Guardian's Fahrenheit issue to [Mismeasure for measure].
 - Fuel consumption example extended in [Converting between quantities of the same kind].
+- [@VCINL] reference added to [Preventing dangling references].
+- Some small editorial fixes.
 
 
 # Introduction
