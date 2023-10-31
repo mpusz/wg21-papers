@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-29" />
+  <meta name="dcterms.date" content="2023-10-31" />
   <title>Improving our safety with a physical quantities and units
 library</title>
   <style>
@@ -429,7 +429,7 @@ physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-29</td>
+    <td>2023-10-31</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -456,9 +456,9 @@ Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateus
 <div id="TOC" role="doc-toc">
 <h1 id="toctitle">Contents</h1>
 <ul>
-<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision History<span></span></a>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision history<span></span></a>
 <ul>
-<li><a href="#changes-since-p2981r0" id="toc-changes-since-p2981r0"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<span><strong>P2981R0?</strong></span>]</span><span></span></a></li>
+<li><a href="#changes-since-p2981r0" id="toc-changes-since-p2981r0"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<span>P2981R0</span>]</span><span></span></a></li>
 </ul></li>
 <li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">2</span> Introduction<span></span></a></li>
 <li><a href="#terms-and-definitions" id="toc-terms-and-definitions"><span class="toc-section-number">3</span>
@@ -533,12 +533,16 @@ Acknowledgements<span></span></a></li>
 <li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">11</span> References<span></span></a></li>
 </ul>
 </div>
-<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
-<h2 data-number="1.1" id="changes-since-p2981r0"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<a href="#ref-P2981R0" role="doc-biblioref"><strong>P2981R0?</strong></a>]</span><a href="#changes-since-p2981r0" class="self-link"></a></h2>
+<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
+<h2 data-number="1.1" id="changes-since-p2981r0"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P2981R0">[<a href="#ref-P2981R0" role="doc-biblioref">P2981R0</a>]</span><a href="#changes-since-p2981r0" class="self-link"></a></h2>
 <ul>
 <li>Added The Guardian’s Fahrenheit issue to <a href="#mismeasure-for-measure">Mismeasure for measure</a>.</li>
 <li>Fuel consumption example extended in <a href="#converting-between-quantities-of-the-same-kind">Converting
 between quantities of the same kind</a>.</li>
+<li><span class="citation" data-cites="VCINL">[<a href="#ref-VCINL" role="doc-biblioref">Value Category Is Not Liftime</a>]</span> reference
+added to <a href="#preventing-dangling-references">Preventing dangling
+references</a>.</li>
+<li>Some small editorial fixes.</li>
 </ul>
 <h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
 <p>One of the ways C++ can significantly improve the safety of
@@ -1179,7 +1183,7 @@ dimension is not enough to express a quantity type.</p>
 goes beyond that and properly models quantity kinds. We believe that it
 is a significant feature that improves the safety of the library, and
 that is why we also plan to propose quantity kinds for standardization
-as mentioned in <span class="citation" data-cites="P2980R0">[<a href="#ref-P2980R0" role="doc-biblioref"><strong>P2980R0?</strong></a>]</span>.</p>
+as mentioned in <span class="citation" data-cites="P2980R0">[<a href="#ref-P2980R0" role="doc-biblioref">P2980R0</a>]</span>.</p>
 <h2 data-number="8.8" id="various-quantities-of-the-same-kind"><span class="header-section-number">8.8</span> Various quantities of the same
 kind<a href="#various-quantities-of-the-same-kind" class="self-link"></a></h2>
 <p>Proper modeling of distinct kinds for quantities of the same
@@ -1776,6 +1780,17 @@ hospitals: Analysis of the nature and enablers of incident reports. <a href="htt
 </div>
 <div id="ref-NIC-UNITS" class="csl-entry" role="doc-biblioentry">
 [nholthaus/units] UNITS. <a href="https://github.com/nholthaus/units"><div class="csl-block">https://github.com/nholthaus/units</div></a>
+</div>
+<div id="ref-P2980R0" class="csl-entry" role="doc-biblioentry">
+[P2980R0] Mateusz Pusz, Dominik Berner, Johel Ernesto Guerrero Peña,
+Charles Hogg, Nicolas Holthaus, Roth Michaels, Vincent Reverdy.
+2023-10-15. A motivation, scope, and plan for a physical quantities and
+units library. <a href="https://wg21.link/p2980r0"><div class="csl-block">https://wg21.link/p2980r0</div></a>
+</div>
+<div id="ref-P2981R0" class="csl-entry" role="doc-biblioentry">
+[P2981R0] Mateusz Pusz, Dominik Berner, Johel Ernesto Guerrero Peña.
+2023-10-15. Improving our safety with a physical quantities and units
+library. <a href="https://wg21.link/p2981r0"><div class="csl-block">https://wg21.link/p2981r0</div></a>
 </div>
 <div id="ref-PINT" class="csl-entry" role="doc-biblioentry">
 [Pint] Pint: makes units easy. <a href="https://pint.readthedocs.io/en/stable/index.html"><div class="csl-block">https://pint.readthedocs.io/en/stable/index.html</div></a>

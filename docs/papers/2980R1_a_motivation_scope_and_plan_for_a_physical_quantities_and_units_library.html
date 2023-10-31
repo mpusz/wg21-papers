@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-23" />
+  <meta name="dcterms.date" content="2023-10-31" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-23</td>
+    <td>2023-10-31</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -462,7 +462,7 @@ Instruments</a>)<br>&lt;<a href="mailto:isocxx@rothmichaels.us" class="email">is
 <div id="TOC" role="doc-toc">
 <h1 id="toctitle">Contents</h1>
 <ul>
-<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision History<span></span></a>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision history<span></span></a>
 <ul>
 <li><a href="#changes-since-p2980r0" id="toc-changes-since-p2980r0"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P2980R0">[<span>P2980R0</span>]</span><span></span></a></li>
 </ul></li>
@@ -547,7 +547,7 @@ Acknowledgements<span></span></a></li>
 <li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">11</span> References<span></span></a></li>
 </ul>
 </div>
-<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
+<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
 <h2 data-number="1.1" id="changes-since-p2980r0"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P2980R0">[<a href="#ref-P2980R0" role="doc-biblioref">P2980R0</a>]</span><a href="#changes-since-p2980r0" class="self-link"></a></h2>
 <ul>
 <li>Added The Guardian’s Fahrenheit issue to <a href="#safety">Safety</a>.</li>
@@ -556,6 +556,7 @@ table updated.</li>
 <li><a href="#standardizing-existing-practice">Standardizing existing
 practice</a> extended with <span class="citation" data-cites="CHEP98">[<a href="#ref-CHEP98" role="doc-biblioref">CHEP’98</a>]</span> reference and GitHub
 stats.</li>
+<li>Some small editorial fixes (mostly in the <a href="#design-goals">Design goals</a> chapter).</li>
 </ul>
 <h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
 <p>Several groups in the ISO C++ Committee reviewed the “P1935: A C++
@@ -990,14 +991,13 @@ hoping that the ISO C++ Committee will be willing to include such a
 feature in the C++ standard library.</p>
 <h1 data-number="6" id="design-goals"><span class="header-section-number">6</span> Design goals<a href="#design-goals" class="self-link"></a></h1>
 <p>The library facilities that we plan to propose in the upcoming papers
-will be designed with the following goals in mind.</p>
+is designed with the following goals in mind.</p>
 <h2 data-number="6.1" id="compile-time-safety"><span class="header-section-number">6.1</span> Compile-time safety<a href="#compile-time-safety" class="self-link"></a></h2>
-<p>The most important property of such a library is the safety it brings
-to C++ projects. The correct handling of physical quantities, units, and
-numerical values should be verified both by the compiler during the
-compilation process and by humans with manual inspection in each
-individual line.</p>
-<p>In some cases we are even eager to prioritize safe interfaces over
+<p>The most important property of any such a library is the safety it
+brings to C++ projects. The correct handling of physical quantities,
+units, and numerical values should be verifiable both by the compiler
+and by humans with manual inspection of each individual line.</p>
+<p>In some cases, we are even eager to prioritize safe interfaces over
 the general usability experience (e.g. getters of the underlying raw
 numerical value will always require a unit in which the value should be
 returned in, which results in more typing and is sometimes
@@ -1005,53 +1005,51 @@ redundant).</p>
 <p>More information on this subject can be found in <span class="citation" data-cites="P2981R0">[<a href="#ref-P2981R0" role="doc-biblioref">P2981R0</a>]</span>.</p>
 <h2 data-number="6.2" id="performance"><span class="header-section-number">6.2</span> Performance<a href="#performance" class="self-link"></a></h2>
 <p>The library should be as fast or even faster than working with
-fundamental types. The should be no runtime overhead and no space size
-overhead should be needed to implement high-level abstractions.</p>
+fundamental types. The should be no runtime overhead, and no space size
+overhead should be needed to implement higher-level abstractions.</p>
 <h2 data-number="6.3" id="great-user-experience"><span class="header-section-number">6.3</span> Great user experience<a href="#great-user-experience" class="self-link"></a></h2>
-<p>The primary purpose of such a library is to generate compile-time
-errors. If the developers did not introduce any bugs in the manual
-handling of quantities and units, such a library would be of little use.
-This is why such a library should be optimized for readable compilation
-errors and great debugging experience.</p>
-<p>Such a library should be also easy to use and flexible. The
-interfaces should be straight-forward and safe by default. Users should
-be able to easily express any quantity and unit, which requires them to
-compose.</p>
+<p>The primary purpose of the library is to generate compile-time
+errors. If users did not introduce any bugs in the manual handling of
+quantities and units, the library would be of little use. This is why
+the library is optimized for readable compilation errors and great
+debugging experience.</p>
+<p>The library is easy to use and flexible. The interfaces are
+straight-forward and safe by default. Users should be able to easily
+express any quantity and unit, which requires them to compose.</p>
 <p>The above constraints imply the usage of special implementation
-techniques. The library will not only provides types but also
+techniques. The library will not only provide types, but also
 compile-time known values that will enable users to write easy to
 understand and efficient equations on quantities and units.</p>
 <h2 data-number="6.4" id="feature-rich"><span class="header-section-number">6.4</span> Feature rich<a href="#feature-rich" class="self-link"></a></h2>
 <p>There are plenty of expectations from different parties regarding
 such a library. It should support at least:</p>
 <ul>
-<li>Systems of Quantities,</li>
-<li>Systems of Units,</li>
-<li>Scalar, vector, and tensor quantities,</li>
-<li>The affine space,</li>
-<li>Natural units systems,</li>
-<li>Strong angular system,</li>
-<li>Any unit’s magnitude (huge, small, floating-point),</li>
-<li>Faster-than-lightspeed constants,</li>
+<li>Systems of Quantities.</li>
+<li>Systems of Units.</li>
+<li>Scalar, vector, and tensor quantities.</li>
+<li>The affine space.</li>
+<li>Natural units systems.</li>
+<li>Strong angular system.</li>
+<li>Any unit’s magnitude (huge, small, floating-point).</li>
+<li>Faster-than-lightspeed constants.</li>
 <li>Highly adjustable text-output formatting.</li>
 </ul>
 <h2 data-number="6.5" id="easy-to-extend"><span class="header-section-number">6.5</span> Easy to extend<a href="#easy-to-extend" class="self-link"></a></h2>
-<p>Most entities in the library should be possible to be defined with a
-single line of code with no need to use preprocessor macros. Users
-should be able to easily extend provided systems with custom dimensions,
-quantities, and units.</p>
+<p>Most entities in the library can be defined with a single line of
+code without preprocessor macros. Users can easily extend provided
+systems with custom dimensions, quantities, and units.</p>
 <h2 data-number="6.6" id="low-standardization-cost"><span class="header-section-number">6.6</span> Low standardization cost<a href="#low-standardization-cost" class="self-link"></a></h2>
 <p>The set of entities required for standardization should be limited to
 the bare minimum.</p>
-<p>Derived units should not require separate library types but should be
-obtained through the composition of predefined named units. Units should
-not be associated with User-Defined Literals (UDLs), as it is the case
-of <code class="sourceCode default">std::chrono::duration</code>. UDLs
-do not compose, have very limited scope and functionality, and are
+<p>Derived units do not need separate library types. Instead, they can
+be obtained through the composition of predefined named units. Units
+should not be associated with User-Defined Literals (UDLs), as it is the
+case with <code class="sourceCode default">std::chrono::duration</code>.
+UDLs do not compose, have very limited scope and functionality, and are
 expensive to standardize.</p>
-<p>There should be no preprocessor macros in the user interface.</p>
-<p>Most proposed features (besides text output) should be possible to be
-standardized as a freestanding part of the C++ standard library.</p>
+<p>The user interface has no preprocessor macros.</p>
+<p>It should be possible for most proposed features (besides text
+output) to be freestanding.</p>
 <h1 data-number="7" id="look-and-feel"><span class="header-section-number">7</span> Look and feel<a href="#look-and-feel" class="self-link"></a></h1>
 <p><em>Note: The code examples presented in this paper may not exactly
 reflect the final interface design that is going to be proposed in the
