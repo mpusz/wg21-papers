@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-31" />
+  <meta name="dcterms.date" content="2023-11-05" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-10-31</td>
+    <td>2023-11-05</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -556,6 +556,9 @@ table updated.</li>
 <li><a href="#standardizing-existing-practice">Standardizing existing
 practice</a> extended with <span class="citation" data-cites="CHEP98">[<a href="#ref-CHEP98" role="doc-biblioref">CHEP’98</a>]</span> reference and GitHub
 stats.</li>
+<li>Bounded numeric types and value-preserving trait added, and some
+priorities changed in <a href="#external-dependencies">External
+dependencies</a>.</li>
 <li>Some small editorial fixes (mostly in the <a href="#design-goals">Design goals</a> chapter).</li>
 </ul>
 <h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
@@ -1839,9 +1842,9 @@ in other domains that we can get in the future from other authors.</p>
 <!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
-<col style="width: 23%" />
+<col style="width: 22%" />
 <col style="width: 6%" />
-<col style="width: 69%" />
+<col style="width: 71%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1858,24 +1861,37 @@ in other domains that we can get in the future from other authors.</p>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Number concepts</td>
-<td style="text-align: center;">1</td>
-<td>Concepts for vector- and point-space numbers</td>
-</tr>
-<tr class="even">
 <td><code class="sourceCode default">fixed_string</code></td>
 <td style="text-align: center;">1</td>
-<td>String-like structural type (can be used as an NTTP)</td>
+<td>String-like structural type with inline storage (can be used as an
+NTTP)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Compile-time prime numbers</td>
 <td style="text-align: center;">1</td>
 <td>Compile-time facilities to break any integral value to a product of
 prime numbers and their powers</td>
 </tr>
+<tr class="odd">
+<td>Value-preserving conversions</td>
+<td style="text-align: center;">1</td>
+<td>Type trait stating if the conversion from one type to another is
+value preserving or not</td>
+</tr>
+<tr class="even">
+<td>Number concepts</td>
+<td style="text-align: center;">2</td>
+<td>Concepts for vector- and point-space numbers</td>
+</tr>
+<tr class="odd">
+<td>Bounded numeric types</td>
+<td style="text-align: center;">3</td>
+<td>Numerical type wrappers with values bounded to a provided interval
+(optionally with a wraparound semantics)</td>
+</tr>
 <tr class="even">
 <td>Standardized type and NTTP lists</td>
-<td style="text-align: center;">2</td>
+<td style="text-align: center;">3</td>
 <td>Common library providing algorithms to handle type and NTTP
 lists</td>
 </tr>

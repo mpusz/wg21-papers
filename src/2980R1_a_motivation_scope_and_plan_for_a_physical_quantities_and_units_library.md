@@ -29,6 +29,7 @@ author:
 - Added The Guardian's Fahrenheit issue to [Safety].
 - [Plan for standardization] table updated.
 - [Standardizing existing practice] extended with [@CHEP98] reference and GitHub stats.
+- Bounded numeric types and value-preserving trait added, and some priorities changed in [External dependencies].
 - Some small editorial fixes (mostly in the [Design goals] chapter).
 
 
@@ -1059,12 +1060,14 @@ in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                          | Priority | Description                                                                                        |
-|----------------------------------|:--------:|----------------------------------------------------------------------------------------------------|
-| Number concepts                  |    1     | Concepts for vector- and point-space numbers                                                       |
-| `fixed_string`                   |    1     | String-like structural type (can be used as an NTTP)                                               |
-| Compile-time prime numbers       |    1     | Compile-time facilities to break any integral value to a product of prime numbers and their powers |
-| Standardized type and NTTP lists |    2     | Common library providing algorithms to handle type and NTTP lists                                  |
+| Feature                          | Priority | Description                                                                                                 |
+|----------------------------------|:--------:|-------------------------------------------------------------------------------------------------------------|
+| `fixed_string`                   |    1     | String-like structural type with inline storage (can be used as an NTTP)                                    |
+| Compile-time prime numbers       |    1     | Compile-time facilities to break any integral value to a product of prime numbers and their powers          |
+| Value-preserving conversions     |    1     | Type trait stating if the conversion from one type to another is value preserving or not                    |
+| Number concepts                  |    2     | Concepts for vector- and point-space numbers                                                                |
+| Bounded numeric types            |    3     | Numerical type wrappers with values bounded to a provided interval (optionally with a wraparound semantics) |
+| Standardized type and NTTP lists |    3     | Common library providing algorithms to handle type and NTTP lists                                           |
 
 <!-- markdownlint-enable MD013 -->
 
