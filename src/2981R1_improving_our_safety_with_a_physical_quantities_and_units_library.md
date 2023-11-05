@@ -21,6 +21,7 @@ author:
 - Added The Guardian's Fahrenheit issue to [Mismeasure for measure].
 - Fuel consumption example extended in [Converting between quantities of the same kind].
 - [@VCINL] reference added to [Preventing dangling references].
+- Value-preserving type trait mentioned in [Lack of safe numeric types].
 - Some small editorial fixes.
 
 
@@ -1197,6 +1198,9 @@ Conversion from `std::int64_t` to `double` may also lose precision.
 If we had safe numeric types in the C++ standard library, they could easily be used as a `quantity`
 representation type in the physical quantities and units library, which would address these safety
 concerns.
+
+Also, having a type trait informing if a conversion from one type to another is value-preserving
+would help to address some of the issues mentioned above.
 
 ## Potential surprises during units composition
 
