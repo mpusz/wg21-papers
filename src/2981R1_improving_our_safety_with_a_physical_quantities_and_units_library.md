@@ -22,6 +22,7 @@ author:
 - Fuel consumption example extended in [Converting between quantities of the same kind].
 - [@VCINL] reference added to [Preventing dangling references].
 - Value-preserving type trait mentioned in [Lack of safe numeric types].
+- [Non-negative quantities] rewritten.
 - Some small editorial fixes.
 
 
@@ -1065,20 +1066,25 @@ and the library will do its best to protect us based on the information provided
 
 ## Non-negative quantities
 
-Some quantities are defined by ISO/IEC 80000 as explicitly non-negative.
-Others are implicitly non-negative from their definition.
-For example, those specified as magnitudes of a vector,
-like speed, defined as the magnitude of velocity.
+Some quantity types are defined by [@ISO80000] as explicitly non-negative. Those include quantities
+like width, thickness, diameter, and radius. However, it turns out that it is possible to have negative
+values of quantities defined as non-negative. For example, `-1 * isq::diameter[mm]` could represent
+a change in the diameter of some object. Also, a subtraction `4 * width[mm] - 6 * width[mm]` results in
+a negative value as the width of the second argument is larger than the first one.
 
-It is possible to have negative values of quantities defined as non-negative.
-For example, `-1 * speed[m/s]` could represent a change in average speed between two events.
-It is also possible to require non-negative values of quantities not defined as non-negative.
+Non-negative quantities are not limited to those explicitly stated as being non-negative in
+the [@ISO80000]. Some quantities are implicitly non-negative from their definition. The most
+obvious example here might be scalar quantities specified as magnitudes of a vector quantity.
+For example, speed is defined as the magnitude of velocity. Again, `-1 * speed[m/s]` could represent
+a change in average speed between two measurements.
+
+This means that enforcing such constraints for quantity types might be impossible as those typically
+are used to represent a difference between two states or measurements. However, we could apply
+such constraints to quantity points, which, by definition, describe the absolute quantity values.
 For example, when height is the measure of an object, a negative value is physically meaningless.
 
-`quantity` is parametrized on the representation type.
-So it is possible to specify one that prevents negative values, e.g., a contract-checked type.
-This means that `-1 * speed[m/s]` works by default (the representation type is `int`).
-And also that `height(mylib::non_negative(obj.top - obj.bottom));` will catch logic errors in the formula.
+Such logic errors could be detected at runtime with contracts or some other preconditions or
+invariants checks.
 
 <!-- Lots of exciting discussion at https://github.com/mpusz/mp-units/issues/468 -->
 
