@@ -23,7 +23,7 @@ author:
 - [@VCINL] reference added to [Preventing dangling references].
 - Value-preserving type trait mentioned in [Lack of safe numeric types].
 - [Non-negative quantities] rewritten.
-- [Quantities of dimension one] added.
+- [Limitations of systems of quantities] added.
 - Some small editorial fixes.
 
 
@@ -1209,11 +1209,48 @@ concerns.
 Also, having a type trait informing if a conversion from one type to another is value-preserving
 would help to address some of the issues mentioned above.
 
-## Quantities of dimension one
+## Limitations of systems of quantities
 
 As stated before, modeling systems of quantities and [Various quantities of the same kind]
-significantly improves the safety of the project. It is essential to mention here, though, that
-some pitfalls might arise when dealing with quantities of dimension one
+significantly improves the safety of the project. However, it is essential to mention here
+that such modeling is not ideal and there might be some pitfalls and surprises associated with
+some corner cases.
+
+### Allowing irrational quantity combinations
+
+Everyone probably agrees that multiplying two lengths is an area, and that area should be implicitly
+convertible to the result of such a multiplication:
+
+```cpp
+static_assert(implicitly_convertible(isq::length * isq::length, isq::area));
+static_assert(implicitly_convertible(isq::area, isq::length * isq::length));
+```
+
+Also, probably no one would be surprised by the fact that the multiplication of width and height
+is also convertible to area. Still, the reverse operation is not valid in this case. Not every area
+is an area over width and height, so we need an explicit cast to make such a conversion:
+
+```cpp
+static_assert(implicitly_convertible(isq::width * isq::height, isq::area));
+static_assert(!implicitly_convertible(isq::area, isq::width * isq::height));
+static_assert(explicitly_convertible(isq::area, isq::width * isq::height));
+```
+
+However, it might be surprising to some that the similar behavior will also be observed for the product
+of two heights:
+
+```cpp
+static_assert(implicitly_convertible(isq::height * isq::height, isq::area));
+static_assert(!implicitly_convertible(isq::area, isq::height * isq::height));
+static_assert(explicitly_convertible(isq::area, isq::height * isq::height));
+```
+
+For humans, it is hard to imagine how two heights form an area, but the library's logic
+has no way to prevent such operations.
+
+### Quantities of dimension one
+
+Some pitfalls might also arise when dealing with quantities of dimension one
 (also known as dimensionless quantities).
 
 If we divide two quantities of the same kind, we end up with a quantity of dimension one.
@@ -1221,13 +1258,48 @@ For example, we can divide two lengths to get a slope of the ramp or two duratio
 accuracy. Those ratios mean something fundamentally different, but from the dimensional analysis
 standpoint, they are mutually comparable.
 
-The above means that the code below is valid:
+The above means that the following code is valid:
 
 ```cpp
-quantity q = 1 * m / (10 * m) + 1 * us / (1 * h);
+quantity q1 = 1 * m / (10 * m) + 1 * us / (1 * h);
+quantity q2 = isq::length(1 * m) / isq::length(10 * m) + isq::time(1 * us) / isq::time(1 * h);
+quantity q3 = isq::height(1 * m) / isq::length(10 * m) + isq::time(1 * us) / isq::time(1 * h);
 ```
 
-This might be surprising to some users of such a library.
+The fact that the above code compiles fine might again be surprising to some users of such a library.
+The result of all such quantity equations is a `dimensionless` quantity as it is the root of this
+hierarchy tree.
+
+Now, let's try to convert such results to some quantities of dimension one. The `q1` was obtained
+from the expression that only used units in the equation, which means that the actual result of it
+is a quantity of `kind_of<dimensionless>`, which behaves like any quantity from the tree.
+Because of it, all of the below will compile for `q1`:
+
+```cpp
+quantity<si::metre / si::metre> ok1 = q1;
+quantity<(isq::length / isq::length)[m / m]> ok2 = q1;
+quantity<(isq::height / isq::length)[m / m]> ok3 = q1;
+```
+
+For `q2` and `q3`, the two first conversions also succeed. The first one passes because
+all quantities of a kind are convertible to such kind. The type of the second quantity is
+`quantity<dimensionless[one]>` in disguise. Such a quantity is a root of the kind tree, so
+again, all the quantities from such a tree are convertible to it.
+
+The third conversion fails in both cases, though. Not every dimensionless quantity
+is a result of dividing height and length, so an explicit conversion would be needed to
+force it to work.
+
+```cpp
+quantity<si::metre / si::metre> ok4 = q2;
+quantity<(isq::length / isq::length)[m / m]> ok5 = q2;
+quantity<(isq::height / isq::length)[m / m]> bad1 = q2;
+
+quantity<si::metre / si::metre> ok6 = q3;
+quantity<(isq::length / isq::length)[m / m]> ok7 = q3;
+quantity<(isq::height / isq::length)[m / m]> bad2 = q3;
+```
+
 
 ## Potential surprises during units composition
 
