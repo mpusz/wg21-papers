@@ -23,6 +23,7 @@ author:
 - [@VCINL] reference added to [Preventing dangling references].
 - Value-preserving type trait mentioned in [Lack of safe numeric types].
 - [Non-negative quantities] rewritten.
+- [Quantities of dimension one] added.
 - Some small editorial fixes.
 
 
@@ -1207,6 +1208,26 @@ concerns.
 
 Also, having a type trait informing if a conversion from one type to another is value-preserving
 would help to address some of the issues mentioned above.
+
+## Quantities of dimension one
+
+As stated before, modeling systems of quantities and [Various quantities of the same kind]
+significantly improves the safety of the project. It is essential to mention here, though, that
+some pitfalls might arise when dealing with quantities of dimension one
+(also known as dimensionless quantities).
+
+If we divide two quantities of the same kind, we end up with a quantity of dimension one.
+For example, we can divide two lengths to get a slope of the ramp or two durations to get the clock
+accuracy. Those ratios mean something fundamentally different, but from the dimensional analysis
+standpoint, they are mutually comparable.
+
+The above means that the code below is valid:
+
+```cpp
+quantity q = 1 * m / (10 * m) + 1 * us / (1 * h);
+```
+
+This might be surprising to some users of such a library.
 
 ## Potential surprises during units composition
 
