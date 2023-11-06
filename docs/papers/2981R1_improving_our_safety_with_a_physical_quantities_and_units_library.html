@@ -523,16 +523,16 @@ quantities<span></span></a></li>
 division<span></span></a></li>
 <li><a href="#lack-of-safe-numeric-types" id="toc-lack-of-safe-numeric-types"><span class="toc-section-number">9.2</span> Lack of safe numeric
 types<span></span></a></li>
-<li><a href="#limitations-of-systems-of-quantities" id="toc-limitations-of-systems-of-quantities"><span class="toc-section-number">9.3</span> Limitations of systems of
+<li><a href="#potential-surprises-during-units-composition" id="toc-potential-surprises-during-units-composition"><span class="toc-section-number">9.3</span> Potential surprises during units
+composition<span></span></a></li>
+<li><a href="#limitations-of-systems-of-quantities" id="toc-limitations-of-systems-of-quantities"><span class="toc-section-number">9.4</span> Limitations of systems of
 quantities<span></span></a>
 <ul>
-<li><a href="#allowing-irrational-quantity-combinations" id="toc-allowing-irrational-quantity-combinations"><span class="toc-section-number">9.3.1</span> Allowing irrational quantity
+<li><a href="#allowing-irrational-quantity-combinations" id="toc-allowing-irrational-quantity-combinations"><span class="toc-section-number">9.4.1</span> Allowing irrational quantity
 combinations<span></span></a></li>
-<li><a href="#quantities-of-dimension-one" id="toc-quantities-of-dimension-one"><span class="toc-section-number">9.3.2</span> Quantities of dimension
+<li><a href="#quantities-of-dimension-one" id="toc-quantities-of-dimension-one"><span class="toc-section-number">9.4.2</span> Quantities of dimension
 one<span></span></a></li>
 </ul></li>
-<li><a href="#potential-surprises-during-units-composition" id="toc-potential-surprises-during-units-composition"><span class="toc-section-number">9.4</span> Potential surprises during units
-composition<span></span></a></li>
 <li><a href="#structural-types" id="toc-structural-types"><span class="toc-section-number">9.5</span> Structural
 types<span></span></a></li>
 </ul></li>
@@ -1651,86 +1651,15 @@ would address these safety concerns.</p>
 <p>Also, having a type trait informing if a conversion from one type to
 another is value-preserving would help to address some of the issues
 mentioned above.</p>
-<h2 data-number="9.3" id="limitations-of-systems-of-quantities"><span class="header-section-number">9.3</span> Limitations of systems of
-quantities<a href="#limitations-of-systems-of-quantities" class="self-link"></a></h2>
-<p>As stated before, modeling systems of quantities and <a href="#various-quantities-of-the-same-kind">Various quantities of the
-same kind</a> significantly improves the safety of the project. However,
-it is essential to mention here, that such modeling is not ideal and
-there might be some pitfalls and surprises associated with some corner
-cases.</p>
-<h3 data-number="9.3.1" id="allowing-irrational-quantity-combinations"><span class="header-section-number">9.3.1</span> Allowing irrational quantity
-combinations<a href="#allowing-irrational-quantity-combinations" class="self-link"></a></h3>
-<p>Everyone probably agrees that multiplying two lengths is an area and
-that area should be implicitly convertible to the result of such a
-multiplication:</p>
-<div class="sourceCode" id="cb63"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>length <span class="op">*</span> isq<span class="op">::</span>length, isq<span class="op">::</span>area<span class="op">))</span>;</span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>length <span class="op">*</span> isq<span class="op">::</span>length<span class="op">))</span>;</span></code></pre></div>
-<p>Also, probably no one would be surprised by the fact that the
-multiplication of width and height is also convertible to area, but the
-reverse operation is not true in this case. Not every area is an area
-over width and height so we need an explicit cast to make such a
-conversion:</p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>width <span class="op">*</span> isq<span class="op">::</span>height, isq<span class="op">::</span>area<span class="op">))</span>;</span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>width <span class="op">*</span> isq<span class="op">::</span>height<span class="op">))</span>;</span>
-<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>width <span class="op">*</span> isq<span class="op">::</span>height<span class="op">))</span>;</span></code></pre></div>
-<p>However, it might be surprising to some that the similar behavior
-will also be observed for the product of two heights:</p>
-<div class="sourceCode" id="cb65"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>height <span class="op">*</span> isq<span class="op">::</span>height, isq<span class="op">::</span>area<span class="op">))</span>;</span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>height <span class="op">*</span> isq<span class="op">::</span>height<span class="op">))</span>;</span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>height <span class="op">*</span> isq<span class="op">::</span>height<span class="op">))</span>;</span></code></pre></div>
-<p>For humans it is hard to imagine how two heights form an area, but
-the library’s logic has no way to prevent such operations.</p>
-<h3 data-number="9.3.2" id="quantities-of-dimension-one"><span class="header-section-number">9.3.2</span> Quantities of dimension one<a href="#quantities-of-dimension-one" class="self-link"></a></h3>
-<p>Some pitfalls might also arise when dealing with quantities of
-dimension one (also known as dimensionless quantities).</p>
-<p>If we divide two quantities of the same kind, we end up with a
-quantity of dimension one. For example, we can divide two lengths to get
-a slope of the ramp or two durations to get the clock accuracy. Those
-ratios mean something fundamentally different, but from the dimensional
-analysis standpoint, they are mutually comparable.</p>
-<p>The above means that the following code is valid:</p>
-<div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">/</span> <span class="op">(</span><span class="dv">10</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> us <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> isq<span class="op">::</span>length<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">/</span> isq<span class="op">::</span>length<span class="op">(</span><span class="dv">10</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">+</span> isq<span class="op">::</span>time<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> us<span class="op">)</span> <span class="op">/</span> isq<span class="op">::</span>time<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span>;</span>
-<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>quantity q3 <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">/</span> isq<span class="op">::</span>length<span class="op">(</span><span class="dv">10</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">+</span> isq<span class="op">::</span>time<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> us<span class="op">)</span> <span class="op">/</span> isq<span class="op">::</span>time<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
-<p>The fact that the above code compiles fine might again be surprising
-to some users of such a library. The result of all such quantity
-equations is a <code class="sourceCode default">dimensionless</code>
-quantity as it is the root of this hierarchy tree.</p>
-<p>Now let’s try to convert such results to some quantities of dimension
-one. The <code class="sourceCode default">q1</code> was obtained from
-the expression that only used units in the equation, which means that
-the actual result of it is a quantity of
-<code class="sourceCode default">kind_of&lt;dimensionless&gt;</code>
-which behaves like any quantity from the tree. Because of it, all of the
-below will compile for <code class="sourceCode default">q1</code>:</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre <span class="op">/</span> si<span class="op">::</span>metre<span class="op">&gt;</span> ok1 <span class="op">=</span> q1;</span>
-<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>length <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> ok2 <span class="op">=</span> q1;</span>
-<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>height <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> ok3 <span class="op">=</span> q1;</span></code></pre></div>
-<p>For <code class="sourceCode default">q2</code> and
-<code class="sourceCode default">q3</code> the two first conversions
-succeed as well. The first one passes because all quantities of a kind
-are convertible to such kind. The type of the second quantity is <code class="sourceCode default">quantity&lt;dimensionless[one]&gt;</code> in
-disguise. Such a quantity is a root of the kind tree so again all the
-quantities from such tree are convertible to it.</p>
-<p>The third conversion fails in both cases, though. Not every
-dimensionless quantity is a result of dividing height and length so an
-explicit conversion would be needed to force it to work.</p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre <span class="op">/</span> si<span class="op">::</span>metre<span class="op">&gt;</span> ok4 <span class="op">=</span> q2;</span>
-<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>length <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> ok5 <span class="op">=</span> q2;</span>
-<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>height <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> bad1 <span class="op">=</span> q2;</span>
-<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre <span class="op">/</span> si<span class="op">::</span>metre<span class="op">&gt;</span> ok6 <span class="op">=</span> q3;</span>
-<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>length <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> ok7 <span class="op">=</span> q3;</span>
-<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>height <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> bad2 <span class="op">=</span> q3;</span></code></pre></div>
-<h2 data-number="9.4" id="potential-surprises-during-units-composition"><span class="header-section-number">9.4</span> Potential surprises during
+<h2 data-number="9.3" id="potential-surprises-during-units-composition"><span class="header-section-number">9.3</span> Potential surprises during
 units composition<a href="#potential-surprises-during-units-composition" class="self-link"></a></h2>
 <p>One of the most essential requirements for a good physical quantities
 and units library is to implement units in such a way that they compose.
 With that, one can easily create any derived unit using a simple unit
 equation on other base or derived units. For example:</p>
-<div class="sourceCode" id="cb69"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> Unit <span class="kw">auto</span> kmph <span class="op">=</span> km <span class="op">/</span> h;</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> Unit <span class="kw">auto</span> kmph <span class="op">=</span> km <span class="op">/</span> h;</span></code></pre></div>
 <p>We can also easily obtain a quantity with:</p>
-<div class="sourceCode" id="cb70"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> h;</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> h;</span></code></pre></div>
 <p>Such a solution is an industry standard and is implemented not only
 in <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span>, but also is available for
 many years now in both <span class="citation" data-cites="BOOST-UNITS">[<a href="#ref-BOOST-UNITS" role="doc-biblioref">Boost.Units</a>]</span> and <span class="citation" data-cites="PINT">[<a href="#ref-PINT" role="doc-biblioref">Pint</a>]</span>.</p>
@@ -1738,23 +1667,23 @@ many years now in both <span class="citation" data-cites="BOOST-UNITS">[<a href=
 it straight in this paper that some potential issues are associated with
 such a syntax. Inexperienced users are often surprised by the results of
 the following expression:</p>
-<div class="sourceCode" id="cb71"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;</span></code></pre></div>
 <p>This looks like like <code class="sourceCode default">30 km/h</code>,
 right? But it is not. Thanks to the order of operations, it results in
 <code class="sourceCode default">30 km⋅h</code>. In case we want to
 divide <code class="sourceCode default">60 km</code> by
 <code class="sourceCode default">2 h</code>, parentheses are needed:</p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
 <p>Another surprising issue may result from the following code:</p>
-<div class="sourceCode" id="cb73"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
-<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
-<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span>;</span>
-<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span>;</span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
 <p>This might look like a good idea, but let’s consider what would
 happen if the user provided a quantity as input:</p>
-<div class="sourceCode" id="cb74"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
-<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;</span></code></pre></div>
 <p>The above function call will result in a quantity of area instead of
 the expected quantity of length.</p>
 <p>The issues mentioned above could be turned into compilation errors by
@@ -1763,33 +1692,104 @@ such an approach, but with time, we decided this to not be
 user-friendly. Forcing the user to put the parenthesis around all
 derived units in quantity equations like the one below, was too verbose
 and confusing:</p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> <span class="op">(</span>km <span class="op">/</span> h<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> <span class="op">(</span>km <span class="op">/</span> h<span class="op">)</span>;</span></code></pre></div>
 <p>It is important to notice that the problems mentioned above will
 always surface with a compile-time error at some point in the user’s
 code when they assign the resulting quantity to one with an explicitly
 provided quantity type.</p>
 <p>Below, we provide a few examples that correctly detect such issues at
 compile-time:</p>
-<div class="sourceCode" id="cb76"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> <span class="op">/</span> non_si<span class="op">::</span>hour, <span class="dt">int</span><span class="op">&gt;</span> q1 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;             <span class="co">// Compile-time error</span></span>
-<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> <span class="op">/</span> non_si<span class="op">::</span>hour<span class="op">]</span>, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h; <span class="co">// Compile-time error</span></span>
-<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> q3 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;                                   <span class="co">// Compile-time error</span></span></code></pre></div>
-<div class="sourceCode" id="cb77"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
-<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
-<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
-<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre, <span class="dt">int</span><span class="op">&gt;</span> q1 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;           <span class="co">// Compile-time error</span></span>
-<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">[</span>si<span class="op">::</span>metre<span class="op">]&gt;</span> q2 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;   <span class="co">// Compile-time error</span></span>
-<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> q3 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;            <span class="co">// Compile-time error</span></span></code></pre></div>
-<div class="sourceCode" id="cb78"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
-<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
-<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
-<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// Compile-time error</span></span></code></pre></div>
-<div class="sourceCode" id="cb79"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>Representation T<span class="op">&gt;</span></span>
-<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
-<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
-<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// Compile-time error</span></span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> <span class="op">/</span> non_si<span class="op">::</span>hour, <span class="dt">int</span><span class="op">&gt;</span> q1 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;             <span class="co">// Compile-time error</span></span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">[</span>si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> <span class="op">/</span> non_si<span class="op">::</span>hour<span class="op">]</span>, <span class="dt">int</span><span class="op">&gt;</span> q2 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h; <span class="co">// Compile-time error</span></span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> q3 <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> km <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> h;                                   <span class="co">// Compile-time error</span></span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre, <span class="dt">int</span><span class="op">&gt;</span> q1 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;           <span class="co">// Compile-time error</span></span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">[</span>si<span class="op">::</span>metre<span class="op">]&gt;</span> q2 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;   <span class="co">// Compile-time error</span></span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> q3 <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;            <span class="co">// Compile-time error</span></span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>length<span class="op">&gt;</span> <span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// Compile-time error</span></span></code></pre></div>
+<div class="sourceCode" id="cb73"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>Representation T<span class="op">&gt;</span></span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> make_length<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v <span class="op">*</span> si<span class="op">::</span>metre; <span class="op">}</span></span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> <span class="dv">42</span> <span class="op">*</span> m;</span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>quantity q <span class="op">=</span> make_length<span class="op">(</span>v<span class="op">)</span>;  <span class="co">// Compile-time error</span></span></code></pre></div>
+<h2 data-number="9.4" id="limitations-of-systems-of-quantities"><span class="header-section-number">9.4</span> Limitations of systems of
+quantities<a href="#limitations-of-systems-of-quantities" class="self-link"></a></h2>
+<p>As stated before, modeling systems of quantities and <a href="#various-quantities-of-the-same-kind">Various quantities of the
+same kind</a> significantly improves the safety of the project. However,
+it is essential to mention here that such modeling is not ideal and
+there might be some pitfalls and surprises associated with some corner
+cases.</p>
+<h3 data-number="9.4.1" id="allowing-irrational-quantity-combinations"><span class="header-section-number">9.4.1</span> Allowing irrational quantity
+combinations<a href="#allowing-irrational-quantity-combinations" class="self-link"></a></h3>
+<p>Everyone probably agrees that multiplying two lengths is an area, and
+that area should be implicitly convertible to the result of such a
+multiplication:</p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>length <span class="op">*</span> isq<span class="op">::</span>length, isq<span class="op">::</span>area<span class="op">))</span>;</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>length <span class="op">*</span> isq<span class="op">::</span>length<span class="op">))</span>;</span></code></pre></div>
+<p>Also, probably no one would be surprised by the fact that the
+multiplication of width and height is also convertible to area. Still,
+the reverse operation is not valid in this case. Not every area is an
+area over width and height, so we need an explicit cast to make such a
+conversion:</p>
+<div class="sourceCode" id="cb75"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>width <span class="op">*</span> isq<span class="op">::</span>height, isq<span class="op">::</span>area<span class="op">))</span>;</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>width <span class="op">*</span> isq<span class="op">::</span>height<span class="op">))</span>;</span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>width <span class="op">*</span> isq<span class="op">::</span>height<span class="op">))</span>;</span></code></pre></div>
+<p>However, it might be surprising to some that the similar behavior
+will also be observed for the product of two heights:</p>
+<div class="sourceCode" id="cb76"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>height <span class="op">*</span> isq<span class="op">::</span>height, isq<span class="op">::</span>area<span class="op">))</span>;</span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(!</span>implicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>height <span class="op">*</span> isq<span class="op">::</span>height<span class="op">))</span>;</span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>explicitly_convertible<span class="op">(</span>isq<span class="op">::</span>area, isq<span class="op">::</span>height <span class="op">*</span> isq<span class="op">::</span>height<span class="op">))</span>;</span></code></pre></div>
+<p>For humans, it is hard to imagine how two heights form an area, but
+the library’s logic has no way to prevent such operations.</p>
+<h3 data-number="9.4.2" id="quantities-of-dimension-one"><span class="header-section-number">9.4.2</span> Quantities of dimension one<a href="#quantities-of-dimension-one" class="self-link"></a></h3>
+<p>Some pitfalls might also arise when dealing with quantities of
+dimension one (also known as dimensionless quantities).</p>
+<p>If we divide two quantities of the same kind, we end up with a
+quantity of dimension one. For example, we can divide two lengths to get
+a slope of the ramp or two durations to get the clock accuracy. Those
+ratios mean something fundamentally different, but from the dimensional
+analysis standpoint, they are mutually comparable.</p>
+<p>The above means that the following code is valid:</p>
+<div class="sourceCode" id="cb77"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">/</span> <span class="op">(</span><span class="dv">10</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> us <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> isq<span class="op">::</span>length<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">/</span> isq<span class="op">::</span>length<span class="op">(</span><span class="dv">10</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">+</span> isq<span class="op">::</span>time<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> us<span class="op">)</span> <span class="op">/</span> isq<span class="op">::</span>time<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span>;</span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>quantity q3 <span class="op">=</span> isq<span class="op">::</span>height<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">/</span> isq<span class="op">::</span>length<span class="op">(</span><span class="dv">10</span> <span class="op">*</span> m<span class="op">)</span> <span class="op">+</span> isq<span class="op">::</span>time<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> us<span class="op">)</span> <span class="op">/</span> isq<span class="op">::</span>time<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span>;</span></code></pre></div>
+<p>The fact that the above code compiles fine might again be surprising
+to some users of such a library. The result of all such quantity
+equations is a <code class="sourceCode default">dimensionless</code>
+quantity as it is the root of this hierarchy tree.</p>
+<p>Now, let’s try to convert such results to some quantities of
+dimension one. The <code class="sourceCode default">q1</code> was
+obtained from the expression that only used units in the equation, which
+means that the actual result of it is a quantity of
+<code class="sourceCode default">kind_of&lt;dimensionless&gt;</code>,
+which behaves like any quantity from the tree. Because of it, all of the
+below will compile for <code class="sourceCode default">q1</code>:</p>
+<div class="sourceCode" id="cb78"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre <span class="op">/</span> si<span class="op">::</span>metre<span class="op">&gt;</span> ok1 <span class="op">=</span> q1;</span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>length <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> ok2 <span class="op">=</span> q1;</span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>height <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> ok3 <span class="op">=</span> q1;</span></code></pre></div>
+<p>For <code class="sourceCode default">q2</code> and
+<code class="sourceCode default">q3</code>, the two first conversions
+also succeed. The first one passes because all quantities of a kind are
+convertible to such kind. The type of the second quantity is <code class="sourceCode default">quantity&lt;dimensionless[one]&gt;</code> in
+disguise. Such a quantity is a root of the kind tree, so again, all the
+quantities from such a tree are convertible to it.</p>
+<p>The third conversion fails in both cases, though. Not every
+dimensionless quantity is a result of dividing height and length, so an
+explicit conversion would be needed to force it to work.</p>
+<div class="sourceCode" id="cb79"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre <span class="op">/</span> si<span class="op">::</span>metre<span class="op">&gt;</span> ok4 <span class="op">=</span> q2;</span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>length <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> ok5 <span class="op">=</span> q2;</span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>height <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> bad1 <span class="op">=</span> q2;</span>
+<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>si<span class="op">::</span>metre <span class="op">/</span> si<span class="op">::</span>metre<span class="op">&gt;</span> ok6 <span class="op">=</span> q3;</span>
+<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>length <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> ok7 <span class="op">=</span> q3;</span>
+<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;(</span>isq<span class="op">::</span>height <span class="op">/</span> isq<span class="op">::</span>length<span class="op">)[</span>m <span class="op">/</span> m<span class="op">]&gt;</span> bad2 <span class="op">=</span> q3;</span></code></pre></div>
 <h2 data-number="9.5" id="structural-types"><span class="header-section-number">9.5</span> Structural types<a href="#structural-types" class="self-link"></a></h2>
 <p>The <code class="sourceCode default">quantity</code> and
 <code class="sourceCode default">quantity_point</code> class templates
