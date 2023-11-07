@@ -20,6 +20,7 @@ author:
 - [Dimension is not enough to describe a quantity] extended with [@MSRMT_DATA].
 - [Lack of convertibility from fundamental types] added.
 - [Terms and definitions] extended with the "Glossary" of [@MP-UNITS].
+- Code samples in [Equivalence] reworked.
 - Some small editorial fixes.
 
 
@@ -1315,27 +1316,16 @@ The equality operator for dimensions can be implemented as:
 
 ```cpp
 template<Dimension Lhs, Dimension Rhs>
-[[nodiscard]] consteval bool operator==(Lhs, Rhs)
+[[nodiscard]] consteval bool operator==(Lhs lhs, Rhs rhs)
 {
-  return std::derived_from<Lhs, Rhs> || std::derived_from<Rhs, Lhs>;
+  return is_same_v<Lhs, Rhs> || detail::derived_from_the_same_base_dimension(lhs, rhs);
 }
 ```
 
 ### Quantity types
 
 Equality for quantity types is similar to dimensions. Again, users are allowed to derive their own
-types, but only from the named strong types provided by the library:
-
-```cpp
-template<QuantitySpec Lhs, QuantitySpec Rhs>
-[[nodiscard]] consteval bool operator==(Lhs, Rhs)
-{
-  if constexpr (detail::NamedQuantitySpec<Lhs> && detail::NamedQuantitySpec<Rhs>)
-    return std::derived_from<Lhs, Rhs> || std::derived_from<Rhs, Lhs>;
-  else
-    return is_same_v<Lhs, Rhs>;
-}
-```
+types, but only from the named strong types provided by the library.
 
 ### Units
 
