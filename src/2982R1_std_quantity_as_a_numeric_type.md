@@ -19,6 +19,7 @@ author:
 - Fuel consumption example extended in [Converting between quantities of the same kind].
 - [Dimension is not enough to describe a quantity] extended with [@MSRMT_DATA].
 - [Lack of convertibility from fundamental types] added.
+- [Terms and definitions] extended with the "Glossary" of [@MP-UNITS].
 - Some small editorial fixes.
 
 
@@ -38,8 +39,8 @@ fine-tuning to improve the library._
 # Terms and definitions
 
 This document consistently uses the official metrology vocabulary defined in the [@ISO-GUIDE]
-and [@BIPM-VIM].
-
+and [@BIPM-VIM]. The most important of those and also [@MP-UNITS] implementation-specific
+terms can be found in [the "Glossary" chapter of the project's documentation](https://mpusz.github.io/mp-units/latest/appendix/glossary/).
 
 # Systems of quantities
 
