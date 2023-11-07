@@ -24,6 +24,7 @@ author:
 - Value-preserving type trait mentioned in [Lack of safe numeric types].
 - [Non-negative quantities] rewritten.
 - [Limitations of systems of quantities] added.
+- [Temperatures] added.
 - Some small editorial fixes.
 
 
@@ -1401,6 +1402,155 @@ quantity<si::metre / si::metre> ok6 = q3;
 quantity<(isq::length / isq::length)[m / m]> ok7 = q3;
 quantity<(isq::height / isq::length)[m / m]> bad2 = q3;
 ```
+
+## Temperatures
+
+Temperature support is one the most challenging parts of any physical quantities and units library
+design. This is why it is probably reasonable to dedicate a chapter to this subject to describe how
+they are intended to work and what are the potential pitfalls or surprises.
+
+First, let's run the following code:
+
+```cpp
+quantity q1 = isq::thermodynamic_temperature(30. * K);
+quantity q2 = isq::Celsius_temperature(30. * deg_C);
+
+std::println("q1: {}, {}, {}", q1, q1.in(deg_C), q1.in(deg_F));
+std::println("q2: {}, {}, {}", q2.in(K), q2, q2.in(deg_F));
+```
+
+This outputs:
+
+```text
+q1: 30 K, 30 °C, 54 °F
+q2: 30 K, 30 °C, 54 °F
+```
+
+Also doing the following:
+
+```cpp
+quantity q3 = isq::Celsius_temperature(q1);
+quantity q4 = isq::thermodynamic_temperature(q2);
+```
+
+outputs:
+
+```text
+q3: 30 K
+q4: 30 °C
+```
+
+Even though the [@ISO80000] provides dedicated quantity types for thermodynamic temperature
+and Celsius temperature, it explicitly states in the description of the first one:
+
+> Differences of thermodynamic temperatures or changes may be expressed either in kelvin,
+> symbol K, or in degrees Celsius, symbol °C
+
+In the description of the second quantity type, we can read:
+
+> The unit degree Celsius is a special name for the kelvin for use in stating values of Celsius
+> temperature. The unit degree Celsius is by definition equal in magnitude to the kelvin. A
+> difference or interval of temperature may be expressed in kelvin or in degrees Celsius.
+
+As the `quantity` is a differential quantity type, it is okay to use any temperature unit for
+those, and the results should differ only by the conversion factor. No offset should be applied
+here to convert between the origins of different unit scales.
+
+It is important to mention here that the existence of Celsius temperature quantity type
+in [@ISO80000] is controversial.
+
+[@ISO80000] (part 1) says:
+
+> The system of quantities presented in this document is named the International System of
+> Quantities (ISQ), in all languages. This name was not used in ISO 31 series, from which
+> the present harmonized series has evolved. However, the ISQ does appear in ISO/IEC Guide 99
+> and is the system of quantities underlying the International System of Units, denoted “SI”,
+> in all languages according to the SI Brochure.
+
+According to the [@ISO-GUIDE], a system of quantities is a "set of quantities together with
+a set of non-contradictory equations relating those quantities". It also defines the
+system of units as "set of base units and derived units, together with their multiples
+and submultiples, defined in accordance with given rules, for a given system of quantities".
+
+To say it explicitly, the system of quantities should not assume or use any specific units
+in its definitions. It is essential as various systems of units can be defined on top of it,
+and none of those should be favored.
+
+However, the Celsius temperature quantity type is defined in [@ISO80000] (part 5) as:
+
+> temperature difference from the thermodynamic temperature of the ice point is called the
+> Celsius temperature $t$, which is defined by the quantity equation:
+>
+> $t = T − T_0$
+>
+> where $T$ is thermodynamic temperature (item 5-1) and $T_0 = 273,15\:K$
+
+Celsius temperature is an exceptional quantity in the ISQ as it uses specific SI units in
+its definition. This breaks the direction of dependencies between systems of quantities and
+units and imposes significant implementation issues.
+
+As [@MP-UNITS] implementation clearly distinguishes between systems of quantities
+and units and assumes that the latter directly depends on the former, this quantity
+definition does not enforce any units or offsets. It is defined as just a more specialized
+quantity of the kind of thermodynamic temperature. We have added the Celsius temperature
+quantity type for completeness and to gain more experience with it. Still, maybe a good
+decision would be to skip it in the standardization process not to confuse users.
+
+After quoting the official definitions and terms and presenting how quantities
+work, let's discuss quantity points. Those describe specific points and are measured
+relative to a provided origin:
+
+```cpp
+quantity_point qp1 = si::absolute_zero + isq::thermodynamic_temperature(300. * K);
+quantity_point qp2 = si::ice_point + isq::Celsius_temperature(30. * deg_C);
+```
+
+The above provides two different temperature points. The first one is measured as a relative
+quantity to the absolute zero (`0 K`), and the second one stores the value relative to
+the ice point being the beginning of the degree Celsius scale.
+
+It is essential to understand that the origins of quantity points will not change if
+we convert their units:
+
+```cpp
+quantity_point qp3 = qp1.in(deg_C);
+quantity_point qp4 = qp2.in(K);
+
+static_assert(std::is_same_v<decltype(qp3.point_origin), decltype(si::absolute_zero)>);
+static_assert(std::is_same_v<decltype(qp4.point_origin), decltype(si::ice_point)>);
+```
+
+If we want to obtain the values of quantities in specific units relative to the origins
+of their scales, we have to be explicit:
+
+```cpp
+std::println("qp1: {}, {}, {}",
+              qp1.quantity_from(si::absolute_zero),
+              qp1.quantity_from(si::ice_point).in(deg_C),
+              qp1.quantity_from(usc::zero_Fahrenheit).in(deg_F));
+std::println("qp2: {}, {}, {}",
+              qp2.quantity_from(si::absolute_zero).in(K),
+              qp2.quantity_from(si::ice_point),
+              qp2.quantity_from(usc::zero_Fahrenheit).in(deg_F));
+```
+
+The above outputs:
+
+```text
+qp1: 300 K, 26.85 °C, 80.33 °F
+qp2: 303.15 K, 30 °C, 86 °F
+```
+
+Of course, all other combinations are also possible. For example, nothing should prevent us
+from checking how many degrees of Celsius are there starting from the `zero_Fahrenheit` for
+a quantity point using kelvins with the `absolute_zero` origin:
+
+```cpp
+quantity q = qp1.quantity_from(usc::zero_Fahrenheit).in(deg_C);
+```
+
+Please also note that there is no text output support for quantity points in the [@MP-UNITS]
+library.
 
 ## Structural types
 
