@@ -29,7 +29,8 @@ author:
 - Added The Guardian's Fahrenheit issue to [Safety].
 - [Plan for standardization] table updated.
 - [Standardizing existing practice] extended with [@CHEP98] reference and GitHub stats.
-- Bounded numeric types and value-preserving trait added, and some priorities changed in [External dependencies].
+- Bounded numeric types and value-preserving trait added, type and NTTP lists removed,
+  and some priorities changed in [External dependencies].
 - Some small editorial fixes (mostly in the [Design goals] chapter).
 
 
@@ -1060,14 +1061,13 @@ in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                          | Priority | Description                                                                                                 |
-|----------------------------------|:--------:|-------------------------------------------------------------------------------------------------------------|
-| `fixed_string`                   |    1     | String-like structural type with inline storage (can be used as an NTTP)                                    |
-| Compile-time prime numbers       |    1     | Compile-time facilities to break any integral value to a product of prime numbers and their powers          |
-| Value-preserving conversions     |    1     | Type trait stating if the conversion from one type to another is value preserving or not                    |
-| Number concepts                  |    2     | Concepts for vector- and point-space numbers                                                                |
-| Bounded numeric types            |    3     | Numerical type wrappers with values bounded to a provided interval (optionally with a wraparound semantics) |
-| Standardized type and NTTP lists |    3     | Common library providing algorithms to handle type and NTTP lists                                           |
+| Feature                      | Priority | Description                                                                                                 |
+|------------------------------|:--------:|-------------------------------------------------------------------------------------------------------------|
+| `fixed_string`               |    1     | String-like structural type with inline storage (can be used as an NTTP)                                    |
+| Compile-time prime numbers   |    1     | Compile-time facilities to break any integral value to a product of prime numbers and their powers          |
+| Value-preserving conversions |    1     | Type trait stating if the conversion from one type to another is value preserving or not                    |
+| Number concepts              |    2     | Concepts for vector- and point-space numbers                                                                |
+| Bounded numeric types        |    3     | Numerical type wrappers with values bounded to a provided interval (optionally with a wraparound semantics) |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -1083,25 +1083,25 @@ by LEWG will help to keep the efforts on track.
 
 <!-- markdownlint-disable MD013 -->
 
-| Meeting            | C++ Milestones                                     | Activities                                                                                                                                                                                |
-|--------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper about safety benefits and concerns to SG23<br>Papers about quantity arithmetics and number concepts to SG6           |
-| 2024.1 (Tokyo)     |                                                    | Paper on type and NTTP lists to LEWG<br>Papers on the Basic Framework (priority 1 features), math utilities, and prime numbers to SG6<br>Papers on `fixed_string` and text output to SG16 |
-| 2024.2 (St. Louis) |                                                    | Papers on the Basic Framework (priority 2 & 3 features) and the Affine Space to SG6<br>Move quantity arithmetics and number concepts papers to LEWG                                       |
-| 2024.3 (Wrocław)   |                                                    | Papers on systems and `std::chrono` support to SG6<BR>Move text output, `fixed_string`, Basic Framework (priority 1 features), math utilities, and prime numbers papers to LEWG           |
-| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Basic Framework (priority 2 & 3 features) and the Affine Space to LEWG                                                                                                               |
-| 2025.2             | C++26 CD finalized                                 | Move paper on `std::chrono` support to LEWG                                                                                                                                               |
-| 2025.3             |                                                    | Move papers on systems to LEWG                                                                                                                                                            |
-| 2026.1             | C++26 DIS finalized                                |                                                                                                                                                                                           |
-| 2026.2             | C++29 WP opens                                     | Wording for Basic Framework (priority 1 features) and number concepts to LWG                                                                                                              |
-| 2026.3             |                                                    | Wording for Basic Framework (priority 2 features), the Affine Space, `std::chrono` support, the text output, and `fixed_string` to LWG                                                    |
-| 2027.1             |                                                    | Wording for math utilities, prime numbers, systems, and type and NTTP lists to LWG                                                                                                        |
-| 2027.2             |                                                    |                                                                                                                                                                                           |
-| 2027.3             |                                                    |                                                                                                                                                                                           |
-| 2028.1             | Last meeting for LEWG review of new C++29 features | Finalize wording review in LWG and merge into C++29 WP                                                                                                                                    |
-| 2028.2             | C++29 CS finalized                                 | Resolve any outstanding design/wording issues                                                                                                                                             |
-| 2028.3             |                                                    | Resolve NB comments                                                                                                                                                                       |
-| 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                                                                       |
+| Meeting            | C++ Milestones                                     | Activities                                                                                                                                                                      |
+|--------------------|----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper about safety benefits and concerns to SG23<br>Papers about quantity arithmetics and number concepts to SG6 |
+| 2024.1 (Tokyo)     |                                                    | Papers on the Basic Framework (priority 1 features), math utilities, and prime numbers to SG6<br>Papers on `fixed_string` and text output to SG16                               |
+| 2024.2 (St. Louis) |                                                    | Papers on the Basic Framework (priority 2 & 3 features) and the Affine Space to SG6<br>Move quantity arithmetics and number concepts papers to LEWG                             |
+| 2024.3 (Wrocław)   |                                                    | Papers on systems and `std::chrono` support to SG6<BR>Move text output, `fixed_string`, Basic Framework (priority 1 features), math utilities, and prime numbers papers to LEWG |
+| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Basic Framework (priority 2 & 3 features) and the Affine Space to LEWG                                                                                                     |
+| 2025.2             | C++26 CD finalized                                 | Move paper on `std::chrono` support to LEWG                                                                                                                                     |
+| 2025.3             |                                                    | Move papers on systems to LEWG                                                                                                                                                  |
+| 2026.1             | C++26 DIS finalized                                |                                                                                                                                                                                 |
+| 2026.2             | C++29 WP opens                                     | Wording for Basic Framework (priority 1 features) and number concepts to LWG                                                                                                    |
+| 2026.3             |                                                    | Wording for Basic Framework (priority 2 features), the Affine Space, `std::chrono` support, the text output, and `fixed_string` to LWG                                          |
+| 2027.1             |                                                    | Wording for math utilities, prime numbers, and systems to LWG                                                                                                                   |
+| 2027.2             |                                                    |                                                                                                                                                                                 |
+| 2027.3             |                                                    |                                                                                                                                                                                 |
+| 2028.1             | Last meeting for LEWG review of new C++29 features | Finalize wording review in LWG and merge into C++29 WP                                                                                                                          |
+| 2028.2             | C++29 CS finalized                                 | Resolve any outstanding design/wording issues                                                                                                                                   |
+| 2028.3             |                                                    | Resolve NB comments                                                                                                                                                             |
+| 2029.1             | C++29 DIS finalized                                | Resolve NB comments                                                                                                                                                             |
 
 <!-- markdownlint-enable MD013 -->
 

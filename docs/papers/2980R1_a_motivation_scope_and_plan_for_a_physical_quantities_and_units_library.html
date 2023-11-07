@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-11-05" />
+  <meta name="dcterms.date" content="2023-11-07" />
   <title>A motivation, scope, and plan for a physical quantities and
 units library</title>
   <style>
@@ -429,7 +429,7 @@ plan for a physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-11-05</td>
+    <td>2023-11-07</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -556,9 +556,8 @@ table updated.</li>
 <li><a href="#standardizing-existing-practice">Standardizing existing
 practice</a> extended with <span class="citation" data-cites="CHEP98">[<a href="#ref-CHEP98" role="doc-biblioref">CHEP’98</a>]</span> reference and GitHub
 stats.</li>
-<li>Bounded numeric types and value-preserving trait added, and some
-priorities changed in <a href="#external-dependencies">External
-dependencies</a>.</li>
+<li>Bounded numeric types and value-preserving trait added, type and
+NTTP lists removed, and some priorities changed in <a href="#external-dependencies">External dependencies</a>.</li>
 <li>Some small editorial fixes (mostly in the <a href="#design-goals">Design goals</a> chapter).</li>
 </ul>
 <h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
@@ -1842,9 +1841,9 @@ in other domains that we can get in the future from other authors.</p>
 <!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
-<col style="width: 22%" />
+<col style="width: 20%" />
 <col style="width: 6%" />
-<col style="width: 71%" />
+<col style="width: 73%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1889,12 +1888,6 @@ value preserving or not</td>
 <td>Numerical type wrappers with values bounded to a provided interval
 (optionally with a wraparound semantics)</td>
 </tr>
-<tr class="even">
-<td>Standardized type and NTTP lists</td>
-<td style="text-align: center;">3</td>
-<td>Common library providing algorithms to handle type and NTTP
-lists</td>
-</tr>
 </tbody>
 </table>
 <!-- markdownlint-enable MD013 -->
@@ -1910,9 +1903,9 @@ approved by LEWG will help to keep the efforts on track.</p>
 <!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
-<col style="width: 7%" />
+<col style="width: 8%" />
 <col style="width: 20%" />
-<col style="width: 72%" />
+<col style="width: 71%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1938,10 +1931,10 @@ arithmetics and number concepts to SG6</td>
 <tr class="even">
 <td>2024.1 (Tokyo)</td>
 <td></td>
-<td>Paper on type and NTTP lists to LEWG<br>Papers on the Basic
-Framework (priority 1 features), math utilities, and prime numbers to
-SG6<br>Papers on <code class="sourceCode default">fixed_string</code>
-and text output to SG16</td>
+<td>Papers on the Basic Framework (priority 1 features), math utilities,
+and prime numbers to SG6<br>Papers on
+<code class="sourceCode default">fixed_string</code> and text output to
+SG16</td>
 </tr>
 <tr class="odd">
 <td>2024.2 (St. Louis)</td>
@@ -1999,8 +1992,7 @@ LWG</td>
 <tr class="odd">
 <td>2027.1</td>
 <td></td>
-<td>Wording for math utilities, prime numbers, systems, and type and
-NTTP lists to LWG</td>
+<td>Wording for math utilities, prime numbers, and systems to LWG</td>
 </tr>
 <tr class="even">
 <td>2027.2</td>
