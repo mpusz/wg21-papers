@@ -1065,7 +1065,7 @@ in other domains that we can get in the future from other authors.
 |------------------------------|:--------:|-------------------------------------------------------------------------------------------------------------|
 | `fixed_string`               |    1     | String-like structural type with inline storage (can be used as an NTTP)                                    |
 | Compile-time prime numbers   |    1     | Compile-time facilities to break any integral value to a product of prime numbers and their powers          |
-| Value-preserving conversions |    1     | Type trait stating if the conversion from one type to another is value preserving or not                    |
+| Value-preserving conversions |    1     | Type trait stating if the conversion from one type to another is value preserving or not ([@P2509R0]?)      |
 | Number concepts              |    2     | Concepts for vector- and point-space numbers                                                                |
 | Bounded numeric types        |    3     | Numerical type wrappers with values bounded to a provided interval (optionally with a wraparound semantics) |
 
