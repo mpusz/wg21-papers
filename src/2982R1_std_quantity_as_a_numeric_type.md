@@ -58,7 +58,7 @@ from 1996 says explicitly, "Dimensional analysis does not adequately model the s
 measurement data".
 
 A typical problem that most similar libraries struggle with is supporting quantities like work and
-toque as being independent, strong types. The problem here arises from the fact that both of them
+torque as being independent, strong types. The problem here arises from the fact that both of them
 have exactly the same dimension `L²MT⁻²`, but a totally different physical meaning. As a result,
 it is possible to mathematically add or compare them in a quantity equation even though such
 an operation has no sense from the physical point of view.
