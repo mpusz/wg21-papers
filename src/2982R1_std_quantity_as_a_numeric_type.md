@@ -1,6 +1,6 @@
 ---
 title: "`std::quantity` as a numeric type"
-document: D2982R1
+document: P2982R1
 date: today
 audience:
   - SG6 Numerics
