@@ -1,6 +1,6 @@
 ---
-title: "A motivation, scope, and plan for a physical quantities and units library"
-document: P2980R1
+title: "A motivation, scope, and plan for a quantities and units library"
+document: D2980R1
 date: today
 audience:
   - Library Evolution Working Group
@@ -27,10 +27,9 @@ author:
 ## Changes since [@P2980R0]
 
 - Added The Guardian's Fahrenheit issue to [Safety].
-- [Plan for standardization] table updated.
+- [Scope] and [Plan for standardization] updated.
 - [Standardizing existing practice] extended with [@CHEP98] reference and GitHub stats.
-- Bounded numeric types and value-preserving trait added, type and NTTP lists removed,
-  and some priorities changed in [External dependencies].
+- "Physical" word removed from the paper title.
 - Some small editorial fixes (mostly in the [Design goals] chapter).
 
 
@@ -49,7 +48,7 @@ being the best we can get with the current version of the C++ language standard.
 
 This paper is authored by not only the [@MP-UNITS] library developers but also by the authors
 of other actively maintained similar libraries on the market and other active members of
-the C++ physical quantities and units community who have worked on this subject for many years.
+the C++ quantities and units community who have worked on this subject for many years.
 We join our forces to say with one voice that we deeply care about standardizing such
 features as a part of the C++ Standard Library. Based on our long and broad experience in
 the subject, we agree that the interfaces we will provide in the upcoming proposals are
@@ -230,8 +229,8 @@ mathematics, and computer science.
 
 # Motivation
 
-This chapter describes why we believe that physical quantities and units should be part of
-a C++ Standard Library.
+This chapter describes why we believe that quantities and units should be part of a C++ Standard
+Library.
 
 ## Safety
 
@@ -332,9 +331,9 @@ However, those deviations require rationale and documentation, which is also con
 and expensive by many.
 
 All of those reasons often prevent the usage of an Open Source product in a company, which is a huge
-issue, as those companies typically are natural users of physical quantities and units libraries.
+issue, as those companies typically are natural users of quantities and units libraries.
 
-Having the physical quantities and units library standardized would solve those issues for many
+Having the quantities and units library standardized would solve those issues for many
 customers, and would allow them to produce safer code for projects on which human life depends every
 single day.
 
@@ -342,11 +341,11 @@ single day.
 
 Suppose vendors can't use an Open Source library in a production project for
 the above reasons. They are forced to write their own abstractions by themselves.
-Besides being costly and time-consuming, it also happens that writing a physical quantities and
-units library by yourself is far from easy. Doing this is complex and complicated, especially for
-engineers who are not experts in the domain. There are many exceptional corner cases to cover
-that most developers do not even realize before falling into a trap in production. On the other
-hand, domain experts might find it difficult to put their knowledge into code and create a correct
+Besides being costly and time-consuming, it also happens that writing a quantities and units library
+by yourself is far from easy. Doing this is complex and complicated, especially for engineers
+who are not experts in the domain. There are many exceptional corner cases to cover that most
+developers do not even realize before falling into a trap in production. On the other hand,
+domain experts might find it difficult to put their knowledge into code and create a correct
 implementation in C++.
 As a result, companies either use really simple and unsafe numeric wrappers, or abandon the effort
 entirely and just use built-in types, such as `float` or `int`, to express quantity values, thus losing
@@ -379,10 +378,9 @@ inline constexpr struct hertz : named_unit<"Hz", 1 / second, kind_of<isq::freque
 
 ## Broad industry value
 
-When people think about industries that could use physical quantities
-and unit libraries, they think of a few companies related to aerospace,
-autonomous cars, or embedded industries. That is all true, but there are
-many other potential users for such a library.
+When people think about industries that could use quantities and unit libraries, they think of
+a few companies related to aerospace, autonomous cars, or embedded industries. That is all true,
+but there are many other potential users for such a library.
 
 Here is a list of some less obvious candidates:
 
@@ -431,10 +429,10 @@ The authors of this paper developed and delivered multiple successful C++ librar
 Libraries developed by them [have more than 90% of all the stars on GitHub in the field of
 physical units libraries for C++](https://github.com/topics/dimensional-analysis?l=c%2B%2B).
 
-The authors joined forces and are working together to propose the best physical quantities and
-units library we can get with the latest version of the C++ language. They spend their private
-time and efforts hoping that the ISO C++ Committee will be willing to include such a feature in
-the C++ standard library.
+The authors joined forces and are working together to propose the best quantities and units library
+we can get with the latest version of the C++ language. They spend their private time and efforts
+hoping that the ISO C++ Committee will be willing to include such a feature in the C++ standard
+library.
 
 
 # Design goals
@@ -923,18 +921,28 @@ _Note: The priorities provided in the below tables are the recommendations by au
 experience in the domain, but are in no way final. This is just an entry point for the discussion
 in the Committee._
 
-## Basic framework
+## Core framework
+
+The features in this chapter are intended to be provided in the same ISO proposal (possibly in
+a few steps).
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                                | Priority | Description                                                                                                                                               |
-|----------------------------------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Core library                           |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them                                    |
-| Quantity kinds                         |    1     | Support quantities of the same dimension that should be distinct, e.g., `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force` |
-| Various quantities of the same kind    |    1     | Support quantities of the same kind that should be distinct, e.g., `width`, `height`, `wavelength` (all of the kind `length`)                             |
-| Vector and tensor representation types |    2     | Support for quantities of vector and tensor representation types (without intrusive changes on vector and tensor types)                                   |
-| Logarithmic units support              |    2     | Support for logarithmic units, e.g., decibel                                                                                                              |
-| Polymorphic unit                       |   ???    | Runtime-known type-erased unit of a specified quantity type                                                                                               |
+| Feature                                  | Priority | Description                                                                                                                                               |
+|------------------------------------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Core library                             |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them                                    |
+| The Affine Space                         |    1     | `std::quantity_point`, absolute and relative point origins                                                                                                |
+| Quantity kinds                           |    1     | Support quantities of the same dimension that should be distinct, e.g., `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force` |
+| Various quantities of the same kind      |    1     | Support quantities of the same kind that should be distinct, e.g., `width`, `height`, `wavelength` (all of the kind `length`)                             |
+| Vector and tensor representation types   |    2     | Support for quantities of vector and tensor representation types                                                                                          |
+| Logarithmic quantities and units support |    2     | Support for logarithmic quantities and units, e.g., decibel                                                                                               |
+| Polymorphic unit                         |   ???    | Runtime-known type-erased unit of a specified quantity type                                                                                               |
+| `quantity` text output                   |    1     | Text output for quantity variables (number + unit)                                                                                                        |
+| Units text output                        |    2     | Text output for unit variables                                                                                                                            |
+| Dimensions text output                   |    2     | Text output for dimension variables                                                                                                                       |
+| `std::format` support                    |    1     | Custom grammar and support for all the standard formatting facilities                                                                                     |
+| `std::ostream` support                   |    1     | Stream insertion operators support                                                                                                                        |
+| `std::chrono` support                    |    2     | Customization points that enable support for `std::chrono_duration` and `std::chrono_time_point` and other external libraries                             |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -948,6 +956,10 @@ In the above table:
   quantity equation (in case of derived quantities), quantity kind, and dimension.
 - References (temporary name to be bikeshedded) are numeric wrappers over a quantity specification and
   a unit.
+- `std::quantity_point` is an incompatible generalization of `std::chrono::time_point`.
+- Absolute point origin is a compile-time constant defining an absolute origin for `std::quantity_point`
+  of a specific quantity type.
+- Relative point origin is a compile-time constant defining an origin relative to another point origin.
 
 Below, we provide a short overview of estimated additional framework-related costs associated with
 providing support for the following features (based on our current implementation experience):
@@ -970,45 +982,15 @@ providing support for the following features (based on our current implementatio
 - Polymorphic unit
     - the design is TBD
 
-## The affine space
+_Note 1:_ There is no built-in support to output `quantity_point` as text.
 
-<!-- markdownlint-disable MD013 -->
-
-| Feature          | Priority | Description                                                |
-|------------------|:--------:|------------------------------------------------------------|
-| The Affine Space |    1     | `std::quantity_point`, absolute and relative point origins |
-
-<!-- markdownlint-enable MD013 -->
-
-In the above table:
-
-- `std::quantity_point` is an incompatible generalization of `std::chrono::time_point`.
-- Absolute point origin is a compile-time constant defining an absolute origin for `std::quantity_point`
-  of a specific quantity type.
-- Relative point origin is a compile-time constant defining an origin relative to another point origin.
-
-## Text output
-
-<!-- markdownlint-disable MD013 -->
-
-| Feature                | Priority | Description                                                           |
-|------------------------|:--------:|-----------------------------------------------------------------------|
-| `quantity` text output |    1     | Text output for quantity variables (number + unit)                    |
-| Units text output      |    2     | Text output for unit variables                                        |
-| Dimensions text output |    2     | Text output for dimension variables                                   |
-| `std::format` support  |    1     | Custom grammar and support for all the standard formatting facilities |
-| `std::ostream` support |    2     | Stream insertion operators support                                    |
-
-<!-- markdownlint-enable MD013 -->
-
-_Note:_ There is no built-in support to output `quantity_point` as text.
-
-## Text input
-
-As long as the C++ Standard doesn't provide a generic facility to parse localized text, we do not
-plan to propose any support for doing that for physical quantities and their units.
+_Note 2:_ As long as the C++ Standard doesn't provide a generic facility to parse localized text,
+we do not plan to propose any support for doing that for physical quantities and their units.
 
 ## Systems of quantities
+
+The features in this and the following chapters are intended to be provided in separate ISO proposals
+that will be independently discussed and considered for standardization.
 
 <!-- markdownlint-disable MD013 -->
 
@@ -1016,9 +998,9 @@ plan to propose any support for doing that for physical quantities and their uni
 |-----------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | The most important ISQ quantities |    1     | Specification of the most commonly used ISQ quantities                                                                                                                                                                           |
 | ISQ 3-6                           |    1     | Specification of the ISQ quantities specified in ISO/IEC 80000 parts 3 - 6 (Space and time, Mechanics, Thermodynamics, Electromagnetism)                                                                                         |
-| ISQ 7-12                          |    3     | Specification of the ISQ quantities specified in ISO 80000 parts 7 - 12 (Light and radiation, Acoustics, Physical chemistry and molecular physics, Atomic and nuclear physics, Characteristic numbers, Condensed matter physics) |
+| ISQ 7-12                          |    2     | Specification of the ISQ quantities specified in ISO 80000 parts 7 - 12 (Light and radiation, Acoustics, Physical chemistry and molecular physics, Atomic and nuclear physics, Characteristic numbers, Condensed matter physics) |
 | ISQ 13                            |    1     | Specification of the ISQ quantities specified in IEC 80000-13 (Information science and technology)                                                                                                                               |
-| Angular                           |    1     | Strong angular quantities                                                                                                                                                                                                        |
+| Angular                           |    3     | Strong angular quantities                                                                                                                                                                                                        |
 | Angular ISQ                       |    3     | Changes to the ISQ to support strong angular quantities                                                                                                                                                                          |
 
 <!-- markdownlint-enable MD013 -->
@@ -1032,10 +1014,10 @@ plan to propose any support for doing that for physical quantities and their uni
 | SI            |    1     | All the units, prefixes, and symbols (including prefixed versions) of the SI       |
 | IEC 80000-13  |    1     | All the units, prefixes, and symbols (including prefixed versions) of IEC 80000-13 |
 | International |    1     | International yard and pound units (common to Imperial and USC systems)            |
-| Angular       |    1     | Strong angular quantities and units system                                         |
 | Imperial      |    2     | Imperial system-specific units                                                     |
 | USC system    |    2     | United States Customary system-specific units                                      |
 | CGS system    |    2     | Centimetre-Gram-Second system                                                      |
+| Angular       |    3     | Strong angular units                                                               |
 | IAU system    |    3     | International Astronomical Union units system                                      |
 
 <!-- markdownlint-enable MD013 -->
@@ -1044,11 +1026,10 @@ plan to propose any support for doing that for physical quantities and their uni
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature               | Priority | Description                                                                                                                   |
-|-----------------------|:--------:|-------------------------------------------------------------------------------------------------------------------------------|
-| `std::chrono` support |    2     | Customization points that enable support for `std::chrono_duration` and `std::chrono_time_point` and other external libraries |
-| Math                  |    2     | Common mathematical functions on quantities                                                                                   |
-| Random                |    3     | Random number generators of quantities                                                                                        |
+| Feature | Priority | Description                                 |
+|---------|:--------:|---------------------------------------------|
+| Math    |    2     | Common mathematical functions on quantities |
+| Random  |    3     | Random number generators of quantities      |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -1074,10 +1055,10 @@ in other domains that we can get in the future from other authors.
 
 # Plan for standardization
 
-Having physical quantities and units support in C++ would be extremely useful for many C++ developers,
+Having quantities and units support in C++ would be extremely useful for many C++ developers,
 and ideally, we should ship it in C++29. We believe that it can be done, and we propose a plan
 to get there. The plan below is, of course, not an irrevocable commitment. If things get delayed
-or controversial for whatever reason, physical quantities and units (or some parts of it)
+or controversial for whatever reason, quantities and units (or some parts of it)
 will miss the train and we will have to wait three more years. However, having a clear plan approved
 by LEWG will help to keep the efforts on track.
 
@@ -1086,16 +1067,16 @@ by LEWG will help to keep the efforts on track.
 | Meeting            | C++ Milestones                                     | Activities                                                                                                                                                                      |
 |--------------------|----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper about safety benefits and concerns to SG23<br>Papers about quantity arithmetics and number concepts to SG6 |
-| 2024.1 (Tokyo)     |                                                    | Papers on the Basic Framework (priority 1 features), math utilities, and prime numbers to SG6<br>Papers on `fixed_string` and text output to SG16                               |
-| 2024.2 (St. Louis) |                                                    | Papers on the Basic Framework (priority 2 & 3 features) and the Affine Space to SG6<br>Move quantity arithmetics and number concepts papers to LEWG                             |
-| 2024.3 (Wrocław)   |                                                    | Papers on systems and `std::chrono` support to SG6<BR>Move text output, `fixed_string`, Basic Framework (priority 1 features), math utilities, and prime numbers papers to LEWG |
-| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Basic Framework (priority 2 & 3 features) and the Affine Space to LEWG                                                                                                     |
-| 2025.2             | C++26 CD finalized                                 | Move paper on `std::chrono` support to LEWG                                                                                                                                     |
-| 2025.3             |                                                    | Move papers on systems to LEWG                                                                                                                                                  |
+| 2024.1 (Tokyo)     |                                                    | Paper on the Core Framework to SG6 and SG16<br>Paper on prime numbers to SG6<br>Paper on `fixed_string` to SG16                                                                 |
+| 2024.2 (St. Louis) |                                                    | Papers on systems (priority 1) to SG6<br>Move `fixed_string` and prime numbers papers to LEWG                                                                                   |
+| 2024.3 (Wrocław)   |                                                    | Papers on systems (priority 2 & 3) to SG6<br>Papers on the math and random utilities to SG6<br>Move a paper on number concepts to LEWG                                          |
+| 2025.1             | Last meeting for LEWG review of new C++26 features | Move Core Framework paper to LEWG<br>Move `fixed_string` and prime numbers papers to LWG                                                                                        |
+| 2025.2             | C++26 CD finalized                                 | Move papers on systems (priority 1), math and random utilities to LEWG<br>Move number concepts paper to LWG                                                                     |
+| 2025.3             |                                                    | Move papers on systems (priority 2 & 3) to LEWG                                                                                                                                 |
 | 2026.1             | C++26 DIS finalized                                |                                                                                                                                                                                 |
-| 2026.2             | C++29 WP opens                                     | Wording for Basic Framework (priority 1 features) and number concepts to LWG                                                                                                    |
-| 2026.3             |                                                    | Wording for Basic Framework (priority 2 features), the Affine Space, `std::chrono` support, the text output, and `fixed_string` to LWG                                          |
-| 2027.1             |                                                    | Wording for math utilities, prime numbers, and systems to LWG                                                                                                                   |
+| 2026.2             | C++29 WP opens                                     | Move Core Framework  to LWG                                                                                                                                                     |
+| 2026.3             |                                                    | Move systems (priority 1), math and random utilities to LWG                                                                                                                     |
+| 2027.1             |                                                    | Move systems (priority 2 & 3) to LWG                                                                                                                                            |
 | 2027.2             |                                                    |                                                                                                                                                                                 |
 | 2027.3             |                                                    |                                                                                                                                                                                 |
 | 2028.1             | Last meeting for LEWG review of new C++29 features | Finalize wording review in LWG and merge into C++29 WP                                                                                                                          |

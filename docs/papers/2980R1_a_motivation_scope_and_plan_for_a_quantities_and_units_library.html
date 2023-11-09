@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-11-08" />
-  <title>A motivation, scope, and plan for a physical quantities and
-units library</title>
+  <meta name="dcterms.date" content="2023-11-09" />
+  <title>A motivation, scope, and plan for a quantities and units
+library</title>
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -421,15 +421,15 @@ code.sourceCode > span { display: inline; }
 <div class="wrapper">
 <header id="title-block-header">
 <h1 class="title" style="text-align:center">A motivation, scope, and
-plan for a physical quantities and units library</h1>
+plan for a quantities and units library</h1>
 <table style="border:none;float:right">
   <tr>
     <td>Document #:</td>
-    <td>P2980R1</td>
+    <td>D2980R1</td>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-11-08</td>
+    <td>2023-11-09</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -526,18 +526,14 @@ units<span></span></a></li>
 </ul></li>
 <li><a href="#scope" id="toc-scope"><span class="toc-section-number">8</span> Scope<span></span></a>
 <ul>
-<li><a href="#basic-framework" id="toc-basic-framework"><span class="toc-section-number">8.1</span> Basic
+<li><a href="#core-framework" id="toc-core-framework"><span class="toc-section-number">8.1</span> Core
 framework<span></span></a></li>
-<li><a href="#the-affine-space" id="toc-the-affine-space"><span class="toc-section-number">8.2</span> The affine
-space<span></span></a></li>
-<li><a href="#text-output" id="toc-text-output"><span class="toc-section-number">8.3</span> Text output<span></span></a></li>
-<li><a href="#text-input" id="toc-text-input"><span class="toc-section-number">8.4</span> Text input<span></span></a></li>
-<li><a href="#systems-of-quantities" id="toc-systems-of-quantities"><span class="toc-section-number">8.5</span> Systems of
+<li><a href="#systems-of-quantities" id="toc-systems-of-quantities"><span class="toc-section-number">8.2</span> Systems of
 quantities<span></span></a></li>
-<li><a href="#systems-of-units" id="toc-systems-of-units"><span class="toc-section-number">8.6</span> Systems of
+<li><a href="#systems-of-units" id="toc-systems-of-units"><span class="toc-section-number">8.3</span> Systems of
 units<span></span></a></li>
-<li><a href="#utilities" id="toc-utilities"><span class="toc-section-number">8.7</span> Utilities<span></span></a></li>
-<li><a href="#external-dependencies" id="toc-external-dependencies"><span class="toc-section-number">8.8</span> External
+<li><a href="#utilities" id="toc-utilities"><span class="toc-section-number">8.4</span> Utilities<span></span></a></li>
+<li><a href="#external-dependencies" id="toc-external-dependencies"><span class="toc-section-number">8.5</span> External
 dependencies<span></span></a></li>
 </ul></li>
 <li><a href="#plan-for-standardization" id="toc-plan-for-standardization"><span class="toc-section-number">9</span> Plan for
@@ -551,13 +547,12 @@ Acknowledgements<span></span></a></li>
 <h2 data-number="1.1" id="changes-since-p2980r0"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P2980R0">[<a href="#ref-P2980R0" role="doc-biblioref">P2980R0</a>]</span><a href="#changes-since-p2980r0" class="self-link"></a></h2>
 <ul>
 <li>Added The Guardian’s Fahrenheit issue to <a href="#safety">Safety</a>.</li>
-<li><a href="#plan-for-standardization">Plan for standardization</a>
-table updated.</li>
+<li><a href="#scope">Scope</a> and <a href="#plan-for-standardization">Plan for standardization</a>
+updated.</li>
 <li><a href="#standardizing-existing-practice">Standardizing existing
 practice</a> extended with <span class="citation" data-cites="CHEP98">[<a href="#ref-CHEP98" role="doc-biblioref">CHEP’98</a>]</span> reference and GitHub
 stats.</li>
-<li>Bounded numeric types and value-preserving trait added, type and
-NTTP lists removed, and some priorities changed in <a href="#external-dependencies">External dependencies</a>.</li>
+<li>“Physical” word removed from the paper title.</li>
 <li>Some small editorial fixes (mostly in the <a href="#design-goals">Design goals</a> chapter).</li>
 </ul>
 <h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
@@ -575,13 +570,13 @@ interfaces of this version are close to being the best we can get with
 the current version of the C++ language standard.</p>
 <p>This paper is authored by not only the <span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> library developers but also by
 the authors of other actively maintained similar libraries on the market
-and other active members of the C++ physical quantities and units
-community who have worked on this subject for many years. We join our
-forces to say with one voice that we deeply care about standardizing
-such features as a part of the C++ Standard Library. Based on our long
-and broad experience in the subject, we agree that the interfaces we
-will provide in the upcoming proposals are the best we can get today in
-the C++ language.</p>
+and other active members of the C++ quantities and units community who
+have worked on this subject for many years. We join our forces to say
+with one voice that we deeply care about standardizing such features as
+a part of the C++ Standard Library. Based on our long and broad
+experience in the subject, we agree that the interfaces we will provide
+in the upcoming proposals are the best we can get today in the C++
+language.</p>
 <h1 data-number="3" id="terms-and-definitions"><span class="header-section-number">3</span> Terms and definitions<a href="#terms-and-definitions" class="self-link"></a></h1>
 <p>This document consistently uses the official metrology vocabulary
 defined in the <span class="citation" data-cites="ISO-GUIDE">[<a href="#ref-ISO-GUIDE" role="doc-biblioref">ISO/IEC Guide 99</a>]</span>
@@ -757,8 +752,8 @@ his research activities is dedicated to the mathematical formalization
 of systems of quantities and systems of units as an interdisciplinary
 problem between physics, mathematics, and computer science.</p>
 <h1 data-number="5" id="motivation"><span class="header-section-number">5</span> Motivation<a href="#motivation" class="self-link"></a></h1>
-<p>This chapter describes why we believe that physical quantities and
-units should be part of a C++ Standard Library.</p>
+<p>This chapter describes why we believe that quantities and units
+should be part of a C++ Standard Library.</p>
 <h2 data-number="5.1" id="safety"><span class="header-section-number">5.1</span> Safety<a href="#safety" class="self-link"></a></h2>
 <p>It is no longer only the space industry or experienced pilots that
 benefit from the autonomous operations of some machines. We live in a
@@ -886,25 +881,23 @@ require rationale and documentation, which is also considered to be
 risky and expensive by many.</p>
 <p>All of those reasons often prevent the usage of an Open Source
 product in a company, which is a huge issue, as those companies
-typically are natural users of physical quantities and units
-libraries.</p>
-<p>Having the physical quantities and units library standardized would
-solve those issues for many customers, and would allow them to produce
-safer code for projects on which human life depends every single
-day.</p>
+typically are natural users of quantities and units libraries.</p>
+<p>Having the quantities and units library standardized would solve
+those issues for many customers, and would allow them to produce safer
+code for projects on which human life depends every single day.</p>
 <h2 data-number="5.4" id="complex-and-complicated"><span class="header-section-number">5.4</span> Complex and complicated<a href="#complex-and-complicated" class="self-link"></a></h2>
 <p>Suppose vendors can’t use an Open Source library in a production
 project for the above reasons. They are forced to write their own
 abstractions by themselves. Besides being costly and time-consuming, it
-also happens that writing a physical quantities and units library by
-yourself is far from easy. Doing this is complex and complicated,
-especially for engineers who are not experts in the domain. There are
-many exceptional corner cases to cover that most developers do not even
-realize before falling into a trap in production. On the other hand,
-domain experts might find it difficult to put their knowledge into code
-and create a correct implementation in C++. As a result, companies
-either use really simple and unsafe numeric wrappers, or abandon the
-effort entirely and just use built-in types, such as
+also happens that writing a quantities and units library by yourself is
+far from easy. Doing this is complex and complicated, especially for
+engineers who are not experts in the domain. There are many exceptional
+corner cases to cover that most developers do not even realize before
+falling into a trap in production. On the other hand, domain experts
+might find it difficult to put their knowledge into code and create a
+correct implementation in C++. As a result, companies either use really
+simple and unsafe numeric wrappers, or abandon the effort entirely and
+just use built-in types, such as
 <code class="sourceCode default">float</code> or
 <code class="sourceCode default">int</code>, to express quantity values,
 thus losing all semantic categorization. This often leads to safety
@@ -933,8 +926,8 @@ frequency in the <span class="citation" data-cites="SI">[<a href="#ref-SI" role=
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> second <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;s&quot;</span>, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;&gt;</span> <span class="op">{}</span> second;</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> hertz <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;Hz&quot;</span>, <span class="dv">1</span> <span class="op">/</span> second, kind_of<span class="op">&lt;</span>isq<span class="op">::</span>frequency<span class="op">&gt;&gt;</span> <span class="op">{}</span> hertz;</span></code></pre></div>
 <h2 data-number="5.6" id="broad-industry-value"><span class="header-section-number">5.6</span> Broad industry value<a href="#broad-industry-value" class="self-link"></a></h2>
-<p>When people think about industries that could use physical quantities
-and unit libraries, they think of a few companies related to aerospace,
+<p>When people think about industries that could use quantities and unit
+libraries, they think of a few companies related to aerospace,
 autonomous cars, or embedded industries. That is all true, but there are
 many other potential users for such a library.</p>
 <p>Here is a list of some less obvious candidates:</p>
@@ -987,10 +980,10 @@ C++ libraries for this domain. Libraries developed by them <a href="https://gith
 more than 90% of all the stars on GitHub in the field of physical units
 libraries for C++</a>.</p>
 <p>The authors joined forces and are working together to propose the
-best physical quantities and units library we can get with the latest
-version of the C++ language. They spend their private time and efforts
-hoping that the ISO C++ Committee will be willing to include such a
-feature in the C++ standard library.</p>
+best quantities and units library we can get with the latest version of
+the C++ language. They spend their private time and efforts hoping that
+the ISO C++ Committee will be willing to include such a feature in the
+C++ standard library.</p>
 <h1 data-number="6" id="design-goals"><span class="header-section-number">6</span> Design goals<a href="#design-goals" class="self-link"></a></h1>
 <p>The library facilities that we plan to propose in the upcoming papers
 is designed with the following goals in mind.</p>
@@ -1436,13 +1429,15 @@ feedback, we encourage everyone to check out the documentation of the
 recommendations by authors based on their experience in the domain, but
 are in no way final. This is just an entry point for the discussion in
 the Committee.</em></p>
-<h2 data-number="8.1" id="basic-framework"><span class="header-section-number">8.1</span> Basic framework<a href="#basic-framework" class="self-link"></a></h2>
+<h2 data-number="8.1" id="core-framework"><span class="header-section-number">8.1</span> Core framework<a href="#core-framework" class="self-link"></a></h2>
+<p>The features in this chapter are intended to be provided in the same
+ISO proposal (possibly in a few steps).</p>
 <!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
-<col style="width: 19%" />
+<col style="width: 20%" />
 <col style="width: 4%" />
-<col style="width: 75%" />
+<col style="width: 74%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1466,6 +1461,12 @@ templates, dimensions, quantity specifications, units,
 <em>references</em>, and concepts for them</td>
 </tr>
 <tr class="even">
+<td>The Affine Space</td>
+<td style="text-align: center;">1</td>
+<td><code class="sourceCode default">std::quantity_point</code>,
+absolute and relative point origins</td>
+</tr>
+<tr class="odd">
 <td>Quantity kinds</td>
 <td style="text-align: center;">1</td>
 <td>Support quantities of the same dimension that should be distinct,
@@ -1475,7 +1476,7 @@ e.g., <code class="sourceCode default">frequency</code>,
 <code class="sourceCode default">energy</code> and
 <code class="sourceCode default">moment_of_force</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Various quantities of the same kind</td>
 <td style="text-align: center;">1</td>
 <td>Support quantities of the same kind that should be distinct, e.g.,
@@ -1484,21 +1485,55 @@ e.g., <code class="sourceCode default">frequency</code>,
 <code class="sourceCode default">wavelength</code> (all of the kind
 <code class="sourceCode default">length</code>)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Vector and tensor representation types</td>
 <td style="text-align: center;">2</td>
-<td>Support for quantities of vector and tensor representation types
-(without intrusive changes on vector and tensor types)</td>
-</tr>
-<tr class="odd">
-<td>Logarithmic units support</td>
-<td style="text-align: center;">2</td>
-<td>Support for logarithmic units, e.g., decibel</td>
+<td>Support for quantities of vector and tensor representation
+types</td>
 </tr>
 <tr class="even">
+<td>Logarithmic quantities and units support</td>
+<td style="text-align: center;">2</td>
+<td>Support for logarithmic quantities and units, e.g., decibel</td>
+</tr>
+<tr class="odd">
 <td>Polymorphic unit</td>
 <td style="text-align: center;">???</td>
 <td>Runtime-known type-erased unit of a specified quantity type</td>
+</tr>
+<tr class="even">
+<td><code class="sourceCode default">quantity</code> text output</td>
+<td style="text-align: center;">1</td>
+<td>Text output for quantity variables (number + unit)</td>
+</tr>
+<tr class="odd">
+<td>Units text output</td>
+<td style="text-align: center;">2</td>
+<td>Text output for unit variables</td>
+</tr>
+<tr class="even">
+<td>Dimensions text output</td>
+<td style="text-align: center;">2</td>
+<td>Text output for dimension variables</td>
+</tr>
+<tr class="odd">
+<td><code class="sourceCode default">std::format</code> support</td>
+<td style="text-align: center;">1</td>
+<td>Custom grammar and support for all the standard formatting
+facilities</td>
+</tr>
+<tr class="even">
+<td><code class="sourceCode default">std::ostream</code> support</td>
+<td style="text-align: center;">1</td>
+<td>Stream insertion operators support</td>
+</tr>
+<tr class="odd">
+<td><code class="sourceCode default">std::chrono</code> support</td>
+<td style="text-align: center;">2</td>
+<td>Customization points that enable support for
+<code class="sourceCode default">std::chrono_duration</code> and
+<code class="sourceCode default">std::chrono_time_point</code> and other
+external libraries</td>
 </tr>
 </tbody>
 </table>
@@ -1517,6 +1552,15 @@ quantity type, quantity character, quantity equation (in case of derived
 quantities), quantity kind, and dimension.</li>
 <li>References (temporary name to be bikeshedded) are numeric wrappers
 over a quantity specification and a unit.</li>
+<li><code class="sourceCode default">std::quantity_point</code> is an
+incompatible generalization of
+<code class="sourceCode default">std::chrono::time_point</code>.</li>
+<li>Absolute point origin is a compile-time constant defining an
+absolute origin for
+<code class="sourceCode default">std::quantity_point</code> of a
+specific quantity type.</li>
+<li>Relative point origin is a compile-time constant defining an origin
+relative to another point origin.</li>
 </ul>
 <p>Below, we provide a short overview of estimated additional
 framework-related costs associated with providing support for the
@@ -1561,107 +1605,15 @@ template</li>
 <li>the design is TBD</li>
 </ul></li>
 </ul>
-<h2 data-number="8.2" id="the-affine-space"><span class="header-section-number">8.2</span> The affine space<a href="#the-affine-space" class="self-link"></a></h2>
-<!-- markdownlint-disable MD013 -->
-<table>
-<colgroup>
-<col style="width: 20%" />
-<col style="width: 11%" />
-<col style="width: 68%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th><div style="text-align:center">
-<strong>Feature</strong>
-</div></th>
-<th style="text-align: center;"><div style="text-align:center">
-<strong>Priority</strong>
-</div></th>
-<th><div style="text-align:center">
-<strong>Description</strong>
-</div></th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>The Affine Space</td>
-<td style="text-align: center;">1</td>
-<td><code class="sourceCode default">std::quantity_point</code>,
-absolute and relative point origins</td>
-</tr>
-</tbody>
-</table>
-<!-- markdownlint-enable MD013 -->
-<p>In the above table:</p>
-<ul>
-<li><code class="sourceCode default">std::quantity_point</code> is an
-incompatible generalization of
-<code class="sourceCode default">std::chrono::time_point</code>.</li>
-<li>Absolute point origin is a compile-time constant defining an
-absolute origin for
-<code class="sourceCode default">std::quantity_point</code> of a
-specific quantity type.</li>
-<li>Relative point origin is a compile-time constant defining an origin
-relative to another point origin.</li>
-</ul>
-<h2 data-number="8.3" id="text-output"><span class="header-section-number">8.3</span> Text output<a href="#text-output" class="self-link"></a></h2>
-<!-- markdownlint-disable MD013 -->
-<table>
-<colgroup>
-<col style="width: 22%" />
-<col style="width: 9%" />
-<col style="width: 67%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th><div style="text-align:center">
-<strong>Feature</strong>
-</div></th>
-<th style="text-align: center;"><div style="text-align:center">
-<strong>Priority</strong>
-</div></th>
-<th><div style="text-align:center">
-<strong>Description</strong>
-</div></th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code class="sourceCode default">quantity</code> text output</td>
-<td style="text-align: center;">1</td>
-<td>Text output for quantity variables (number + unit)</td>
-</tr>
-<tr class="even">
-<td>Units text output</td>
-<td style="text-align: center;">2</td>
-<td>Text output for unit variables</td>
-</tr>
-<tr class="odd">
-<td>Dimensions text output</td>
-<td style="text-align: center;">2</td>
-<td>Text output for dimension variables</td>
-</tr>
-<tr class="even">
-<td><code class="sourceCode default">std::format</code> support</td>
-<td style="text-align: center;">1</td>
-<td>Custom grammar and support for all the standard formatting
-facilities</td>
-</tr>
-<tr class="odd">
-<td><code class="sourceCode default">std::ostream</code> support</td>
-<td style="text-align: center;">2</td>
-<td>Stream insertion operators support</td>
-</tr>
-</tbody>
-</table>
-<!-- markdownlint-enable MD013 -->
-<p><em>Note:</em> There is no built-in support to output
+<p><em>Note 1:</em> There is no built-in support to output
 <code class="sourceCode default">quantity_point</code> as text.</p>
-<h2 data-number="8.4" id="text-input"><span class="header-section-number">8.4</span> Text input<a href="#text-input" class="self-link"></a></h2>
-<p>As long as the C++ Standard doesn’t provide a generic facility to
-parse localized text, we do not plan to propose any support for doing
-that for physical quantities and their units.</p>
-<h2 data-number="8.5" id="systems-of-quantities"><span class="header-section-number">8.5</span> Systems of quantities<a href="#systems-of-quantities" class="self-link"></a></h2>
+<p><em>Note 2:</em> As long as the C++ Standard doesn’t provide a
+generic facility to parse localized text, we do not plan to propose any
+support for doing that for physical quantities and their units.</p>
+<h2 data-number="8.2" id="systems-of-quantities"><span class="header-section-number">8.2</span> Systems of quantities<a href="#systems-of-quantities" class="self-link"></a></h2>
+<p>The features in this and the following chapters are intended to be
+provided in separate ISO proposals that will be independently discussed
+and considered for standardization.</p>
 <!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
@@ -1696,7 +1648,7 @@ that for physical quantities and their units.</p>
 </tr>
 <tr class="odd">
 <td>ISQ 7-12</td>
-<td style="text-align: center;">3</td>
+<td style="text-align: center;">2</td>
 <td>Specification of the ISQ quantities specified in ISO 80000 parts 7 -
 12 (Light and radiation, Acoustics, Physical chemistry and molecular
 physics, Atomic and nuclear physics, Characteristic numbers, Condensed
@@ -1710,7 +1662,7 @@ matter physics)</td>
 </tr>
 <tr class="odd">
 <td>Angular</td>
-<td style="text-align: center;">1</td>
+<td style="text-align: center;">3</td>
 <td>Strong angular quantities</td>
 </tr>
 <tr class="even">
@@ -1721,7 +1673,7 @@ matter physics)</td>
 </tbody>
 </table>
 <!-- markdownlint-enable MD013 -->
-<h2 data-number="8.6" id="systems-of-units"><span class="header-section-number">8.6</span> Systems of units<a href="#systems-of-units" class="self-link"></a></h2>
+<h2 data-number="8.3" id="systems-of-units"><span class="header-section-number">8.3</span> Systems of units<a href="#systems-of-units" class="self-link"></a></h2>
 <!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
@@ -1762,24 +1714,24 @@ of IEC 80000-13</td>
 systems)</td>
 </tr>
 <tr class="even">
-<td>Angular</td>
-<td style="text-align: center;">1</td>
-<td>Strong angular quantities and units system</td>
-</tr>
-<tr class="odd">
 <td>Imperial</td>
 <td style="text-align: center;">2</td>
 <td>Imperial system-specific units</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>USC system</td>
 <td style="text-align: center;">2</td>
 <td>United States Customary system-specific units</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>CGS system</td>
 <td style="text-align: center;">2</td>
 <td>Centimetre-Gram-Second system</td>
+</tr>
+<tr class="odd">
+<td>Angular</td>
+<td style="text-align: center;">3</td>
+<td>Strong angular units</td>
 </tr>
 <tr class="even">
 <td>IAU system</td>
@@ -1789,14 +1741,9 @@ systems)</td>
 </tbody>
 </table>
 <!-- markdownlint-enable MD013 -->
-<h2 data-number="8.7" id="utilities"><span class="header-section-number">8.7</span> Utilities<a href="#utilities" class="self-link"></a></h2>
+<h2 data-number="8.4" id="utilities"><span class="header-section-number">8.4</span> Utilities<a href="#utilities" class="self-link"></a></h2>
 <!-- markdownlint-disable MD013 -->
 <table>
-<colgroup>
-<col style="width: 14%" />
-<col style="width: 6%" />
-<col style="width: 79%" />
-</colgroup>
 <thead>
 <tr class="header">
 <th><div style="text-align:center">
@@ -1812,19 +1759,11 @@ systems)</td>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code class="sourceCode default">std::chrono</code> support</td>
-<td style="text-align: center;">2</td>
-<td>Customization points that enable support for
-<code class="sourceCode default">std::chrono_duration</code> and
-<code class="sourceCode default">std::chrono_time_point</code> and other
-external libraries</td>
-</tr>
-<tr class="even">
 <td>Math</td>
 <td style="text-align: center;">2</td>
 <td>Common mathematical functions on quantities</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Random</td>
 <td style="text-align: center;">3</td>
 <td>Random number generators of quantities</td>
@@ -1832,7 +1771,7 @@ external libraries</td>
 </tbody>
 </table>
 <!-- markdownlint-enable MD013 -->
-<h2 data-number="8.8" id="external-dependencies"><span class="header-section-number">8.8</span> External dependencies<a href="#external-dependencies" class="self-link"></a></h2>
+<h2 data-number="8.5" id="external-dependencies"><span class="header-section-number">8.5</span> External dependencies<a href="#external-dependencies" class="self-link"></a></h2>
 <p>The features in this chapter are heavily used in the library, but are
 not domain-specific. Having them standardized (instead of left as
 exposition-only) could not only improve the specification of this
@@ -1892,14 +1831,14 @@ value preserving or not (<span class="citation" data-cites="P0870R5">[<a href="#
 </table>
 <!-- markdownlint-enable MD013 -->
 <h1 data-number="9" id="plan-for-standardization"><span class="header-section-number">9</span> Plan for standardization<a href="#plan-for-standardization" class="self-link"></a></h1>
-<p>Having physical quantities and units support in C++ would be
-extremely useful for many C++ developers, and ideally, we should ship it
-in C++29. We believe that it can be done, and we propose a plan to get
-there. The plan below is, of course, not an irrevocable commitment. If
-things get delayed or controversial for whatever reason, physical
-quantities and units (or some parts of it) will miss the train and we
-will have to wait three more years. However, having a clear plan
-approved by LEWG will help to keep the efforts on track.</p>
+<p>Having quantities and units support in C++ would be extremely useful
+for many C++ developers, and ideally, we should ship it in C++29. We
+believe that it can be done, and we propose a plan to get there. The
+plan below is, of course, not an irrevocable commitment. If things get
+delayed or controversial for whatever reason, quantities and units (or
+some parts of it) will miss the train and we will have to wait three
+more years. However, having a clear plan approved by LEWG will help to
+keep the efforts on track.</p>
 <!-- markdownlint-disable MD013 -->
 <table>
 <colgroup>
@@ -1931,44 +1870,41 @@ arithmetics and number concepts to SG6</td>
 <tr class="even">
 <td>2024.1 (Tokyo)</td>
 <td></td>
-<td>Papers on the Basic Framework (priority 1 features), math utilities,
-and prime numbers to SG6<br>Papers on
-<code class="sourceCode default">fixed_string</code> and text output to
-SG16</td>
+<td>Paper on the Core Framework to SG6 and SG16<br>Paper on prime
+numbers to SG6<br>Paper on
+<code class="sourceCode default">fixed_string</code> to SG16</td>
 </tr>
 <tr class="odd">
 <td>2024.2 (St. Louis)</td>
 <td></td>
-<td>Papers on the Basic Framework (priority 2 &amp; 3 features) and the
-Affine Space to SG6<br>Move quantity arithmetics and number concepts
+<td>Papers on systems (priority 1) to SG6<br>Move
+<code class="sourceCode default">fixed_string</code> and prime numbers
 papers to LEWG</td>
 </tr>
 <tr class="even">
 <td>2024.3 (Wrocław)</td>
 <td></td>
-<td>Papers on systems and
-<code class="sourceCode default">std::chrono</code> support to
-SG6<BR>Move text output,
-<code class="sourceCode default">fixed_string</code>, Basic Framework
-(priority 1 features), math utilities, and prime numbers papers to
+<td>Papers on systems (priority 2 &amp; 3) to SG6<br>Papers on the math
+and random utilities to SG6<br>Move a paper on number concepts to
 LEWG</td>
 </tr>
 <tr class="odd">
 <td>2025.1</td>
 <td>Last meeting for LEWG review of new C++26 features</td>
-<td>Move Basic Framework (priority 2 &amp; 3 features) and the Affine
-Space to LEWG</td>
+<td>Move Core Framework paper to LEWG<br>Move
+<code class="sourceCode default">fixed_string</code> and prime numbers
+papers to LWG</td>
 </tr>
 <tr class="even">
 <td>2025.2</td>
 <td>C++26 CD finalized</td>
-<td>Move paper on <code class="sourceCode default">std::chrono</code>
-support to LEWG</td>
+<td>Move papers on systems (priority 1), math and random utilities to
+LEWG<br>Move number concepts paper to LWG</td>
 </tr>
 <tr class="odd">
 <td>2025.3</td>
 <td></td>
-<td>Move papers on systems to LEWG</td>
+<td>Move papers on systems (priority 2 &amp; 3) to LEWG</td>
 </tr>
 <tr class="even">
 <td>2026.1</td>
@@ -1978,21 +1914,17 @@ support to LEWG</td>
 <tr class="odd">
 <td>2026.2</td>
 <td>C++29 WP opens</td>
-<td>Wording for Basic Framework (priority 1 features) and number
-concepts to LWG</td>
+<td>Move Core Framework to LWG</td>
 </tr>
 <tr class="even">
 <td>2026.3</td>
 <td></td>
-<td>Wording for Basic Framework (priority 2 features), the Affine Space,
-<code class="sourceCode default">std::chrono</code> support, the text
-output, and <code class="sourceCode default">fixed_string</code> to
-LWG</td>
+<td>Move systems (priority 1), math and random utilities to LWG</td>
 </tr>
 <tr class="odd">
 <td>2027.1</td>
 <td></td>
-<td>Wording for math utilities, prime numbers, and systems to LWG</td>
+<td>Move systems (priority 2 &amp; 3) to LWG</td>
 </tr>
 <tr class="even">
 <td>2027.2</td>
