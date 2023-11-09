@@ -1700,8 +1700,11 @@ references:
   title: "New Clues Emerge in Centuries-Old Swedish Shipwreck"
   URL: <https://theworld.org/stories/2012-02-23/new-clues-emerge-centuries-old-swedish-shipwreck>
 - id: VCINL
-  citation-label: Value Category Is Not Liftime
-  title: "Value Category Is Not Liftime"
+  citation-label: Value Category Is Not Lifetime
+  author:
+    - family: O’Dwyer
+      given: Arthur
+  title: "Value Category Is Not Lifetime"
   URL: <https://quuxplusone.github.io/blog/2019/03/11/value-category-is-not-lifetime/>
 - id: WILD_RICE
   citation-label: Wild Rice

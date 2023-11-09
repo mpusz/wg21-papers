@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-11-06" />
+  <meta name="dcterms.date" content="2023-11-08" />
   <title>Improving our safety with a physical quantities and units
 library</title>
   <style>
@@ -463,7 +463,7 @@ physical quantities and units library</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2023-11-06</td>
+    <td>2023-11-08</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -582,9 +582,9 @@ Acknowledgements<span></span></a></li>
 <li>Added The Guardian’s Fahrenheit issue to <a href="#mismeasure-for-measure">Mismeasure for measure</a>.</li>
 <li>Fuel consumption example extended in <a href="#converting-between-quantities-of-the-same-kind">Converting
 between quantities of the same kind</a>.</li>
-<li><span class="citation" data-cites="VCINL">[<a href="#ref-VCINL" role="doc-biblioref">Value Category Is Not Liftime</a>]</span> reference
-added to <a href="#preventing-dangling-references">Preventing dangling
-references</a>.</li>
+<li><span class="citation" data-cites="VCINL">[<a href="#ref-VCINL" role="doc-biblioref">Value Category Is Not Lifetime</a>]</span>
+reference added to <a href="#preventing-dangling-references">Preventing
+dangling references</a>.</li>
 <li>Value-preserving type trait mentioned in <a href="#lack-of-safe-numeric-types">Lack of safe numeric types</a>.</li>
 <li><a href="#non-negative-quantities">Non-negative quantities</a>
 rewritten.</li>
@@ -1111,7 +1111,7 @@ majority (if not all) of representation types to be cheap to copy.)</p>
 references conflates value category with lifetime. While it may prevent
 the majority of dangling references, it also admits both false positives
 and false negatives, as explained in <span class="citation" data-cites="VCINL">[<a href="#ref-VCINL" role="doc-biblioref">Value
-Category Is Not Liftime</a>]</span>. We want to highlight this dilemma
+Category Is Not Lifetime</a>]</span>. We want to highlight this dilemma
 for the committee’s consideration.</p>
 <p>In case we do decide to keep this policy of deleting rvalue
 overloads, here’s an example of code that it would prevent from
@@ -2061,7 +2061,8 @@ Spinal Tap’s Stonehenge. <a href="https://www.telegraph.co.uk/films/2020/05/01
 temperatures nearly 68F above average. <a href="https://randomascii.wordpress.com/2023/10/17/localization-failure-temperature-is-hard"><div class="csl-block">https://randomascii.wordpress.com/2023/10/17/localization-failure-temperature-is-hard</div></a>
 </div>
 <div id="ref-VCINL" class="csl-entry" role="doc-biblioentry">
-[Value Category Is Not Liftime] Value Category Is Not Liftime. <a href="https://quuxplusone.github.io/blog/2019/03/11/value-category-is-not-lifetime/"><div class="csl-block">https://quuxplusone.github.io/blog/2019/03/11/value-category-is-not-lifetime/</div></a>
+[Value Category Is Not Lifetime] Arthur O’Dwyer. Value Category Is Not
+Lifetime. <a href="https://quuxplusone.github.io/blog/2019/03/11/value-category-is-not-lifetime/"><div class="csl-block">https://quuxplusone.github.io/blog/2019/03/11/value-category-is-not-lifetime/</div></a>
 </div>
 <div id="ref-VASA" class="csl-entry" role="doc-biblioentry">
 [Vasa] Rhitu Chatterjee and Lisa Mullins. New Clues Emerge in
