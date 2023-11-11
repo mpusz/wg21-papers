@@ -41,14 +41,15 @@ to this activity.
 - [P2007R1: `std::from_chars` should work with `std::string_view`](papers/2007R1_std_from_chars_should_work_with_std_string_view.html)
 - [P2008R0: Enable variable template template parameters](papers/2008R0_enable_variable_template_template_parameters.html)
 - [P2980R0: A motivation, scope, and plan for a physical quantities and units library](papers/2980R0_a_motivation_scope_and_plan_for_a_physical_quantities_and_units_library.html)
+- [P2980R1: A motivation, scope, and plan for a quantities and units library](papers/2980R1_a_motivation_scope_and_plan_for_a_quantities_and_units_library.html)
 - [P2981R0: Improving our safety with a physical quantities and units library](papers/2981R0_improving_our_safety_with_a_physical_quantities_and_units_library.html)
+- [P2981R1: Improving our safety with a physical quantities and units library](papers/2981R1_improving_our_safety_with_a_physical_quantities_and_units_library.html)
 - [P2982R0: `std::quantity` as a numeric type](papers/2982R0_std_quantity_as_a_numeric_type.html)
+- [P2982R1: `std::quantity` as a numeric type](papers/2982R1_std_quantity_as_a_numeric_type.html)
 
 ### Under Development
 
-- [P2980R1: A motivation, scope, and plan for a quantities and units library](papers/2980R1_a_motivation_scope_and_plan_for_a_quantities_and_units_library.html)
-- [P2981R1: Improving our safety with a physical quantities and units library](papers/2981R1_improving_our_safety_with_a_physical_quantities_and_units_library.html)
-- [P2982R1: `std::quantity` as a numeric type](papers/2982R1_std_quantity_as_a_numeric_type.html)
+- [D3045R0: Quantities and units library](papers/3045R0_quantities_and_units_library.html)
 
 ## More Papers
 
