@@ -98,15 +98,18 @@ He improved the interfaces and implementations by remodeling them after `std::ch
 This included parameterizing the representation type with a template parameter instead of a macro.
 He also improved the error messages by mapping a list of types to an user-defined name.
 
-By 2020, Johel had been aware of [@MP-UNITS] v0 `quantity<dim_length, length, int>`, put off by its verbosity.
+By 2020, Johel had been aware of [@MP-UNITS] v0 `quantity<dim_length, length, int>`, put off by its
+verbosity.
 But then, he watched a talk by Mateusz Pusz on [@MP-UNITS].
 It described how good error messages was a stake in the ground for the library.
 Thanks to his experience in the domain, Johel was convinced that [@MP-UNITS] was the future.
 
 Since 2020, Johel has been contributing to [@MP-UNITS].
 He added `quantity_point`, the generalization of `std::chrono::time_point`, closing #1.
-He also added `quantity_kind`, which explored the need of representing distinct quantities of the same dimension.
-To help guide its evolution, he's been constantly pointing in the direction of [@BIPM-VIM] as a source of truth.
+He also added `quantity_kind`, which explored the need of representing distinct quantities of the
+same dimension.
+To help guide its evolution, he's been constantly pointing in the direction of [@BIPM-VIM] as a
+source of truth.
 And more recently, to the ISO/IEC 80000 series, also helping interpret it.
 
 Computing systems engineer.
@@ -1067,9 +1070,9 @@ by LEWG will help to keep the efforts on track.
 | Meeting            | C++ Milestones                                     | Activities                                                                                                                                                                      |
 |--------------------|----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 2023.3 (Kona)      |                                                    | Paper on motivation, scope, and plan to LEWG, SG6, and SG23<br>Paper about safety benefits and concerns to SG23<br>Papers about quantity arithmetics and number concepts to SG6 |
-| 2024.1 (Tokyo)     |                                                    | Paper on the Core Framework to SG6 and SG16<br>Paper on prime numbers to SG6<br>Paper on `fixed_string` to SG16                                                                 |
-| 2024.2 (St. Louis) |                                                    | Papers on systems (priority 1) to SG6<br>Move `fixed_string` and prime numbers papers to LEWG                                                                                   |
-| 2024.3 (Wrocław)   |                                                    | Papers on systems (priority 2 & 3) to SG6<br>Papers on the math and random utilities to SG6<br>Move a paper on number concepts to LEWG                                          |
+| 2024.1 (Tokyo)     |                                                    | Paper on the Core Framework to LEWGI, SG6, and SG16<br>Paper on prime numbers to LEWGI and SG6<br>Paper on `fixed_string` to LEWGI and SG16                                     |
+| 2024.2 (St. Louis) |                                                    | Papers on systems (priority 1) to LEWGI and SG6<br>Move `fixed_string` and prime numbers papers to LEWG                                                                         |
+| 2024.3 (Wrocław)   |                                                    | Papers on systems (priority 2 & 3) to LEWGI and SG6<br>Papers on the math and random utilities to LEWGI and SG6<br>Move a paper on number concepts to LEWG                      |
 | 2025.1             | Last meeting for LEWG review of new C++26 features | Move Core Framework paper to LEWG<br>Move `fixed_string` and prime numbers papers to LWG                                                                                        |
 | 2025.2             | C++26 CD finalized                                 | Move papers on systems (priority 1), math and random utilities to LEWG<br>Move number concepts paper to LWG                                                                     |
 | 2025.3             |                                                    | Move papers on systems (priority 2 & 3) to LEWG                                                                                                                                 |
