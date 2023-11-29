@@ -823,8 +823,645 @@ Examples, error messages, ...
 
 # Text output
 
+A quantity value contains a number and a unit. Both of them may have various text representations.
+Not only numbers but also units can be formatted in many different ways. Additionally, every
+dimension can be represented as a text as well.
 
-# Code examples
+This chapter will describe how those are defined and processed in the library.
+
+_Note: There is no standardized way to handle formatted text input in the C++ standard library,
+so this paper does not propose any approach to convert text to quantities._
+
+## Symbols
+
+The definitions of dimensions, units, prefixes, and constants require unique text symbols to be
+assigned for each entity. Those symbols can be composed to express dimensions and units of base and
+derived quantities.
+
+### Symbol definition examples
+
+Dimensions:
+
+```cpp
+inline constexpr struct dim_length : base_dimension<"L"> {} dim_length;
+inline constexpr struct dim_mass : base_dimension<"M"> {} dim_mass;
+inline constexpr struct dim_time : base_dimension<"T"> {} dim_time;
+inline constexpr struct dim_electric_current : base_dimension<"I"> {} dim_electric_current;
+inline constexpr struct dim_thermodynamic_temperature : base_dimension<basic_symbol_text{"Θ", "O"}> {} dim_thermodynamic_temperature;
+inline constexpr struct dim_amount_of_substance : base_dimension<"N"> {} dim_amount_of_substance;
+inline constexpr struct dim_luminous_intensity : base_dimension<"J"> {} dim_luminous_intensity;
+```
+
+Units:
+
+```cpp
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct gram : named_unit<"g", kind_of<isq::mass>> {} gram;
+inline constexpr struct kilogram : decltype(kilo<gram>) {} kilogram;
+
+inline constexpr struct newton : named_unit<"N", kilogram * metre / square(second)> {} newton;
+inline constexpr struct joule : named_unit<"J", newton * metre> {} joule;
+inline constexpr struct watt : named_unit<"W", joule / second> {} watt;
+inline constexpr struct coulomb : named_unit<"C", ampere * second> {} coulomb;
+inline constexpr struct volt : named_unit<"V", watt / ampere> {} volt;
+inline constexpr struct farad : named_unit<"F", coulomb / volt> {} farad;
+inline constexpr struct ohm : named_unit<basic_symbol_text{"Ω", "ohm"}, volt / ampere> {} ohm;
+```
+
+Prefixes:
+
+```cpp
+template<PrefixableUnit auto U> struct micro_ : prefixed_unit<basic_symbol_text{"µ", "u"}, mag_power<10, -6>, U> {};
+template<PrefixableUnit auto U> struct milli_ : prefixed_unit<"m", mag_power<10, -3>, U> {};
+template<PrefixableUnit auto U> struct centi_ : prefixed_unit<"c", mag_power<10, -2>, U> {};
+template<PrefixableUnit auto U> struct deci_  : prefixed_unit<"d", mag_power<10, -1>, U> {};
+template<PrefixableUnit auto U> struct deca_  : prefixed_unit<"da", mag_power<10, 1>, U> {};
+template<PrefixableUnit auto U> struct hecto_ : prefixed_unit<"h", mag_power<10, 2>, U> {};
+template<PrefixableUnit auto U> struct kilo_  : prefixed_unit<"k", mag_power<10, 3>, U> {};
+template<PrefixableUnit auto U> struct mega_  : prefixed_unit<"M", mag_power<10, 6>, U> {};
+```
+
+Constants:
+
+```cpp
+inline constexpr struct hyperfine_structure_transition_frequency_of_cs :
+  named_unit<basic_symbol_text{"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
+inline constexpr struct speed_of_light_in_vacuum :
+  named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
+inline constexpr struct planck_constant :
+  named_unit<"h", mag<ratio{662'607'015, 100'000'000}> * mag_power<10, -34> * joule * second> {} planck_constant;
+inline constexpr struct elementary_charge :
+  named_unit<"e", mag<ratio{1'602'176'634, 1'000'000'000}> * mag_power<10, -19> * coulomb> {} elementary_charge;
+inline constexpr struct boltzmann_constant :
+  named_unit<"k", mag<ratio{1'380'649, 1'000'000}> * mag_power<10, -23> * joule / kelvin> {} boltzmann_constant;
+inline constexpr struct avogadro_constant :
+  named_unit<"N_A", mag<ratio{602'214'076, 100'000'000}> * mag_power<10, 23> / mole> {} avogadro_constant;
+inline constexpr struct luminous_efficacy :
+  named_unit<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
+```
+
+### `fixed_string`
+
+As shown above, symbols are provided as class NTTPs in the library. This means that the string
+type used for such a purpose has to satisfy the structural type requirements of the C++ language.
+One of such requirements is to expose all the data members publicly. So far, none of the existing string
+types in the C++ standard library satisfies such requirements. This is why we need to
+introduce a new type.
+
+`fixed_string` is a read-only text container. Its size is fixed as one of the class template
+parameters, and it has a minimalistic range/view-like interface:
+
+```cpp
+template<typename CharT, std::size_t N>
+struct basic_fixed_string {
+  CharT data_[N + 1] = {};
+
+  using value_type = CharT;
+  using pointer = CharT*;
+  using const_pointer = const CharT*;
+  using reference = CharT&;
+  using const_reference = const CharT&;
+  using const_iterator = const CharT*;
+  using iterator = const_iterator;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
+
+  constexpr explicit(false) basic_fixed_string(CharT ch) noexcept requires(N == 1);
+  constexpr explicit(false) basic_fixed_string(const CharT (&txt)[N + 1]) noexcept;
+  constexpr basic_fixed_string(const CharT* ptr, std::integral_constant<std::size_t, N>) noexcept;
+
+  [[nodiscard]] constexpr bool empty() const noexcept;
+  [[nodiscard]] constexpr size_type size() const noexcept;
+  [[nodiscard]] constexpr const_pointer data() const noexcept;
+  [[nodiscard]] constexpr const CharT* c_str() const noexcept;
+  [[nodiscard]] constexpr const_reference operator[](size_type index) const noexcept;
+
+  [[nodiscard]] constexpr const_iterator begin() const noexcept;
+  [[nodiscard]] constexpr const_iterator cbegin() const noexcept;
+  [[nodiscard]] constexpr const_iterator end() const noexcept;
+  [[nodiscard]] constexpr const_iterator cend() const noexcept;
+
+  template<std::size_t N2>
+  [[nodiscard]] constexpr friend basic_fixed_string<CharT, N + N2> operator+(const basic_fixed_string& lhs,
+                                                                             const basic_fixed_string<CharT, N2>& rhs) noexcept;
+
+  [[nodiscard]] constexpr bool operator==(const basic_fixed_string& other) const;
+  template<std::size_t N2>
+  [[nodiscard]] friend constexpr bool operator==(const basic_fixed_string&, const basic_fixed_string<CharT, N2>&);
+
+  template<std::size_t N2>
+  [[nodiscard]] friend constexpr auto operator<=>(const basic_fixed_string& lhs,
+                                                  const basic_fixed_string<CharT, N2>& rhs);
+};
+
+template<typename CharT>
+basic_fixed_string(CharT) -> basic_fixed_string<CharT, 1>;
+
+template<typename CharT, std::size_t N>
+basic_fixed_string(const CharT (&str)[N]) -> basic_fixed_string<CharT, N - 1>;
+
+template<typename CharT, std::size_t N>
+basic_fixed_string(const CharT* ptr, std::integral_constant<std::size_t, N>) -> basic_fixed_string<CharT, N>;
+
+template<std::size_t N>
+using fixed_string = basic_fixed_string<char, N>;
+```
+
+Please note that there are nearly no text-specific member functions inside (besides `.c_str()` that
+could be easily omitted and replaced with `.data()` in the user's code).
+
+This type could probably even serve as a generic structural type storage if it didn't have an
+invariant requiring its internal contiguous data storage to be of `size + 1` and ending with `\0`.
+
+#### `fixed_string` is an established practice
+
+There are plenty of home-grown `fixed_string` types. Every project that wants to pass text as NTTP
+already provides their own version of it. There are also some that predate C++20 and do not satisfy
+structural type requirements.
+
+A [quick search in GitHub](https://github.com/search?q=fixed_string+language%3AC%2B%2B&type=repositories&ref=advsearch)
+returns plenty of results. Let's mention a few of those:
+
+- [fmtlib/fmt](https://github.com/fmtlib/fmt/blob/5cfd28d476c6859617878f951931b8ce7d36b9df/include/fmt/format.h#L1065-L1071)
+- [hanickadot/compile-time-regular-expressions](https://github.com/hanickadot/compile-time-regular-expressions/blob/029f1f13646cf65ec09780013418cb8f1c5d3a59/include/ctll/fixed_string.hpp#L44-L220)
+- [tomazos/fixed_string](https://github.com/tomazos/fixed_string) - a reference implementation of [@P0259R0]
+  (not a structural type as it is 8 years old)
+- [unterumarmung/fixed_string](https://github.com/unterumarmung/fixed_string)
+- [mu001999/fixed_string](https://github.com/mu001999/fixed_string)
+- [calebxyz/Fixed_Strings](https://github.com/calebxyz/Fixed_Strings)
+- [astral-shining/FixedString](https://github.com/astral-shining/FixedString)
+- [ynsn/fixed_string](https://github.com/ynsn/fixed_string)
+
+Having such a type in the C++ standard library will prevent reinventing the wheel by the community
+and reimplementing it in every project that handles text at compile-time.
+
+#### `fixed_string` design alternatives
+
+##### Mutation interface
+
+As stated above, this type is read-only. We can't change the text size anyway. We could add member
+functions allowing overwriting specific characters in the internal storage, but we did not have any
+need for this in the library. We also believe that as we can't resize the string, there is no much
+use in allowing mutation of the contents.
+
+On the other hand, such an interface would allow running every `constexpr` algorithm from the C++
+standard library on such a range. We can always easily add such an
+interface if a need for it arises.
+
+##### Full `string_view`-like interface
+
+We could add a whole `string_view`-like interface to this class, but we decided not to do it.
+This will add plenty of overloads that will probably not be used too often by the users of this
+particular type anyway. Doing that will add a maintenance burden to keep it consistent with all
+other string-like types in the library.
+
+If the user needs to obtain a `string_view`-like interface to work with this type, then
+`std::string_view` itself can easily be used to achieve that:
+
+```cpp
+basic_fixed_string txt = "abc";
+std::string_view view(txt);
+auto pos = view.find_first_of('b');
+```
+
+##### `inplace_string`
+
+We could also consider providing a full-blown fixed-capacity string class similar to the
+`inplace_vector` [@P0843R9]. It would provide not only full read-write capability, but also would
+be really beneficial for embedded and low-latency domains.
+
+Despite being welcomed and useful in the C++ community, we believe that such a type should
+not satisfy the current requirements for a structural type, which is a hard requirement of this
+library. If `inplace_string` was used instead, we would end up with separate template instantiations
+for objects with the same value but a different capacity. We prefer to prevent such
+a behavior.
+
+##### `std::string` with a static storage allocator
+
+We could also try to use `std::string` with a static storage allocator, but this solution does
+not meet structural type requirements and could be an overkill for this use case, resulting
+with significantly decreased compile times.
+
+##### Just wait for the C++ language to solve it
+
+[@P2484R0] proposed extending support for class types as non-type template parameters in the
+C++ language. However, this proposal's primary author is no longer active in C++ standardization, and there have been no updates to the paper in the last two years.
+
+We can't wait for the C++ language to change forever. This library will be impossible to standardize
+without such a feature. This is why we recommend progressing with the `fixed_string` approach.
+
+### `symbol_text`
+
+Many symbols of units, prefixes, and constants require using a Unicode character set.
+For example:
+
+- Θ - thermodynamic temperature dimension
+- µ - micro
+- Ω - ohm
+- °C - degree Celsius
+- °F - degree Fahrenheit
+- ° - degree
+- ′ - arcminute
+- ″ - arcsecond
+- ᵍ - gradian
+- Å - angstrom
+- M_☉ - solar mass
+- Δν_Cs - hyperfine structure transition frequency of Cs
+- g₀ - standard gravity
+- μ₀ - magnetic constant
+- c₀ - speed of light
+- H₀ - hubble constant
+
+The library should provide such Unicode output by default to be consistent with official systems'
+specifications.
+
+On the other hand, plenty of terminals do not support Unicode characters. Also, general engineering
+experience shows that people often prefer to work with ASCII (?) character sets. This is why
+all such entities should provide an alternative ASCII spelling in their definitions.
+
+This is where `symbol_text` comes into play. It is a simple wrapper over the two `fixed_string`
+objects:
+
+```cpp
+template<std::size_t N, std::size_t M>
+struct basic_symbol_text {
+  basic_fixed_string<char, N> unicode_;
+  basic_fixed_string<char, M> ascii_;
+
+  constexpr explicit(false) basic_symbol_text(char txt);
+  constexpr explicit(false) basic_symbol_text(const char (&txt)[N + 1]);
+  constexpr explicit(false) basic_symbol_text(const basic_fixed_string<char, N>& txt);
+  constexpr basic_symbol_text(const char (&u)[N + 1], const char (&a)[M + 1]);
+  constexpr basic_symbol_text(const basic_fixed_string<char, N>& u, const basic_fixed_string<char, M>& a);
+
+  [[nodiscard]] constexpr const auto& unicode() const;
+  [[nodiscard]] constexpr const auto& ascii() const;
+
+  [[nodiscard]] constexpr bool empty() const;
+
+  template<std::size_t N2, std::size_t M2>
+  [[nodiscard]] constexpr friend basic_symbol_text<N + N2, M + M2> operator+(const basic_symbol_text& lhs,
+                                                                             const basic_symbol_text<N2, M2>& rhs);
+
+  template<std::size_t N2, std::size_t M2>
+  [[nodiscard]] friend constexpr auto operator<=>(const basic_symbol_text& lhs,
+                                                  const basic_symbol_text<N2, M2>& rhs) noexcept;
+
+  template<std::size_t N2, std::size_t M2>
+  [[nodiscard]] friend constexpr bool operator==(const basic_symbol_text& lhs,
+                                                 const basic_symbol_text<N2, M2>& rhs) noexcept;
+};
+
+basic_symbol_text(char) -> basic_symbol_text<1, 1>;
+
+template<std::size_t N>
+basic_symbol_text(const char (&)[N]) -> basic_symbol_text<N - 1, N - 1>;
+
+template<std::size_t N>
+basic_symbol_text(const basic_fixed_string<char, N>&) -> basic_symbol_text<N, N>;
+
+template<std::size_t N, std::size_t M>
+basic_symbol_text(const char (&)[N], const char (&)[M]) -> basic_symbol_text<N - 1, M - 1>;
+
+template<std::size_t N, std::size_t M>
+basic_symbol_text(const basic_fixed_string<char, N>&, const basic_fixed_string<char, M>&) -> basic_symbol_text<N, M>;
+```
+
+Please note that the library currently uses `char` to encode both strings.
+
+### Derived unit symbols generation
+
+Based on the provided definitions for base units, the library creates symbols for derived ones.
+
+#### `unit_symbol_formatting`
+
+`unit_symbol_formatting` is a data type describing the configuration of the symbol generation
+algorithm. It contains three orthogonal fields, and each of them has a default value.
+
+```cpp
+enum class text_encoding {
+  unicode,  // m³;  µs
+  ascii,    // m^3; us
+  default_encoding = unicode
+};
+
+enum class unit_symbol_solidus {
+  one_denominator,  // m/s;   kg m⁻¹ s⁻¹
+  always,           // m/s;   kg/(m s)
+  never,            // m s⁻¹; kg m⁻¹ s⁻¹
+  default_denominator = one_denominator
+};
+
+enum class unit_symbol_separator {
+  space,          // kg m²/s²
+  half_high_dot,  // kg⋅m²/s²  (valid only for unicode encoding)
+  default_separator = space
+};
+
+struct unit_symbol_formatting {
+  text_encoding encoding = text_encoding::default_encoding;
+  unit_symbol_solidus solidus = unit_symbol_solidus::default_denominator;
+  unit_symbol_separator separator = unit_symbol_separator::default_separator;
+};
+```
+
+#### `unit_symbol()`
+
+Returns a `fixed_string` storing the symbol of the unit for the provided configuration:
+
+```cpp
+[[nodiscard]] consteval auto unit_symbol(Unit auto u, unit_symbol_formatting fmt = unit_symbol_formatting{});
+```
+
+#### `unit_symbol_to()`
+
+Inserts the generated unit symbol to the output text iterator at runtime based on the provided
+configuration.
+
+```cpp
+template<typename CharT = char, std::output_iterator<CharT> Out, Unit U>
+constexpr Out unit_symbol_to(Out out, U u, unit_symbol_formatting fmt = unit_symbol_formatting{});
+```
+
+_Note: only `char` output is supported for now._
+
+## Quantity text output
+
+### Customization point
+
+The [@SI] says:
+
+> The numerical value always precedes the unit and a space is always used to separate the unit from
+> the number. ... The only exceptions to this rule are for the unit symbols for degree, minute and
+> second for plane angle, `°`, `′` and `″`, respectively, for which no space is left between the
+> numerical value and the unit symbol.
+
+To support the above, the library exposes `space_before_unit_symbol` customization point. By default,
+its value is `true` for all the units, so the space between a number and a unit will be present in the
+output text. To change this behavior, the user should provide a partial specialization for a specific
+unit:
+
+```cpp
+template<>
+inline constexpr bool space_before_unit_symbol<non_si::degree> = false;
+```
+
+Please note that the above works only for [the default formatting](#default-formatting). In case
+a user provides custom  format specification (e.g. `std::format("{:%Q %q}", q)`), the library will
+always obey this specification for all the units (no matter of what is the actual value of the
+`space_before_unit_symbol` customization point) and the separating space will always be present
+in this case.
+
+### Output streams
+
+The easiest way to print a quantity is to provide its object to the output stream:
+
+```cpp
+const QuantityOf<isq::speed> auto v1 = avg_speed(220. * km, 2 * h);
+const QuantityOf<isq::speed> auto v2 = avg_speed(140. * mi, 2 * h);
+std::cout << v1 << '\n';  // 110 km/h
+std::cout << v2 << '\n';  // 70 mi/h
+```
+
+The text output will always print the value of a quantity, typically followed by a space, and then
+the symbol of a unit associated with this quantity.
+
+#### Output stream formatting
+
+Only basic formatting can be applied to output streams. It includes control over width, fill,
+and alignment:
+
+```cpp
+std::cout << "|" << std::setw(10) << 123 * m << "|\n";                       // |     123 m|
+std::cout << "|" << std::setw(10) << std::left << 123 * m << "|\n";          // |123 m     |
+std::cout << "|" << std::setw(10) << std::setfill('*') << 123 * m << "|\n";  // |123 m*****|
+```
+
+### `std::format`
+
+The library provides custom formatters for `std::format` facility, which allows fine-grained control
+over what and how it is being printed in the text output.
+
+#### Grammar
+
+```text
+units-format-spec   ::=  [fill-and-align] [width] [units-specs]
+units-specs         ::=  conversion-spec
+                         units-specs conversion-spec
+                         units-specs literal-char
+literal-char        ::=  any character other than '{' or '}'
+conversion-spec     ::=  '%' units-type
+units-type          ::=  [units-rep-modifier] 'Q'
+                         [units-unit-modifier] 'q'
+units-rep-modifier  ::=  [sign] [#] [precision] [L] [units-rep-type]
+units-rep-type      ::=  one of "aAbBdeEfFgGoxX"
+units-unit-modifier ::=  [units-text-encoding, units-unit-symbol-denominator, units-unit-symbol-separator]
+units-text-encoding ::=  one of "UA"
+units-unit-symbol-solidus   ::=  one of "oan"
+units-unit-symbol-separator ::=  one of "sd"
+```
+
+In the above grammar:
+
+- `fill-and-align`, `width`, `sign`, `#`, `precision`, and `L` tokens, as well as the individual
+  tokens of `units-rep-type` are defined in the [format.string.std](https://wg21.link/format.string.std)
+  chapter of the C++ standard specification,
+- tokens `Q` and `q` of `units-type` are described in the [time.format](https://wg21.link/time.format)
+  chapter of the C++ standard specification,
+- `units-text-encoding` tokens specify the unit text encoding:
+    - `U` (default) uses the **Unicode** symbols defined by the [@SI] specification (e.g. `m³`, `µs`)
+    - `A` token forces non-standard **ASCII**-only output (e.g. `m^3`, `us`)
+- `units-unit-symbol-solidus` tokens specify how the division of units should look like:
+    - `o` (default) outputs `/` only when there is only **one** unit in the denominator, otherwise negative
+      exponents are printed (e.g. `m/s`, `kg m⁻¹ s⁻¹`)
+    - `a` **always** uses solidus (e.g. `m/s`, `kg/(m s)`)
+    - `n` **never** prints solidus, which means that negative exponents are always used (e.g. `m s⁻¹`,
+      `kg m⁻¹ s⁻¹`)
+- `units-unit-symbol-separator` tokens specify how multiplied unit symbols should be separated:
+    - `s` (default) uses **space** as a separator (e.g. `kg m²/s²`)
+    - `d` uses half-high **dot** (`⋅`) as a separator (e.g. `kg⋅m²/s²`)
+
+#### Default formatting
+
+To format `quantity` values, the formatting facility uses `units-format-spec`. If left empty,
+the default formatting of `{:%Q %q}` is applied. The same default formatting is also applied
+to the output streams. This is why the following code lines produce the same output:
+
+```cpp
+std::cout << "Distance: " << 123 * km << "\n";
+std::cout << std::format("Distance: {}\n", 123 * km);
+std::cout << std::format("Distance: {:%Q %q}\n", 123 * km);
+```
+
+#### Controlling width, fill, and alignment
+
+To control width, fill, and alignment, the C++ standard grammar tokens `fill-and-align` and `width`
+are being used, and they treat a quantity value and symbol as a contiguous text:
+
+```cpp
+std::println("|{:0}|", 123 * m);     // |123 m|
+std::println("|{:10}|", 123 * m);    // |     123 m|
+std::println("|{:<10}|", 123 * m);   // |123 m     |
+std::println("|{:>10}|", 123 * m);   // |     123 m|
+std::println("|{:^10}|", 123 * m);   // |  123 m   |
+std::println("|{:*<10}|", 123 * m);  // |123 m*****|
+std::println("|{:*>10}|", 123 * m);  // |*****123 m|
+std::println("|{:*^10}|", 123 * m);  // |**123 m***|
+```
+
+#### Quantity value, symbol, or both?
+
+The user can easily decide to either print a whole quantity (value and symbol) or only its parts.
+Also, a custom style of quantity formatting might be applied:
+
+```cpp
+std::println("{:%Q}", 123 * km);    // 123
+std::println("{:%q}", 123 * km);    // km
+std::println("{:%Q%q}", 123 * km);  // 123km
+```
+
+#### Quantity value formatting
+
+`sign` token allows us to specify how the value's sign is being printed:
+
+```cpp
+std::println("{0:%Q %q},{0:%+Q %q},{0:%-Q %q},{0:% Q %q}", 1 * m);   // 1 m,+1 m,1 m, 1 m
+std::println("{0:%Q %q},{0:%+Q %q},{0:%-Q %q},{0:% Q %q}", -1 * m);  // -1 m,-1 m,-1 m,-1 m
+```
+
+where:
+
+- `+` indicates that a sign should be used for both non-negative and negative numbers,
+- `-` indicates that a sign should be used for negative numbers and negative zero only
+  (this is the default behavior),
+- `<space>` indicates that a leading space should be used for non-negative numbers other
+  than negative zero, and a minus sign for negative numbers and negative zero.
+
+`precision` token is allowed only for floating-point representation types:
+
+```cpp
+std::println("{:%.0Q %q}", 1.2345 * m);  // 1 m
+std::println("{:%.1Q %q}", 1.2345 * m);  // 1.2 m
+std::println("{:%.2Q %q}", 1.2345 * m);  // 1.23 m
+```
+
+`units-rep-type` specifies how a value of the representation type is being printed.
+For integral types:
+
+```cpp
+std::println("{:%bQ %q}", 42 * m);    // 101010 m
+std::println("{:%BQ %q}", 42 * m);    // 101010 m
+std::println("{:%dQ %q}", 42 * m);    // 42 m
+std::println("{:%oQ %q}", 42 * m);    // 52 m
+std::println("{:%xQ %q}", 42 * m);    // 2a m
+std::println("{:%XQ %q}", 42 * m);    // 2A m
+```
+
+The above can be printed in an alternate version thanks to the `#` token:
+
+```cpp
+std::println("{:%#bQ %q}", 42 * m);   // 0b101010 m
+std::println("{:%#BQ %q}", 42 * m);   // 0B101010 m
+std::println("{:%#oQ %q}", 42 * m);   // 052 m
+std::println("{:%#xQ %q}", 42 * m);   // 0x2a m
+std::println("{:%#XQ %q}", 42 * m);   // 0X2A m
+```
+
+For floating-point values, the `units-rep-type` token works as follows:
+
+```cpp
+std::println("{:%aQ %q}",   1.2345678 * m);      // 0x1.3c0ca2a5b1d5dp+0 m
+std::println("{:%.3aQ %q}", 1.2345678 * m);      // 0x1.3c1p+0 m
+std::println("{:%AQ %q}",   1.2345678 * m);      // 0X1.3C0CA2A5B1D5DP+0 m
+std::println("{:%.3AQ %q}", 1.2345678 * m);      // 0X1.3C1P+0 m
+std::println("{:%eQ %q}",   1.2345678 * m);      // 1.234568e+00 m
+std::println("{:%.3eQ %q}", 1.2345678 * m);      // 1.235e+00 m
+std::println("{:%EQ %q}",   1.2345678 * m);      // 1.234568E+00 m
+std::println("{:%.3EQ %q}", 1.2345678 * m);      // 1.235E+00 m
+std::println("{:%gQ %q}",   1.2345678 * m);      // 1.23457 m
+std::println("{:%gQ %q}",   1.2345678e8 * m);    // 1.23457e+08 m
+std::println("{:%.3gQ %q}", 1.2345678 * m);      // 1.23 m
+std::println("{:%.3gQ %q}", 1.2345678e8 * m);    // 1.23e+08 m
+std::println("{:%GQ %q}",   1.2345678 * m);      // 1.23457 m
+std::println("{:%GQ %q}",   1.2345678e8 * m);    // 1.23457E+08 m
+std::println("{:%.3GQ %q}", 1.2345678 * m);      // 1.23 m
+std::println("{:%.3GQ %q}", 1.2345678e8 * m);    // 1.23E+08 m
+```
+
+#### Unit symbol formatting
+
+Unit symbols of some quantities are specified to use Unicode signs by the [#SI] (e.g. `Ω` symbol
+for the _resistance_ quantity). The library follows this by default. From the engineering point of
+view, sometimes Unicode text might not be the best solution as terminals of many (especially
+embedded) devices are ASCII-only. In such a case, the unit symbol can be forced to be printed
+using ASCII-only characters thanks to `units-text-encoding` token:
+
+```cpp
+std::println("{}", 10 * si::ohm);             // 10 Ω
+std::println("{:%Q %Aq}", 10 * si::ohm);      // 10 ohm
+std::println("{}", 125 * us);                 // 125 µs
+std::println("{:%Q %Aq}", 125 * us);          // 125 us
+std::println("{}", 9.8 * (m / s2));           // 9.8 m/s²
+std::println("{:%Q %Aq}", 9.8 * (m / s2));    // 9.8 m/s^2
+```
+
+Additionally, both [@ISO80000] and [@SI] leave some freedom on how to print unit symbols.
+This is why two additional tokens were introduced.
+
+`units-unit-symbol-solidus` specifies how the division of units should look like. By default,
+`/` will be used only when the denominator contains only one unit. However, with the `a` or `n`
+options, we can force the facility to print the `/` character always (even when there are more units
+in the denominator), or never, in which case a parenthesis will be added to enclose all denominator
+units.
+
+```cpp
+std::println("{:%Q %q}", 1 * m / s);         // 1 m/s
+std::println("{:%Q %q}", 1 * kg / m / s2);   // 1 kg m⁻¹ s⁻²
+std::println("{:%Q %aq}", 1 * m / s);        // 1 m/s
+std::println("{:%Q %aq}", 1 * kg / m / s2);  // 1 kg/(m s²)
+std::println("{:%Q %nq}", 1 * m / s);        // 1 m s⁻¹
+std::println("{:%Q %nq}", 1 * kg / m / s2);  // 1 kg m⁻¹ s⁻²
+```
+
+Also, there are a few options to separate the units being multiplied. [@ISO80000] (part 1) says:
+
+> When symbols for quantities are combined in a product of two or more quantities, this combination
+> is indicated in one of the following ways: `ab`, `a b`, `a · b`, `a × b`
+>
+> _NOTE 1_ In some fields, e.g., vector algebra, distinction is made between `a ∙ b` and `a × b`.
+
+The library supports `a b` and `a · b` only. Additionally, we decided that the extraneous space
+in the latter case makes the result too verbose, so we decided just to use the `·` symbol as
+a separator.
+
+The `units-unit-symbol-separator` token allows us to obtain the following outputs:
+
+```cpp
+std::println("{:%Q %q}", 1 * kg * m2 / s2);   // 1 kg m²/s²
+std::println("{:%Q %dq}", 1 * kg * m2 / s2);  // 1 kg⋅m²/s²
+```
+
+## Quantity point text output
+
+The library does not provide a text output for quantity points, as printing just a number and a unit
+is not enough to adequately describe a quantity point. Often, an additional postfix is required.
+
+For example, the text output of `42 m` may mean many things and can also be confused with an output
+of a regular quantity. On the other hand, printing `42 m AMSL` for altitudes above mean sea level
+is a much better solution, but the library does not have enough information to print it that way by
+itself.
+
+## Unit text output
+
+TBD
+
+## Dimension text output
+
+TBD
+
+
+# Usage examples
 
 ## Basic quantity equations
 
