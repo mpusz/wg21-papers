@@ -97,7 +97,6 @@ in other domains that we can get in the future from other authors.
 <!-- markdownlint-enable MD013 -->
 
 
-
 # About authors
 
 ## Dominik Berner
@@ -135,15 +134,18 @@ He improved the interfaces and implementations by remodeling them after `std::ch
 This included parameterizing the representation type with a template parameter instead of a macro.
 He also improved the error messages by mapping a list of types to an user-defined name.
 
-By 2020, Johel had been aware of [@MP-UNITS] v0 `quantity<dim_length, length, int>`, put off by its verbosity.
+By 2020, Johel had been aware of [@MP-UNITS] v0 `quantity<dim_length, length, int>`, put off by its
+verbosity.
 But then, he watched a talk by Mateusz Pusz on [@MP-UNITS].
 It described how good error messages was a stake in the ground for the library.
 Thanks to his experience in the domain, Johel was convinced that [@MP-UNITS] was the future.
 
 Since 2020, Johel has been contributing to [@MP-UNITS].
 He added `quantity_point`, the generalization of `std::chrono::time_point`, closing #1.
-He also added `quantity_kind`, which explored the need of representing distinct quantities of the same dimension.
-To help guide its evolution, he's been constantly pointing in the direction of [@BIPM-VIM] as a source of truth.
+He also added `quantity_kind`, which explored the need of representing distinct quantities of
+the same dimension.
+To help guide its evolution, he's been constantly pointing in the direction of [@BIPM-VIM] as a
+source of truth.
 And more recently, to the ISO/IEC 80000 series, also helping interpret it.
 
 Computing systems engineer.
@@ -330,7 +332,7 @@ quite often. We see similar errors occurring in various domains over the years:
   temperature increase was `32 °F`, not `68 °F` [@THE_GUARDIAN].
 - A whole set of [@MEDICATION_DOSE_ERRORS]...
 
-The safety subject is so vast and essential by itself that we dedicated an entire [Safety Features]
+The safety subject is so vast and essential by itself that we dedicated an entire [Safety features]
 chapter of this paper that discusses all the nuances in detail.
 
 ## Vocabulary types
@@ -467,13 +469,12 @@ The authors of this paper developed and delivered multiple successful C++ librar
 Libraries developed by them [have more than 90% of all the stars on GitHub in the field of
 physical units libraries for C++](https://github.com/topics/dimensional-analysis?l=c%2B%2B).
 
-The authors joined forces and are working together to propose the best physical quantities and
-units library we can get with the latest version of the C++ language. They spend their private
-time and efforts hoping that the ISO C++ Committee will be willing to include such a feature in
-the C++ standard library.
+The authors joined forces and are working together to propose the best quantities and units library
+we can get with the latest version of the C++ language. They spend their private time and efforts
+hoping that the ISO C++ Committee will be willing to include such a feature in the C++ standard library.
 
 
-# Common smells when there is no library for physical quantities
+# Common smells when there is no library for quantities and units
 
 In this chapter, we are going to review typical safety issues related to physical quantities and units
 in the C++ code when a proper library is not used. Even though all the examples come from the
@@ -665,10 +666,9 @@ abstractions.
 
 ## Great user experience
 
-The primary purpose of the library is to generate compile-time errors. If users
-did not introduce any bugs in the manual handling of quantities and units, the library would be
-of little use. This is why the library is optimized for readable compilation errors
-and great debugging experience.
+The primary purpose of the library is to generate compile-time errors. If users did not introduce
+any bugs in the manual handling of quantities and units, the library would be of little use.
+This is why the library is optimized for readable compilation errors and great debugging experience.
 
 The library is easy to use and flexible. The interfaces are straight-forward
 and safe by default. Users should be able to easily express any quantity and unit, which requires
@@ -683,15 +683,16 @@ to understand and efficient equations on quantities and units.
 There are plenty of expectations from different parties regarding such a library. It should support
 at least:
 
+- Any unit's magnitude (huge, small, floating-point).
 - Systems of Quantities.
 - Systems of Units.
-- Scalar, vector, and tensor quantities.
 - The affine space.
-- Natural units systems.
-- Strong angular system.
-- Any unit's magnitude (huge, small, floating-point).
-- Faster-than-lightspeed constants.
 - Highly adjustable text-output formatting.
+
+Additionally it would be great if we could also address the following features:
+
+- Scalar, vector, and tensor quantities.
+- Natural units systems support.
 
 ## Easy to extend
 
@@ -703,14 +704,17 @@ dimensions, quantities, and units.
 
 The set of entities required for standardization should be limited to the bare minimum.
 
+Most of the entities in systems definitions should be possible to implement with a single line of
+code.
+
 Derived units do not need separate library types. Instead, they can be obtained through the composition
 of predefined named units. Units should not be associated with User-Defined Literals (UDLs), as it
 is the case with `std::chrono::duration`. UDLs do not compose, have very limited scope and
 functionality, and are expensive to standardize.
 
-The user interface has no preprocessor macros.
+The user interface should have no preprocessor macros.
 
-It should be possible for most proposed features (besides text output) to be freestanding.
+It should be possible for most proposed features (besides the text output) to be freestanding.
 
 
 # Domain introduction
