@@ -57,6 +57,46 @@ This document consistently uses the official metrology vocabulary defined in the
 and [@BIPM-VIM].
 
 
+# Impact on the C++ standard
+
+This change is purely additive. It does not change, fix, or break any of the existing tools
+in the C++ standard library.
+
+## Interaction with `std::chrono` types and `std::ratio`
+
+The only interaction of this proposal with the C++ standard facilities is the compatibility
+mode with `std::chrono` types (`duration` and `time_point`) described in
+[Compatibility with `std::chrono::duration` and `std::chrono::time_point`].
+
+We should also mention the potential confusion of users with having two different ways to deal
+with time abstractions in the C++ standard library. If this proposal gets accepted:
+
+- `std::chrono` abstractions together with `std::ratio` should be used primarily to deal
+  with calendars and threading facilities,
+- abstractions introduced in this proposal should be used in all other use cases (e.g.
+  physical quantities equations).
+
+## Dependencies on other proposals
+
+The features in this chapter are heavily used in the library but are not domain-specific.
+Having them standardized (instead of left as exposition-only) could not only improve
+this library's specification but also serve as an essential building block for tools
+in other domains that we can get in the future from other authors.
+
+<!-- markdownlint-disable MD013 -->
+
+| Feature                      | Priority | Description                                                                                                        |
+|------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------|
+| `fixed_string`               |    1     | String-like structural type with inline storage (can be used as an NTTP)                                           |
+| Compile-time prime numbers   |    1     | Compile-time facilities to break any integral value to a product of prime numbers and their powers                 |
+| Value-preserving conversions |    1     | Type trait stating if the conversion from one type to another is value preserving or not ([@P0870R5], [@P2509R0]?) |
+| Number concepts              |    2     | Concepts for vector- and point-space numbers ([@P3003R0])                                                          |
+| Bounded numeric types        |    3     | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics)          |
+
+<!-- markdownlint-enable MD013 -->
+
+
+
 # About authors
 
 ## Dominik Berner
