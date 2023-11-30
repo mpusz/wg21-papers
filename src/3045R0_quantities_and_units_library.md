@@ -717,47 +717,15 @@ The user interface should have no preprocessor macros.
 It should be possible for most proposed features (besides the text output) to be freestanding.
 
 
-# Domain introduction
+# Quick domain introduction
 
-## Systems
-
-<!-- 
-flowchart TD
-    system_of_quantities["System of Quantities"] --- system_of_units1[System of Units #1]
-    system_of_quantities["System of Quantities"] --- system_of_units2[System of Units #2]
-    system_of_quantities["System of Quantities"] --- system_of_units3[System of Units #3]
- -->
-
-<img src="img/systems.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
-
-### System of quantities
-
-[System of quantities](https://jcgm.bipm.org/vim/en/1.3.html) is a set of quantities together with
-a set of noncontradictory equations relating those quantities.
-
-[International System of Quantities (ISQ)](https://jcgm.bipm.org/vim/en/1.6.html) is
-system of quantities based on the seven base quantities: _length_, _mass_, _time_, _electric current_,
-_thermodynamic temperature_, _amount of substance_, and _luminous intensity_. This system of quantities
-is published in the [@ISO80000] series "Quantities and units".
-
-### System of units
-
-[System of units](https://jcgm.bipm.org/vim/en/1.13.html) is a set of base units and derived units,
-together with their multiples and submultiples, defined in accordance with given rules, for a given
-system of quantities
-
-[International System of Units (SI)](https://jcgm.bipm.org/vim/en/1.16.html) is a system of units,
-based on the International System of Quantities, their names and symbols, including a series of
-prefixes and their names and symbols, together with rules for their use, adopted by the General
-Conference on Weights and Measures (CGPM).
-
-
-## Quantity
+This chapter provides a very brief introduction to the quantities and units domain. Please refer to
+[@ISO80000] and [@SI] for more details.
 
 <!-- 
 flowchart TD
     dimension --- quantity_type["quantity type"]
-    quantity_type --- reference["reference\n(e.g. unit)"]
+    quantity_type --- reference["quantity reference\n(e.g. unit)"]
     reference --- quantity
     number --- quantity
  -->
@@ -776,28 +744,109 @@ the domain and its C++ implementation:
 - **base dimension** is the dimension of a [base quantity](https://jcgm.bipm.org/vim/en/1.4.html),
 - **derived dimension** is the dimension of a [derived quantity](https://jcgm.bipm.org/vim/en/1.5.html).
 
+As stated above, ISO does not mention a "base dimension" term. Nevertheless, it treats dimensions
+of base quantities in a special way by:
+
+- assigning unique identifiers/symbols to all of them,
+- stating that derived quantities have a dimension being a vector product of dimensions of base quantities.
+
 For example:
 
-- _length_ ($\mathsf{L}$), _mass_ ($\mathsf{M}$), _time_ ($\mathsf{T}$), _electric current_ ($\mathsf{I}$),
-  _thermodynamic temperature_ ($\mathsf{Θ}$), _amount of substance_ ($\mathsf{N}$), and
-  _luminous intensity_ ($\mathsf{J}$) are the base dimensions of the [ISQ](../../appendix/glossary.md#isq).
-- A derived dimension of _force_ in the [ISQ](../../appendix/glossary.md#isq) is denoted by
-  $\textsf{dim }F = \mathsf{LMT}^{–2}$.
-- IEC 80000 provides _traffic intensity_ quantity that is measured in erlangs but not in a unit one,
+- _length_ ($L$), _mass_ ($M$), _time_ ($T$), _electric current_ ($I$), _thermodynamic temperature_ ($Θ$),
+  _amount of substance_ ($N$), and _luminous intensity_ ($J$) are the base dimensions of the ISQ.
+- A derived dimension of _force_ in the ISQ is denoted by $dim F = LMT^{–2}$.
+- IEC 80000 provides _traffic intensity_ quantity that is measured in Erlangs but not in a unit one,
   which also implies that it should be introduced as a base quantity with its own dimension.
 
 ## Quantity type
 
-[Dimension is not enough to describe a quantity](systems_of_quantities.md#dimension-is-not-enough-to-describe-a-quantity).
-This is why the [ISO 80000](../appendix/references.md#ISO80000) provides hundreds of named quantity
-types. It turns out that there are many more quantity types in the [ISQ](../../appendix/glossary.md#isq)
-than the named units in the [SI](../../appendix/glossary.md#si).
+[Dimension is not enough to describe a quantity]. This is why the [@ISO80000] provides hundreds of
+named quantity types. It turns out that there are many more quantity types in the ISQ than the named
+units in the [@SI].
 
+[@ISO80000] also defines the term **kind of quantity** as an aspect common to mutually comparable
+quantities. It explicitly says that two or more quantities cannot be added or subtracted unless they
+belong to the same category of mutually comparable quantities.
 
-# Library scope discussion
+Quantities might be:
 
-_Please note that many code examples included in this chapter do not represent the proposed design.
-Their intent is to highlight issues that the current design addresses._
+- of different dimensions (e.g. _length_, _time_, _speed_, _power_),
+- of the same dimension but of a different kind (e.g., _work_ vs. _torque_, _frequency_ vs. _activity_
+   _area_ vs _fuel consumption_),
+- of the same dimension and kind but still distinct (e.g., _radius_ vs. _width_ vs. _height_ or
+  _potential energy_ vs _kinetic energy_ vs _thermodynamic energy_).
+
+Additionally, ISO explicitly specifies a quantity of dimension one, which is commonly known as
+a dimensionless quantity. It is a quantity for which all the exponents of the factors corresponding
+to the base quantities in its quantity dimension are zero. Typically, they represent ratios of two
+quantities of the same dimension or counts of things.
+
+## Quantity reference
+
+[@ISO80000] defines a quantity as:
+
+> property of a phenomenon, body, or substance, where the property has a magnitude that can be
+> expressed as a number and a reference. A reference can be a measurement unit, a measurement
+> procedure, a reference material, or a combination of such.
+
+The term "reference" is repeated several times in that ISO specification. For example:
+
+- quantity value is defined as:
+
+    > Number and reference together expressing magnitude of a quantity.
+
+- numerical quantity value is defined as:
+
+    > Number in the expression of a quantity value, other than any number serving as the reference
+
+We realize that the term "reference" might be overloaded in the C++ domain. However, preserving
+the official metrology terminology here is still worth trying.
+
+Measurement units are designated by conventionally assigned names and symbols.
+
+Measurement units of quantities of the same quantity dimension may be designated by the same name
+and symbol even when the quantities are not of the same kind. For example, joule per kelvin and J/K
+are, respectively, the name and symbol of both a measurement unit of _heat capacity_ and a measurement
+unit of _entropy_, which are generally not considered to be quantities of the same kind.
+
+However, in some cases, special measurement unit names are restricted to be used with quantities of
+specific kind only. For example, the measurement unit 'second to the power minus one' (1/s) is
+called hertz (Hz) when used for _frequencies_ and becquerel (Bq) when used for _activities of
+radionuclides_.
+
+Measurement units of quantities of dimension one are numbers. In some cases, these measurement
+units are given special names, e.g., radian, steradian, and decibel, or are expressed by quotients
+such as millimole per mole equal to $10^{−3}$ and microgram per kilogram equal to $10^{−9}$.
+
+## Quantity
+
+As stated above, [@ISO80000] defines a quantity as:
+
+> property of a phenomenon, body, or substance, where the property has a magnitude that can be
+> expressed as a number and a reference.
+
+The above means that a quantity abstraction should store a runtime value representing the quantity
+numerical value and a reference that might be represented as a unit. It is a common practice to
+embed a reference into the C++ type expressing the quantity so it does not occupy a space/storage at
+runtime.
+
+It is also worth mentioning here that the distinction between a quantity and a quantity type is
+not clearly defined in the [@ISO80000]. The [@ISO80000] even explicitly states:
+
+> It is customary to use the same term, "quantity", to refer to both general quantities, such as
+> length, mass, etc., and their instances, such as given lengths, given masses, etc. Accordingly,
+> we are used to saying both that length is a quantity and that a given length is a quantity, by
+> maintaining the specification – "general quantity, $Q$" or "individual quantity, $Q_a$" – implicit
+> and exploiting the linguistic context to remove the ambiguity.
+
+To prevent such ambiguities in this document, we will consistently use the term:
+
+- "quantity type" when we mean a general quantity,
+- "quantity" when we mean the instance of a quantity that also stores its numerical value.
+
+It is also worth mentioning here that [@ISO80000] does not distinguish between point and
+vector/interval quantities of [The affine space].
+
 
 ## Limitations of units only solutions
 
