@@ -1357,6 +1357,181 @@ The above prints:
 
 
 ## User-defined representation types
+
+The library of physical quantities and units library should work with any custom representation type.
+Those can be used to:
+
+- Improve safety (e.g., prevent overflows, restrict the range of accepted values, etc.),
+- provide additional information (e.g., not only a quantity value but also the uncertainty of the
+  measurement), and
+- enable linear algebra usage.
+
+As of right now, we have two other concurrent proposals to SG6 in this subject on the fly
+([@P2993_PRE] and [@P3003R0]), so we do not provide any concrete requirements or recommendations here.
+Based on the results of discussions on the mentioned proposals, we will provide correct guidelines
+in the next revisions of this paper.
+
+By default all floating-point and integral (besides `bool`) types are treated as scalars.
+
+## Vector and tensor quantities
+
+TBD
+
+## Logarithmic quantities and units
+
+TBD
+
+## Generic Interfaces
+
+Using a concrete unit in the interface often has a lot of sense. It is especially useful if we
+store the data internally in the object. In such a case, we have to select a specific unit anyway.
+
+For example, let's consider a simple storage tank:
+
+```cpp
+class StorageTank {
+  quantity<horizontal_area[m2]> base_;
+  quantity<isq::height[m]> height_;
+  quantity<isq::mass_density[kg / m3]> density_ = air_density;
+public:
+  constexpr StorageTank(const quantity<horizontal_area[m2]>& base, const quantity<isq::height[m]>& height) :
+      base_(base), height_(height)
+  {
+  }
+
+  // ...
+};
+```
+
+As the quantities provided in the function's interface are then stored in the class, there is probably
+no sense in using generic interfaces here.
+
+### The issues with unit-specific interfaces
+
+However, in many cases, using a specific unit in the interface is counterproductive. Let's consider
+the following function:
+
+```cpp
+quantity<km / h> avg_speed(quantity<km> distance, quantity<h> duration)
+{
+  return distance / duration;
+}
+```
+
+Everything seems fine for now. It also works great if we call it with:
+
+```cpp
+quantity<km / h> s1 = avg_speed(220 * km, 2 * h);
+```
+
+However, if the user starts doing the following:
+
+```cpp
+quantity<mi / h> s2 = avg_speed(140 * mi, 2 * h);
+quantity<m / s> s3 = avg_speed(20 * m, 2 * s);
+```
+
+some issues start to be clearly visible:
+
+1. The arguments must be converted to units mandated by the function's parameters at each call.
+   This involves potentially expensive multiplication/division operations at runtime.
+2. After the function returns the speed in a unit of `km/h`, another potentially expensive
+   multiplication/division operations have to be performed to convert the resulting quantity into
+   a unit being the derived unit of the initial function's arguments.
+3. Besides the obvious runtime cost, some unit conversions may result in a data truncation, which
+   means that the result will not be exactly equal to a direct division of the function's arguments.
+4. We have to use a floating-point representation type (the `quantity` class template by default
+   uses `double` as a representation type) which is considered value preserving.
+   Trying to use an integral type in this scenario will work only for `s1`, while `s2` and `s3`
+   will fail to compile. Failing to compile is a good thing here as the library tries to prevent
+   the user from doing a clearly wrong thing. To make the code compile, the user needs to use
+   dedicated `value_cast` or `force_in` like this:
+
+    ```cpp
+    quantity<mi / h> s2 = avg_speed(value_cast<km>(140 * mi), 2 * h);
+    quantity<m / s> s3 = avg_speed((20 * m).force_in(km), (2 * s).force_in(h));
+    ```
+
+    But the above will obviously provide an incorrect behavior (e.g., division by `0` in the
+    evaluation of `s3`).
+
+### Constraining function parameters with concepts
+
+Much better generic code can be implemented using basic concepts provided with the library:
+
+```cpp
+auto avg_speed(QuantityOf<isq::length> auto distance,
+               QuantityOf<isq::time> auto duration)
+{
+  return isq::speed(distance / duration);
+}
+```
+
+This explicitly states that the arguments passed by the user must not only satisfy a `Quantity`
+concept, but also that their quantity specification must be implicitly convertible to `isq::length`
+and `isq::time`, respectively. This no longer leaves room for error while still allowing the compiler
+to generate the most efficient code.
+
+Please, note that now it is safe just to use integral types all the way, which again improves
+the runtime performance as the multiplication/division operations are often faster on integral rather
+than floating-point types.
+
+### Constraining the function return type
+
+The above function template resolves all of the issues described before. However, we can do even
+better here by additionally constraining the return type:
+
+```cpp
+QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto distance,
+                                      QuantityOf<isq::time> auto duration)
+{
+  return isq::speed(distance / duration);
+}
+```
+
+Doing so has two important benefits:
+
+1. It informs the users of our interface about what to expect to be the result of a function
+   invocation. It is superior to just returning `auto`, which does not provide any hint about
+   the thing being returned there.
+2. Such a concept constrains the type returned from the function. This means that it works as
+   a unit test to verify if our function actually performs what it is supposed to do. If there is
+   an error in the quantity equation, we will learn about it right away.
+
+### Constraining a variable on the stack
+
+If we know exactly what the function does in its internals and if we know the exact argument types
+passed to such a function, we often know the exact type that will be returned from its invocation.
+
+However, if we care about performance, we should often use the generic interfaces described in this
+chapter. A side effect is that we sometimes are unsure about the return type. Even if we know it
+today, it might change a week from now due to some code refactoring.
+
+In such cases, we can again use `auto` to denote the type:
+
+```cpp
+auto s1 = avg_speed(220 * km, 2 * h);
+auto s2 = avg_speed(140 * mi, 2 * h);
+auto s3 = avg_speed(20 * m, 2 * s);
+```
+
+In this case, it is probably OK to do so as the `avg_speed` function name explicitly provides
+the information on what to expect as a result.
+
+In other scenarios where the returned quantity type is not so obvious, it is again helpful to
+constrain the type with a concept like so:
+
+```cpp
+QuantityOf<isq::speed> auto s1 = avg_speed(220 * km, 2 * h);
+QuantityOf<isq::speed> auto s2 = avg_speed(140 * mi, 2 * h);
+QuantityOf<isq::speed> auto s3 = avg_speed(20 * m, 2 * s);
+```
+
+Again, this explicitly provides additional information about the quantity we are dealing with in
+the code, and it serves as a unit test checking if the "thing" returned from a function is actually
+what we expected here.
+
+
 # Why do we need typed quantities?
 
 ## Limitations of units-only solutions
@@ -4109,6 +4284,13 @@ references:
   citation-label: nholthaus/units
   title: "UNITS - A compile-time, header-only, dimensional analysis and unit conversion library built on c++14 with no dependencies."
   URL: <https://github.com/nholthaus/units>
+- id: P2993_PRE
+  citation-label: P2993
+  author:
+    - family: Valenty
+      given: Luke
+  title: "Constrained Numbers"
+  URL: <https://wg21.link/p2993>
 - id: PINT
   citation-label: Pint
   title: "Pint: makes units easy"
