@@ -32,23 +32,24 @@ expressed interest in the potential standardization of such a library and encour
 work. The authors also got valuable initial feedback that highly influenced the design of
 the V2 version of the [@MP-UNITS] library.
 
-In the following years, the library's authors scoped on getting more feedback from the production
-and design and developed version 2 of the [@MP-UNITS] library that resolves the issues raised
+In the following years, the library's authors focused on getting more feedback from the production
+about the design and developed version 2 of the [@MP-UNITS] library that resolves the issues raised
 by the users and Committee members. The features and interfaces of this version are close to
 being the best we can get with the current version of the C++ language standard.
 
-This paper is authored by not only the [@MP-UNITS] library developers but also by the authors
-of other actively maintained similar libraries on the market and other active members of
-the C++ physical quantities and units community who have worked on this subject for many years.
-We join our forces to say with one voice that we deeply care about standardizing such
-features as a part of the C++ Standard Library. Based on our long and broad experience in
-the subject, we agree that the interfaces we will provide in the upcoming proposals are
-the best we can get today in the C++ language.
+This paper is authored by the [@MP-UNITS] library developers, the authors of other actively
+maintained similar libraries on the market, and other active members of the C++ physical quantities
+and units community who have worked on this subject for many years. We join our forces to say with
+one voice that we deeply care about standardizing such features as a part of the C++ Standard
+Library. Based on our long and broad experience in the subject, we agree that the interfaces we
+will provide in the upcoming proposals are the best we can get today in the C++ language.
 
-During the Kona 2023 ISO C++ Committee meeting we got a repeating feedback that there should
-be a one, big, unified paper with all the contents inside. Addressing this requirement, this
-paper not only adds a detailed design description, but also includes the most important parts
-of [@P2980R1], [@P2981R1], and [@P2982R1].
+During the Kona 2023 ISO C++ Committee meeting, we got repeating feedback that there should
+be one big, unified paper with all the contents inside. Addressing this requirement, this
+paper adds a detailed design description and also includes the most important parts of
+[@P2980R1], [@P2981R1], and [@P2982R1]. With this, we assume that [@P2981R1] and [@P2982R1]
+are superseded by this paper. The plan and scope described in [@P2980R1] might still be updated
+based on the current progress and feedback from the upcoming discussions.
 
 
 # Terms and definitions
