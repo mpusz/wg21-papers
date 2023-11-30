@@ -1897,7 +1897,9 @@ One sample @ 48000 Smpl/s is 0.0208333 ms
 Try it in [the Compiler Explorer](https://godbolt.org/z/KeT3MsfcG).
 
 
-# Safety features
+# Safety
+
+## Safety features
 
 This chapter describes the features that enforce safety in our code bases. It starts with obvious
 things, but then it moves to probably less known benefits of using physical quantities
@@ -1909,7 +1911,7 @@ Before we go through all the features, it is essential to note that they do not 
 overhead over the raw unsafe code doing the same thing. This is a massive benefit of C++ compared
 to other programming languages (e.g., Python, Java, etc.).
 
-## Unit conversions
+### Unit conversions
 
 The first thing that comes to our mind when discussing the safety of such libraries is
 automated unit conversions between values of the same physical quantity.
@@ -1938,7 +1940,7 @@ units like electronvolt (eV), where 1 eV = 1.602176634×10<sup>−19</sup> J, or
 1 Da = 1.660539040(20)×10<sup>−27</sup> kg. Moreover, some conversions, such as radian to a degree,
 require a conversion factor based on an irrational number like pi.
 
-## Preventing truncation of data
+### Preventing truncation of data
 
 The second safety feature of such libraries is preventing accidental truncation of a quantity value.
 If we try the operations above with swapped units, both conversions should fail
@@ -2009,7 +2011,7 @@ As we can see, it is essential not to allow such truncating conversions to happe
 and a good physical quantities and units library should fail at compile-time in case an user makes
 such a mistake.
 
-## The affine space
+### The affine space
 
 The affine space has two types of entities:
 
@@ -2087,7 +2089,7 @@ quantity_point qp1 = mean_sea_level + 42 * m;
 quantity_point qp2 = si::ice_point + 21 * deg_C;
 ```
 
-## Obtaining the numerical value of a quantity
+### Obtaining the numerical value of a quantity
 
 Continuing our previous example, let's assume that we have an underlying "legacy" API that
 requires us to pass a raw numerical value of a quantity and that we do the following to use it:
@@ -2136,7 +2138,7 @@ legacy_func(x.vec[0].force_numerical_value_in(si::second));
 As the above member functions may need to do a conversion to provide a value in the expected unit,
 their results are prvalues.
 
-## Preventing dangling references
+### Preventing dangling references
 
 Besides returning prvalues, sometimes users need to get an actual reference to the underlying
 numerical value stored in a `quantity`. For those cases, the [@MP-UNITS] library exposes
@@ -2235,7 +2237,7 @@ As we can see in the second example, `quantity_point` also provides an lvalue-re
 Also, for reasons similar to the ones described in the previous chapter, this
 function requires that the argument provided by the user is the same as the origin of a quantity point.
 
-## Quantity kinds
+### Quantity kinds
 
 What should be the result of the following quantity equation?
 
@@ -2287,7 +2289,7 @@ The [@MP-UNITS] library goes beyond that and properly models quantity kinds. We 
 a significant feature that improves the safety of the library, and that is why we also plan to propose
 quantity kinds for standardization as mentioned in [@P2980R0].
 
-## Various quantities of the same kind
+### Various quantities of the same kind
 
 Proper modeling of distinct kinds for quantities of the same dimension is often not enough from the
 safety point of view. Most of the libraries allow us to write the following code in the type-safe
@@ -2332,7 +2334,7 @@ tree which influences
 The [@MP-UNITS] library is probably the first one on the market (in any programming language) that
 models such abstractions.
 
-### Converting between quantities of the same kind
+#### Converting between quantities of the same kind
 
 Quantity conversion rules can be defined based on the same hierarchy of quantities of kind length.
 
@@ -2453,7 +2455,7 @@ if (q == football_field) {                                                  // C
 }
 ```
 
-### Comparing, adding, and subtracting quantities of the same kind
+#### Comparing, adding, and subtracting quantities of the same kind
 
 [@ISO-GUIDE] explicitly states that `width` and `height` are quantities of the same kind and as such
 they
@@ -2549,7 +2551,7 @@ To summarize, rules for addition, subtraction, and comparison of quantities impr
 usability, while the conversion rules enhance the safety of the library compared to the
 libraries that do not model quantity kinds.
 
-### Modeling a quantity kind
+#### Modeling a quantity kind
 
 In the physical units library, we also need an abstraction describing an entire family of
 quantities of the same kind. Such quantities have not only the same dimension but also
@@ -2579,7 +2581,7 @@ static_assert(!same_type<kind_of<isq::length> / isq::time, kind_of<isq::length /
 static_assert(same_type<kind_of<isq::length> / isq::time, isq::length / isq::time>);
 ```
 
-### Restricting units to specific quantity kinds
+#### Restricting units to specific quantity kinds
 
 By default, units can be used to measure any kind of quantity with the same dimension. However, as we
 have mentioned above, some units (e.g., Hz, Bq) are constrained to be used only with
@@ -2640,7 +2642,7 @@ quantities to bring additional safety for those cases. Otherwise, we can just us
 the remaining quantities. We can easily mix simple and strongly-typed quantities in our projects,
 and the library will do its best to protect us based on the information provided.
 
-## Non-negative quantities
+### Non-negative quantities
 
 Some quantity types are defined by [@ISO80000] as explicitly non-negative. Those include quantities
 like width, thickness, diameter, and radius. However, it turns out that it is possible to have negative
@@ -2665,7 +2667,7 @@ invariants checks.
 <!-- Lots of exciting discussion at https://github.com/mpusz/mp-units/issues/468 -->
 
 
-## Vector and tensor quantities
+### Vector and tensor quantities
 
 While talking about physical quantities and units libraries, everyone expects that the library will
 protect (preferably at compile-time) from accidentally replacing multiplication with division operations
@@ -2736,9 +2738,9 @@ by ensuring that quantities are created with proper quantity equations and are u
 representation types.
 
 
-# Safety pitfalls
+## Safety pitfalls
 
-## Integer division
+### Integer division
 
 The physical units library can't do any runtime branching logic for the division operator.
 All logic has to be done at compile-time when the actual values are not known, and the quantity types
@@ -2767,7 +2769,7 @@ Having different operators for safe floating-point operations and unsafe integer
 hurt generic programming.
 As such, users should instead use safer representation types.
 
-## Lack of safe numeric types
+### Lack of safe numeric types
 
 Integers can overflow on arithmetics. This has already caused some expensive failures in engineering
 [@ARIANE].
@@ -2784,7 +2786,7 @@ concerns.
 Also, having a type trait informing if a conversion from one type to another is value-preserving
 would help to address some of the issues mentioned above.
 
-## Potential surprises during units composition
+### Potential surprises during units composition
 
 One of the most essential requirements for a good physical quantities and units library is to implement
 units in such a way that they compose. With that, one can easily create any derived unit using
@@ -2886,14 +2888,14 @@ auto v = 42 * m;
 quantity q = make_length(v);  // Compile-time error
 ```
 
-## Limitations of systems of quantities
+### Limitations of systems of quantities
 
 As stated before, modeling systems of quantities and [Various quantities of the same kind]
 significantly improves the safety of the project. However, it is essential to mention here
 that such modeling is not ideal and there might be some pitfalls and surprises associated with
 some corner cases.
 
-### Allowing irrational quantity combinations
+#### Allowing irrational quantity combinations
 
 Everyone probably agrees that multiplying two lengths is an area, and that area should be implicitly
 convertible to the result of such a multiplication:
@@ -2925,7 +2927,7 @@ static_assert(explicitly_convertible(isq::area, isq::height * isq::height));
 For humans, it is hard to imagine how two heights form an area, but the library's logic
 has no way to prevent such operations.
 
-### Quantities of dimension one
+#### Quantities of dimension one
 
 Some pitfalls might also arise when dealing with quantities of dimension one
 (also known as dimensionless quantities).
@@ -2977,7 +2979,7 @@ quantity<(isq::length / isq::length)[m / m]> ok7 = q3;
 quantity<(isq::height / isq::length)[m / m]> bad2 = q3;
 ```
 
-## Temperatures
+### Temperatures
 
 Temperature support is one the most challenging parts of any physical quantities and units library
 design. This is why it is probably reasonable to dedicate a chapter to this subject to describe how
@@ -3126,7 +3128,7 @@ quantity q = qp1.quantity_from(usc::zero_Fahrenheit).in(deg_C);
 Please also note that there is no text output support for quantity points in the [@MP-UNITS]
 library.
 
-## Structural types
+### Structural types
 
 The `quantity` and `quantity_point` class templates are structural types to allow them to be passed
 as template arguments. For example, we can write the following:
