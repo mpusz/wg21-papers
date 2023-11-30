@@ -1071,7 +1071,7 @@ result in exactly the same `quantity` class template instantiation.
 In the above examples, an expression of `isq::height[m]` is called a quantity reference and
 results in `reference<isq::height, si::metre>` class template instantiation.
 
-_Note: The identifier `reference` is being used in the [@MP_UNITS] library but definitely will
+_Note: The identifier `reference` is being used in the [@MP-UNITS] library but definitely will
 need bikeshedding during the standardization process._
 
 More about typed quantities can be found in the following chapters:
