@@ -847,7 +847,7 @@ inline constexpr struct dim_length : base_dimension<"L"> {} dim_length;
 inline constexpr struct dim_mass : base_dimension<"M"> {} dim_mass;
 inline constexpr struct dim_time : base_dimension<"T"> {} dim_time;
 inline constexpr struct dim_electric_current : base_dimension<"I"> {} dim_electric_current;
-inline constexpr struct dim_thermodynamic_temperature : base_dimension<basic_symbol_text{"Θ", "O"}> {} dim_thermodynamic_temperature;
+inline constexpr struct dim_thermodynamic_temperature : base_dimension<{"Θ", "O"}> {} dim_thermodynamic_temperature;
 inline constexpr struct dim_amount_of_substance : base_dimension<"N"> {} dim_amount_of_substance;
 inline constexpr struct dim_luminous_intensity : base_dimension<"J"> {} dim_luminous_intensity;
 ```
@@ -866,13 +866,13 @@ inline constexpr struct watt : named_unit<"W", joule / second> {} watt;
 inline constexpr struct coulomb : named_unit<"C", ampere * second> {} coulomb;
 inline constexpr struct volt : named_unit<"V", watt / ampere> {} volt;
 inline constexpr struct farad : named_unit<"F", coulomb / volt> {} farad;
-inline constexpr struct ohm : named_unit<basic_symbol_text{"Ω", "ohm"}, volt / ampere> {} ohm;
+inline constexpr struct ohm : named_unit<{"Ω", "ohm"}, volt / ampere> {} ohm;
 ```
 
 Prefixes:
 
 ```cpp
-template<PrefixableUnit auto U> struct micro_ : prefixed_unit<basic_symbol_text{"µ", "u"}, mag_power<10, -6>, U> {};
+template<PrefixableUnit auto U> struct micro_ : prefixed_unit<{"µ", "u"}, mag_power<10, -6>, U> {};
 template<PrefixableUnit auto U> struct milli_ : prefixed_unit<"m", mag_power<10, -3>, U> {};
 template<PrefixableUnit auto U> struct centi_ : prefixed_unit<"c", mag_power<10, -2>, U> {};
 template<PrefixableUnit auto U> struct deci_  : prefixed_unit<"d", mag_power<10, -1>, U> {};
@@ -886,7 +886,7 @@ Constants:
 
 ```cpp
 inline constexpr struct hyperfine_structure_transition_frequency_of_cs :
-  named_unit<basic_symbol_text{"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
+  named_unit<{"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
 inline constexpr struct speed_of_light_in_vacuum :
   named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
 inline constexpr struct planck_constant :
@@ -915,7 +915,7 @@ parameters, and it has a minimalistic range/view-like interface:
 ```cpp
 template<typename CharT, std::size_t N>
 struct basic_fixed_string {
-  CharT data_[N + 1] = {};
+  CharT data_[N + 1] = {};  // exposition only
 
   using value_type = CharT;
   using pointer = CharT*;
@@ -1046,7 +1046,8 @@ with significantly decreased compile times.
 ##### Just wait for the C++ language to solve it
 
 [@P2484R0] proposed extending support for class types as non-type template parameters in the
-C++ language. However, this proposal's primary author is no longer active in C++ standardization, and there have been no updates to the paper in the last two years.
+C++ language. However, this proposal's primary author is no longer active in C++ standardization,
+and there have been no updates to the paper in the last two years.
 
 We can't wait for the C++ language to change forever. This library will be impossible to standardize
 without such a feature. This is why we recommend progressing with the `fixed_string` approach.
@@ -1084,16 +1085,16 @@ This is where `symbol_text` comes into play. It is a simple wrapper over the two
 objects:
 
 ```cpp
-template<std::size_t N, std::size_t M>
+template<typename UnicodeCharT, std::size_t N, std::size_t M>
 struct basic_symbol_text {
-  basic_fixed_string<char, N> unicode_;
-  basic_fixed_string<char, M> ascii_;
+  basic_fixed_string<UnicodeCharT, N> unicode_;  // exposition only
+  basic_fixed_string<char, M> ascii_;            // exposition only
 
   constexpr explicit(false) basic_symbol_text(char txt);
   constexpr explicit(false) basic_symbol_text(const char (&txt)[N + 1]);
   constexpr explicit(false) basic_symbol_text(const basic_fixed_string<char, N>& txt);
-  constexpr basic_symbol_text(const char (&u)[N + 1], const char (&a)[M + 1]);
-  constexpr basic_symbol_text(const basic_fixed_string<char, N>& u, const basic_fixed_string<char, M>& a);
+  constexpr basic_symbol_text(const UnicodeCharT (&u)[N + 1], const char (&a)[M + 1]);
+  constexpr basic_symbol_text(const basic_fixed_string<UnicodeCharT, N>& u, const basic_fixed_string<char, M>& a);
 
   [[nodiscard]] constexpr const auto& unicode() const;
   [[nodiscard]] constexpr const auto& ascii() const;
@@ -1101,31 +1102,32 @@ struct basic_symbol_text {
   [[nodiscard]] constexpr bool empty() const;
 
   template<std::size_t N2, std::size_t M2>
-  [[nodiscard]] constexpr friend basic_symbol_text<N + N2, M + M2> operator+(const basic_symbol_text& lhs,
-                                                                             const basic_symbol_text<N2, M2>& rhs);
+  [[nodiscard]] constexpr friend basic_symbol_text<UnicodeCharT, N + N2, M + M2> operator+(
+    const basic_symbol_text& lhs, const basic_symbol_text<UnicodeCharT, N2, M2>& rhs);
 
-  template<std::size_t N2, std::size_t M2>
+  template<typename UnicodeCharT2, std::size_t N2, std::size_t M2>
   [[nodiscard]] friend constexpr auto operator<=>(const basic_symbol_text& lhs,
-                                                  const basic_symbol_text<N2, M2>& rhs) noexcept;
+                                                  const basic_symbol_text<UnicodeCharT2, N2, M2>& rhs) noexcept;
 
-  template<std::size_t N2, std::size_t M2>
+  template<typename UnicodeCharT2, std::size_t N2, std::size_t M2>
   [[nodiscard]] friend constexpr bool operator==(const basic_symbol_text& lhs,
-                                                 const basic_symbol_text<N2, M2>& rhs) noexcept;
+                                                 const basic_symbol_text<UnicodeCharT2, N2, M2>& rhs) noexcept;
 };
 
-basic_symbol_text(char) -> basic_symbol_text<1, 1>;
+basic_symbol_text(char) -> basic_symbol_text<char, 1, 1>;
 
 template<std::size_t N>
-basic_symbol_text(const char (&)[N]) -> basic_symbol_text<N - 1, N - 1>;
+basic_symbol_text(const char (&)[N]) -> basic_symbol_text<char, N - 1, N - 1>;
 
 template<std::size_t N>
-basic_symbol_text(const basic_fixed_string<char, N>&) -> basic_symbol_text<N, N>;
+basic_symbol_text(const basic_fixed_string<char, N>&) -> basic_symbol_text<char, N, N>;
 
-template<std::size_t N, std::size_t M>
-basic_symbol_text(const char (&)[N], const char (&)[M]) -> basic_symbol_text<N - 1, M - 1>;
+template<typename UnicodeCharT, std::size_t N, std::size_t M>
+basic_symbol_text(const UnicodeCharT (&)[N], const char (&)[M]) -> basic_symbol_text<UnicodeCharT, N - 1, M - 1>;
 
-template<std::size_t N, std::size_t M>
-basic_symbol_text(const basic_fixed_string<char, N>&, const basic_fixed_string<char, M>&) -> basic_symbol_text<N, M>;
+template<typename UnicodeCharT, std::size_t N, std::size_t M>
+basic_symbol_text(const basic_fixed_string<UnicodeCharT, N>&, const basic_fixed_string<char, M>&)
+  -> basic_symbol_text<UnicodeCharT, N, M>;
 ```
 
 Please note that the library currently uses `char` to encode both strings.
@@ -1140,20 +1142,20 @@ Based on the provided definitions for base units, the library creates symbols fo
 algorithm. It contains three orthogonal fields, and each of them has a default value.
 
 ```cpp
-enum class text_encoding {
+enum class text_encoding : std::int8_t {
   unicode,  // m³;  µs
   ascii,    // m^3; us
   default_encoding = unicode
 };
 
-enum class unit_symbol_solidus {
+enum class unit_symbol_solidus : std::int8_t {
   one_denominator,  // m/s;   kg m⁻¹ s⁻¹
   always,           // m/s;   kg/(m s)
   never,            // m s⁻¹; kg m⁻¹ s⁻¹
   default_denominator = one_denominator
 };
 
-enum class unit_symbol_separator {
+enum class unit_symbol_separator : std::int8_t {
   space,          // kg m²/s²
   half_high_dot,  // kg⋅m²/s²  (valid only for unicode encoding)
   default_separator = space
@@ -1171,7 +1173,18 @@ struct unit_symbol_formatting {
 Returns a `fixed_string` storing the symbol of the unit for the provided configuration:
 
 ```cpp
-[[nodiscard]] consteval auto unit_symbol(Unit auto u, unit_symbol_formatting fmt = unit_symbol_formatting{});
+template<unit_symbol_formatting fmt = unit_symbol_formatting{}, typename CharT = char, Unit U>
+[[nodiscard]] consteval auto unit_symbol(U);
+```
+
+_Note 1: This function could return a `std::string_view` pointing to the internal static buffer.
+_Note 2: It could be refactored to `unit_symbol(U, fmt)` when [@P1045R1] is available.
+
+For example:
+
+```cpp
+static_assert(unit_symbol<{.solidus = unit_symbol_solidus::never,
+                           .separator = unit_symbol_separator::half_high_dot}>(kg * m / s2) == "kg⋅m⋅s⁻²");
 ```
 
 #### `unit_symbol_to()`
@@ -1184,11 +1197,26 @@ template<typename CharT = char, std::output_iterator<CharT> Out, Unit U>
 constexpr Out unit_symbol_to(Out out, U u, unit_symbol_formatting fmt = unit_symbol_formatting{});
 ```
 
-_Note: only `char` output is supported for now._
+_Note: Only `char` output is supported for now._
+
+For example:
+
+```cpp
+std::string txt;
+unit_symbol_to(std::back_inserter(txt), kg * m / s2,
+               {.solidus = unit_symbol_solidus::never, .separator = unit_symbol_separator::half_high_dot});
+std::cout << txt << "\n";
+```
+
+The above prints:
+
+```text
+kg⋅m⋅s⁻²
+```
 
 ## Quantity text output
 
-### Customization point
+### `space_before_unit_symbol` customization point
 
 The [@SI] says:
 
@@ -1229,14 +1257,18 @@ the symbol of a unit associated with this quantity.
 
 #### Output stream formatting
 
-Only basic formatting can be applied to output streams. It includes control over width, fill,
-and alignment:
+Only basic formatting can be applied for output streams. It includes control over width, fill,
+and alignment of the entire quantity and formatting of a quantity numerical value according
+to the general C++ rules:
 
 ```cpp
 std::cout << "|" << std::setw(10) << 123 * m << "|\n";                       // |     123 m|
 std::cout << "|" << std::setw(10) << std::left << 123 * m << "|\n";          // |123 m     |
 std::cout << "|" << std::setw(10) << std::setfill('*') << 123 * m << "|\n";  // |123 m*****|
 ```
+
+_Note: Custom stream manipulators may be provided to control a unit symbol output if requested
+by SG16._
 
 ### `std::format`
 
@@ -1256,7 +1288,7 @@ units-type          ::=  [units-rep-modifier] 'Q'
                          [units-unit-modifier] 'q'
 units-rep-modifier  ::=  [sign] [#] [precision] [L] [units-rep-type]
 units-rep-type      ::=  one of "aAbBdeEfFgGoxX"
-units-unit-modifier ::=  [units-text-encoding, units-unit-symbol-denominator, units-unit-symbol-separator]
+units-unit-modifier ::=  [units-text-encoding units-unit-symbol-denominator units-unit-symbol-separator]
 units-text-encoding ::=  one of "UA"
 units-unit-symbol-solidus   ::=  one of "oan"
 units-unit-symbol-separator ::=  one of "sd"
@@ -1282,17 +1314,27 @@ In the above grammar:
     - `s` (default) uses **space** as a separator (e.g. `kg m²/s²`)
     - `d` uses half-high **dot** (`⋅`) as a separator (e.g. `kg⋅m²/s²`)
 
+_Note: The intent of the above grammar was that the elements of `units-unit-modifier` can appear in
+any order as they have unique characters. Users shouldn't have to remember the order of those tokens
+to control the formatting of a unit symbol._
+
 #### Default formatting
 
 To format `quantity` values, the formatting facility uses `units-format-spec`. If left empty,
-the default formatting of `{:%Q %q}` is applied. The same default formatting is also applied
-to the output streams. This is why the following code lines produce the same output:
+the default formatting is applied. The same default formatting is also applied to the output streams.
+This is why the following code lines produce the same output:
 
 ```cpp
 std::cout << "Distance: " << 123 * km << "\n";
 std::cout << std::format("Distance: {}\n", 123 * km);
 std::cout << std::format("Distance: {:%Q %q}\n", 123 * km);
 ```
+
+Please note that for some quantities the `{:%Q %q}` format may provide a different output than
+the default one. It will happen for example for:
+
+- units for which `space_before_unit_symbol` customization point is set to `false`,
+- quantities of dimension one with a unit one.
 
 #### Controlling width, fill, and alignment
 
