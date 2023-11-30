@@ -678,7 +678,7 @@ The above constraints imply the usage of special implementation techniques. The 
 only provide types, but also compile-time known values that will enable users to write easy
 to understand and efficient equations on quantities and units.
 
-## Feature rich
+## Scope
 
 There are plenty of expectations from different parties regarding such a library. It should support
 at least:
@@ -689,10 +689,10 @@ at least:
 - The affine space.
 - Highly adjustable text-output formatting.
 
-Additionally it would be great if we could also address the following features:
+Additionally, it would be good to also support the following features:
 
 - Scalar, vector, and tensor quantities.
-- Natural units systems support.
+- Natural units systems.
 
 ## Easy to extend
 
