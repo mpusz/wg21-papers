@@ -864,8 +864,44 @@ Consistently with a [Quantity] definition, a `quantity` class template takes a r
 a representation type as parameters:
 
 ```cpp
-quantity<si::metre, int> q;
+template<Reference auto R,
+         RepresentationOf<get_quantity_spec(R).character> Rep = double>
+class quantity;
 ```
+
+### Constructing a quantity
+
+If we want to set a value for a quantity we always have to provide a number and a unit:
+
+```cpp
+quantity<si::metre, int> q{42, si::metre};
+```
+
+In case a quantity class template should use exactly the same unit and a representation type as
+provided in the initializer it is recommended to use CTAD:
+
+```cpp
+quantity q{42, si::metre};
+```
+
+Please note that `double` is used as a default representation type, so the following does not
+result with a quantity of integral representation type:
+
+```cpp
+quantity<si::metre> q2{42, si::metre};
+```
+
+This is why CTAD usage is recommended when the user wants to prevent potential conversion and
+just deduce the `quantity` class template parameters from the initializer. This often prevents
+unneeded conversions that can affect runtime performance or memory footprint.
+
+CTAD-based spelling is shorter but is still quite verbose. Consider having to write:
+
+```cpp
+quantity q = quantity{1, si::kilo<si::metre>} + quantity{200, si::metre};
+```
+
+This is why the library offers an alternative way to construct a quantity.
 
 The [@SI] says:
 
@@ -873,8 +909,8 @@ The [@SI] says:
 > and the unit is regarded as a multiplication sign (just as a space between units implies
 > multiplication).
 
-Following the above, the value of a quantity is created by multiplying a number with a predefined
-unit:
+Following the above, the value of a quantity can also be created by multiplying a number with
+a predefined unit:
 
 ```cpp
 quantity q = 42 * si::metre;
@@ -883,16 +919,6 @@ quantity q = 42 * si::metre;
 The above creates an instance of `quantity<si::metre(), int>`. It is worth noting here that the
 syntax with the reversed order of arguments is invalid and will not compile (e.g., we can't write
 `si::metre * 42`).
-
-Additionally, `double` is used as a default representation type, so the following does not result
-with a quantity of integral representation type:
-
-```cpp
-quantity<si::metre> q2 = 42 * si::metre;
-```
-
-This is why CTAD usage is recommended when the user wants to prevent potential conversion and
-just deduce the `quantity` class template parameters from the initializer.
 
 The same can be obtained using an optional unit symbol:
 
@@ -905,10 +931,10 @@ quantity q = 42 * m;
 Unit symbols introduce a lot of short identifiers into the current scope, which is why they
 are opt-in. A user has to explicitly "import" them from a dedicated `unit_symbols` namespace.
 
-[@SI] specifies 7 base and 22 coherent derived units with special names. Additionally,
-it specifies 24 prefixes. There are also non-SI units accepted for use with SI. Some of them are
-really popular, for example, minute, hour, day, degree, litre, hectare, tonne. All of those entities
-compose to allow the creation of a vast number of various derived units.
+[@SI] specifies 7 base and 22 coherent derived units with special names. Additionally, it specifies
+24 prefixes. There are also non-SI units accepted for use with SI. Some of them are really popular,
+for example, minute, hour, day, degree, litre, hectare, tonne. All of those entities compose to
+allow the creation of a vast number of various derived units.
 
 For example, we can create a quantity of speed with either:
 
@@ -917,8 +943,8 @@ quantity speed1 = 60 * si::kilo<si::metre> / non_si::hour;
 quantity speed2 = 60 * km / h;
 ```
 
-In case a complex derived unit is used a lot in the project, a user can quickly provide a nicely
-named wrapper for it with:
+In case a complex derived unit is used a lot in the project, for convenience, a user can quickly
+provide a nicely named wrapper for it with:
 
 ```cpp
 constexpr auto kmph = si::kilo<si::metre> / non_si::hour;
@@ -931,6 +957,8 @@ an instance of the following type
 `quantity<derived_unit<si::kilo_<si::metre{}>, per<non_si::hour>>{}, int>>`. As we can see, the
 type generation is optimized to be easily understood even by non-experts in the domain.
 The library tries to keep the type's readability as close to English as possible.
+
+### Typical operations on quantities
 
 Various quantities can be multiplied or divided to obtain other derived quantities. Quantities of
 the same kind can be added, subtracted, and compared to each other. Quantities can also be easily
@@ -953,6 +981,8 @@ The above prints:
 ```text
 Thanks for driving within the speed limit of 100 km/h :-)
 ```
+
+#### Unit conversions
 
 If we want to change the unit of a current quantity, we can use `.in(Unit)` member function:
 
@@ -986,6 +1016,8 @@ This time, we will see the following in the text output:
 The speed limit in m/s is 27.7778 m/s
 ```
 
+#### Obtaining a numerical value of a quantity
+
 Last but not least, if we need to obtain the numerical value of a quantity and pass it to some
 the legacy unsafe interface, we can use either `.numerical_value_in(Unit)` or
 `.force_numerical_value_in(Unit)` member functions:
@@ -1018,7 +1050,41 @@ This member function again requires a target unit to enforce safety. In case the
 have a different scaling factor than the current one; this overload will not participate in overload
 resolution.
 
+## Typed quantities (safer mode)
+
+Simple mode is all about and just about units. In case we care about a specific quantity type,
+typed quantities should be preferred. Those store information not only about a unit but also
+about a specific quantity type we want to model.
+
+There a few ways to obtain such a quantity:
+
+```cpp
+quantity<isq::height[m], int> q1 = 42 * m;
+quantity q2{42, isq::height[m]};
+quantity q3 = 42 * isq::height[m];
+quantity q4 = isq::height(42 * m);
+```
+
+All of the above cases use a slightly different approach to get the quantity, but all of them
+result in exactly the same `quantity` class template instantiation.
+
+In the above examples, an expression of `isq::height[m]` is called a quantity reference and
+results in `reference<isq::height, si::metre>` class template instantiation.
+
+_Note: The identifier `reference` is being used in the [@MP_UNITS] library but definitely will
+need bikeshedding during the standardization process._
+
+More about typed quantities can be found in the following chapters:
+
+- [Why do we need typed quantities?] provides a detailed rationale.
+- [Systems of quantities] describes their conversion and arithmetic rules.
+- [How typed quantities solve dimension-related issues?] provides the solutions to all problems
+  described in [Why do we need typed quantities?].
+
 ### Limitations of units-only solutions
+# Why do we need typed quantities?
+
+## Limitations of units-only solutions
 
 Units-only is not a good design for a quantities and units library. It works to some extent, but
 plenty of use cases can't be addressed, and for those that somehow work, we miss important safety
@@ -1029,7 +1095,7 @@ _Note: The issues described below do not apply to the proposed library because e
 to only use the simple mode, units are still backed up by quantity kinds under the framework's
 hood._
 
-#### No way to specify a quantity type in generic interfaces
+### No way to specify a quantity type in generic interfaces
 
 A common requirement in the domain is to write unit-agnostic generic interfaces. For example,
 let's try to implement a generic `avg_speed` function template that takes a quantity of any
@@ -1070,7 +1136,7 @@ We could try to provide concepts like `ScaledUnitOf<si::metre>` that will try to
 somehow the arguments, but it leads to even more problems with the unit definitions. For example,
 are Hz and Bq scaled versions of 1 / s? What about a litre and a cubic meter?
 
-#### Disjoint units of the same quantity type do not work
+### Disjoint units of the same quantity type do not work
 
 Sometimes, we need to define several units describing the same quantity but which do not convert
 to each other. A typical example can be a currency use case. A user may want to define EURO and
@@ -1078,7 +1144,7 @@ USD as units of currency, but do not provide any predefined conversion factor an
 a conversion at runtime with custom logic. In such a case, how we can specify that EURO and
 USD are quantities of the same type?
 
-### Limitations of dimensions
+## Limitations of dimensions
 
 To prevent the above issues, most of the libraries on the market introduce dimension abstraction.
 Thanks to that, we could solve the first issue of the previous chapter with:
@@ -1116,7 +1182,7 @@ This has been known for a long time now. The [@MSRMT_DATA] report from 1996 says
 In the following chapters, we will see a few use cases that can't be solved with either
 a units-only or dimensions approach.
 
-#### SI units of quantities of the same dimension but different kinds
+### SI units of quantities of the same dimension but different kinds
 
 The [@SI] provides several units for distinct quantities of the same dimension but different kinds.
 For example:
@@ -1144,7 +1210,7 @@ and provide meaningless results. Some of them decide not to define one or more o
 units at all to avoid potential safety issues. For example,
 [the Au library does not define `Sv` to avoid mixing it up with Gy](https://github.com/aurora-opensource/au/pull/157).
 
-#### Quantities of the same dimension but different kinds
+### Quantities of the same dimension but different kinds
 
 Even if some quantities do not have a specially assigned unit, they may still have a totally
 different physical meaning even if they share the same dimension:
@@ -1155,7 +1221,7 @@ different physical meaning even if they share the same dimension:
 
 Again, we don't want to accidentally mix those.
 
-#### Various quantities of the same dimension and kinds
+### Various quantities of the same dimension and kinds
 
 Even if we somehow address all the above, there are still plenty of use cases that still can't be
 safely implemented with such abstractions.
@@ -1186,6 +1252,101 @@ the same units (e.g., USD).
 
 None of the above scenarios can be addressed with just units and dimensions. We need a better
 abstraction to safely implement them.
+
+# How typed quantities solve dimension-related issues?
+
+Here we will present how to address dimension-related issues mentioned above.
+
+For example, if we want to provide a generic interface for `avg_speed` we can write the following:
+
+```cpp
+QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto distance, 
+                                      QuantityOf<isq::time> auto time)
+{
+  return distance / time;
+}
+```
+
+Having a well modeled system of quantities allows us to safely model derived units of different
+kinds in the following way:
+
+```cpp
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
+
+inline constexpr struct hertz : named_unit<"Hz", one / second, kind_of<isq::frequency>> {} hertz;
+inline constexpr struct becquerel : named_unit<"Bq", one / second, kind_of<isq::activity>> {} becquerel;
+
+inline constexpr struct gray : named_unit<"Gy", joule / kilogram, kind_of<isq::absorbed_dose>> {} gray;
+inline constexpr struct sievert : named_unit<"Sv", joule / kilogram, kind_of<isq::dose_equivalent>> {} sievert;
+
+inline constexpr struct radian : named_unit<"rad", metre / metre, kind_of<isq::angular_measure>> {} radian;
+inline constexpr struct steradian : named_unit<"sr", square(metre) / square(metre), kind_of<isq::solid_angular_measure>> {} steradian;
+```
+
+Thanks to the above it is safe to use above units even in the simple units-only mode. The library
+will prevent meaningless operations at compile time.
+
+Also, disjoint units can be defined in the following way:
+
+```cpp
+inline constexpr struct dim_currency : base_dimension<"$"> {} dim_currency;
+inline constexpr struct currency : quantity_spec<dim_currency> {} currency;
+
+inline constexpr struct euro : named_unit<"EUR", kind_of<currency>> {} euro;
+inline constexpr struct us_dollar : named_unit<"USD", kind_of<currency>> {} us_dollar;
+```
+
+EUR and USD above are both units of currency but do not have any predefined conversion factor
+between them.
+
+Next, let's implement the _fuel consumption_ example:
+
+```cpp
+inline constexpr struct fuel_volume : quantity_spec<isq::volume> {} fuel_volume;
+inline constexpr struct fuel_consumption : quantity_spec<fuel_volume / isq::distance> {} fuel_consumption;
+
+const quantity fuel = fuel_volume(40. * l);
+const quantity distance = isq::distance(550. * km);
+const quantity<fuel_consumption[l / (mag<100> * km)]> q = fuel / distance;
+std::cout << "Fuel consumption: " << q << "\n";
+```
+
+The above code prints:
+
+```text
+Fuel consumption: 7.27273 × 10⁻² l/km
+```
+
+Please note that, despite the dimensions of `fuel_consumption` and `isq::area` being the same ($L^2$),
+the constructor of a quantity `q` below will fail to compile when we pass an argument being the
+quantity of area:
+
+```cpp
+static_assert(fuel_consumption.dimension == isq::area.dimension);
+
+const quantity<isq::area[m2]> football_field = isq::length(105 * m) * isq::width(68 * m);
+const quantity<fuel_consumption[l / (mag<100> * km)]> q2 = football_field;  // Compile-time error
+const quantity q3 = q + football_field;                                     // Compile-time error
+if (q == football_field) {                                                  // Compile-time error
+  // ...
+}
+```
+
+To enable implicit conversion of a proper equation to the _gravitational potential energy_ quantity
+we can provide a proper equation in its definition:
+
+```cpp
+inline constexpr struct standard_gravity :
+  quantity_spec<acceleration> {} standard_gravity;
+inline constexpr struct gravitational_potential_energy :
+  quantity_spec<potential_energy, isq::mass * standard_gravity * isq::height> {} gravitational_potential_energy;
+```
+
+The solution for rest of the issues can be found in the [Usage examples] chapter:
+
+- freight transport will be addressed in a similar way to [Storage tank]
+- audio industry beats and samples can be implemented as in [User defined quantities and units]
 
 
 
@@ -2402,6 +2563,31 @@ the mountain peak mean after all?
 
 Modeling such affine space entities with the `quantity` (vector) and `quantity_point` (point) class
 templates improves the overall project's safety by only providing the operators defined by the concepts.
+
+The following operations are not allowed in the affine space:
+
+- **adding** two `quantity_point` objects
+    - It is physically impossible to add the positions of home and Denver airport.
+- **subtracting** a `quantity_point` from a `quantity`
+    - What would it mean to subtract the DEN airport location from a distance?
+- **multiplying/dividing** a `quantity_point` with a scalar
+    - What is the position of `2 *` DEN airport location?
+- **multiplying/dividing** a `quantity_point` with a quantity
+    - What would multiplying a distance with the DEN airport location mean?
+- **multiplying/dividing** two `quantity_point` objects
+    - What would multiplying the home and DEN airport location mean?
+- **mixing** `quantity_points` of different quantity kinds
+    - It is physically impossible to subtract ISQ time from ISQ length.
+- **mixing** `quantity_points` of inconvertible quantities
+    - What does it mean to subtract a distance point to DEN airport from the Mount Everest base camp
+      altitude?
+- **mixing** `quantity_points` of convertible quantities but with unrelated origins
+    - How to subtract a point on our trip to CppCon measured relatively to our home location from
+      a point measured relative to the center of the Solar System?
+
+The usage of `quantity_point`, and affine space types in general, improves expressiveness and
+type-safety of the code we write.
+
 
 ## `explicit` is not explicit enough
 
