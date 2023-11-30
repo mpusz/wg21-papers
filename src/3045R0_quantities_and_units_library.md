@@ -3325,7 +3325,7 @@ references:
   URL: <https://www.iso.org/obp/ui#iso:std:iso-iec:guide:99>
 - id: ISO80000
   citation-label: ISO 80000
-  title: "ISO80000: Quantities and units"
+  title: "ISO 80000: Quantities and units"
   URL: <https://www.iso.org/standard/76921.html>
 - id: JSR-385
   citation-label: JSR 385
