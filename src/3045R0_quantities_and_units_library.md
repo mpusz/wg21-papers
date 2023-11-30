@@ -848,71 +848,344 @@ It is also worth mentioning here that [@ISO80000] does not distinguish between p
 vector/interval quantities of [The affine space].
 
 
-## Limitations of units only solutions
+# API overview
 
-Unable to provide generic interfaces in specific quantities
-Currency example will not work
+This chapter is intended to be a short overview and present the proposed library's final look and
+feel. We start with the most straightforward use cases and gradually introduce more complex
+abstractions. Thanks to that, the readers can assess the [Teachability] effort of
+this library by themselves.
 
-## Limitations of dimensions
+More details about the design, rationale for it, and alternative syntaxes discussions can be found in
+the [Design details and rationale] chapter.
 
-activity in Bq vs frequency in Hz
-gray vs sievert
-fuel_consumption vs area
-Torque vs work
-dimensionless vs angular_measure vs solid angular_measure vs storage_capacity
-counts (i.e. beats, samples) and frequency
-box example
-glide computer
-gravitational potential energy
+## Unit-based quantities (simple mode)
 
+Consistently with a [Quantity] definition, a `quantity` class template takes a reference and
+a representation type as parameters:
 
 ```cpp
-inline constexpr struct dim_currency : base_dimension<"$"> {} dim_currency;
-
-QUANTITY_SPEC(market_quantity, dimensionless);
-QUANTITY_SPEC(currency, dim_currency);
-QUANTITY_SPEC(volume, currency, currency * market_quantity);
-
-inline constexpr struct us_dollar : named_unit<"USD", kind_of<currency>> {} us_dollar;
-
-namespace unit_symbols {
-
-inline constexpr auto USD = us_dollar;
-inline constexpr auto USD_s = scaled_us_dollar;
-
-}
-
-using Qty = quantity<market_quantity[one], int>;
-using Price = quantity<currency[us_dollar], double>;
-using Scaled = quantity<currency[scaled_us_dollar], std::int64_t>;
-using Volume = quantity<volume[scaled_us_dollar], std::int64_t>;
-
-Price price1 = 12.95 * USD;
-Price price2 = 12.55 * USD;
-Qty qty1 = 100 * one;
-Qty qty2 = 110 * one;
-
-Volume vol = price1 * qty1 + price2 * qty2;
-// Volume bad = price1 + price2;  // does not compile
-
-Price avg = vol / (qty1 + qty2);
-// Volume bad = vol / (qty1 + qty2);  // does not compile
+quantity<si::metre, int> q;
 ```
 
+The [@SI] says:
 
+> The value of the quantity is the product of the number and the unit. The space between the number
+> and the unit is regarded as a multiplication sign (just as a space between units implies
+> multiplication).
 
+Following the above, the value of a quantity is created by multiplying a number with a predefined
+unit:
 
-# Unit-based quantities (simple mode)
+```cpp
+quantity q = 42 * si::metre;
+```
 
-Examples, error messages, ...
+The above creates an instance of `quantity<si::metre(), int>`. It is worth noting here that the
+syntax with the reversed order of arguments is invalid and will not compile (e.g., we can't write
+`si::metre * 42`).
 
+Additionally, `double` is used as a default representation type, so the following does not result
+with a quantity of integral representation type:
 
-# Typed quantities (safer mode)
+```cpp
+quantity<si::metre> q2 = 42 * si::metre;
+```
 
+This is why CTAD usage is recommended when the user wants to prevent potential conversion and
+just deduce the `quantity` class template parameters from the initializer.
 
+The same can be obtained using an optional unit symbol:
 
-# Design overview
+```cpp
+using namespace si::unit_symbols;
 
+quantity q = 42 * m;
+```
+
+Unit symbols introduce a lot of short identifiers into the current scope, which is why they
+are opt-in. A user has to explicitly "import" them from a dedicated `unit_symbols` namespace.
+
+[@SI] specifies 7 base and 22 coherent derived units with special names. Additionally,
+it specifies 24 prefixes. There are also non-SI units accepted for use with SI. Some of them are
+really popular, for example, minute, hour, day, degree, litre, hectare, tonne. All of those entities
+compose to allow the creation of a vast number of various derived units.
+
+For example, we can create a quantity of speed with either:
+
+```cpp
+quantity speed1 = 60 * si::kilo<si::metre> / non_si::hour;
+quantity speed2 = 60 * km / h;
+```
+
+In case a complex derived unit is used a lot in the project, a user can quickly provide a nicely
+named wrapper for it with:
+
+```cpp
+constexpr auto kmph = si::kilo<si::metre> / non_si::hour;
+quantity speed3 = 60 * kmph;
+```
+
+The library is optimized to generate short and easy-to-understand types that highly improve
+the analysis of compile-time errors and debugging experience. All of the above definitions will create
+an instance of the following type
+`quantity<derived_unit<si::kilo_<si::metre{}>, per<non_si::hour>>{}, int>>`. As we can see, the
+type generation is optimized to be easily understood even by non-experts in the domain.
+The library tries to keep the type's readability as close to English as possible.
+
+Various quantities can be multiplied or divided to obtain other derived quantities. Quantities of
+the same kind can be added, subtracted, and compared to each other. Quantities can also be easily
+printed with output streams or formatting facilities.
+
+```cpp
+quantity dist1 = 80 * km;
+quantity dist2 = 105 * km;
+quantity duration = 2 * h;
+quantity speed_limit = 100 * km / h;
+
+if ((dist1 + dist2) / duration < speed_limit)
+  std::cout << "Thanks for driving within the speed limit of " << speed_limit << " :-)\n";
+else
+  std::println("Slow down! The speed limit here is {}!", speed_limit);
+```
+
+The above prints:
+
+```text
+Thanks for driving within the speed limit of 100 km/h :-)
+```
+
+If we want to change the unit of a current quantity, we can use `.in(Unit)` member function:
+
+```cpp
+std::cout << "The total distance in meters is " << (dist1 + dist2).in(m) << "\n";
+```
+
+Trying to do the same for `speed_limit` is invalid and will result in a compile time error stating
+that the member function `.in()` was not found. This is caused by the fact that the scaling of an
+integral type by a rational or irrational factor is considered not value-preserving. To force such
+a conversion, we can use either a `.force_in(Unit)` member function or an explicit
+`value_cast<Unit>(Quantity)`.
+
+```cpp
+std::cout << "The speed limit in m/s is " << speed_limit.force_in(m / s) << "\n";
+std::cout << "The speed limit in m/s is " << value_cast<m / s>(speed_limit) << "\n";
+```
+
+We will get a truncated value of `27 m/s` in both cases.
+
+To prevent truncation, we must explicitly change the quantity representation type to a
+value-preserving one with `value_cast<Representation>(Quantity)` overload. For example:
+
+```cpp
+std::cout << "The speed limit in m/s is " << value_cast<double>(speed_limit).in(m / s) << "\n";
+```
+
+This time, we will see the following in the text output:
+
+```text
+The speed limit in m/s is 27.7778 m/s
+```
+
+Last but not least, if we need to obtain the numerical value of a quantity and pass it to some
+the legacy unsafe interface, we can use either `.numerical_value_in(Unit)` or
+`.force_numerical_value_in(Unit)` member functions:
+
+```cpp
+void legacy_check_speed_limit(int speed_in_km_per_h);
+```
+
+```cpp
+legacy_check_speed_limit(((dist1 + dist2) / duration).numerical_value_in(km / h));
+```
+
+Such a getter will explicitly enforce the usage of a correct unit required by the underlying
+interface, which reduces a significant number of safety-related issues.
+
+`numerical_value_in(Unit)` always returns by value as a quantity value conversion may be required
+to adjust to the target unit. In case a user needs a reference to the underlying storage
+`.numerical_value_ref_in(Unit)` should be used:
+
+```cpp
+void legacy_set_speed_limit(int* speed_in_km_per_h) { *speed_in_km_per_h = 100; }
+```
+
+```cpp
+quantity<km / h, int> speed_limit;
+legacy_set_speed_limit(&speed_limit.numerical_value_ref_in(km / h));
+```
+
+This member function again requires a target unit to enforce safety. In case the provided unit will
+have a different scaling factor than the current one; this overload will not participate in overload
+resolution.
+
+### Limitations of units-only solutions
+
+Units-only is not a good design for a quantities and units library. It works to some extent, but
+plenty of use cases can't be addressed, and for those that somehow work, we miss important safety
+improvements provided by additional abstractions in this chapter. But before we talk about those
+extensions, let's first discuss some limitations of the units-only solution.
+
+_Note: The issues described below do not apply to the proposed library because even if we decide
+to only use the simple mode, units are still backed up by quantity kinds under the framework's
+hood._
+
+#### No way to specify a quantity type in generic interfaces
+
+A common requirement in the domain is to write unit-agnostic generic interfaces. For example,
+let's try to implement a generic `avg_speed` function template that takes a quantity of any
+unit and produces the result. So if we call it with _distance_ in `km` and _time_ in `h`, we will
+get `km / h` as a result, but if we call it with `mi` and `h`, we expect `mi / h` to be returned.
+
+```cpp
+template<Unit auto U1, typename Rep1, Unit auto U2, typename Rep2>
+auto avg_speed(quantity<U1, Rep1> distance, quantity<U2, Rep2> time)
+{
+  return distance / time;
+}
+
+quantity speed = avg_speed(120 * km, 2 * h);
+```
+
+This function works but does not provide any type safety to the users. The function arguments
+can be easily reordered on the call site. Also, we do not get any information about the
+return type of the function and any safety to ensure that the function logic actually returns
+a quantity of _speed_.
+
+With a units-only library, we have to write the function in the following way:
+
+```cpp
+quantity<si::metre / si::second> avg_speed(quantity<si::metre> distance, quantity<si::second> time)
+{
+  return distance / time;
+}
+
+avg_speed(120 * km, 2 * h).in(km / h);
+```
+
+The above code decreased the performance because we always pay for the conversion at the function's
+input and output. Moreover, we had to force `double` as a representation type to prevent narrowing,
+which can affect not only the performance but also our memory footprint.
+
+We could try to provide concepts like `ScaledUnitOf<si::metre>` that will try to constrain
+somehow the arguments, but it leads to even more problems with the unit definitions. For example,
+are Hz and Bq scaled versions of 1 / s? What about a litre and a cubic meter?
+
+#### Disjoint units of the same quantity type do not work
+
+Sometimes, we need to define several units describing the same quantity but which do not convert
+to each other. A typical example can be a currency use case. A user may want to define EURO and
+USD as units of currency, but do not provide any predefined conversion factor and handle such
+a conversion at runtime with custom logic. In such a case, how we can specify that EURO and
+USD are quantities of the same type?
+
+### Limitations of dimensions
+
+To prevent the above issues, most of the libraries on the market introduce dimension abstraction.
+Thanks to that, we could solve the first issue of the previous chapter with:
+
+```cpp
+QuantityOf<dim_speed> auto avg_speed(QuantityOf<dim_length> auto distance, 
+                                     QuantityOf<dim_time> auto time)
+{
+  return distance / time;
+}
+```
+
+and the second one by specifying that both EURO and USD are units of `dim_currency`. This is
+a significant improvement but still has some issues.
+
+Let's first look again at the above solution. A domain expert seeing this code will immediately
+say there is no such thing as a speed dimension. The ISQ specifies only 7 dimensions with
+unique symbols assigned, and the dimensions of all the ISQ quantities are created as a
+vector product of those. For example, a quantity of _speed_ has a dimension of $L^1T^{-1}$.
+So, to be physically correct, the above code should be rewritten as:
+
+```cpp
+QuantityOf<dim_length / dim_time> auto avg_speed(QuantityOf<dim_length> auto distance, 
+                                                 QuantityOf<dim_time> auto time)
+{
+  return distance / time;
+}
+```
+
+Most of the libraries on the market ignore this fact and try to model distinct quantities through
+their dimensions, giving a false sense of safety. A dimension is not enough to describe a quantity.
+This has been known for a long time now. The [@MSRMT_DATA] report from 1996 says explicitly,
+"Dimensional analysis does not adequately model the semantics of measurement data".
+
+In the following chapters, we will see a few use cases that can't be solved with either
+a units-only or dimensions approach.
+
+#### SI units of quantities of the same dimension but different kinds
+
+The [@SI] provides several units for distinct quantities of the same dimension but different kinds.
+For example:
+
+- hertz (Hz) is a unit of _frequency_ and becquerel (Bq) is a unit of _activity_ while both
+  are defined as $s^{-1}$ so have the same dimension of $T^{-1}$.
+- gray (Gy) is a unit of _absorbed dose_ and sievert (Sv) is a unit of _dose equivalent_
+  while both are defined as $m^2 s^{-2}$ so have the same dimension of $L^2T^{-2}$
+- radian (rad) is a unit of _plane angle_ and is defined as $m/m$, and steradian (sr) is a unit of
+  a _solid angle_ and is defined as $m^2/m^2$ while both are quantities of dimension one which
+  also has its own units like one (1), percent (%), etc.
+
+There are many more similar examples in the [@ISO80000]. For example, _storage capacity_
+quantity can be measured in units of one, bit, octet, and byte.
+
+The above conflicts can't be solved with dimensions, and they yield many safety issues. For example,
+we can ask ourselves what should be the result of the following:
+
+1. `quantity q = 1 * Hz + 1 * Bq;`
+2. `quantity<Gy> q = 42 * Sv;`
+3. `bool b = (1 * rad + 1 * bit) == 2 * sr;`
+
+None of the above code should compile, but most of the libraries on the market happily accept it
+and provide meaningless results. Some of them decide not to define one or more of the above
+units at all to avoid potential safety issues. For example,
+[the Au library does not define `Sv` to avoid mixing it up with Gy](https://github.com/aurora-opensource/au/pull/157).
+
+#### Quantities of the same dimension but different kinds
+
+Even if some quantities do not have a specially assigned unit, they may still have a totally
+different physical meaning even if they share the same dimension:
+
+- _work_ vs. _moment of force_ both of the same dimension $L^2MT^{-2}$
+- _fuel consumption_ expressed in $\frac{l}{100\;km}$ vs. _area_ expressed in $m^2$ both of the same
+  dimension $L^2$
+
+Again, we don't want to accidentally mix those.
+
+#### Various quantities of the same dimension and kinds
+
+Even if we somehow address all the above, there are still plenty of use cases that still can't be
+safely implemented with such abstractions.
+
+Let's consider that we want to implement a freight transport application to position cargo in the
+container. In such a scenario, we need to be able to discriminate between _length_, _width_, and
+_height_ of the package. Also, often, we can find a "This side up" arrow on the box.
+
+A similar but also really important use case is in aviation. The current _altitude_ is a totally
+different quantity than the _distance_ to the destination. The same is true for forward _velocity_
+and _sink rate_. We do not want to accidentally mix those.
+
+When we deal with _energy_, we should be able to implicitly construct it from a proper product of
+any _mass_, _length_, and _time_. However, when we want to calculate _gravitational potential energy_
+we may not want it to be implicitly constructed from any quantities of matching dimensions.
+Such an implicit construction should be allowed only if we multiply a _mass_ with
+_standard acceleration of gravity_ and _height_. All other conversions should happen explicitly.
+
+Yet another example comes from the audio industry. In the audio software, we want to treat specific
+counts (e.g., beats, samples) as separate quantities, but if we divide them, we should obtain a
+quantity of _frequency_. The latter has the dimension of $T^{-1}$, which prevents us from assigning
+dedicated dimensions to such counts.
+
+The last example that we want to mention here comes from finance. This time, we need to model _volume_
+as a special quantity of _currency_. _volume_ can be obtained by multiplying _currency_ by the
+dimensionless _market quantity_. Of course, both _currency_ and _volume_ should be expressed in
+the same units (e.g., USD).
+
+None of the above scenarios can be addressed with just units and dimensions. We need a better
+abstraction to safely implement them.
 
 
 
@@ -3358,6 +3631,19 @@ references:
   citation-label: mp-units
   title: "mp-units - A Physical Quantities and Units library for C++"
   URL: <https://mpusz.github.io/mp-units>
+- id: MSRMT_DATA
+  citation-label: Measurement Data
+  author:
+    - family: Kent
+      given: William
+    - family: Leichner Janowski
+      given: Stephanie
+    - family: Hamilton
+      given: Bruce
+    - family: Hepner
+      given: Dan
+  title: "Measurement Data (Archive Report)"
+  URL: <https://www.bkent.net/Doc/mdarchiv.pdf>
 - id: NHOLTHAUS-UNITS
   citation-label: nholthaus/units
   title: "UNITS - A compile-time, header-only, dimensional analysis and unit conversion library built on c++14 with no dependencies."
