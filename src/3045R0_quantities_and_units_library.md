@@ -2388,6 +2388,262 @@ are opt-in. A user has to explicitly "import" them from a dedicated `unit_symbol
 
 
 
+# Design details and rationale
+
+<img src="img/design.svg" style="display: block; margin-left: auto; margin-right: auto; width: 60%;"/>
+
+## Expression templates
+
+Modern C++ physical quantities and units libraries use opaque types to improve the user experience while
+analyzing compile-time errors or inspecting types in a debugger. This is a huge usability improvement
+over the older libraries that use aliases to refer to long instantiations of class templates.
+
+### Derived entities
+
+Having such strong types for entities is not enough. While doing arithmetics on them, we get derived
+entities, and they also should be easy to understand and correlate with the code written by the user.
+This is where expression templates come into play.
+
+The library should use the same unified approach to represent the results of arithmetics on all
+kinds of entities. It is worth mentioning that a generic purpose expression templates library
+is not a good solution for a physical quantities and units library.
+
+Let's assume that we want to represent the results of the following two unit equations:
+
+- `metre / second * second`
+- `metre * metre / metre`
+
+Both of them should result in a type equivalent to `metre`. A general-purpose library will probably
+result with the types similar to the below:
+
+- `mul<div<metre, second>, second>`
+- `div<mul<metre, metre>, metre>`
+
+Comparing such types for equivalence would not only be very expensive at compile-time but would also
+be really confusing to the users observing them in the compilation logs. This is why we need
+a dedicated solution here.
+
+In a physical quantities and units library, we need expression templates to express the results of
+
+- dimension equations,
+- quantity type equations,
+- unit equations, and
+- unit magnitude equations.
+
+If the above equation results in a derived entity, we must create a type that clearly
+describes what we are dealing with. We need to pack a simplified expression
+template into some container for that. There are various possibilities here. The table below presents
+the types generated from unit expressions by two leading products on the market in this subject:
+
+<!-- markdownlint-disable MD013 -->
+
+| Unit           | [@MP-UNITS]                                                            | [@AU]                                                                          |
+|----------------|------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| `N⋅m`          | `derived_unit<metre, newton>`                                          | `UnitProduct<Meters, Newtons>`                                                 |
+| `1/s`          | `derived_unit<one, per<second>>`                                       | `Pow<Seconds, -1>`                                                             |
+| `km/h`         | `derived_unit<kilo_<metre>, per<hour>>`                                | `UnitProduct<Kilo<Meters>, Pow<Hours, -1>>`                                    |
+| `kg⋅m²/(s³⋅K)` | `derived_unit<kilogram, pow<metre, 2>, per<kelvin, power<second, 3>>>` | `UnitProduct<Pow<Meters, 2>, Kilo<Grams>, Pow<Seconds, -3>, Pow<Kelvins, -1>>` |
+| `m²/m`         | `metre`                                                                | `Meters`                                                                       |
+| `km/m`         | `derived_unit<kilo_<metre>, per<metre>>`                               | `UnitProduct<Pow<Meters, -1>, Kilo<Meters>>`                                   |
+| `m/m`          | `one`                                                                  | `UnitProduct<>`                                                                |
+
+<!-- markdownlint-enable MD013 -->
+
+It is a matter of taste which solution is better. While discussing the pros and cons here, we
+should remember that our users often do not have a scientific background. This is why
+the [@MP-UNITS] library decided to use syntax that is as similar to the correct English language
+as possible. It consistently uses the `derived_` prefix for types representing derived units,
+dimensions, and quantity specifications. Those are instantiated first with the contents of
+the numerator followed by the entities of the denominator (if present) enclosed in the
+`per<...>` expression template.
+
+### Identities
+
+The arithmetics on units, dimensions, and quantity types require a special identity value. Such value
+can be returned as a result of the division of the same entities, or using it should not modify the
+expression template on multiplication.
+
+The [@MP-UNITS] library chose the following names here:
+
+- `one` in the domain of units,
+- `dimension_one` in the domain of dimensions,
+- `dimensionless` in the domain of quantity types.
+
+The above names were selected based on the following quote from the [@ISO80000]:
+
+> A quantity whose dimensional exponents are all equal to zero has the dimensional product denoted
+> A<sup>0</sup>B<sup>0</sup>C<sup>0</sup>… = 1, where the symbol 1 denotes the corresponding
+> dimension. There is no agreement on how to refer to such quantities. They have been called
+> **dimensionless** quantities (although this term should now be avoided), quantities with
+> **dimension one**, quantities with dimension number, or quantities with the **unit one**.
+> Such quantities are dimensionally simply numbers. To avoid confusion, it is helpful to use
+> explicit units with these quantities where possible, e.g., m/m, nmol/mol, rad, as specified
+> in the SI Brochure.
+
+### Supported operations and their results
+
+The table below presents all the operations that can be done on units, dimensions, and quantity
+types in a physical quantities and units library and corresponding expression templates chosen
+by the [@MP-UNITS] project as their results:
+
+|                   Operation                   | Resulting template expression arguments |
+|:---------------------------------------------:|:---------------------------------------:|
+|                    `A * B`                    |                 `A, B`                  |
+|                    `B * A`                    |                 `A, B`                  |
+|                    `A * A`                    |              `power<A, 2>`              |
+|               `{identity} * A`                |                   `A`                   |
+|               `A * {identity}`                |                   `A`                   |
+|                    `A / B`                    |               `A, per<B>`               |
+|                    `A / A`                    |              `{identity}`               |
+|               `A / {identity}`                |                   `A`                   |
+|               `{identity} / A`                |          `{identity}, per<A>`           |
+|                  `pow<2>(A)`                  |              `power<A, 2>`              |
+|             `pow<2>({identity})`              |              `{identity}`               |
+|          `sqrt(A)` or `pow<1, 2>(A)`          |            `power<A, 1, 2>`             |
+| `sqrt({identity})` or `pow<1, 2>({identity})` |              `{identity}`               |
+
+### Simplifying the resulting expression templates
+
+To limit the length and improve the readability of generated types, there are many rules to simplify
+the resulting expression template.
+
+1. **Ordering**
+
+    The resulting comma-separated arguments of multiplication are always sorted according to
+    a specific predicate. This is why:
+
+    ```cpp
+    static_assert(A * B == B * A);
+    static_assert(std::is_same_v<decltype(A * B), decltype(B * A)>);
+    ```
+
+    This is probably the most important of all the steps, as it allows comparing types and enables
+    the rest of the simplification rules.
+
+    Units and dimensions have unique symbols, but ordering quantity types might not be that
+    trivial. Although the ISQ defined in [@ISO80000] provides symbols for each
+    quantity, there is little use for them in the C++ code. This is caused by the fact that
+    such symbols use a lot of characters that are not available with the Unicode encoding.
+    Most of the limitations correspond to Unicode providing only a minimal set of characters
+    available as subscripts, which are often used to differentiate various quantities of the same
+    kind. For example, it is impossible to encode the symbols of the following quantities:
+
+    - _c_<sub>sat</sub> - specific heat capacity at saturated vapour pressure,
+    - _μ_<sub>JT</sub> - Joule-Thomson coefficient,
+    - _w_<sub>H<sub>2</sub>O</sub> - mass fraction of water,
+    - _σ_<sub>Ω,E</sub> - direction and energy distribution of cross section,
+    - _d_<sub>1/2</sub> - half-value thickness,
+    - _Φ_<sub>e,λ</sub> - spectral radiant flux.
+
+    This is why the [@MP-UNITS] library chose to use type name identifiers in such cases.
+
+2. **Aggregation**
+
+    In case two of the same type identifiers are found next to each other on the argument list, they
+    will be aggregated in one entry:
+
+    |              Before              |      After       |
+    |:--------------------------------:|:----------------:|
+    |              `A, A`              |  `power<A, 2>`   |
+    |         `A, power<A, 2>`         |  `power<A, 3>`   |
+    |  `power<A, 1, 2>, power<A, 2>`   | `power<A, 5, 2>` |
+    | `power<A, 1, 2>, power<A, 1, 2>` |       `A`        |
+
+3. **Simplification**
+
+    In case two of the same type identifiers are found in the numerator and denominator argument lists,
+    they are being simplified into one entry:
+
+    |        Before         |        After         |
+    |:---------------------:|:--------------------:|
+    |      `A, per<A>`      |     `{identity}`     |
+    | `power<A, 2>, per<A>` |         `A`          |
+    | `power<A, 3>, per<A>` |    `power<A, 2>`     |
+    | `A, per<power<A, 2>>` | `{identity}, per<A>` |
+
+    It is important to notice here that only the elements with exactly the same type are being
+    simplified. This means that, for example, `m/m` results in `one`, but `km/m` will not be
+    simplified. The resulting derived unit will preserve both symbols and their relative
+    magnitude. This allows us to properly print symbols of some units or constants that require
+    such behavior. For example, the Hubble constant is expressed in `km⋅s⁻¹⋅Mpc⁻¹`, where both
+    `km` and `Mpc` are units of length.
+
+4. **Repacking**
+
+    In case an expression uses two results of some other operations, the components of its arguments
+    are repacked into one resulting type and simplified there.
+
+    For example, assuming:
+
+    ```cpp
+    constexpr auto X = A / B;
+    ```
+
+    then:
+
+    | Operation | Resulting template expression arguments |
+    |:---------:|:---------------------------------------:|
+    |  `X * B`  |                   `A`                   |
+    |  `X * A`  |          `power<A, 2>, per<B>`          |
+    |  `X * X`  |     `power<A, 2>, per<power<B, 2>>`     |
+    |  `X / X`  |              `{identity}`               |
+    |  `X / A`  |          `{identity}, per<B>`           |
+    |  `X / B`  |          `A, per<power<B, 2>>`          |
+
+Please note that for as long as for the ordering step in some cases, we use user-provided
+symbols, the aggregation, and the next steps do not benefit from those. They always use type
+identifiers to determine whether the operation should be performed.
+
+Unit symbols are not guaranteed to be unique in the project. For example, someone may use `"s"`
+as a symbol for a count of samples, which, when used in a unit expression with seconds, would
+cause fatal consequences (e.g. `sample * second` would yield `s²`, or `sample / second` would
+result in `one`).
+
+Some units would provide worse text output if the ordering step used type identifiers rather
+than unit symbols. For example, `si::metre * si::second * cgs::second` would result
+in `s m s`, or `newton * metre` would result in `m N`, which is not how we typically spell this
+unit. However, for the sake of consistency, we may also consider changing the algorithm used for
+ordering to be based on type identifiers.
+
+### Example
+
+Thanks to all of the steps described above, a user may write the code like this one:
+
+```cpp
+using namespace mp_units::si::unit_symbols;
+quantity speed = isq::speed(60. * km / h);
+quantity duration = 8 * s;
+quantity acceleration1 = speed / duration;
+quantity acceleration2 = isq::acceleration(acceleration1.in(m / s2));
+std::cout << "acceleration: " << acceleration1 << " (" << acceleration2 << ")\n";
+```
+
+the text output provides:
+
+```text
+acceleration: 7.5 km h⁻¹ s⁻¹ (2.08333 m/s²)
+```
+
+The above program will produce the following types for acceleration quantities
+(after stripping the `mp_units` namespace for brevity):
+
+- `acceleration1`
+
+    ```text
+    quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>{},
+                      derived_unit<si::kilo_<si::metre{}>, per<non_si::hour, si::second>>{}>{},
+             double>
+    ```
+
+- `acceleration2`
+
+    ```text
+    quantity<reference<isq::acceleration,
+                       derived_unit<si::metre, per<power<si::second, 2>>>{}>{},
+             double>>
+    ```
+
+
 
 # Text output
 
