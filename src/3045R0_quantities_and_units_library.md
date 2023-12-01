@@ -696,6 +696,9 @@ Additionally, it would be good to also support the following features:
 
 ## Easy to extend
 
+The library's core framework does not assume the usage of any systems of quantities or units.
+It is fully generic and allow defining any system abstraction on top of it.
+
 Most entities in the library can be defined with a single line of code without
 preprocessor macros. Users can easily extend provided systems with custom
 dimensions, quantities, and units.
@@ -1747,9 +1750,9 @@ enough to describe a quantity. This has been known for a long time now. The [@MS
 from 1996 says explicitly, "Dimensional analysis does not adequately model the semantics of
 measurement data".
 
-A typical problem that most similar libraries struggle with is supporting quantities like work and
-torque as being independent, strong types. The problem here arises from the fact that both of them
-have exactly the same dimension `L²MT⁻²`, but a totally different physical meaning. As a result,
+A typical problem that most similar libraries struggle with is supporting quantities like _work_ and
+_torque_ as being independent, strong types. The problem here arises from the fact that both of them
+have exactly the same dimension $L^2MT^{-2}$, but a totally different physical meaning. As a result,
 it is possible to mathematically add or compare them in a quantity equation even though such
 an operation has no sense from the physical point of view.
 
@@ -1761,15 +1764,15 @@ auto res = 1 * Hz + 1 * Bq + 1 * Bd;
 
 where:
 
-- `Hz` (hertz) - a unit of frequency
-- `Bq` (becquerel) - a unit of activity
-- `Bd` (baud) - a unit of modulation rate
+- `Hz` (hertz) - a unit of _frequency_
+- `Bq` (becquerel) - a unit of _activity_
+- `Bd` (baud) - a unit of _modulation rate_
 
-All of those quantities have the same dimension, namely `T⁻¹`, but it is probably not wise to allow
+All of those quantities have the same dimension, namely $T^{-1}$, but it is probably not wise to allow
 adding, subtracting, or comparing them, as they describe vastly different physical properties.
 
 It also is really tricky to separate handling of the quantities of dimension one. For example,
-angular measure expressed in radians and solid angular measure expressed in steradians should
+_angular measure_ expressed in radians and _solid angular measure_ expressed in steradians should
 be independent. Any attempts to add or compare them should be detected at compile-time.
 
 Last but not least, let's see the following implementation:
@@ -1819,25 +1822,25 @@ The [@ISO-GUIDE] says:
 Those provide answers to all the issues mentioned above. More than one quantity may be defined for
 the same dimension:
 
-- quantities of different kinds (e.g., frequency, modulation rate, activity)
-- quantities of the same kind (e.g., length, width, altitude, distance, radius, wavelength,
-  position vector)
+- quantities of different kinds (e.g., _frequency_, _modulation rate_, _activity_)
+- quantities of the same kind (e.g., _length_, _width_, _altitude_, _distance_, _radius_,
+  _wavelength_, _position vector_)
 
 Two quantities can't be added, subtracted, or compared unless they belong to the same quantity kind.
 
 ### System of quantities is not only about kinds
 
-The [@ISO80000] specifies hundreds of different quantities. Plenty of various kinds
-are provided, and often, each kind contains more than one quantity. It turns out that such quantities
-form a hierarchy of quantities of the same kind.
+The [@ISO80000] specifies hundreds of different quantities. Plenty of various kinds are provided,
+and often, each kind contains more than one quantity. It turns out that such quantities form
+a hierarchy of quantities of the same kind.
 
-For example, here are all quantities of the kind length provided in [@ISO80000] (part 1):
+For example, here are all quantities of the kind _length_ provided in [@ISO80000] (part 1):
 
 ![](img/quantities_of_length.svg)
 
-Each of the above quantities expresses some kind of length, and each can be measured with meters,
-which is the unit defined by the [@SI] for quantities of length. However, each has different
-properties, usage, and sometimes even a different character (position vector and displacement
+Each of the above quantities expresses some kind of _length_, and each can be measured with meters,
+which is the unit defined by the [@SI] for quantities of _length_. However, each has different
+properties, usage, and sometimes even a different character (_position vector_ and _displacement_
 are vector quantities).
 
 The below presents how such a hierarchy tree can be defined in the library:
@@ -1881,8 +1884,8 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
 
 1. **Implicit conversions**
 
-    - Every `width` is a `length`.
-    - Every `radius` is a `width`.
+    - Every _width_ is a _length_.
+    - Every _radius_ is a _width_.
 
     ```cpp
     static_assert(implicitly_convertible(isq::width, isq::length));
@@ -1904,8 +1907,8 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
 
 2. **Explicit conversions**
 
-    - Not every `length` is a `width`.
-    - Not every `width` is a `radius`.
+    - Not every _length_ is a _width_.
+    - Not every _width_ is a _radius_.
 
     ```cpp
     static_assert(!implicitly_convertible(isq::length, isq::width));
@@ -1926,8 +1929,8 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
 
 3. **Explicit casts**
 
-    - `height` is never a `width`, and vice versa.
-    - Both `height` and `width` are quantities of kind `length`.
+    - _height_ is never a _width_, and vice versa.
+    - Both _height_ and _width_ are quantities of kind _length_.
 
     ```cpp
     static_assert(!implicitly_convertible(isq::height, isq::width));
@@ -1944,7 +1947,7 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
 
 4. **No conversion**
 
-    - `time` has nothing in common with `length`.
+    - _time_ has nothing in common with _length_.
 
     ```cpp
     static_assert(!implicitly_convertible(isq::time, isq::length));
@@ -1964,8 +1967,8 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
 
 ### Comparing, adding, and subtracting quantities of the same kind
 
-[@ISO-GUIDE] explicitly states that `width` and `height` are quantities of the same kind and as such
-they
+[@ISO-GUIDE] explicitly states that _width_ and _height_ are quantities of the same kind and as such
+they:
 
 - are mutually comparable, and
 - can be added and subtracted.
@@ -1985,7 +1988,7 @@ quantity q = isq::thickness(1 * m) + isq::radius(1 * m);
 static_assert(q.quantity_spec == isq::width);
 ```
 
-One could argue that allowing to add or compare quantities of height and width might be a safety
+One could argue that allowing to add or compare quantities of _height_ and _width_ might be a safety
 issue, but we need to be consistent with the requirements of [@ISO80000]. Moreover, from our
 experience, disallowing such operations and requiring an explicit cast to a common quantity
 in every single place makes the code so cluttered with casts that it nearly renders the library
@@ -2025,7 +2028,7 @@ int main()
 }
 ```
 
-In the beginning, we introduce a custom quantity `horizontal_length` of a kind length, which then,
+In the beginning, we introduce a custom quantity `horizontal_length` of a kind _length_, which then,
 together with `isq::width` and `isq::height`, are used to define the dimensions of a Christmas gift.
 Next, we provide a function that calculates the dimensions of a gift wrapping paper with some
 wraparound. The result of both those expressions is a quantity of `isq::length`, as this is
@@ -2068,9 +2071,10 @@ inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizo
 inline constexpr struct horizontal_area : quantity_spec<isq::area, horizontal_length * isq::width> {} horizontal_area;
 ```
 
-The first definition says that a horizontal length is a more specialized quantity than length and
-belongs to the same quantity kind. The second line defines a horizontal area, which is a more
-specialized quantity than area, so it has a more constrained recipe as well. Thanks to that:
+The first definition says that a `horizontal_length` is a more specialized quantity than
+`isq::length` and belongs to the same quantity kind. The second line defines a `horizontal_area`,
+which is a more specialized quantity than `isq::area`, so it has a more constrained recipe as well.
+Thanks to that:
 
 ```cpp
 static_assert(implicitly_convertible(horizontal_length, isq::length));
@@ -2095,7 +2099,7 @@ explicitly states:
 
 > The division of ‘quantity’ according to ‘kind of quantity’ is, to some extent, arbitrary.
 
-The below presents some arbitrary hierarchy of derived quantities of kind energy:
+The below presents some arbitrary hierarchy of derived quantities of kind _energy_:
 
 ![](img/quantities_of_energy.svg)
 
@@ -2105,7 +2109,7 @@ in the same units, they have different quantity equations used to create them im
 - `energy` is the most generic one and thus can be created from base quantities of `mass`, `length`,
   and `time`. As those are also the roots of quantities of their kinds and all other quantities are
   implicitly convertible to them, it means that an `energy` can be implicitly constructed from any
-  quantity having proper powers of mass, length, and time.
+  quantity having proper powers of _mass_, _length_, and _time_.
 
     ```cpp
     static_assert(implicitly_convertible(isq::mass * pow<2>(isq::length) / pow<2>(isq::time), isq::energy));
@@ -2143,7 +2147,7 @@ quantities of the same kind. Such quantities have not only the same dimension bu
 can be expressed in the same units.
 
 To annotate a quantity to represent its kind (and not just a hierarchy tree's root quantity),
-we introduced a `kind_of<>` specifier. For example, to express any quantity of length, we need to
+we introduced a `kind_of<>` specifier. For example, to express any quantity of _length_, we need to
 specify `kind_of<isq::length>`. That entity behaves as any quantity of its kind. This means that
 it is implicitly convertible to any quantity in a tree:
 
@@ -2197,14 +2201,14 @@ inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
 
 The `kind_of<isq::length>` above states explicitly that this unit has an associated quantity
 kind. In other words, `si::metre` (and scaled units based on it) can be used to express
-the amount of any quantity of kind length.
+the amount of any quantity of kind _length_.
 
 Associated units are so useful and common in the library that they got their own concepts
 `AssociatedUnit<T>` to improve the interfaces.
 
 Please note that for some systems of units (e.g., natural units), a unit may not have an
 associated quantity type. For example, if we define the speed of light constant as `c = 1`, we can
-define a system where both length and time will be measured in seconds, and speed will be
+define a system where both _length_ and _time_ will be measured in seconds, and _speed_ will be
 a quantity measured with the unit `one`. In such case, the definition will look as follows:
 
 ```cpp
@@ -2267,7 +2271,7 @@ All of the above quantities are equivalent and mean exactly the same.
 ### Constraining a derived unit to work only with a specific derived quantity
 
 Some derived units are valid only for specific derived quantities. For example, [@SI] specifies
-both `hertz` and `becquerel` derived units with the same unit equation `1/s`. However, it also
+both hertz and becquerel derived units with the same unit equation $s^{-1}$. However, it also
 explicitly states:
 
 > The hertz shall only be used for periodic phenomena and the becquerel shall only be used for
@@ -2281,8 +2285,8 @@ inline constexpr struct hertz : named_unit<"Hz", one / second, kind_of<isq::freq
 inline constexpr struct becquerel : named_unit<"Bq", one / second, kind_of<isq::activity>> {} becquerel;
 ```
 
-With the above, `hertz` can only be used for frequencies, while `becquerel` should only be used for
-quantities of activity. This means that the following equation will not compile, improving
+With the above, `hertz` can only be used for _frequencies_, while `becquerel` should only be used for
+quantities of _activity_. This means that the following equation will not compile, improving
 the type-safety of the library:
 
 ```cpp
@@ -2451,8 +2455,8 @@ the types generated from unit expressions by two leading products on the market 
 
 It is a matter of taste which solution is better. While discussing the pros and cons here, we
 should remember that our users often do not have a scientific background. This is why
-the [@MP-UNITS] library decided to use syntax that is as similar to the correct English language
-as possible. It consistently uses the `derived_` prefix for types representing derived units,
+we recommend to use syntax that is as similar to the correct English language as possible.
+It consistently uses the `derived_` prefix for types representing derived units,
 dimensions, and quantity specifications. Those are instantiated first with the contents of
 the numerator followed by the entities of the denominator (if present) enclosed in the
 `per<...>` expression template.
@@ -2463,7 +2467,7 @@ The arithmetics on units, dimensions, and quantity types require a special ident
 can be returned as a result of the division of the same entities, or using it should not modify the
 expression template on multiplication.
 
-The [@MP-UNITS] library chose the following names here:
+We chose the following names here:
 
 - `one` in the domain of units,
 - `dimension_one` in the domain of dimensions,
@@ -2483,8 +2487,8 @@ The above names were selected based on the following quote from the [@ISO80000]:
 ### Supported operations and their results
 
 The table below presents all the operations that can be done on units, dimensions, and quantity
-types in a physical quantities and units library and corresponding expression templates chosen
-by the [@MP-UNITS] project as their results:
+types in a quantities and units library. The right column presents corresponding expression
+templates being their results:
 
 |                   Operation                   | Resulting template expression arguments |
 |:---------------------------------------------:|:---------------------------------------:|
@@ -2528,14 +2532,14 @@ the resulting expression template.
     available as subscripts, which are often used to differentiate various quantities of the same
     kind. For example, it is impossible to encode the symbols of the following quantities:
 
-    - _c_<sub>sat</sub> - specific heat capacity at saturated vapour pressure,
-    - _μ_<sub>JT</sub> - Joule-Thomson coefficient,
-    - _w_<sub>H<sub>2</sub>O</sub> - mass fraction of water,
-    - _σ_<sub>Ω,E</sub> - direction and energy distribution of cross section,
-    - _d_<sub>1/2</sub> - half-value thickness,
-    - _Φ_<sub>e,λ</sub> - spectral radiant flux.
+    - _c_<sub>sat</sub> - _specific heat capacity at saturated vapour pressure_,
+    - _μ_<sub>JT</sub> - _Joule-Thomson coefficient_,
+    - _w_<sub>H<sub>2</sub>O</sub> - _mass fraction of water_,
+    - _σ_<sub>Ω,E</sub> - _direction and energy distribution of cross section_,
+    - _d_<sub>1/2</sub> - _half-value thickness_,
+    - _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
 
-    This is why the [@MP-UNITS] library chose to use type name identifiers in such cases.
+    This is why the library chose to use type name identifiers in such cases.
 
 2. **Aggregation**
 
@@ -2566,7 +2570,7 @@ the resulting expression template.
     simplified. The resulting derived unit will preserve both symbols and their relative
     magnitude. This allows us to properly print symbols of some units or constants that require
     such behavior. For example, the Hubble constant is expressed in `km⋅s⁻¹⋅Mpc⁻¹`, where both
-    `km` and `Mpc` are units of length.
+    `km` and `Mpc` are units of _length_.
 
 4. **Repacking**
 
@@ -2624,8 +2628,7 @@ the text output provides:
 acceleration: 7.5 km h⁻¹ s⁻¹ (2.08333 m/s²)
 ```
 
-The above program will produce the following types for acceleration quantities
-(after stripping the `mp_units` namespace for brevity):
+The above program will produce the following types for _acceleration_ quantities:
 
 - `acceleration1`
 
@@ -2724,6 +2727,23 @@ inline constexpr struct avogadro_constant :
 inline constexpr struct luminous_efficacy :
   named_unit<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
 ```
+
+Although the ISQ defined in [@ISO80000] provides symbols for each quantity type, there is little use
+for them in the C++ code. This is caused by the fact that such symbols use a lot of characters that
+are not available with the Unicode encoding. Most of the limitations correspond to Unicode providing
+only a minimal set of characters available as subscripts, which are often used to differentiate
+various quantities of the same kind.
+
+For example, it is impossible to encode the symbols of the following quantities:
+
+- _c_<sub>sat</sub> - _specific heat capacity at saturated vapour pressure_,
+- _μ_<sub>JT</sub> - _Joule-Thomson coefficient_,
+- _w_<sub>H<sub>2</sub>O</sub> - _mass fraction of water_,
+- _σ_<sub>Ω,E</sub> - _direction and energy distribution of cross section_,
+- _d_<sub>1/2</sub> - _half-value thickness_,
+- _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
+
+This is why we do not propose to provide quantity types symbols in their definitions.
 
 ### `fixed_string`
 
@@ -2902,7 +2922,7 @@ The library should provide such Unicode output by default to be consistent with 
 specifications.
 
 On the other hand, plenty of terminals do not support Unicode characters. Also, general engineering
-experience shows that people often prefer to work with ASCII (?) character sets. This is why
+experience shows that people often prefer to work with ASCII/basic character sets. This is why
 all such entities should provide an alternative ASCII spelling in their definitions.
 
 This is where `symbol_text` comes into play. It is a simple wrapper over the two `fixed_string`
@@ -3735,13 +3755,12 @@ Before we go through all the features, it is essential to note that they do not 
 overhead over the raw unsafe code doing the same thing. This is a massive benefit of C++ compared
 to other programming languages (e.g., Python, Java, etc.).
 
-### Unit conversions
+### Safe unit conversions
 
 The first thing that comes to our mind when discussing the safety of such libraries is
 automated unit conversions between values of the same physical quantity.
-This is probably the most important subject here. We learned
-about its huge benefits long ago thanks to the `std::chrono::duration` that made conversions of
-time durations error-proof.
+This is probably the most important subject here. We learned about its huge benefits long ago
+thanks to the `std::chrono::duration` that made conversions of time durations error-proof.
 
 Unit conversions are typically performed either via a converting constructor or a dedicated conversion
 function:
@@ -3767,8 +3786,7 @@ require a conversion factor based on an irrational number like pi.
 ### Preventing truncation of data
 
 The second safety feature of such libraries is preventing accidental truncation of a quantity value.
-If we try the operations above with swapped units, both conversions should fail
-to compile:
+If we try the operations above with swapped units, both conversions should fail to compile:
 
 ```cpp
 auto q1 = 5 * m;
@@ -3783,8 +3801,8 @@ is performed using regular integer arithmetic.
 
 While this could be a valid behavior, the problem arises when the user expects to be able to convert
 the quantity back to the original unit without loss of information.
-So the library should prevent such conversions from happening implicitly;
-[@MP-UNITS] offers the named cast `value_cast` for these conversions marked as unsafe.
+So the library should prevent such conversions from happening implicitly. This is why it offers
+the named cast `value_cast` for these conversions marked as unsafe.
 
 To make the above conversions compile, we could use a floating-point representation type:
 
@@ -3801,9 +3819,6 @@ auto q1 = 5 * m;     // source quantity uses `int` as a representation type
 std::cout << value_cast<double>(q1).in(km) << '\n';
 quantity<si::kilo<si::metre>> q2 = q1;  // `double` by default
 ```
-
-_The [@MP-UNITS] library follows `std::chrono::duration` logic and treats floating-point types as
-value-preserving._
 
 Another possibility would be to force such a truncating conversion explicitly from the code:
 
@@ -3835,25 +3850,25 @@ As we can see, it is essential not to allow such truncating conversions to happe
 and a good physical quantities and units library should fail at compile-time in case an user makes
 such a mistake.
 
-### The affine space
+### Safety introduced by the affine space abstractions
 
 The affine space has two types of entities:
 
-- point - a position specified with coordinate values (i.e., location, address, etc.)
-- vector - the difference between two points (i.e., shift, offset, displacement, duration, etc.)
+- point - a position specified with coordinate values (e.g., _location_, _address_, etc.)
+- vector - the difference between two points (e.g., _shift_, _offset_, _displacement_, _duration_, etc.)
 
 One can do a limited set of operations in affine space on points and vectors. This greatly
 helps to prevent quantity equations that do not have physical sense.
 
-People often think that affine space is needed only to model temperatures and maybe time points
+People often think that affine space is needed only to model _temperatures_ and maybe _time_ points
 (following the [`std::chrono::time_point`](https://en.cppreference.com/w/cpp/chrono/time_point) example).
 Still, the applicability of this concept is much wider.
 
 For example, if we would like to model a Mount Everest climbing expedition, we would deal with
-two kinds of altitude-related entities. The first would be absolute altitudes above the mean sea
-level (points) like base camp altitude, mount peak altitude, etc. The second one would be the
-heights of daily climbs (vectors). Although it makes physical sense to add heights of daily climbs,
-there is no sense in adding altitudes. What does adding the altitude of a base camp and
+two kinds of altitude-related entities. The first would be absolute _altitudes above the mean sea
+level_ (points) like _base camp altitude_, _mount peak altitude_, etc. The second one would be the
+_heights of daily climbs_ (vectors). Although it makes physical sense to add _heights of daily climbs_,
+there is no sense in adding _altitudes_. What does adding the _altitude_ of a base camp and
 the mountain peak mean after all?
 
 Modeling such affine space entities with the `quantity` (vector) and `quantity_point` (point) class
@@ -3884,7 +3899,7 @@ The usage of `quantity_point`, and affine space types in general, improves expre
 type-safety of the code we write.
 
 
-## `explicit` is not explicit enough
+### `explicit` is not explicit enough
 
 Consider the following structure and a code using it:
 
@@ -3909,12 +3924,12 @@ struct X {
 };
 ```
 
-The code continues to compile fine, but all the calculations are now off by orders of magnitude. This is why a good
-physical quantities and units library should not provide an explicit quantity constructor taking
-a raw value.
+The code continues to compile fine, but all the calculations are now off by orders of magnitude.
+This is why a good quantities and units library should not provide an explicit quantity constructor
+taking a raw value.
 
-To solve this issue, a quantity in the [@MP-UNITS] library always requires information about both
-a number and a unit during construction:
+To solve this issue, a quantity always requires information about both a number and a unit during
+construction:
 
 ```cpp
 struct X {
@@ -3929,8 +3944,10 @@ x.vec.emplace_back(42);       // Compile-time error
 x.vec.emplace_back(42 * ms);  // OK
 ```
 
-For consistency and to prevent similar safety issues, the `quantity_point` in the [@MP-UNITS] library
-can't be created from a standalone value of a `quantity` (contrary to the `std::chrono::time_point`
+<!-- TODO update that after quantity_point refactoring is done -->
+
+For consistency and to prevent similar safety issues, the `quantity_point` can't be created from
+a standalone value of a `quantity` (contrary to the `std::chrono::time_point`
 design). Such a point has to always be associated with an explicit origin:
 
 ```cpp
@@ -3938,7 +3955,7 @@ quantity_point qp1 = mean_sea_level + 42 * m;
 quantity_point qp2 = si::ice_point + 21 * deg_C;
 ```
 
-### Obtaining the numerical value of a quantity
+### Safe quantity numerical value getters
 
 Continuing our previous example, let's assume that we have an underlying "legacy" API that
 requires us to pass a raw numerical value of a quantity and that we do the following to use it:
@@ -3967,8 +3984,8 @@ the duration stores the underlying raw value in the expected unit. But as we kno
 be refactored at any point to use a different unit, and the code using an underlying numerical value
 without the usage of an explicit cast will become incorrect.
 
-To prevent such safety issues, the [@MP-UNITS] library exposes only the interface that returns
-a quantity numerical value in the required unit to ensure that no data truncation happens:
+To prevent such safety issues, the library exposes only the interface that returns a quantity
+numerical value in the required unit to ensure that no data truncation happens:
 
 ```cpp
 X x;
@@ -3990,7 +4007,7 @@ their results are prvalues.
 ### Preventing dangling references
 
 Besides returning prvalues, sometimes users need to get an actual reference to the underlying
-numerical value stored in a `quantity`. For those cases, the [@MP-UNITS] library exposes
+numerical value stored in a `quantity`. For those cases, the library exposes
 `quantity::numerical_value_ref_in(Unit)` that participates in overload resolution only:
 
 - for lvalues (rvalue reference qualified overload is explicitly deleted),
@@ -4003,7 +4020,7 @@ the majority (if not all) of representation types to be cheap to copy.)
 
 That said, we acknowledge that this approach to preventing dangling references conflates value
 category with lifetime.  While it may prevent the majority of dangling references, it also admits
-both false positives and false negatives, as explained in [@VCINL].  We want to highlight this
+both false positives and false negatives, as explained in [@VCINL]. We want to highlight this
 dilemma for the committee's consideration.
 
 In case we do decide to keep this policy of deleting rvalue overloads, here's an example of code
@@ -4017,9 +4034,9 @@ void legacy_func(const int& seconds);
 legacy_func((4 * s + 2 * s).numerical_value_ref_in(si::second));  // Compile-time error
 ```
 
-The [@MP-UNITS] library goes one step further, by implementing all compound assignments,
-pre-increment, and pre-decrement operators as non-member functions that preserve the initial value
-category. Thanks to that, the following will also not compile:
+The library also goes one step further, by implementing all compound assignments, pre-increment,
+and pre-decrement operators as non-member functions that preserve the initial value category.
+Thanks to that, the following will also not compile:
 
 ```cpp
 quantity<si::second, int> get_duration();
@@ -4032,8 +4049,8 @@ legacy_func((++get_duration()).numerical_value_ref_in(si::second));  // Compile-
 
 The second condition above enables the usage of various equivalent units. For example, `J` is
 equivalent to `N * m`, and `kg * m2 / s2`. As those have the same magnitude, it does not
-matter exactly which one is being used here, as the same numerical value
-should be returned for all of them.
+matter exactly which one is being used here, as the same numerical value should be returned
+for all of them.
 
 ```cpp
 void legacy_func(const int& joules);
@@ -4048,45 +4065,7 @@ legacy_func(q2.numerical_value_ref_in(si::joule)); // OK
 legacy_func(q3.numerical_value_ref_in(si::joule)); // Compile-time error
 ```
 
-
-Here are a few examples provided by our users where enabling a quantity type to return
-a reference to its underlying numerical value is required:
-
-- Interoperability with the [Dear ImGui](https://github.com/ocornut/imgui/blob/19ae142bdddf9fcb840549b4b1279739a36c3fa6/imgui.h#L551):
-
-    ```cpp
-    IMGUI_API bool DragInt(const char* label, int* v,
-                           float v_speed = 1.0f, int v_min = 0, int v_max = 0,
-                           const char* format = "%d", ImGuiSliderFlags flags = 0);  // If v_min >= v_max we have no bound
-    ```
-
-    ```cpp
-    ImGui::DragInt("Frames", &frame_frequency.value.numerical_value_ref_in(Hz), 1,
-                   frame_frequency.min.numerical_value_in(Hz),
-                   frame_frequency.max.numerical_value_in(Hz),
-                   "%d Hz");
-    ```
-
-- Obtaining a temperature via the C library:
-
-    ```cpp
-    // read_temperature is in the BSP defined as
-    void read_temperature(float* temp_in_celsius);
-    ```
-
-    ```cpp
-    using Celsius_point = quantity_point<isq::Celsius_temperature[deg_C], si::ice_point, float>;
-
-    Celsius_point temp;
-    read_temperature(&temp.quantity_ref_from(si::ice_point).numerical_value_ref_in(si::degree_Celsius));
-    ```
-
-As we can see in the second example, `quantity_point` also provides an lvalue-ref-qualified
-`quantity_ref_from(PointOrigin)` member function that returns a reference to its stored `quantity`.
-Also, for reasons similar to the ones described in the previous chapter, this
-function requires that the argument provided by the user is the same as the origin of a quantity point.
-
-### Quantity kinds
+### Quantity kinds improve safety
 
 What should be the result of the following quantity equation?
 
@@ -4124,7 +4103,7 @@ Now let's check what [@ISO-GUIDE] says about quantity kinds:
 > another example, the joule (J) is used as a unit of energy, but never as a unit of moment of force,
 > i.e. the newton metre (N · m).
 
-To summarize the above, [@ISO80000] explicitly states that frequency is measured in Hz and activity
+To summarize the above, [@ISO80000] explicitly states that _frequency_ is measured in Hz and _activity_
 is measured in Bq, which are quantities of different kinds. As such, they should not be able to be
 compared, added, or subtracted. So, the only library from the above that was correct was [@JSR-385].
 The rest of them are wrong to allow such operations. Doing so may lead to vulnerable safety issues
@@ -4132,12 +4111,12 @@ when two unrelated quantities of the same dimension are accidentally added or as
 
 The reason for most of the libraries on the market to be wrong in this field is the fact that their
 quantities are implemented only in terms of the concept of dimension. However, we've just learned
-that a dimension is not enough to express a quantity type.
+that a [Dimension is not enough to describe a quantity].
 
 The library goes beyond that and properly models quantity kinds. We believe that it is a significant
 feature that improves the safety of the library.
 
-### Various quantities of the same kind
+### Additional safety introduced by modeling various quantities of the same kind
 
 Proper modeling of distinct kinds for quantities of the same dimension is often not enough from the
 safety point of view. Most of the libraries allow us to write the following code in the type-safe
@@ -4179,14 +4158,17 @@ tree which influences:
 - conversion rules,
 - the quantity type being the result of adding or subtracting different quantities of the same kind.
 
+More information on this subject can be found in the [Systems of quantities] chapter.
 
 ### Non-negative quantities
+
+<!-- TODO refactor this to state that we can benefit for points -->
 
 Some quantity types are defined by [@ISO80000] as explicitly non-negative. Those include quantities
 like width, thickness, diameter, and radius. However, it turns out that it is possible to have negative
 values of quantities defined as non-negative. For example, `-1 * isq::diameter[mm]` could represent
-a change in the diameter of some object. Also, a subtraction `4 * width[mm] - 6 * width[mm]` results in
-a negative value as the width of the second argument is larger than the first one.
+a change in the diameter of some object. Also, a subtraction `4 * width[mm] - 6 * width[mm]` results
+in a negative value as the width of the second argument is larger than the first one.
 
 Non-negative quantities are not limited to those explicitly stated as being non-negative in
 the [@ISO80000]. Some quantities are implicitly non-negative from their definition. The most
@@ -4205,23 +4187,25 @@ invariants checks.
 <!-- Lots of exciting discussion at https://github.com/mpusz/mp-units/issues/468 -->
 
 
-### Vector and tensor quantities
+### Safe operations of vector and tensor quantities
 
-While talking about physical quantities and units libraries, everyone expects that the library will
-protect (preferably at compile-time) from accidentally replacing multiplication with division operations
-or vice versa. Everyone knows and expects that the multiplication of length and time should not result
-in speed. It does not mean that such a quantity equation is invalid. It just results in a quantity of
-a different type.
+<!-- TODO revise after POC is done -->
+
+While talking about quantities and units libraries, everyone expects that the library will protect
+(preferably at compile-time) from accidentally replacing multiplication with division operations
+or vice versa. Everyone knows and expects that the multiplication of _length_ and _time_ should not
+result in _speed_. It does not mean that such a quantity equation is invalid. It just results in
+a quantity of a different type.
 
 If we expect the above protection for scalar quantities, we should also strive to provide similar
-guarantees for vector and tensor quantities. First, the multiplication or division of two vectors or
-tensors is not even mathematically defined. Such operations should be impossible on quantities using
-vector or tensor representation types.
+guarantees for vector and tensor quantities. First, the multiplication or division of two vectors
+or tensors is not even mathematically defined. Such operations should be impossible on quantities
+using vector or tensor representation types.
 
-While multiplication and division are with scalars, the dot and cross products are for vector quantities.
-The result of the first one is a scalar. The second one results in a vector perpendicular
-to both vectors passed as arguments. A good physical quantities and units library should protect
-the user from making such an error of accidentally replacing those operations.
+What multiplication and division are for scalars, the dot and cross products are for vector
+quantities. The result of the first one is a scalar. The second one results in a vector
+perpendicular to both vectors passed as arguments. A good quantities and units library should
+protect the user from making such an error of accidentally replacing those operations.
 
 Vector and tensor quantities can be implemented in two ways:
 
@@ -4254,10 +4238,10 @@ Vector and tensor quantities can be implemented in two ways:
     - `a ⋅ b` - inner product of tensor and vector
     - `a : b` - scalar product of two tensors
 
-Additionally, the [@MP-UNITS] library knows the expected quantity character, which is provided
-(implicitly or explicitly) in the definition of each quantity type.
-Thanks to that, it prevents the user, for example, from providing a scalar representation type for
-force or a vector representation for power quantities.
+Additionally, the library knows the expected quantity character, which is provided (implicitly
+or explicitly) in the definition of each quantity type. Thanks to that, it prevents the user,
+for example, from providing a scalar representation type for _force_ or a vector representation
+for _power_ quantities.
 
 ```cpp
 QuantityOf<isq::velocity> q1 = 60 * km / h;                             // Compile-time error
@@ -4268,8 +4252,8 @@ QuantityOf<isq::power> q5 = q2 * q4;                                    // Compi
 QuantityOf<isq::power> q5 = dot(q2, q4);                                // OK
 ```
 
-_Note: `q1` and `q3` can be permitted to compile by explicitly specializing
-the `is_vector<T>` trait for the representation type._
+_Note: `q1` and `q3` can be permitted to compile by explicitly specializing the `is_vector<T>`
+trait for the representation type._
 
 As we can see above, such features additionally improves the compile-time safety of the library
 by ensuring that quantities are created with proper quantity equations and are using correct
@@ -4326,9 +4310,9 @@ would help to address some of the issues mentioned above.
 
 ### Potential surprises during units composition
 
-One of the most essential requirements for a good physical quantities and units library is to implement
-units in such a way that they compose. With that, one can easily create any derived unit using
-a simple unit equation on other base or derived units. For example:
+One of the most essential requirements for a good physical quantities and units library is to
+implement units in such a way that they compose. With that, one can easily create any derived
+unit using a simple unit equation on other base or derived units. For example:
 
 ```cpp
 constexpr Unit auto kmph = km / h;
@@ -4340,12 +4324,12 @@ We can also easily obtain a quantity with:
 quantity q = 60 * km / h;
 ```
 
-Such a solution is an industry standard and is implemented not only in [@MP-UNITS], but also is available
-for many years now in both [@BOOST-UNITS] and [@PINT].
+Such a solution is an industry standard and is implemented not only in this library, but also is
+available for many years now in both [@BOOST-UNITS] and [@PINT].
 
-We believe that is the correct thing to do. However, we want to make it straight in this paper that some
-potential issues are associated with such a syntax. Inexperienced users are often surprised by the
-results of the following expression:
+We believe that is the correct thing to do. However, we want to make it straight in this paper that
+some potential issues are associated with such a syntax. Inexperienced users are often surprised by
+the results of the following expression:
 
 ```cpp
 quantity q = 60 * km / 2 * h;
@@ -4376,8 +4360,8 @@ auto v = 42 * m;
 quantity q = make_length(v);
 ```
 
-The above function call will result in a quantity of area instead of the expected quantity
-of length.
+The above function call will result in a quantity of _area_ instead of the expected quantity
+of _length_.
 
 The issues mentioned above could be turned into compilation errors by disallowing multiplying or
 dividing a quantity by a unit. The [@MP-UNITS] library initially provided such an approach, but with
@@ -4428,24 +4412,25 @@ quantity q = make_length(v);  // Compile-time error
 
 ### Limitations of systems of quantities
 
-As stated before, modeling systems of quantities and [Various quantities of the same kind]
+As stated before, modeling systems of quantities and various quantities of the same kind
 significantly improves the safety of the project. However, it is essential to mention here
 that such modeling is not ideal and there might be some pitfalls and surprises associated with
 some corner cases.
 
 #### Allowing irrational quantity combinations
 
-Everyone probably agrees that multiplying two lengths is an area, and that area should be implicitly
-convertible to the result of such a multiplication:
+Everyone probably agrees that multiplying two _lengths_ is an _area_, and that area should be
+implicitly convertible to the result of such a multiplication:
 
 ```cpp
 static_assert(implicitly_convertible(isq::length * isq::length, isq::area));
 static_assert(implicitly_convertible(isq::area, isq::length * isq::length));
 ```
 
-Also, probably no one would be surprised by the fact that the multiplication of width and height
-is also convertible to area. Still, the reverse operation is not valid in this case. Not every area
-is an area over width and height, so we need an explicit cast to make such a conversion:
+Also, probably no one would be surprised by the fact that the multiplication of _width_ and
+_height_ is also convertible to _area_. Still, the reverse operation is not valid in this case.
+Not every _area_ is an _area_ over _width_ and _height_, so we need an explicit cast to force
+such a conversion:
 
 ```cpp
 static_assert(implicitly_convertible(isq::width * isq::height, isq::area));
@@ -4453,8 +4438,8 @@ static_assert(!implicitly_convertible(isq::area, isq::width * isq::height));
 static_assert(explicitly_convertible(isq::area, isq::width * isq::height));
 ```
 
-However, it might be surprising to some that the similar behavior will also be observed for the product
-of two heights:
+However, it might be surprising to some that the similar behavior will also be observed for the
+product of two _heights_:
 
 ```cpp
 static_assert(implicitly_convertible(isq::height * isq::height, isq::area));
@@ -4462,7 +4447,7 @@ static_assert(!implicitly_convertible(isq::area, isq::height * isq::height));
 static_assert(explicitly_convertible(isq::area, isq::height * isq::height));
 ```
 
-For humans, it is hard to imagine how two heights form an area, but the library's logic
+For humans, it is hard to imagine how two _heights_ form an _area_, but the library's logic
 has no way to prevent such operations.
 
 #### Quantities of dimension one
@@ -4471,9 +4456,9 @@ Some pitfalls might also arise when dealing with quantities of dimension one
 (also known as dimensionless quantities).
 
 If we divide two quantities of the same kind, we end up with a quantity of dimension one.
-For example, we can divide two lengths to get a slope of the ramp or two durations to get the clock
-accuracy. Those ratios mean something fundamentally different, but from the dimensional analysis
-standpoint, they are mutually comparable.
+For example, we can divide two _lengths_ to get a _slope of the ramp_ or two _durations_ to get
+the _clock accuracy_. Those ratios mean something fundamentally different, but from the dimensional
+analysis standpoint, they are mutually comparable.
 
 The above means that the following code is valid:
 
@@ -4519,7 +4504,11 @@ quantity<(isq::height / isq::length)[m / m]> bad2 = q3;
 
 ### Temperatures
 
-Temperature support is one the most challenging parts of any physical quantities and units library
+<!-- TODO Update after the quantity_point refactoring -->
+
+<!-- TODO Consider moving this disucssion to a different place in the paper -->
+
+_Temperature_ support is one the most challenging parts of any physical quantities and units library
 design. This is why it is probably reasonable to dedicate a chapter to this subject to describe how
 they are intended to work and what are the potential pitfalls or surprises.
 
@@ -4554,8 +4543,8 @@ q3: 30 K
 q4: 30 °C
 ```
 
-Even though the [@ISO80000] provides dedicated quantity types for thermodynamic temperature
-and Celsius temperature, it explicitly states in the description of the first one:
+Even though the [@ISO80000] provides dedicated quantity types for _thermodynamic temperature_
+and _Celsius temperature_, it explicitly states in the description of the first one:
 
 > Differences of thermodynamic temperatures or changes may be expressed either in kelvin,
 > symbol K, or in degrees Celsius, symbol °C
@@ -4566,11 +4555,11 @@ In the description of the second quantity type, we can read:
 > temperature. The unit degree Celsius is by definition equal in magnitude to the kelvin. A
 > difference or interval of temperature may be expressed in kelvin or in degrees Celsius.
 
-As the `quantity` is a differential quantity type, it is okay to use any temperature unit for
+As the `quantity` is a differential quantity type, it is okay to use any _temperature_ unit for
 those, and the results should differ only by the conversion factor. No offset should be applied
 here to convert between the origins of different unit scales.
 
-It is important to mention here that the existence of Celsius temperature quantity type
+It is important to mention here that the existence of _Celsius temperature_ quantity type
 in [@ISO80000] is controversial.
 
 [@ISO80000] (part 1) says:
@@ -4590,7 +4579,7 @@ To say it explicitly, the system of quantities should not assume or use any spec
 in its definitions. It is essential as various systems of units can be defined on top of it,
 and none of those should be favored.
 
-However, the Celsius temperature quantity type is defined in [@ISO80000] (part 5) as:
+However, the _Celsius temperature_ quantity type is defined in [@ISO80000] (part 5) as:
 
 > temperature difference from the thermodynamic temperature of the ice point is called the
 > Celsius temperature $t$, which is defined by the quantity equation:
@@ -4599,14 +4588,14 @@ However, the Celsius temperature quantity type is defined in [@ISO80000] (part 5
 >
 > where $T$ is thermodynamic temperature (item 5-1) and $T_0 = 273,15\:K$
 
-Celsius temperature is an exceptional quantity in the ISQ as it uses specific SI units in
+_Celsius temperature_ is an exceptional quantity in the ISQ as it uses specific SI units in
 its definition. This breaks the direction of dependencies between systems of quantities and
 units and imposes significant implementation issues.
 
 As [@MP-UNITS] implementation clearly distinguishes between systems of quantities
 and units and assumes that the latter directly depends on the former, this quantity
 definition does not enforce any units or offsets. It is defined as just a more specialized
-quantity of the kind of thermodynamic temperature. We have added the Celsius temperature
+quantity of the kind of _thermodynamic temperature_. We have added the Celsius temperature
 quantity type for completeness and to gain more experience with it. Still, maybe a good
 decision would be to skip it in the standardization process not to confuse users.
 
