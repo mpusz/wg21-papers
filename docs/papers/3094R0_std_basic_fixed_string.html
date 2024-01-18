@@ -461,26 +461,28 @@ practice<span></span></a></li>
 <li><a href="#minimal-interface-requirements" id="toc-minimal-interface-requirements"><span class="toc-section-number">3</span> Minimal interface
 requirements<span></span></a></li>
 <li><a href="#interface" id="toc-interface"><span class="toc-section-number">4</span> Interface<span></span></a></li>
-<li><a href="#fixed_string-design-alternatives" id="toc-fixed_string-design-alternatives"><span class="toc-section-number">5</span>
+<li><a href="#implementation-experience" id="toc-implementation-experience"><span class="toc-section-number">5</span> Implementation
+experience<span></span></a></li>
+<li><a href="#fixed_string-design-alternatives" id="toc-fixed_string-design-alternatives"><span class="toc-section-number">6</span>
 <code class="sourceCode default">fixed_string</code> design
 alternatives<span></span></a>
 <ul>
-<li><a href="#full-string_view-like-interface" id="toc-full-string_view-like-interface"><span class="toc-section-number">5.1</span> Full
+<li><a href="#full-string_view-like-interface" id="toc-full-string_view-like-interface"><span class="toc-section-number">6.1</span> Full
 <code class="sourceCode default">string_view</code>-like
 interface<span></span></a></li>
-<li><a href="#mutation-interface" id="toc-mutation-interface"><span class="toc-section-number">5.2</span> Mutation
+<li><a href="#mutation-interface" id="toc-mutation-interface"><span class="toc-section-number">6.2</span> Mutation
 interface<span></span></a></li>
-<li><a href="#inplace_string" id="toc-inplace_string"><span class="toc-section-number">5.3</span>
+<li><a href="#inplace_string" id="toc-inplace_string"><span class="toc-section-number">6.3</span>
 <code class="sourceCode default">inplace_string</code><span></span></a></li>
-<li><a href="#stdstring-with-a-static-storage-allocator" id="toc-stdstring-with-a-static-storage-allocator"><span class="toc-section-number">5.4</span>
+<li><a href="#stdstring-with-a-static-storage-allocator" id="toc-stdstring-with-a-static-storage-allocator"><span class="toc-section-number">6.4</span>
 <code class="sourceCode default">std::string</code> with a static
 storage allocator<span></span></a></li>
-<li><a href="#just-wait-for-the-c-language-to-solve-it" id="toc-just-wait-for-the-c-language-to-solve-it"><span class="toc-section-number">5.5</span> Just wait for the C++ language to
+<li><a href="#just-wait-for-the-c-language-to-solve-it" id="toc-just-wait-for-the-c-language-to-solve-it"><span class="toc-section-number">6.5</span> Just wait for the C++ language to
 solve it<span></span></a></li>
 </ul></li>
-<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">6</span>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">7</span>
 Acknowledgements<span></span></a></li>
-<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">7</span> References<span></span></a></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">8</span> References<span></span></a></li>
 </ul>
 </div>
 <h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
@@ -507,6 +509,7 @@ structural type requirements.</p>
 search in GitHub</a> returns plenty of results. Let’s mention a few of
 those:</p>
 <ul>
+<li><a href="https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h">mpusz/mp-units</a></li>
 <li><a href="https://github.com/fmtlib/fmt/blob/5cfd28d476c6859617878f951931b8ce7d36b9df/include/fmt/format.h#L1065-L1071">fmtlib/fmt</a></li>
 <li><a href="https://github.com/hanickadot/compile-time-regular-expressions/blob/029f1f13646cf65ec09780013418cb8f1c5d3a59/include/ctll/fixed_string.hpp#L44-L220">hanickadot/compile-time-regular-expressions</a></li>
 <li><a href="https://github.com/tomazos/fixed_string">tomazos/fixed_string</a>
@@ -619,10 +622,14 @@ could be easily omitted and replaced with
 type if it didn’t have an invariant requiring its internal contiguous
 data storage to be of <code class="sourceCode default">size + 1</code>
 and ending with <code class="sourceCode default">\0</code>.</p>
-<h1 data-number="5" id="fixed_string-design-alternatives"><span class="header-section-number">5</span>
+<h1 data-number="5" id="implementation-experience"><span class="header-section-number">5</span> Implementation experience<a href="#implementation-experience" class="self-link"></a></h1>
+<p>This particular interface is implemented and successfully used in the
+<a href="https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h">mp-units</a>
+project.</p>
+<h1 data-number="6" id="fixed_string-design-alternatives"><span class="header-section-number">6</span>
 <code class="sourceCode default">fixed_string</code> design
 alternatives<a href="#fixed_string-design-alternatives" class="self-link"></a></h1>
-<h2 data-number="5.1" id="full-string_view-like-interface"><span class="header-section-number">5.1</span> Full
+<h2 data-number="6.1" id="full-string_view-like-interface"><span class="header-section-number">6.1</span> Full
 <code class="sourceCode default">string_view</code>-like interface<a href="#full-string_view-like-interface" class="self-link"></a></h2>
 <p>We could add a whole
 <code class="sourceCode default">string_view</code>-like interface to
@@ -637,7 +644,7 @@ work with this type, then
 easily be used to achieve that:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>basic_fixed_string txt <span class="op">=</span> <span class="st">&quot;abc&quot;</span>;</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> pos <span class="op">=</span> txt<span class="op">.</span>view<span class="op">().</span>find_first_of<span class="op">(</span><span class="ch">&#39;b&#39;</span><span class="op">)</span>;</span></code></pre></div>
-<h2 data-number="5.2" id="mutation-interface"><span class="header-section-number">5.2</span> Mutation interface<a href="#mutation-interface" class="self-link"></a></h2>
+<h2 data-number="6.2" id="mutation-interface"><span class="header-section-number">6.2</span> Mutation interface<a href="#mutation-interface" class="self-link"></a></h2>
 <p>As stated above, this type is read-only. As we can’t resize the
 string, it could be considered controversial to allow mutation of the
 contents. The only thing we could provide would be support for
@@ -659,7 +666,7 @@ interface in this class as well.</p>
 <p>This is why the author does not propose to add it in the first
 iteration. We can always easily add such an interface later if a need
 for it arises.</p>
-<h2 data-number="5.3" id="inplace_string"><span class="header-section-number">5.3</span>
+<h2 data-number="6.3" id="inplace_string"><span class="header-section-number">6.3</span>
 <code class="sourceCode default">inplace_string</code><a href="#inplace_string" class="self-link"></a></h2>
 <p>We could also consider providing a full-blown fixed-capacity string
 class similar to the
@@ -673,7 +680,7 @@ for a structural type, which is a hard requirement of this use case. If
 we would end up with separate template instantiations for objects with
 the same value but a different capacity. We prefer to prevent such a
 behavior.</p>
-<h2 data-number="5.4" id="stdstring-with-a-static-storage-allocator"><span class="header-section-number">5.4</span>
+<h2 data-number="6.4" id="stdstring-with-a-static-storage-allocator"><span class="header-section-number">6.4</span>
 <code class="sourceCode default">std::string</code> with a static
 storage allocator<a href="#stdstring-with-a-static-storage-allocator" class="self-link"></a></h2>
 <p>We could also try to use
@@ -683,7 +690,7 @@ requirements and could be an overkill for this use case, resulting with
 significantly decreased compile times.</p>
 <p>Also, it would be hard or impossible to make the storage created at
 compile-time to be accessible at runtime in such cases.</p>
-<h2 data-number="5.5" id="just-wait-for-the-c-language-to-solve-it"><span class="header-section-number">5.5</span> Just wait for the C++ language
+<h2 data-number="6.5" id="just-wait-for-the-c-language-to-solve-it"><span class="header-section-number">6.5</span> Just wait for the C++ language
 to solve it<a href="#just-wait-for-the-c-language-to-solve-it" class="self-link"></a></h2>
 <p><span class="citation" data-cites="P2484R0">[<a href="#ref-P2484R0" role="doc-biblioref">P2484R0</a>]</span> proposed extending support for
 class types as non-type template parameters in the C++ language.
@@ -694,14 +701,14 @@ two years.</p>
 will be impossible to standardize without such a feature. This is why
 the author recommends progressing with the
 <code class="sourceCode default">fixed_string</code> approach.</p>
-<h1 data-number="6" id="acknowledgements"><span class="header-section-number">6</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<h1 data-number="7" id="acknowledgements"><span class="header-section-number">7</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
 proposal.</p>
 <p>The author would also like to thank Hana Dusíková for providing
 valuable feedback that helped him shape the final version of this
 document.</p>
-<h1 data-number="7" id="bibliography"><span class="header-section-number">7</span> References<a href="#bibliography" class="self-link"></a></h1>
+<h1 data-number="8" id="bibliography"><span class="header-section-number">8</span> References<a href="#bibliography" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
 <div id="ref-P0259R0" class="csl-entry" role="doc-biblioentry">
 [P0259R0] Michael Price, Andrew Tomazos. 2016-02-12. fixed_string: a

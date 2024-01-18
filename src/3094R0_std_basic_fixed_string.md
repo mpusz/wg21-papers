@@ -32,6 +32,7 @@ structural type requirements.
 A [quick search in GitHub](https://github.com/search?q=fixed_string+language%3AC%2B%2B&type=repositories&ref=advsearch)
 returns plenty of results. Let's mention a few of those:
 
+- [mpusz/mp-units](https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h)
 - [fmtlib/fmt](https://github.com/fmtlib/fmt/blob/5cfd28d476c6859617878f951931b8ce7d36b9df/include/fmt/format.h#L1065-L1071)
 - [hanickadot/compile-time-regular-expressions](https://github.com/hanickadot/compile-time-regular-expressions/blob/029f1f13646cf65ec09780013418cb8f1c5d3a59/include/ctll/fixed_string.hpp#L44-L220)
 - [tomazos/fixed_string](https://github.com/tomazos/fixed_string) - a reference implementation of [@P0259R0]
@@ -146,6 +147,14 @@ could be easily omitted and replaced with `.data()` in the user's code).
 This type could probably even serve as a generic storage structural type if it didn't have an
 invariant requiring its internal contiguous data storage to be of `size + 1` and ending with `\0`.
 
+
+# Implementation experience
+
+This particular interface is implemented and successfully used in the
+[mp-units](https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h)
+project.
+
+
 # `fixed_string` design alternatives
 
 ## Full `string_view`-like interface
@@ -214,6 +223,7 @@ and there have been no updates to the paper in the last two years.
 We can't wait for the C++ language to change forever. This library will be impossible to standardize
 without such a feature. This is why the author recommends progressing with the `fixed_string`
 approach.
+
 
 # Acknowledgements
 
