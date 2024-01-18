@@ -1,6 +1,6 @@
 ---
 title: "`std::basic_fixed_string`"
-document: D3094R0
+document: P3094R0
 date: today
 audience:
   - SG16 Unicode
@@ -19,9 +19,9 @@ template parameter (NTTP). This means that such string type has to satisfy the s
 requirements of the C++ language. One of such requirements is to expose all the data members publicly.
 So far, none of the existing string types in the C++ standard library satisfies such requirements.
 
-This type is intended to serve as part of the public interface of quantities and units library
-proposed in [@P2980R1]. All dimensions, units, prefixes, and constants definitions will use it to
-provide their textual representation.
+This type is intended to serve as an essential building block and be exposes as a part of the public
+interface of quantities and units library proposed in [@P2980R1]. All dimensions, units, prefixes,
+and constants definitions will use it to provide their textual representation.
 
 # `fixed_string` is an established practice
 
@@ -81,7 +81,7 @@ struct basic_fixed_string {
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  constexpr explicit(false) basic_fixed_string(CharT ch) noexcept requires(N == 1);
+  constexpr explicit basic_fixed_string(CharT ch) noexcept requires(N == 1);
   constexpr explicit(false) basic_fixed_string(const CharT (&txt)[N + 1]) noexcept;
   constexpr basic_fixed_string(const CharT* ptr, std::integral_constant<std::size_t, N>) noexcept;
 
@@ -89,12 +89,14 @@ struct basic_fixed_string {
   [[nodiscard]] constexpr size_type size() const noexcept;
   [[nodiscard]] constexpr const_pointer data() const noexcept;
   [[nodiscard]] constexpr const CharT* c_str() const noexcept;
-  [[nodiscard]] constexpr const_reference operator[](size_type index) const noexcept;
+  [[nodiscard]] constexpr value_type operator[](size_type index) const noexcept;
 
   [[nodiscard]] constexpr const_iterator begin() const noexcept;
   [[nodiscard]] constexpr const_iterator cbegin() const noexcept;
   [[nodiscard]] constexpr const_iterator end() const noexcept;
   [[nodiscard]] constexpr const_iterator cend() const noexcept;
+
+  [[nodiscard]] constexpr std::basic_string_view<CharT> view() const noexcept;
 
   template<std::size_t N2>
   [[nodiscard]] constexpr friend basic_fixed_string<CharT, N + N2> operator+(const basic_fixed_string& lhs,
@@ -107,6 +109,10 @@ struct basic_fixed_string {
   template<std::size_t N2>
   [[nodiscard]] friend constexpr auto operator<=>(const basic_fixed_string& lhs,
                                                   const basic_fixed_string<CharT, N2>& rhs);
+  
+  template<typename Traits>
+  friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os,
+                                                       const basic_fixed_string<CharT, N>& str);
 };
 
 template<typename CharT>
@@ -120,6 +126,15 @@ basic_fixed_string(const CharT* ptr, std::integral_constant<std::size_t, N>) -> 
 
 template<std::size_t N>
 using fixed_string = basic_fixed_string<char, N>;
+
+template<typename CharT, std::size_t N>
+struct std::formatter<basic_fixed_string<CharT, N>> : formatter<std::basic_string_view<CharT>> {
+  template<typename FormatContext>
+  auto format(const basic_fixed_string<CharT, N>& str, FormatContext& ctx)
+  {
+    return formatter<std::basic_string_view<CharT>>::format(str.view(), ctx);
+  }
+};
 ```
 
 Please note that there are nearly no text-specific member functions inside (besides `.c_str()` that
@@ -142,8 +157,7 @@ If the user needs to obtain a `string_view`-like interface to work with this typ
 
 ```cpp
 basic_fixed_string txt = "abc";
-std::string_view view(txt);
-auto pos = view.find_first_of('b');
+auto pos = txt.view().find_first_of('b');
 ```
 
 ## Mutation interface
@@ -202,3 +216,6 @@ approach.
 
 Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
+
+The author would also like to thank Hana Dusíková for providing valuable feedback that helped him
+shape the final version of this document.
