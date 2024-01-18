@@ -81,8 +81,10 @@ struct basic_fixed_string {
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  constexpr explicit basic_fixed_string(CharT ch) noexcept requires(N == 1);
   constexpr explicit(false) basic_fixed_string(const CharT (&txt)[N + 1]) noexcept;
+  template<std::convertible_to<CharT>... Rest>
+    requires(1 + sizeof...(Rest) == N)
+  constexpr explicit basic_fixed_string(CharT first, Rest... rest) noexcept;
   constexpr basic_fixed_string(const CharT* ptr, std::integral_constant<std::size_t, N>) noexcept;
 
   [[nodiscard]] constexpr bool empty() const noexcept;
@@ -115,11 +117,11 @@ struct basic_fixed_string {
                                                        const basic_fixed_string<CharT, N>& str);
 };
 
-template<typename CharT>
-basic_fixed_string(CharT) -> basic_fixed_string<CharT, 1>;
-
 template<typename CharT, std::size_t N>
 basic_fixed_string(const CharT (&str)[N]) -> basic_fixed_string<CharT, N - 1>;
+
+template<typename CharT, std::convertible_to<CharT>... Rest>
+basic_fixed_string(CharT, Rest...) -> basic_fixed_string<CharT, 1 + sizeof...(Rest)>;
 
 template<typename CharT, std::size_t N>
 basic_fixed_string(const CharT* ptr, std::integral_constant<std::size_t, N>) -> basic_fixed_string<CharT, N>;
