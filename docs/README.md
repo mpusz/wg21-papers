@@ -50,6 +50,7 @@ to this activity.
 ### Under Development
 
 - [D3045R0: Quantities and units library](papers/3045R0_quantities_and_units_library.html)
+- [D3094R0: `std::basic_fixed_string`](papers/3094R0_std_basic_fixed_string.html)
 
 ## More Papers
 
