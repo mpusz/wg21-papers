@@ -148,7 +148,7 @@ To help guide its evolution, he's been constantly pointing in the direction of [
 source of truth.
 And more recently, to the ISO/IEC 80000 series, also helping interpret it.
 
-Computing systems engineer.
+Computing systems engineering graduate.
 (C++) programmer since 2014.
 Lives at HEAD with C++Next and good practices.
 Performs in-depth code reviews of familiarized code bases.
