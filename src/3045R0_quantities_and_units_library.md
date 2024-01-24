@@ -147,7 +147,7 @@ He also added `quantity_kind`, which explored the need of representing distinct 
 the same dimension.
 To help guide its evolution, he's been constantly pointing in the direction of [@BIPM-VIM] as a
 source of truth.
-And more recently, to the ISO/IEC 80000 series, also helping interpret it.
+And more recently, to [@ISO80000], also helping interpret it.
 
 Computing systems engineering graduate.
 (C++) programmer since 2014.
@@ -759,12 +759,12 @@ For example:
 - _length_ ($L$), _mass_ ($M$), _time_ ($T$), _electric current_ ($I$), _thermodynamic temperature_ ($Θ$),
   _amount of substance_ ($N$), and _luminous intensity_ ($J$) are the base dimensions of the ISQ.
 - A derived dimension of _force_ in the ISQ is denoted by $dim F = LMT^{–2}$. <!-- The space in "dim F" isn't rendered. -->
-- IEC 80000 provides _traffic intensity_ quantity that is measured in erlangs but not in the unit one,
+- [@ISO80000] (part 13) provides _traffic intensity_ quantity that is measured in erlangs but not in the unit one,
   which also implies that it should be introduced as a base quantity with its own dimension.
 
 ## Quantity type
 
-[Dimension is not enough to describe a quantity]. This is why the [@ISO80000] provides hundreds of
+[Dimension is not enough to describe a quantity]. This is why [@ISO80000] provides hundreds of
 named quantity types. It turns out that there are many more quantity types in the ISQ than the named
 units in the [@SI].
 
@@ -837,7 +837,7 @@ embed a reference into the C++ type expressing the quantity so it does not occup
 runtime.
 
 It is also worth mentioning here that the distinction between a quantity and a quantity type is
-not clearly defined in the [@ISO80000]. The [@ISO80000] even explicitly states:
+not clearly defined in [@ISO80000]. [@ISO80000] even explicitly states:
 
 > It is customary to use the same term, "quantity", to refer to both general quantities, such as
 > length, mass, etc., and their instances, such as given lengths, given masses, etc. Accordingly,
@@ -1652,7 +1652,7 @@ For example:
   steradian (sr) is a unit of _solid angle_ defined as $m^2/m^2$.
   Both are quantities of dimension one, which also has its own units like one (1) and percent (%).
 
-There are many more similar examples in the [@ISO80000]. For example, _storage capacity_
+There are many more similar examples in [@ISO80000]. For example, _storage capacity_
 quantity can be measured in units of one, bit, octet, and byte.
 
 The above conflicts can't be solved with dimensions, and they yield many safety issues. For example,
@@ -1728,7 +1728,7 @@ a set of noncontradictory equations relating those quantities.
 The [International System of Quantities (ISQ)](https://jcgm.bipm.org/vim/en/1.6.html) is a
 system of quantities based on the seven base quantities: _length_, _mass_, _time_, _electric current_,
 _thermodynamic temperature_, _amount of substance_, and _luminous intensity_. This system of quantities
-is published in the [@ISO80000], "Quantities and units".
+is published in [@ISO80000], "Quantities and units".
 
 A [system of units](https://jcgm.bipm.org/vim/en/1.13.html) is a set of base units and derived units,
 together with their multiples and submultiples, defined in accordance with given rules, for a given
@@ -1744,7 +1744,7 @@ Conference on Weights and Measures (CGPM).
 The physical units libraries on the market typically only focus on modeling one or more
 systems of units. However, this is not the only system kind to model. Another, and maybe
 even more important is a system of quantities. The most important example here is
-the International System of Quantities (ISQ) defined by the series of [@ISO80000] documents.
+the International System of Quantities (ISQ) defined by [@ISO80000].
 
 ### Dimension is not enough to describe a quantity
 
@@ -1833,7 +1833,7 @@ Two quantities can't be added, subtracted, or compared unless they belong to the
 
 ### System of quantities is not only about kinds
 
-The [@ISO80000] specifies hundreds of different quantities. Plenty of various kinds are provided,
+[@ISO80000] specifies hundreds of different quantities. Plenty of various kinds are provided,
 and often, each kind contains more than one quantity. It turns out that such quantities form
 a hierarchy of quantities of the same kind.
 
@@ -2476,7 +2476,7 @@ We chose the following names here:
 - `dimension_one` in the domain of dimensions,
 - `dimensionless` in the domain of quantity types.
 
-The above names were selected based on the following quote from the [@ISO80000]:
+The above names were selected based on the following quote from [@ISO80000]:
 
 > A quantity whose dimensional exponents are all equal to zero has the dimensional product denoted
 > A<sup>0</sup>B<sup>0</sup>C<sup>0</sup>… = 1, where the symbol 1 denotes the corresponding
@@ -3122,7 +3122,7 @@ In the above grammar:
 - `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
   chapter of the C++ standard specification,
 - `text-encoding` token specifies the symbol text encoding:
-    - `U` (default) uses the **Unicode** symbols defined by the [@ISO80000] specification (e.g., `LT⁻²`),
+    - `U` (default) uses the **Unicode** symbols defined by [@ISO80000] (e.g., `LT⁻²`),
     - `A` forces non-standard **ASCII**-only output (e.g., `LT^-2`).
 
 
@@ -4181,7 +4181,7 @@ a change in the diameter of some object. Also, a subtraction `4 * width[mm] - 6 
 in a negative value as the width of the second argument is larger than the first one.
 
 Non-negative quantities are not limited to those explicitly stated as being non-negative in
-the [@ISO80000]. Some quantities are implicitly non-negative from their definition. The most
+[@ISO80000]. Some quantities are implicitly non-negative from their definition. The most
 obvious example here might be scalar quantities specified as magnitudes of a vector quantity.
 For example, speed is defined as the magnitude of velocity. Again, `-1 * speed[m/s]` could represent
 a change in average speed between two measurements.
@@ -4553,7 +4553,7 @@ q3: 30 K
 q4: 30 °C
 ```
 
-Even though the [@ISO80000] provides dedicated quantity types for _thermodynamic temperature_
+Even though [@ISO80000] provides dedicated quantity types for _thermodynamic temperature_
 and _Celsius temperature_, it explicitly states in the description of the first one:
 
 > Differences of thermodynamic temperatures or changes may be expressed either in kelvin,
@@ -4766,8 +4766,8 @@ references:
   title: "ISO/IEC Guide 99: International vocabulary of metrology — Basic and general concepts and associated terms (VIM)"
   URL: <https://www.iso.org/obp/ui#iso:std:iso-iec:guide:99>
 - id: ISO80000
-  citation-label: ISO 80000
-  title: "ISO 80000: Quantities and units"
+  citation-label: ISO/IEC 80000
+  title: "ISO/IEC 80000: Quantities and units"
   URL: <https://www.iso.org/standard/76921.html>
 - id: JSR-385
   citation-label: JSR 385
