@@ -67,6 +67,7 @@ in the C++ standard library.
 
 The only interaction of this proposal with the C++ standard facilities is the compatibility
 mode with `std::chrono` types (`duration` and `time_point`) described in
+<!-- Broken link: -->
 [Compatibility with `std::chrono::duration` and `std::chrono::time_point`].
 
 We should also mention the potential confusion of users with having two different ways to deal
@@ -757,7 +758,7 @@ For example:
 
 - _length_ ($L$), _mass_ ($M$), _time_ ($T$), _electric current_ ($I$), _thermodynamic temperature_ ($Θ$),
   _amount of substance_ ($N$), and _luminous intensity_ ($J$) are the base dimensions of the ISQ.
-- A derived dimension of _force_ in the ISQ is denoted by $dim F = LMT^{–2}$.
+- A derived dimension of _force_ in the ISQ is denoted by $dim F = LMT^{–2}$. <!-- The space in "dim F" isn't rendered. -->
 - IEC 80000 provides _traffic intensity_ quantity that is measured in Erlangs but not in a unit one,
   which also implies that it should be introduced as a base quantity with its own dimension.
 
