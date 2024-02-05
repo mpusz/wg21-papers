@@ -469,6 +469,8 @@ those things already.
 The authors of this paper developed and delivered multiple successful C++ libraries for this domain.
 Libraries developed by them [have more than 90% of all the stars on GitHub in the field of
 physical units libraries for C++](https://github.com/topics/dimensional-analysis?l=c%2B%2B).
+The [@MP-UNITS] library, which is the base of this proposal, has the most number of stars in this
+list, making it the most popular project in the C++ industry.
 
 The authors joined forces and are working together to propose the best quantities and units library
 we can get with the latest version of the C++ language. They spend their private time and efforts
@@ -776,9 +778,9 @@ Quantities might be:
 
 - of different dimensions (e.g. _length_, _time_, _speed_, _power_),
 - of the same dimension but of a different kind (e.g., _work_ vs. _torque_, _frequency_ vs. _activity_,
-   _area_ vs _fuel consumption_),
+   _area_ vs. _fuel consumption_),
 - of the same dimension and kind but still distinct (e.g., _radius_ vs. _width_ vs. _height_ or
-  _potential energy_ vs _kinetic energy_ vs _thermodynamic energy_).
+  _potential energy_ vs. _kinetic energy_ vs. _thermodynamic energy_).
 
 Additionally, ISO explicitly specifies a quantity of dimension one, which is commonly known as
 a dimensionless quantity. It is a quantity for which all the exponents of the factors corresponding
@@ -1052,9 +1054,9 @@ quantity<km / h, int> speed_limit;
 legacy_set_speed_limit(&speed_limit.numerical_value_ref_in(km / h));
 ```
 
-This member function again requires a target unit to enforce safety. In case the provided unit will
-have a different scaling factor than the current one; this overload will not participate in overload
-resolution.
+This member function again requires a target unit to enforce safety. This overload does not
+participate in overload resolution if the provided unit has a different scaling factor than
+the current one.
 
 ## Typed quantities (safer mode)
 
@@ -2874,8 +2876,8 @@ The library should provide such Unicode output by default to be consistent with 
 specifications.
 
 On the other hand, plenty of terminals do not support Unicode characters. Also, general engineering
-experience shows that people often prefer to work with a basic character set. This is why all such
-entities should provide an alternative spelling in their definitions.
+experience shows that people often prefer to work with a basic literal character set. This is why
+all such entities should provide an alternative spelling in their definitions.
 
 This is where `symbol_text` comes into play. It is a simple wrapper over the two `fixed_string`
 objects:
@@ -3110,11 +3112,10 @@ as text and, thus, are aligned to the left by default.
 
 ### Dimension formatting
 
-```ebnf
-dimension-format-spec       ::=  [fill-and-align] [width] [dimension-spec]
-dimension-spec              ::=  [text-encoding]
-text-encoding               ::=  one of
-                                 U A
+```bnf
+dimension-format-spec ::= [fill-and-align] [width] [dimension-spec]
+dimension-spec        ::= [text-encoding]
+text-encoding         ::= 'U' | 'A'
 ```
 
 In the above grammar:
@@ -3128,18 +3129,16 @@ In the above grammar:
 
 ### Unit formatting
 
-```ebnf
-unit-format-spec            ::=  [fill-and-align] [width] [unit-spec]
-unit-spec                   ::=  [text-encoding] [unit-symbol-solidus] [unit-symbol-separator] [L]
-                                 [text-encoding] [unit-symbol-separator] [unit-symbol-solidus] [L]
-                                 [unit-symbol-solidus] [text-encoding] [unit-symbol-separator] [L]
-                                 [unit-symbol-solidus] [unit-symbol-separator] [text-encoding] [L]
-                                 [unit-symbol-separator] [text-encoding] [unit-symbol-solidus] [L]
-                                 [unit-symbol-separator] [unit-symbol-solidus] [text-encoding] [L]
-unit-symbol-solidus         ::=  one of
-                                 1 a n
-unit-symbol-separator       ::=  one of
-                                 s d
+```bnf
+unit-format-spec      ::= [fill-and-align] [width] [unit-spec]
+unit-spec             ::= [text-encoding] [unit-symbol-solidus] [unit-symbol-separator] [L]
+                          [text-encoding] [unit-symbol-separator] [unit-symbol-solidus] [L]
+                          [unit-symbol-solidus] [text-encoding] [unit-symbol-separator] [L]
+                          [unit-symbol-solidus] [unit-symbol-separator] [text-encoding] [L]
+                          [unit-symbol-separator] [text-encoding] [unit-symbol-solidus] [L]
+                          [unit-symbol-separator] [unit-symbol-solidus] [text-encoding] [L]
+unit-symbol-solidus   ::= '1' | 'a' | 'n'
+unit-symbol-separator ::= 's' | 'd'
 ```
 
 In the above grammar:
@@ -3165,7 +3164,7 @@ to control the formatting of a unit symbol._
 Unit symbols of some quantities are specified to use Unicode signs by the [@SI] (e.g., `Ω` symbol
 for the _resistance_ quantity). The library follows this by default. From the engineering point of
 view, sometimes Unicode text might not be the best solution as terminals of many (especially
-embedded) devices can output only letters from the basic character set only. In such a case,
+embedded) devices can output only letters from the basic literal character set only. In such a case,
 the unit symbol can be forced to be printed using such characters thanks to `text-encoding` token:
 
 ```cpp
@@ -3218,21 +3217,21 @@ _Note: 'd' requires the Unicode encoding to be set._
 
 ### Quantity formatting
 
-```ebnf
-quantity-format-spec        ::=  [fill-and-align] [width] [quantity-specs]
-quantity-specs              ::=  conversion-spec
-                                 quantity-specs conversion-spec
-                                 quantity-specs literal-char
-literal-char                ::=  any character other than '{', '}', or '%'
-conversion-spec             ::=  placement-spec
-                                 subentity-replacement-field
-placement-spec              ::=  '%' placement-type
-placement-type              ::=  one of
-                                 N U D ? %
-subentity-replacement-field ::= { % subentity-id [format-specifier] }
-subentity-id                ::= any character other than {, }, or %
-format-specifier            ::= : format-spec
-format-spec                 ::= as specified by the formatter for the argument type; cannot start with }
+```bnf
+quantity-format-spec        ::= [fill-and-align] [width] [quantity-specs]
+quantity-specs              ::= conversion-spec
+                                quantity-specs conversion-spec
+                                quantity-specs literal-char
+literal-char                ::= <any character other than '{', '}', or '%'>
+conversion-spec             ::= placement-spec
+                                subentity-replacement-field
+placement-spec              ::= '%' placement-type
+placement-type              ::= 'N' | 'U' | 'D' | '?' | '%'
+subentity-replacement-field ::= '{' '%' subentity-id [format-specifier] '}'
+subentity-id                ::= literal-char
+                                subentity-id literal-char
+format-specifier            ::= ':' format-spec
+format-spec                 ::= <as specified by the formatter for the argument type; cannot start with '}'>
 ```
 
 In the above grammar:
@@ -3326,6 +3325,15 @@ std::println("Speed:\n- number: {}\n- unit: {}\n- dimension: {}",
              q.numerical_value_ref_in(q.unit), q.unit, q.dimension);
 ```
 
+Providing such support also simplifies the specification and implementation effort of this
+library. Initially, [@MP-UNITS] library was providing numerical value modifiers inplace
+of its format specification, but it:
+
+- worked only with fundamental arithmetic types and was not able to adjust to different format
+  specifications of custom representation types,
+- was quite hard to parse and format everything in a 100% compatible way with the formatting
+  specified in the C++ standard and already implemented in the underlying standard library.
+
 _Note 1: The above grammar allows repeating the same field many times, possibly with a different
 format spec. For example, `std::println("Speed: {:%N {%N:.4f} {%N:.2f} {%U:n}}", 100. * km / (3 * h))`._
 
@@ -3373,7 +3381,7 @@ using namespace mp_units::si::unit_symbols;
 // simple numeric operations
 static_assert(10 * km / 2 == 5 * km);
 
-// unit conversions
+// conversions to common units
 static_assert(1 * h == 3600 * s);
 static_assert(1 * km + 1 * m == 1001 * m);
 
@@ -3845,7 +3853,7 @@ type to the one using an integral representation type for its value:
 
 ```cpp
 auto q1 = 2.5 * m;
-quantity<si::metre, int> q2 = q1;
+quantity<si::metre, int> q2 = q1;  // Compile-time error
 ```
 
 Such an operation should fail to compile as well. Again, to force such a truncation, we have to
@@ -3943,7 +3951,7 @@ construction:
 
 ```cpp
 struct X {
-  std::vector<quantity<si::milli<si::seconds>>> vec;
+  std::vector<quantity<si::milli<si::second>>> vec;
   // ...
 };
 ```
@@ -3954,15 +3962,13 @@ x.vec.emplace_back(42);       // Compile-time error
 x.vec.emplace_back(42 * ms);  // OK
 ```
 
-<!-- TODO update that after quantity_point refactoring is done -->
-
-For consistency and to prevent similar safety issues, the `quantity_point` can't be created from
-a standalone value of a `quantity` (contrary to the `std::chrono::time_point`
-design). Such a point has to always be associated with an explicit origin:
+For consistency and to prevent similar safety issues, the `quantity_point` using explicit point
+origins can't be created from a standalone value of a `quantity` (contrary to the
+`std::chrono::time_point` design). Such a point has to always be associated with an explicit origin:
 
 ```cpp
 quantity_point qp1 = mean_sea_level + 42 * m;
-quantity_point qp2 = si::ice_point + 21 * deg_C;
+quantity_point qp2 = default_ac_temperature + 2 * deg_C;
 ```
 
 ### Safe quantity numerical value getters
@@ -4505,11 +4511,11 @@ force it to work.
 ```cpp
 quantity<si::metre / si::metre> ok4 = q2;
 quantity<(isq::length / isq::length)[m / m]> ok5 = q2;
-quantity<(isq::height / isq::length)[m / m]> bad1 = q2;
+quantity<(isq::height / isq::length)[m / m]> bad1 = q2;  // Compile-time error
 
 quantity<si::metre / si::metre> ok6 = q3;
 quantity<(isq::length / isq::length)[m / m]> ok7 = q3;
-quantity<(isq::height / isq::length)[m / m]> bad2 = q3;
+quantity<(isq::height / isq::length)[m / m]> bad2 = q3;  // Compile-time error
 ```
 
 ### Temperatures
