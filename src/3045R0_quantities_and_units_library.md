@@ -3373,7 +3373,7 @@ Let's start with a really simple example presenting basic operations that every 
 and units library should provide:
 
 ```cpp
-#include <mp-units/systems/si/si.h>
+import mp_units;
 
 using namespace mp_units;
 using namespace mp_units::si::unit_symbols;
@@ -3404,12 +3404,8 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/sYfoPzTvT).
 The next example serves as a showcase of various features available in the [@MP-UNITS] library.
 
 ```cpp
-#include <mp-units/format.h>
-#include <mp-units/ostream.h>
-#include <mp-units/systems/international/international.h>
-#include <mp-units/systems/isq/isq.h>
-#include <mp-units/systems/si/si.h>
-#include <iostream>
+import mp_units;
+import std;
 
 using namespace mp_units;
 
@@ -3426,23 +3422,23 @@ int main()
 
   constexpr quantity v1 = 110 * km / h;
   constexpr quantity v2 = 70 * mph;
-  constexpr quantity v3 = avg_speed(220. * km, 2 * h);
-  constexpr quantity v4 = avg_speed(isq::distance(140. * mi), 2 * isq::duration[h]);
+  constexpr quantity v3 = avg_speed(220. * isq::distance[km], 2 * h);
+  constexpr quantity v4 = avg_speed(isq::distance(140. * mi), 2 * h);
   constexpr quantity v5 = v3.in(m / s);
   constexpr quantity v6 = value_cast<m / s>(v4);
   constexpr quantity v7 = value_cast<int>(v6);
 
-  std::cout << v1 << '\n';                // 110 km/h
-  std::cout << v2 << '\n';                // 70 mi/h
-  std::println("{}", v3);                 // 110 km/h
-  std::println("{:*^14}", v4);            // ***70 mi/h****
-  std::println("{:%Q in %q}", v5);        // 30.5556 in m/s
-  std::println("{0:%Q} in {0:%q}", v6);   // 31.2928 in m/s
-  std::println("{:%Q}", v7);              // 31
+  std::cout << v1 << '\n';                                        // 110 km/h
+  std::cout << std::setw(10) << std::setfill('*') << v2 << '\n';  // ***70 mi/h
+  std::cout << std::format("{:*^10}\n", v3);                      // *110 km/h*
+  std::println("{:%N in %U}", v4);                                // 70 in mi/h
+  std::println("{:{%N:.2f}%?%U}", v5);                            // 30.56 m/s
+  std::println("{:{%N:.2f}%?{%U:n}}", v6);                        // 31.29 m s⁻¹
+  std::println("{:%N}", v7);                                      // 31
 }
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/3E7q5P6jq).
+Try it in [the Compiler Explorer](https://godbolt.org/z/aPe7naKrE).
 
 ## Storage tank
 
@@ -3455,16 +3451,8 @@ when needed, and
 - [interoperability with `std::chrono::duration`](https://mpusz.github.io/mp-units/2.1/users_guide/framework_basics/concepts/#QuantityLike).
 
 ```cpp
-#include <mp-units/chrono.h>
-#include <mp-units/format.h>
-#include <mp-units/math.h>
-#include <mp-units/systems/isq/isq.h>
-#include <mp-units/systems/si/si.h>
-#include <cassert>
-#include <chrono>
-#include <format>
-#include <numbers>
-#include <utility>
+import mp_units;
+import std;
 
 // allows standard gravity (acceleration) and weight (force) to be expressed with scalar representation
 // types instead of requiring the usage of Linear Algebra library for this simple example
@@ -3480,8 +3468,9 @@ using namespace mp_units::si::unit_symbols;
 // add a custom quantity type of kind isq::length
 inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
 
-// add a custom derived quantity type of kind isq::area with a constrained quantity equation
-inline constexpr struct horizontal_area : quantity_spec<isq::area, horizontal_length * isq::width> {} horizontal_area;
+// add a custom derived quantity type of kind isq::area
+// with a constrained quantity equation
+inline constexpr struct horizontal_area : quantity_spec<horizontal_length * isq::width> {} horizontal_area;
 
 inline constexpr auto g = 1 * si::standard_gravity;
 inline constexpr auto air_density = isq::mass_density(1.225 * kg / m3);
@@ -3523,8 +3512,7 @@ public:
 
 class CylindricalStorageTank : public StorageTank {
 public:
-  constexpr CylindricalStorageTank(const quantity<isq::radius[m]>& radius,
-                                   const quantity<isq::height[m]>& height) :
+  constexpr CylindricalStorageTank(const quantity<isq::radius[m]>& radius, const quantity<isq::height[m]>& height) :
       StorageTank(quantity_cast<horizontal_area>(std::numbers::pi * pow<2>(radius)), height)
   {
   }
@@ -3532,8 +3520,7 @@ public:
 
 class RectangularStorageTank : public StorageTank {
 public:
-  constexpr RectangularStorageTank(const quantity<horizontal_length[m]>& length,
-                                   const quantity<isq::width[m]>& width,
+  constexpr RectangularStorageTank(const quantity<horizontal_length[m]>& length, const quantity<isq::width[m]>& width,
                                    const quantity<isq::height[m]>& height) :
       StorageTank(length * width, height)
   {
@@ -3545,7 +3532,7 @@ public:
 
 int main()
 {
-  const auto height = isq::height(200 * mm);
+  const quantity height = isq::height(200 * mm);
   auto tank = RectangularStorageTank(horizontal_length(1'000 * mm), isq::width(500 * mm), height);
   tank.set_contents_density(1'000 * kg / m3);
 
@@ -3553,15 +3540,15 @@ int main()
   const quantity fill_time = value_cast<int>(quantity{duration});  // time since starting fill
   const quantity measured_mass = 20. * kg;                         // measured mass at fill_time
 
-  const auto fill_level = tank.fill_level(measured_mass);
-  const auto spare_capacity = tank.spare_capacity(measured_mass);
-  const auto filled_weight = tank.filled_weight();
+  const quantity fill_level = tank.fill_level(measured_mass);
+  const quantity spare_capacity = tank.spare_capacity(measured_mass);
+  const quantity filled_weight = tank.filled_weight();
 
   const QuantityOf<isq::mass_change_rate> auto input_flow_rate = measured_mass / fill_time;
   const QuantityOf<isq::speed> auto float_rise_rate = fill_level / fill_time;
   const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
 
-  const auto fill_ratio = fill_level / height;
+  const quantity fill_ratio = fill_level / height;
 
   std::println("fill height at {} = {} ({} full)", fill_time, fill_level, fill_ratio.in(percent));
   std::println("fill weight at {} = {} ({})", fill_time, filled_weight, filled_weight.in(N));
@@ -3575,15 +3562,15 @@ int main()
 The above code outputs:
 
 ```text
-fill height at 200 s = 0.04 m (20 % full)
+fill height at 200 s = 0.04 m (20% full)
 fill weight at 200 s = 100 g₀ kg (980.665 N)
 spare capacity at 200 s = 0.08 m³
 input flow rate = 0.1 kg/s
-float rise rate = 0.0002 m/s
+float rise rate = 2e-04 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/cx8Pr6ne9).
+Try it in [the Compiler Explorer](https://godbolt.org/z/cW19WYr3M).
 
 ## Bridge across the Rhine
 
@@ -3593,19 +3580,16 @@ It also nicely presents how [the Affine Space is being modeled in the library](h
 
 
 ```cpp
-#include <mp-units/ostream.h>
-#include <mp-units/quantity_point.h>
-#include <mp-units/systems/isq/space_and_time.h>
-#include <mp-units/systems/si/si.h>
-#include <iostream>
+import mp_units;
+import std;
 
 using namespace mp_units;
 using namespace mp_units::si::unit_symbols;
 
-constexpr struct amsterdam_sea_level : absolute_point_origin<isq::altitude> {
+constexpr struct amsterdam_sea_level : absolute_point_origin<amsterdam_sea_level, isq::altitude> {
 } amsterdam_sea_level;
 
-constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level + isq::altitude(-27 * cm)> {
+constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level - 27 * cm> {
 } mediterranean_sea_level;
 
 using altitude_DE = quantity_point<isq::altitude[m], amsterdam_sea_level>;
@@ -3614,19 +3598,39 @@ using altitude_CH = quantity_point<isq::altitude[m], mediterranean_sea_level>;
 template<auto R, typename Rep>
 std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_DE::point_origin, Rep> alt)
 {
-  return os << alt.quantity_ref_from(alt.point_origin) << " AMSL(DE)";
+  return os << alt.quantity_ref_from(altitude_DE::point_origin) << " AMSL(DE)";
 }
 
 template<auto R, typename Rep>
 std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_CH::point_origin, Rep> alt)
 {
-  return os << alt.quantity_ref_from(alt.point_origin) << " AMSL(CH)";
+  return os << alt.quantity_ref_from(altitude_CH::point_origin) << " AMSL(CH)";
 }
+
+template<auto R, typename Rep>
+struct std::formatter<quantity_point<R, altitude_DE::point_origin, Rep>> : formatter<quantity<R, Rep>> {
+  template<typename FormatContext>
+  auto format(const quantity_point<R, altitude_DE::point_origin, Rep>& alt, FormatContext& ctx) const
+  {
+    formatter<quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_DE::point_origin), ctx);
+    return std::format_to(ctx.out(), " AMSL(DE)");
+  }
+};
+
+template<auto R, typename Rep>
+struct std::formatter<quantity_point<R, altitude_CH::point_origin, Rep>> : formatter<quantity<R, Rep>> {
+  template<typename FormatContext>
+  auto format(const quantity_point<R, altitude_CH::point_origin, Rep>& alt, FormatContext& ctx) const
+  {
+    formatter<quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_CH::point_origin), ctx);
+    return std::format_to(ctx.out(), " AMSL(CH)");
+  }
+};
 
 int main()
 {
   // expected bridge altitude in a specific reference system
-  quantity_point expected_bridge_alt = amsterdam_sea_level + isq::altitude(330 * m);
+  quantity_point expected_bridge_alt = amsterdam_sea_level + 330 * m;
 
   // some nearest landmark altitudes on both sides of the river
   // equal but not equal ;-)
@@ -3645,21 +3649,21 @@ int main()
   quantity bridge_pilar_height_DE = expected_bridge_alt - bridge_base_alt_DE;
   quantity bridge_pilar_height_CH = expected_bridge_alt - bridge_base_alt_CH;
 
-  std::cout << "Bridge pillars height:\n";
-  std::cout << "- Germany:     " << bridge_pilar_height_DE << '\n';
-  std::cout << "- Switzerland: " << bridge_pilar_height_CH << '\n';
+  std::println("Bridge pillars height:");
+  std::println("- Germany:     {}", bridge_pilar_height_DE);
+  std::println("- Switzerland: {}", bridge_pilar_height_CH);
 
   // artificial bridge altitude on both sides of the river in both systems
   quantity_point bridge_road_alt_DE = bridge_base_alt_DE + bridge_pilar_height_DE;
   quantity_point bridge_road_alt_CH = bridge_base_alt_CH + bridge_pilar_height_CH;
 
-  std::cout << "Bridge road altitude:\n";
-  std::cout << "- Germany:     " << bridge_road_alt_DE << '\n';
-  std::cout << "- Switzerland: " << bridge_road_alt_CH << '\n';
+  std::println("Bridge road altitude:");
+  std::println("- Germany:     {}", bridge_road_alt_DE);
+  std::println("- Switzerland: {}", bridge_road_alt_CH);
 
-  std::cout << "Bridge road altitude relative to the Amsterdam Sea Level:\n";
-  std::cout << "- Germany:     " << bridge_road_alt_DE - amsterdam_sea_level << '\n';
-  std::cout << "- Switzerland: " << bridge_road_alt_CH - amsterdam_sea_level << '\n';
+  std::println("Bridge road altitude relative to the Amsterdam Sea Level:");
+  std::println("- Germany:     {}", bridge_road_alt_DE.quantity_from(amsterdam_sea_level));
+  std::println("- Switzerland: {}", bridge_road_alt_CH.quantity_from(amsterdam_sea_level));
 }
 ```
 
@@ -3677,7 +3681,7 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 - Switzerland: 33000 cm
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/c17TWGhc5).
+Try it in [the Compiler Explorer](https://godbolt.org/z/oEW1vfeMG).
 
 ## User defined quantities and units
 
@@ -3688,10 +3692,8 @@ define custom units for counting
 and how they can be converted to time measured in milliseconds:
 
 ```cpp
-#include <mp-units/format.h>
-#include <mp-units/systems/isq/isq.h>
-#include <mp-units/systems/si/si.h>
-#include <format>
+import mp_units;
+import std;
 
 namespace dsp_dsq {
 
@@ -3732,11 +3734,11 @@ int main()
   std::println("Sample rate 1 is: {}", sr1);
   std::println("Sample rate 2 is: {}", sr2);
 
-  std::println("{} @ {} is {}", bufferSize, sr1, sampleTime1);
-  std::println("{} @ {} is {}", bufferSize, sr2, sampleTime2);
+  std::println("{} @ {} is {:{%N:.5f} %U}", bufferSize, sr1, sampleTime1);
+  std::println("{} @ {} is {:{%N:.5f} %U}", bufferSize, sr2, sampleTime2);
 
-  std::println("One sample @ {} is {}", sr1, sampleDuration1);
-  std::println("One sample @ {} is {}", sr2, sampleDuration2);
+  std::println("One sample @ {} is {:{%N:.5f} %U}", sr1, sampleDuration1);
+  std::println("One sample @ {} is {:{%N:.5f} %U}", sr2, sampleDuration2);
 
   std::println("{} is {} @ {}", rampTime, rampSamples1, sr1);
   std::println("{} is {} @ {}", rampTime, rampSamples2, sr2);
@@ -3749,14 +3751,14 @@ The above code outputs:
 Sample rate 1 is: 44100 Hz
 Sample rate 2 is: 48000 Smpl/s
 512 Smpl @ 44100 Hz is 0.01161 s
-512 Smpl @ 48000 Smpl/s is 10.6667 ms
-One sample @ 44100 Hz is 0.0226757 ms
-One sample @ 48000 Smpl/s is 0.0208333 ms
+512 Smpl @ 48000 Smpl/s is 10.66667 ms
+One sample @ 44100 Hz is 0.02268 ms
+One sample @ 48000 Smpl/s is 0.02083 ms
 35 ms is 1543 Smpl @ 44100 Hz
 35 ms is 1680 Smpl @ 48000 Smpl/s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/KeT3MsfcG).
+Try it in [the Compiler Explorer](https://godbolt.org/z/3bvEvebMx).
 
 
 # Safety
