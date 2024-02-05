@@ -67,6 +67,7 @@ in the C++ standard library.
 
 The only interaction of this proposal with the C++ standard facilities is the compatibility
 mode with `std::chrono` types (`duration` and `time_point`) described in
+<!-- Broken link: -->
 [Compatibility with `std::chrono::duration` and `std::chrono::time_point`].
 
 We should also mention the potential confusion of users with having two different ways to deal
@@ -81,7 +82,7 @@ with time abstractions in the C++ standard library. If this proposal gets accept
 
 The features in this chapter are heavily used in the library but are not domain-specific.
 Having them standardized (instead of left as exposition-only) could not only improve
-this library's specification but also serve as an essential building block for tools
+this library's specification, but also serve as an essential building block for tools
 in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
@@ -146,9 +147,9 @@ He also added `quantity_kind`, which explored the need of representing distinct 
 the same dimension.
 To help guide its evolution, he's been constantly pointing in the direction of [@BIPM-VIM] as a
 source of truth.
-And more recently, to the ISO/IEC 80000 series, also helping interpret it.
+And more recently, to [@ISO80000], also helping interpret it.
 
-Computing systems engineer.
+Computing systems engineering graduate.
 (C++) programmer since 2014.
 Lives at HEAD with C++Next and good practices.
 Performs in-depth code reviews of familiarized code bases.
@@ -757,13 +758,13 @@ For example:
 
 - _length_ ($L$), _mass_ ($M$), _time_ ($T$), _electric current_ ($I$), _thermodynamic temperature_ ($Θ$),
   _amount of substance_ ($N$), and _luminous intensity_ ($J$) are the base dimensions of the ISQ.
-- A derived dimension of _force_ in the ISQ is denoted by $dim F = LMT^{–2}$.
-- IEC 80000 provides _traffic intensity_ quantity that is measured in Erlangs but not in a unit one,
+- A derived dimension of _force_ in the ISQ is denoted by $dim\;F = LMT^{–2}$.
+- [@ISO80000] (part 13) provides _traffic intensity_ quantity that is measured in erlangs but not in the unit one,
   which also implies that it should be introduced as a base quantity with its own dimension.
 
 ## Quantity type
 
-[Dimension is not enough to describe a quantity]. This is why the [@ISO80000] provides hundreds of
+[Dimension is not enough to describe a quantity]. This is why [@ISO80000] provides hundreds of
 named quantity types. It turns out that there are many more quantity types in the ISQ than the named
 units in the [@SI].
 
@@ -774,7 +775,7 @@ belong to the same category of mutually comparable quantities.
 Quantities might be:
 
 - of different dimensions (e.g. _length_, _time_, _speed_, _power_),
-- of the same dimension but of a different kind (e.g., _work_ vs. _torque_, _frequency_ vs. _activity_
+- of the same dimension but of a different kind (e.g., _work_ vs. _torque_, _frequency_ vs. _activity_,
    _area_ vs _fuel consumption_),
 - of the same dimension and kind but still distinct (e.g., _radius_ vs. _width_ vs. _height_ or
   _potential energy_ vs _kinetic energy_ vs _thermodynamic energy_).
@@ -789,7 +790,9 @@ quantities of the same dimension or counts of things.
 [@ISO80000] defines a quantity as:
 
 > property of a phenomenon, body, or substance, where the property has a magnitude that can be
-> expressed as a number and a reference. A reference can be a measurement unit, a measurement
+> expressed as a number and a reference.
+>
+> NOTE 2 A reference can be a measurement unit, a measurement
 > procedure, a reference material, or a combination of such.
 
 The term "reference" is repeated several times in that ISO specification. For example:
@@ -810,7 +813,7 @@ Measurement units are designated by conventionally assigned names and symbols.
 Measurement units of quantities of the same quantity dimension may be designated by the same name
 and symbol even when the quantities are not of the same kind. For example, joule per kelvin and J/K
 are, respectively, the name and symbol of both a measurement unit of _heat capacity_ and a measurement
-unit of _entropy_, which are generally not considered to be quantities of the same kind.
+unit of _entropy_, which are generally considered to not be quantities of the same kind.
 
 However, in some cases, special measurement unit names are restricted to be used with quantities of
 specific kind only. For example, the measurement unit 'second to the power minus one' (1/s) is
@@ -834,7 +837,7 @@ embed a reference into the C++ type expressing the quantity so it does not occup
 runtime.
 
 It is also worth mentioning here that the distinction between a quantity and a quantity type is
-not clearly defined in the [@ISO80000]. The [@ISO80000] even explicitly states:
+not clearly defined in [@ISO80000]. [@ISO80000] even explicitly states:
 
 > It is customary to use the same term, "quantity", to refer to both general quantities, such as
 > length, mass, etc., and their instances, such as given lengths, given masses, etc. Accordingly,
@@ -874,20 +877,20 @@ class quantity;
 
 ### Constructing a quantity
 
-If we want to set a value for a quantity we always have to provide a number and a unit:
+If we want to set a value for a quantity, we always have to provide a number and a unit:
 
 ```cpp
 quantity<si::metre, int> q{42, si::metre};
 ```
 
 In case a quantity class template should use exactly the same unit and a representation type as
-provided in the initializer it is recommended to use CTAD:
+provided in the initializer, it is recommended to use CTAD:
 
 ```cpp
 quantity q{42, si::metre};
 ```
 
-Please note that `double` is used as a default representation type, so the following does not
+Please, note that `double` is used as a default representation type, so the following does not
 result with a quantity of integral representation type:
 
 ```cpp
@@ -956,7 +959,7 @@ quantity speed3 = 60 * kmph;
 
 The library is optimized to generate short and easy-to-understand types that highly improve
 the analysis of compile-time errors and debugging experience. All of the above definitions will create
-an instance of the following type
+an instance of the type
 `quantity<derived_unit<si::kilo_<si::metre{}>, per<non_si::hour>>{}, int>>`. As we can see, the
 type generation is optimized to be easily understood even by non-experts in the domain.
 The library tries to keep the type's readability as close to English as possible.
@@ -1094,7 +1097,7 @@ The affine space has two types of entities:
 
 
 The _vector_ described here is specific to the affine space theory and is not the same thing as
-the quantity of a vector character that we discussed in the before (although, in some cases, those
+the quantity of a vector character that we discuss later (although, in some cases, those
 terms may overlap).
 
 ### Operations in the affine space
@@ -1633,23 +1636,23 @@ their dimensions, giving a false sense of safety. A dimension is not enough to d
 This has been known for a long time now. The [@MSRMT_DATA] report from 1996 says explicitly,
 "Dimensional analysis does not adequately model the semantics of measurement data".
 
-In the following chapters, we will see a few use cases that can't be solved with either
-a units-only or dimensions approach.
+In the following chapters, we will see a few use cases that can't be solved with an approach
+that only relies on units or dimensions.
 
 ### SI units of quantities of the same dimension but different kinds
 
 The [@SI] provides several units for distinct quantities of the same dimension but different kinds.
 For example:
 
-- hertz (Hz) is a unit of _frequency_ and becquerel (Bq) is a unit of _activity_ while both
-  are defined as $s^{-1}$ so have the same dimension of $T^{-1}$.
-- gray (Gy) is a unit of _absorbed dose_ and sievert (Sv) is a unit of _dose equivalent_
-  while both are defined as $m^2 s^{-2}$ so have the same dimension of $L^2T^{-2}$
-- radian (rad) is a unit of _plane angle_ and is defined as $m/m$, and steradian (sr) is a unit of
-  a _solid angle_ and is defined as $m^2/m^2$ while both are quantities of dimension one which
-  also has its own units like one (1), percent (%), etc.
+- hertz (Hz) is a unit of _frequency_ and becquerel (Bq) is a unit of _activity_.
+  Both are defined as $s^{-1}$, and have the same dimension of $T^{-1}$.
+- gray (Gy) is a unit of _absorbed dose_ and sievert (Sv) is a unit of _dose equivalent_.
+  Both are defined as $m^2 s^{-2}$, and have the same dimension of $L^2T^{-2}$
+- radian (rad) is a unit of _plane angle_ defined as $m/m$, and
+  steradian (sr) is a unit of _solid angle_ defined as $m^2/m^2$.
+  Both are quantities of dimension one, which also has its own units like one (1) and percent (%).
 
-There are many more similar examples in the [@ISO80000]. For example, _storage capacity_
+There are many more similar examples in [@ISO80000]. For example, _storage capacity_
 quantity can be measured in units of one, bit, octet, and byte.
 
 The above conflicts can't be solved with dimensions, and they yield many safety issues. For example,
@@ -1689,8 +1692,8 @@ different quantity than the _distance_ to the destination. The same is true for 
 and _sink rate_. We do not want to accidentally mix those.
 
 When we deal with _energy_, we should be able to implicitly construct it from a proper product of
-any _mass_, _length_, and _time_. However, when we want to calculate _gravitational potential energy_
-we may not want it to be implicitly constructed from any quantities of matching dimensions.
+any _mass_, _length_, and _time_. However, when we want to calculate _gravitational potential energy_,
+we may not want it to be implicitly constructed from any expression of matching dimensions.
 Such an implicit construction should be allowed only if we multiply a _mass_ with
 _acceleration of free fall_ and _height_. All other conversions should happen explicitly.
 
@@ -1719,19 +1722,19 @@ flowchart TD
 
 <img src="img/systems.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
 
-[System of quantities](https://jcgm.bipm.org/vim/en/1.3.html) is a set of quantities together with
+A [system of quantities](https://jcgm.bipm.org/vim/en/1.3.html) is a set of quantities together with
 a set of noncontradictory equations relating those quantities.
 
-[International System of Quantities (ISQ)](https://jcgm.bipm.org/vim/en/1.6.html) is
+The [International System of Quantities (ISQ)](https://jcgm.bipm.org/vim/en/1.6.html) is a
 system of quantities based on the seven base quantities: _length_, _mass_, _time_, _electric current_,
 _thermodynamic temperature_, _amount of substance_, and _luminous intensity_. This system of quantities
-is published in the [@ISO80000] series "Quantities and units".
+is published in [@ISO80000], "Quantities and units".
 
-[System of units](https://jcgm.bipm.org/vim/en/1.13.html) is a set of base units and derived units,
+A [system of units](https://jcgm.bipm.org/vim/en/1.13.html) is a set of base units and derived units,
 together with their multiples and submultiples, defined in accordance with given rules, for a given
-system of quantities
+system of quantities.
 
-[International System of Units (SI)](https://jcgm.bipm.org/vim/en/1.16.html) is a system of units,
+The [International System of Units (SI)](https://jcgm.bipm.org/vim/en/1.16.html) is a system of units,
 based on the International System of Quantities, their names and symbols, including a series of
 prefixes and their names and symbols, together with rules for their use, adopted by the General
 Conference on Weights and Measures (CGPM).
@@ -1741,7 +1744,7 @@ Conference on Weights and Measures (CGPM).
 The physical units libraries on the market typically only focus on modeling one or more
 systems of units. However, this is not the only system kind to model. Another, and maybe
 even more important is a system of quantities. The most important example here is
-the International System of Quantities (ISQ) defined by the series of [@ISO80000] documents.
+the International System of Quantities (ISQ) defined by [@ISO80000].
 
 ### Dimension is not enough to describe a quantity
 
@@ -1830,7 +1833,7 @@ Two quantities can't be added, subtracted, or compared unless they belong to the
 
 ### System of quantities is not only about kinds
 
-The [@ISO80000] specifies hundreds of different quantities. Plenty of various kinds are provided,
+[@ISO80000] specifies hundreds of different quantities. Plenty of various kinds are provided,
 and often, each kind contains more than one quantity. It turns out that such quantities form
 a hierarchy of quantities of the same kind.
 
@@ -2473,7 +2476,7 @@ We chose the following names here:
 - `dimension_one` in the domain of dimensions,
 - `dimensionless` in the domain of quantity types.
 
-The above names were selected based on the following quote from the [@ISO80000]:
+The above names were selected based on the following quote from [@ISO80000]:
 
 > A quantity whose dimensional exponents are all equal to zero has the dimensional product denoted
 > A<sup>0</sup>B<sup>0</sup>C<sup>0</sup>… = 1, where the symbol 1 denotes the corresponding
@@ -3119,7 +3122,7 @@ In the above grammar:
 - `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
   chapter of the C++ standard specification,
 - `text-encoding` token specifies the symbol text encoding:
-    - `U` (default) uses the **Unicode** symbols defined by the [@ISO80000] specification (e.g., `LT⁻²`),
+    - `U` (default) uses the **Unicode** symbols defined by [@ISO80000] (e.g., `LT⁻²`),
     - `A` forces non-standard **ASCII**-only output (e.g., `LT^-2`).
 
 
@@ -4178,7 +4181,7 @@ a change in the diameter of some object. Also, a subtraction `4 * width[mm] - 6 
 in a negative value as the width of the second argument is larger than the first one.
 
 Non-negative quantities are not limited to those explicitly stated as being non-negative in
-the [@ISO80000]. Some quantities are implicitly non-negative from their definition. The most
+[@ISO80000]. Some quantities are implicitly non-negative from their definition. The most
 obvious example here might be scalar quantities specified as magnitudes of a vector quantity.
 For example, speed is defined as the magnitude of velocity. Again, `-1 * speed[m/s]` could represent
 a change in average speed between two measurements.
@@ -4550,7 +4553,7 @@ q3: 30 K
 q4: 30 °C
 ```
 
-Even though the [@ISO80000] provides dedicated quantity types for _thermodynamic temperature_
+Even though [@ISO80000] provides dedicated quantity types for _thermodynamic temperature_
 and _Celsius temperature_, it explicitly states in the description of the first one:
 
 > Differences of thermodynamic temperatures or changes may be expressed either in kelvin,
@@ -4763,8 +4766,8 @@ references:
   title: "ISO/IEC Guide 99: International vocabulary of metrology — Basic and general concepts and associated terms (VIM)"
   URL: <https://www.iso.org/obp/ui#iso:std:iso-iec:guide:99>
 - id: ISO80000
-  citation-label: ISO 80000
-  title: "ISO 80000: Quantities and units"
+  citation-label: ISO/IEC 80000
+  title: "ISO/IEC 80000: Quantities and units"
   URL: <https://www.iso.org/standard/76921.html>
 - id: JSR-385
   citation-label: JSR 385
