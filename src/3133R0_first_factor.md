@@ -3,7 +3,8 @@ title: "Fast first-factor finding function"
 document: P3133R0
 date: today
 audience:
-  - TBD
+  - Library Evolution Working Group
+  - SG6 Numerics
 author:
   - name: Chip Hogg ([Aurora Innovation](https://aurora.tech/))
     email: <charles.r.hogg@gmail.com>
