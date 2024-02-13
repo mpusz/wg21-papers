@@ -5065,6 +5065,13 @@ references:
       given: Mateusz
   title: "`std::basic_fixed_string`"
   URL: <https://wg21.link/p3094>
+- id: P3133_PRE
+  citation-label: P3133
+  author:
+    - family: Hogg
+      given: Chip
+  title: "Fast first-factor finding function"
+  URL: <https://wg21.link/p3094>
 - id: PINT
   citation-label: Pint
   title: "Pint: makes units easy"
