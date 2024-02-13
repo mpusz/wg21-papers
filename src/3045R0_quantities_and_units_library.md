@@ -396,7 +396,7 @@ representing the wrong quantity or having an incorrect unit.
 ## Extensibility
 
 Many applications of a quantity and units library may need to operate on a combination of
-standard (e.g. SI) and domain-specific quantities and units. The complexity of developing
+standard (e.g., SI) and domain-specific quantities and units. The complexity of developing
 domain-specific solutions highlights the value in being able to define new quantities
 and units that have all the expressivity and safety as those provided by the library.
 
@@ -593,7 +593,7 @@ Human reviews won't catch such issues.
 
 Also, most of the macros do not follow best practices. Often, necessary parentheses are missing,
 processing in a preprocessor ends up with redundant casts, or some compile-time constants use too
-many digits for a value to be exact for a specific type (e.g. `float`).
+many digits for a value to be exact for a specific type (e.g., `float`).
 
 ## Lack of consistency
 
@@ -657,7 +657,7 @@ the compiler and by humans with manual inspection
 of each individual line.
 
 In some cases, we are even eager to prioritize safe interfaces over the general usability experience
-(e.g. getters of the underlying raw numerical value will always require a unit in which the value should
+(e.g., getters of the underlying raw numerical value will always require a unit in which the value should
 be returned in, which results in more typing and is sometimes redundant).
 
 More information on this subject can be found in [Safety features].
@@ -732,7 +732,7 @@ This chapter provides a very brief introduction to the quantities and units doma
 <!-- 
 flowchart TD
     dimension --- quantity_type["quantity type"]
-    quantity_type --- reference["quantity reference\n(e.g. unit)"]
+    quantity_type --- reference["quantity reference\n(e.g., unit)"]
     reference --- quantity
     number --- quantity
  -->
@@ -777,7 +777,7 @@ belong to the same category of mutually comparable quantities.
 
 Quantities might be:
 
-- of different dimensions (e.g. _length_, _time_, _speed_, _power_),
+- of different dimensions (e.g., _length_, _time_, _speed_, _power_),
 - of the same dimension but of a different kind (e.g., _work_ vs. _torque_, _frequency_ vs. _activity_,
    _area_ vs. _fuel consumption_),
 - of the same dimension and kind but still distinct (e.g., _radius_ vs. _width_ vs. _height_ or
@@ -2831,7 +2831,7 @@ identifiers to determine whether the operation should be performed.
 
 Unit symbols are not guaranteed to be unique in the project. For example, someone may use `"s"`
 as a symbol for a count of samples, which, when used in a unit expression with seconds, would
-cause fatal consequences (e.g. `sample * second` would yield `s²`, or `sample / second` would
+cause fatal consequences (e.g., `sample * second` would yield `s²`, or `sample / second` would
 result in `one`).
 
 Some units would provide worse text output if the ordering step used type identifiers rather
@@ -2993,7 +2993,7 @@ and tensor characters:
 - vectors should be printed with a boldface type or have a right arrow above the letter symbol
   (e.g., **_a_** or $\mathit{\overrightarrow{a}}$),
 - tensors should use either boldface sans serif type or have two arrows above the letter symbol
-  (e.g. **_T_** or $\overrightarrow{\overrightarrow{T}}$).
+  (e.g., **_T_** or $\overrightarrow{\overrightarrow{T}}$).
 
 _Note: In the above examples, the second symbol with arrows above should also use letters written
        in italics. The author could not find a way to format it properly in this document._
@@ -3378,8 +3378,8 @@ In the above grammar:
     - 'n' **never** prints solidus, which means that negative exponents are always used
       (e.g., `m s⁻¹`, `kg m⁻¹ s⁻¹`)
 - `unit-symbol-separator` token specifies how multiplied unit symbols should be separated:
-    - 's' (default) uses **space** as a separator (e.g. `kg m²/s²`)
-    - 'd' uses half-high **dot** (`⋅`) as a separator (e.g. `kg⋅m²/s²`) (requires the Unicode encoding)
+    - 's' (default) uses **space** as a separator (e.g., `kg m²/s²`)
+    - 'd' uses half-high **dot** (`⋅`) as a separator (e.g., `kg⋅m²/s²`) (requires the Unicode encoding)
 - 'L' is reserved for possible future localization use in case C++ standard library gets access to
   the ICU-like database.
 
