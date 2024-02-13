@@ -3681,7 +3681,7 @@ static_assert(explicitly_convertible(isq::area, isq::height * isq::height));
 For humans, it is hard to imagine how two _heights_ form an _area_, but the library's logic
 has no way to prevent such operations.
 
-#### Quantities of dimension one
+#### Arithmetic and compatibility of quantities of dimension one
 
 Some pitfalls might also arise when dealing with quantities of dimension one
 (also known as dimensionless quantities).
