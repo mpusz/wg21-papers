@@ -1590,6 +1590,8 @@ Room reference temperature: 21 °C (69.8 °F, 294.15 K)
 | Highest        |        3 °C        |       24 °C        |     297.15 °C      |
 ```
 
+More about temperatures can be found in the
+[Potential surprises while working with temperatures] chapter.
 
 ## User-defined representation types
 
@@ -4707,10 +4709,6 @@ quantity<(isq::height / isq::length)[m / m]> bad2 = q3;  // Compile-time error
 
 ### Potential surprises while working with temperatures
 
-<!-- TODO Update after the quantity_point refactoring -->
-
-<!-- TODO Consider moving this disucssion to a different place in the paper -->
-
 _Temperature_ support is one the most challenging parts of any physical quantities and units library
 design. This is why it is probably reasonable to dedicate a chapter to this subject to describe how
 they are intended to work and what are the potential pitfalls or surprises.
@@ -4807,13 +4805,22 @@ work, let's discuss quantity points. Those describe specific points and are meas
 relative to a provided origin:
 
 ```cpp
-quantity_point qp1 = si::absolute_zero + isq::thermodynamic_temperature(300. * K);
-quantity_point qp2 = si::ice_point + isq::Celsius_temperature(30. * deg_C);
+quantity_point qp1 = si::zeroth_kelvin + isq::thermodynamic_temperature(300. * K);
+quantity_point qp2 = si::zeroth_degree_Celsius + isq::Celsius_temperature(30. * deg_C);
 ```
 
 The above provides two different temperature points. The first one is measured as a relative
 quantity to the absolute zero (`0 K`), and the second one stores the value relative to
 the ice point being the beginning of the degree Celsius scale.
+
+Thanks to the `default_point_origin` used in the `quantity_point` class template definition
+and benefiting from the fact that units of temperature have point origins provided in their
+definitions we can obtain exactly the same quantity points with the following:
+
+```cpp
+quantity_point qp3{isq::thermodynamic_temperature(300. * K)};
+quantity_point qp4{isq::Celsius_temperature(30. * deg_C)};
+```
 
 It is essential to understand that the origins of quantity points will not change if
 we convert their units:
@@ -4827,20 +4834,49 @@ static_assert(std::is_same_v<decltype(qp4.point_origin), decltype(si::ice_point)
 ```
 
 If we want to obtain the values of quantities in specific units relative to the origins
-of their scales, we have to be explicit:
+of their scales, we have to be explicit. We can do it in several ways:
 
-```cpp
-std::println("qp1: {}, {}, {}",
-              qp1.quantity_from(si::absolute_zero),
-              qp1.quantity_from(si::ice_point).in(deg_C),
-              qp1.quantity_from(usc::zero_Fahrenheit).in(deg_F));
-std::println("qp2: {}, {}, {}",
-              qp2.quantity_from(si::absolute_zero).in(K),
-              qp2.quantity_from(si::ice_point),
-              qp2.quantity_from(usc::zero_Fahrenheit).in(deg_F));
-```
+1. Subtracting points to obtain the quantity:
 
-The above outputs:
+    ```cpp
+    std::println("qp1: {}, {}, {}",
+                qp1 - si::zeroth_kelvin,
+                (qp1 - si::zeroth_degree_Celsius).in(deg_C),
+                (qp1 - usc::zeroth_degree_Fahrenheit).in(deg_F));
+    std::println("qp2: {:{%N:.2f} %U}, {}, {}",
+                (qp2 - si::zeroth_kelvin).in(K),
+                qp2 - si::zeroth_degree_Celsius,
+                (qp2 - usc::zeroth_degree_Fahrenheit).in(deg_F));
+    ```
+
+2. Using `quantity_from(PonitOrigin)` member function:
+
+    ```cpp
+    std::println("qp1: {}, {}, {}",
+                qp1.quantity_from(si::zeroth_kelvin),
+                qp1.quantity_from(si::zeroth_degree_Celsius).in(deg_C),
+                qp1.quantity_from(usc::zeroth_degree_Fahrenheit).in(deg_F));
+    std::println("qp2: {:{%N:.2f} %U}, {}, {}",
+                qp2.quantity_from(si::zeroth_kelvin).in(K),
+                qp2.quantity_from(si::zeroth_degree_Celsius),
+                qp2.quantity_from(usc::zeroth_degree_Fahrenheit).in(deg_F));
+    ```
+
+3. Using `quantity_from_zero()` member function that will use the point origin defined for
+   the current unit:
+
+    ```cpp
+    fmt::println("qp1: {}, {}, {}",
+                qp1.quantity_from_zero(),
+                qp1.in(deg_C).quantity_from_zero(),
+                qp1.in(deg_F).quantity_from_zero());
+    fmt::println("qp2: {:{%N:.2f} %U}, {}, {}",
+                qp2.in(K).quantity_from_zero(),
+                qp2.quantity_from_zero(),
+                qp2.in(deg_F).quantity_from_zero());
+    ```
+
+All of the cases above will provide the same output:
 
 ```text
 qp1: 300 K, 26.85 °C, 80.33 °F
@@ -4848,15 +4884,12 @@ qp2: 303.15 K, 30 °C, 86 °F
 ```
 
 Of course, all other combinations are also possible. For example, nothing should prevent us
-from checking how many degrees of Celsius are there starting from the `zero_Fahrenheit` for
-a quantity point using kelvins with the `absolute_zero` origin:
+from checking how many degrees of Celsius are there starting from the `zeroth_degree_Fahrenheit`
+for a quantity point using kelvins with the `zeroth_kelvin` origin:
 
 ```cpp
-quantity q = qp1.quantity_from(usc::zero_Fahrenheit).in(deg_C);
+quantity q = qp1.quantity_from(usc::zeroth_degree_Fahrenheit).in(deg_C);
 ```
-
-Please also note that there is no text output support for quantity points in the [@MP-UNITS]
-library.
 
 ### Structural types
 
