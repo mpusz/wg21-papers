@@ -963,7 +963,7 @@ quantity speed3 = 60 * kmph;
 The library is optimized to generate short and easy-to-understand types that highly improve
 the analysis of compile-time errors and debugging experience. All of the above definitions will create
 an instance of the type
-`quantity<derived_unit<si::kilo_<si::metre{}>, per<non_si::hour>>{}, int>>`. As we can see, the
+`quantity<derived_unit<si::kilo_<si::metre>, per<non_si::hour>>{}, int>>`. As we can see, the
 type generation is optimized to be easily understood even by non-experts in the domain.
 The library tries to keep the type's readability as close to English as possible.
 
@@ -1602,7 +1602,9 @@ Those can be used to:
 - enable linear algebra usage.
 
 As of right now, we have two other concurrent proposals to SG6 in this subject on the fly
-([@P2993_PRE] and [@P3003R0]), so we do not provide any concrete requirements or recommendations here.
+([@P2993_PRE] and [@P3003R0]), so we do not provide any concrete requirements or recommendations here
+so far.
+
 Based on the results of discussions on the mentioned proposals, we will provide correct guidelines
 in the next revisions of this paper.
 
@@ -1776,9 +1778,9 @@ plenty of use cases can't be addressed, and for those that somehow work, we miss
 improvements provided by additional abstractions in this chapter. But before we talk about those
 extensions, let's first discuss some limitations of the units-only solution.
 
-_Note: The issues described below do not apply to the proposed library because even if we decide
-to only use the simple mode, units are still backed up by quantity kinds under the framework's
-hood._
+_Note: The issues described below do not apply to the proposed library, because with the proposed
+interfaces, even if we decide to only use the simple mode, units are still backed up by quantity
+kinds under the framework's hood._
 
 ### No way to specify a quantity type in generic interfaces
 
@@ -1815,11 +1817,11 @@ avg_speed(120 * km, 2 * h).in(km / h);
 
 The above code decreased the performance because we always pay for the conversion at the function's
 input and output. Moreover, we had to force `double` as a representation type to prevent narrowing,
-which can affect not only the performance but also our memory footprint.
+which can affect not only the performance, but also precision and memory footprint.
 
 We could try to provide concepts like `ScaledUnitOf<si::metre>` that will try to constrain
 somehow the arguments, but it leads to even more problems with the unit definitions. For example,
-are Hz and Bq scaled versions of 1 / s? What about a litre and a cubic meter?
+are Hz and Bq scaled versions of 1 / s? What about radian and steradian or a litre and a cubic meter?
 
 ### Disjoint units of the same quantity type do not work
 
@@ -1827,7 +1829,7 @@ Sometimes, we need to define several units describing the same quantity but whic
 to each other. A typical example can be a currency use case. A user may want to define EURO and
 USD as units of currency, but do not provide any predefined conversion factor and handle such
 a conversion at runtime with custom logic. In such a case, how we can specify that EURO and
-USD are quantities of the same type?
+USD are quantities of the same type/dimension?
 
 ## Limitations of dimensions
 
@@ -1895,7 +1897,7 @@ and provide meaningless results. Some of them decide not to define one or more o
 units at all to avoid potential safety issues. For example,
 [the Au library does not define `Sv` to avoid mixing it up with Gy](https://github.com/aurora-opensource/au/pull/157).
 
-### Quantities of the same dimension but different kinds
+### Derived quantities of the same dimension but different kinds
 
 Even if some quantities do not have a specially assigned unit, they may still have a totally
 different physical meaning even if they share the same dimension:
@@ -1916,19 +1918,19 @@ container. In such a scenario, we need to be able to discriminate between _lengt
 _height_ of the package. Also, often, we can find a "This side up" arrow on the box.
 
 A similar but also really important use case is in aviation. The current _altitude_ is a totally
-different quantity than the _distance_ to the destination. The same is true for forward _velocity_
+different quantity than the _distance_ to the destination. The same is true for _forward speed_
 and _sink rate_. We do not want to accidentally mix those.
 
 When we deal with _energy_, we should be able to implicitly construct it from a proper product of
 any _mass_, _length_, and _time_. However, when we want to calculate _gravitational potential energy_,
-we may not want it to be implicitly constructed from any expression of matching dimensions.
+we may not want it to be implicitly initialized from any expression of matching dimensions.
 Such an implicit construction should be allowed only if we multiply a _mass_ with
 _acceleration of free fall_ and _height_. All other conversions should happen explicitly.
 
 Yet another example comes from the audio industry. In the audio software, we want to treat specific
-counts (e.g., beats, samples) as separate quantities, but if we divide them, we should obtain a
-quantity of _frequency_. The latter has the dimension of $T^{-1}$, which prevents us from assigning
-dedicated dimensions to such counts.
+counts (e.g., _beats_, _samples_) as separate quantities, but if we divide them, we should obtain a
+quantity convertible to _frequency_. The latter has the dimension of $T^{-1}$, which
+prevents us from assigning dedicated dimensions to such counts.
 
 The last example that we want to mention here comes from finance. This time, we need to model _volume_
 as a special quantity of _currency_. _volume_ can be obtained by multiplying _currency_ by the
@@ -1971,62 +1973,13 @@ Conference on Weights and Measures (CGPM).
 
 The physical units libraries on the market typically only focus on modeling one or more
 systems of units. However, this is not the only system kind to model. Another, and maybe
-even more important is a system of quantities. The most important example here is
+even more important, is a system of quantities. The most important example here is
 the International System of Quantities (ISQ) defined by [@ISO80000].
 
-### Dimension is not enough to describe a quantity
-
-Most of the products on the market are aware of physical dimensions. However, a dimension is not
-enough to describe a quantity. This has been known for a long time now. The [@MSRMT_DATA] report
-from 1996 says explicitly, "Dimensional analysis does not adequately model the semantics of
-measurement data".
-
-A typical problem that most similar libraries struggle with is supporting quantities like _work_ and
-_torque_ as being independent, strong types. The problem here arises from the fact that both of them
-have exactly the same dimension $L^2MT^{-2}$, but a totally different physical meaning. As a result,
-it is possible to mathematically add or compare them in a quantity equation even though such
-an operation has no sense from the physical point of view.
-
-A similar question that we could ask ourselves is what should be the result of:
-
-```cpp
-auto res = 1 * Hz + 1 * Bq + 1 * Bd;
-```
-
-where:
-
-- `Hz` (hertz) - a unit of _frequency_
-- `Bq` (becquerel) - a unit of _activity_
-- `Bd` (baud) - a unit of _modulation rate_
-
-All of those quantities have the same dimension, namely $T^{-1}$, but it is probably not wise to allow
-adding, subtracting, or comparing them, as they describe vastly different physical properties.
-
-It also is really tricky to separate handling of the quantities of dimension one. For example,
-_angular measure_ expressed in radians and _solid angular measure_ expressed in steradians should
-be independent. Any attempts to add or compare them should be detected at compile-time.
-
-Last but not least, let's see the following implementation:
-
-```cpp
-class Box {
-  quantity<square(si::metre)> base_;
-  quantity<si::metre> height_;
-public:
-  Box(quantity<si::metre> l, quantity<si::metre> w, quantity<si::metre> h) : base_(l * w), height_(h) {}
-  // ...
-};
-
-Box my_box(2 * m, 3 * m, 1 * m);
-```
-
-The above interface is far from being ideal. It does not provide any type-safety and enables
-potentially severe errors caused by accidental reordering of the constructor's arguments.
-
-It turns out that the above issues can't be solved correctly without proper modeling of
-systems of quantities.
-
 ### Quantities of the same kind
+
+As it was described in [Limitations of dimensions], dimension is not enough to describe a quantity.
+We need a better abstraction to provide safety to our calculations.
 
 The [@ISO-GUIDE] says:
 
@@ -2403,7 +2356,12 @@ static_assert(same_type<kind_of<isq::length> / isq::time, isq::length / isq::tim
 
 Please note that only a root quantity from the hierarchy tree or the one marked with `is_kind`
 specifier in the `quantity_spec` definition can be put as a template parameter to the `kind_of`
-specifier. For example, `kind_of<isq::width>` will fail to compile.
+specifier. For example, `kind_of<isq::width>` will fail to compile. However, we can call
+`get_kind(q)` to obtain a kind of any quantity:
+
+```cpp
+static_assert(get_kind(isq::width) == kind_of<isq::length>);
+```
 
 
 ## Systems of units
@@ -2412,8 +2370,10 @@ Modeling a system of units is the most important feature and a selling point of 
 physical units library. Thanks to that, the library can protect users from performing invalid
 operations on quantities and provide automated conversion factors between various compatible units.
 
-Probably all the libraries in the wild model the [@SI], and many of them provide support for
-additional units belonging to various other systems (e.g., imperial).
+Probably all the libraries in the wild model the [@SI] or at least most of it (refer to
+[SI units of quantities of the same dimension but different kinds] for more details) and
+many of them provide support for additional units belonging to various other systems
+(e.g., imperial).
 
 ### Systems of units are based on systems of quantities
 
@@ -2423,8 +2383,8 @@ to create a quantity, we need to add those missing pieces of information. This i
 a system of units kicks in.
 
 The [@SI] is explicitly stated to be based on the ISQ. Among others, it defines seven base units,
-one for each base quantity. This is expressed by associating a quantity kind to a unit being
-defined:
+one for each base quantity. In the library, this is expressed by associating a quantity kind to
+a unit being defined:
 
 ```cpp
 inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
@@ -2537,8 +2497,8 @@ way.
 Each prefix is implemented as:
 
 ```cpp
-template<PrefixableUnit auto U> struct quecto_ : prefixed_unit<"q", mag_power<10, -30>, U> {};
-template<PrefixableUnit auto U> inline constexpr quecto_<U> quecto;
+template<PrefixableUnit U> struct quecto_ : prefixed_unit<"q", mag_power<10, -30>, U{}> {};
+template<PrefixableUnit auto U> inline constexpr quecto_<std::remove_const_t<decltype(U)>> quecto;
 ```
 
 and then a unit can be prefixed in the following way:
@@ -2552,14 +2512,13 @@ efficiently represent any rational magnitude. For example, [@ISO80000] (part 13)
 the IT industry can be implemented as:
 
 ```cpp
-template<PrefixableUnit auto U> struct yobi_ : prefixed_unit<"Yi", mag_power<2, 80>, U> {};
-template<PrefixableUnit auto U> inline constexpr yobi_<U> yobi;
+template<PrefixableUnit U> struct yobi_ : prefixed_unit<"Yi", mag_power<2, 80>, U{}> {};
+template<PrefixableUnit auto U> inline constexpr yobi_<std::remove_const_t<decltype(U)>> yobi;
 ```
 
-_Please note that we need two lines with two definitions in the case of a class template and
-an associated variable template. The C and C++ standards permit providing the same identifier for
-a class and its variable and appending the variable name after the class definition.
-None of this is allowed for class templates._
+_Please note that to improve the readability of generated types that are exposed in compiler errors
+and debugger, the variable template takes an NTTP and converts it to its type before passing the
+argument to the associated class template._
 
 ### Scaled units
 
@@ -2840,7 +2799,7 @@ in `s m s`, or `newton * metre` would result in `m N`, which is not how we typic
 unit. However, for the sake of consistency, we may also consider changing the algorithm used for
 ordering to be based on type identifiers.
 
-### Example
+### Expression templates in action
 
 Thanks to all of the steps described above, a user may write the code like this one:
 
@@ -2864,8 +2823,8 @@ The above program will produce the following types for _acceleration_ quantities
 - `acceleration1`
 
     ```text
-    quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>{},
-                      derived_unit<si::kilo_<si::metre{}>, per<non_si::hour, si::second>>{}>{},
+    quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>,
+                       derived_unit<si::kilo_<si::metre>, per<non_si::hour, si::second>>>{},
              double>
     ```
 
@@ -2873,7 +2832,7 @@ The above program will produce the following types for _acceleration_ quantities
 
     ```text
     quantity<reference<isq::acceleration,
-                       derived_unit<si::metre, per<power<si::second, 2>>>{}>{},
+                       derived_unit<si::metre, per<power<si::second, 2>>>>{},
              double>>
     ```
 
@@ -4746,7 +4705,7 @@ quantity<(isq::length / isq::length)[m / m]> ok7 = q3;
 quantity<(isq::height / isq::length)[m / m]> bad2 = q3;  // Compile-time error
 ```
 
-### Temperatures
+### Potential surprises while working with temperatures
 
 <!-- TODO Update after the quantity_point refactoring -->
 
