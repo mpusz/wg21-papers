@@ -1771,6 +1771,402 @@ the code, and it serves as a unit test checking if the "thing" returned from a f
 what we expected here.
 
 
+# Usage examples
+
+## Basic quantity equations
+
+Let's start with a really simple example presenting basic operations that every physical quantities
+and units library should provide:
+
+```cpp
+import mp_units;
+
+using namespace mp_units;
+using namespace mp_units::si::unit_symbols;
+
+// simple numeric operations
+static_assert(10 * km / 2 == 5 * km);
+
+// conversions to common units
+static_assert(1 * h == 3600 * s);
+static_assert(1 * km + 1 * m == 1001 * m);
+
+// derived quantities
+static_assert(1 * km / (1 * s) == 1000 * m / s);
+static_assert(2 * km / h * (2 * h) == 4 * km);
+static_assert(2 * km / (2 * km / h) == 1 * h);
+
+static_assert(2 * m * (3 * m) == 6 * m2);
+
+static_assert(10 * km / (5 * km) == 2 * one);
+
+static_assert(1000 / (1 * s) == 1 * kHz);
+```
+
+Try it in [the Compiler Explorer](https://godbolt.org/z/sYfoPzTvT).
+
+## Hello units
+
+The next example serves as a showcase of various features available in the [@MP-UNITS] library.
+
+```cpp
+import mp_units;
+import std;
+
+using namespace mp_units;
+
+constexpr QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto d,
+                                                QuantityOf<isq::time> auto t)
+{
+  return d / t;
+}
+
+int main()
+{
+  using namespace mp_units::si::unit_symbols;
+  using namespace mp_units::international::unit_symbols;
+
+  constexpr quantity v1 = 110 * km / h;
+  constexpr quantity v2 = 70 * mph;
+  constexpr quantity v3 = avg_speed(220. * isq::distance[km], 2 * h);
+  constexpr quantity v4 = avg_speed(isq::distance(140. * mi), 2 * h);
+  constexpr quantity v5 = v3.in(m / s);
+  constexpr quantity v6 = value_cast<m / s>(v4);
+  constexpr quantity v7 = value_cast<int>(v6);
+
+  std::cout << v1 << '\n';                                        // 110 km/h
+  std::cout << std::setw(10) << std::setfill('*') << v2 << '\n';  // ***70 mi/h
+  std::cout << std::format("{:*^10}\n", v3);                      // *110 km/h*
+  std::println("{:%N in %U}", v4);                                // 70 in mi/h
+  std::println("{:{%N:.2f}%?%U}", v5);                            // 30.56 m/s
+  std::println("{:{%N:.2f}%?{%U:n}}", v6);                        // 31.29 m s⁻¹
+  std::println("{:%N}", v7);                                      // 31
+}
+```
+
+Try it in [the Compiler Explorer](https://godbolt.org/z/aPe7naKrE).
+
+## Storage tank
+
+This example estimates the process of filling a storage tank with some contents. It presents:
+
+- [The importance of supporting more than one distinct quantity of the same kind](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds),
+- [faster-than-lightspeed constants](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/),
+- how easy it is to [add custom quantity types](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#defining-quantities)
+when needed, and
+- [interoperability with `std::chrono::duration`](https://mpusz.github.io/mp-units/2.1/users_guide/framework_basics/concepts/#QuantityLike).
+
+```cpp
+import mp_units;
+import std;
+
+// allows standard gravity (acceleration) and weight (force) to be expressed with scalar representation
+// types instead of requiring the usage of Linear Algebra library for this simple example
+template<class T>
+  requires mp_units::is_scalar<T>
+inline constexpr bool mp_units::is_vector<T> = true;
+
+namespace {
+
+using namespace mp_units;
+using namespace mp_units::si::unit_symbols;
+
+// add a custom quantity type of kind isq::length
+inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
+
+// add a custom derived quantity type of kind isq::area
+// with a constrained quantity equation
+inline constexpr struct horizontal_area : quantity_spec<horizontal_length * isq::width> {} horizontal_area;
+
+inline constexpr auto g = 1 * si::standard_gravity;
+inline constexpr auto air_density = isq::mass_density(1.225 * kg / m3);
+
+class StorageTank {
+  quantity<horizontal_area[m2]> base_;
+  quantity<isq::height[m]> height_;
+  quantity<isq::mass_density[kg / m3]> density_ = air_density;
+public:
+  constexpr StorageTank(const quantity<horizontal_area[m2]>& base, const quantity<isq::height[m]>& height) :
+      base_(base), height_(height)
+  {
+  }
+
+  constexpr void set_contents_density(const quantity<isq::mass_density[kg / m3]>& density)
+  {
+    assert(density > air_density);
+    density_ = density;
+  }
+
+  [[nodiscard]] constexpr QuantityOf<isq::weight> auto filled_weight() const
+  {
+    const auto volume = isq::volume(base_ * height_);
+    const QuantityOf<isq::mass> auto mass = density_ * volume;
+    return isq::weight(mass * g);
+  }
+
+  [[nodiscard]] constexpr quantity<isq::height[m]> fill_level(const quantity<isq::mass[kg]>& measured_mass) const
+  {
+    return height_ * measured_mass * g / filled_weight();
+  }
+
+  [[nodiscard]] constexpr quantity<isq::volume[m3]> spare_capacity(const quantity<isq::mass[kg]>& measured_mass) const
+  {
+    return (height_ - fill_level(measured_mass)) * base_;
+  }
+};
+
+
+class CylindricalStorageTank : public StorageTank {
+public:
+  constexpr CylindricalStorageTank(const quantity<isq::radius[m]>& radius, const quantity<isq::height[m]>& height) :
+      StorageTank(quantity_cast<horizontal_area>(std::numbers::pi * pow<2>(radius)), height)
+  {
+  }
+};
+
+class RectangularStorageTank : public StorageTank {
+public:
+  constexpr RectangularStorageTank(const quantity<horizontal_length[m]>& length, const quantity<isq::width[m]>& width,
+                                   const quantity<isq::height[m]>& height) :
+      StorageTank(length * width, height)
+  {
+  }
+};
+
+}  // namespace
+
+
+int main()
+{
+  const quantity height = isq::height(200 * mm);
+  auto tank = RectangularStorageTank(horizontal_length(1'000 * mm), isq::width(500 * mm), height);
+  tank.set_contents_density(1'000 * kg / m3);
+
+  const auto duration = std::chrono::seconds{200};
+  const quantity fill_time = value_cast<int>(quantity{duration});  // time since starting fill
+  const quantity measured_mass = 20. * kg;                         // measured mass at fill_time
+
+  const quantity fill_level = tank.fill_level(measured_mass);
+  const quantity spare_capacity = tank.spare_capacity(measured_mass);
+  const quantity filled_weight = tank.filled_weight();
+
+  const QuantityOf<isq::mass_change_rate> auto input_flow_rate = measured_mass / fill_time;
+  const QuantityOf<isq::speed> auto float_rise_rate = fill_level / fill_time;
+  const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
+
+  const quantity fill_ratio = fill_level / height;
+
+  std::println("fill height at {} = {} ({} full)", fill_time, fill_level, fill_ratio.in(percent));
+  std::println("fill weight at {} = {} ({})", fill_time, filled_weight, filled_weight.in(N));
+  std::println("spare capacity at {} = {}", fill_time, spare_capacity);
+  std::println("input flow rate = {}", input_flow_rate);
+  std::println("float rise rate = {}", float_rise_rate);
+  std::println("tank full E.T.A. at current flow rate = {}", fill_time_left.in(s));
+}
+```
+
+The above code outputs:
+
+```text
+fill height at 200 s = 0.04 m (20% full)
+fill weight at 200 s = 100 g₀ kg (980.665 N)
+spare capacity at 200 s = 0.08 m³
+input flow rate = 0.1 kg/s
+float rise rate = 2e-04 m/s
+tank full E.T.A. at current flow rate = 800 s
+```
+
+Try it in [the Compiler Explorer](https://godbolt.org/z/cW19WYr3M).
+
+## Bridge across the Rhine
+
+The following example codifies the history of a famous issue during the construction of a bridge across
+the Rhine River between the German and Swiss parts of the town Laufenburg [@HOCHRHEINBRÜCKE].
+It also nicely presents how [the Affine Space is being modeled in the library](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/).
+
+
+```cpp
+import mp_units;
+import std;
+
+using namespace mp_units;
+using namespace mp_units::si::unit_symbols;
+
+constexpr struct amsterdam_sea_level : absolute_point_origin<amsterdam_sea_level, isq::altitude> {
+} amsterdam_sea_level;
+
+constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level - 27 * cm> {
+} mediterranean_sea_level;
+
+using altitude_DE = quantity_point<isq::altitude[m], amsterdam_sea_level>;
+using altitude_CH = quantity_point<isq::altitude[m], mediterranean_sea_level>;
+
+template<auto R, typename Rep>
+std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_DE::point_origin, Rep> alt)
+{
+  return os << alt.quantity_ref_from(altitude_DE::point_origin) << " AMSL(DE)";
+}
+
+template<auto R, typename Rep>
+std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_CH::point_origin, Rep> alt)
+{
+  return os << alt.quantity_ref_from(altitude_CH::point_origin) << " AMSL(CH)";
+}
+
+template<auto R, typename Rep>
+struct std::formatter<quantity_point<R, altitude_DE::point_origin, Rep>> : formatter<quantity<R, Rep>> {
+  template<typename FormatContext>
+  auto format(const quantity_point<R, altitude_DE::point_origin, Rep>& alt, FormatContext& ctx) const
+  {
+    formatter<quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_DE::point_origin), ctx);
+    return std::format_to(ctx.out(), " AMSL(DE)");
+  }
+};
+
+template<auto R, typename Rep>
+struct std::formatter<quantity_point<R, altitude_CH::point_origin, Rep>> : formatter<quantity<R, Rep>> {
+  template<typename FormatContext>
+  auto format(const quantity_point<R, altitude_CH::point_origin, Rep>& alt, FormatContext& ctx) const
+  {
+    formatter<quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_CH::point_origin), ctx);
+    return std::format_to(ctx.out(), " AMSL(CH)");
+  }
+};
+
+int main()
+{
+  // expected bridge altitude in a specific reference system
+  quantity_point expected_bridge_alt = amsterdam_sea_level + 330 * m;
+
+  // some nearest landmark altitudes on both sides of the river
+  // equal but not equal ;-)
+  altitude_DE landmark_alt_DE = altitude_DE::point_origin + 300 * m;
+  altitude_CH landmark_alt_CH = altitude_CH::point_origin + 300 * m;
+
+  // artifical deltas from landmarks of the bridge base on both sides of the river
+  quantity delta_DE = isq::height(3 * m);
+  quantity delta_CH = isq::height(-2 * m);
+
+  // artificial altitude of the bridge base on both sides of the river
+  quantity_point bridge_base_alt_DE = landmark_alt_DE + delta_DE;
+  quantity_point bridge_base_alt_CH = landmark_alt_CH + delta_CH;
+
+  // artificial height of the required bridge pilar height on both sides of the river
+  quantity bridge_pilar_height_DE = expected_bridge_alt - bridge_base_alt_DE;
+  quantity bridge_pilar_height_CH = expected_bridge_alt - bridge_base_alt_CH;
+
+  std::println("Bridge pillars height:");
+  std::println("- Germany:     {}", bridge_pilar_height_DE);
+  std::println("- Switzerland: {}", bridge_pilar_height_CH);
+
+  // artificial bridge altitude on both sides of the river in both systems
+  quantity_point bridge_road_alt_DE = bridge_base_alt_DE + bridge_pilar_height_DE;
+  quantity_point bridge_road_alt_CH = bridge_base_alt_CH + bridge_pilar_height_CH;
+
+  std::println("Bridge road altitude:");
+  std::println("- Germany:     {}", bridge_road_alt_DE);
+  std::println("- Switzerland: {}", bridge_road_alt_CH);
+
+  std::println("Bridge road altitude relative to the Amsterdam Sea Level:");
+  std::println("- Germany:     {}", bridge_road_alt_DE.quantity_from(amsterdam_sea_level));
+  std::println("- Switzerland: {}", bridge_road_alt_CH.quantity_from(amsterdam_sea_level));
+}
+```
+
+The above provides the following text output:
+
+```text
+Bridge pillars height:
+- Germany:     27 m
+- Switzerland: 3227 cm
+Bridge road altitude:
+- Germany:     330 m AMSL(DE)
+- Switzerland: 33027 cm AMSL(CH)
+Bridge road altitude relative to the Amsterdam Sea Level:
+- Germany:     330 m
+- Switzerland: 33000 cm
+```
+
+Try it in [the Compiler Explorer](https://godbolt.org/z/oEW1vfeMG).
+
+## User defined quantities and units
+
+Users can easily define new quantities and units for domain-specific
+use-cases.  This example from digital signal processing will show how to
+define custom units for counting
+[digital samples](https://en.wikipedia.org/wiki/Sampling_(signal_processing))
+and how they can be converted to time measured in milliseconds:
+
+```cpp
+import mp_units;
+import std;
+
+namespace dsp_dsq {
+
+using namespace mp_units;
+
+inline constexpr struct SampleCount : quantity_spec<dimensionless, is_kind> {} SampleCount;
+inline constexpr struct SampleDuration : quantity_spec<isq::time> {} SampleDuration;
+inline constexpr struct SamplingRate : quantity_spec<isq::frequency, SampleCount / isq::time> {} SamplingRate;
+
+inline constexpr struct Sample : named_unit<"Smpl", one, kind_of<SampleCount>> {} Sample;
+
+namespace unit_symbols {
+inline constexpr auto Smpl = Sample;
+}
+
+}
+
+int main()
+{
+  using namespace dsp_dsq::unit_symbols;
+  using namespace mp_units::si::unit_symbols;
+
+  const auto sr1 = 44100.f * Hz;
+  const auto sr2 = 48000.f * Smpl / s;
+
+  const auto bufferSize = 512 * Smpl;
+
+  const auto sampleTime1 = (bufferSize / sr1).in(s);
+  const auto sampleTime2 = (bufferSize / sr2).in(ms);
+
+  const auto sampleDuration1 = (1 / sr1).in(ms);
+  const auto sampleDuration2 = dsp_dsq::SampleDuration(1 / sr2).in(ms);
+
+  const auto rampTime = 35.f * ms;
+  const auto rampSamples1 = value_cast<int>((rampTime * sr1).in(Smpl));
+  const auto rampSamples2 = value_cast<int>((rampTime * sr2).in(Smpl));
+
+  std::println("Sample rate 1 is: {}", sr1);
+  std::println("Sample rate 2 is: {}", sr2);
+
+  std::println("{} @ {} is {:{%N:.5f} %U}", bufferSize, sr1, sampleTime1);
+  std::println("{} @ {} is {:{%N:.5f} %U}", bufferSize, sr2, sampleTime2);
+
+  std::println("One sample @ {} is {:{%N:.5f} %U}", sr1, sampleDuration1);
+  std::println("One sample @ {} is {:{%N:.5f} %U}", sr2, sampleDuration2);
+
+  std::println("{} is {} @ {}", rampTime, rampSamples1, sr1);
+  std::println("{} is {} @ {}", rampTime, rampSamples2, sr2);
+}
+```
+
+The above code outputs:
+
+```text
+Sample rate 1 is: 44100 Hz
+Sample rate 2 is: 48000 Smpl/s
+512 Smpl @ 44100 Hz is 0.01161 s
+512 Smpl @ 48000 Smpl/s is 10.66667 ms
+One sample @ 44100 Hz is 0.02268 ms
+One sample @ 48000 Smpl/s is 0.02083 ms
+35 ms is 1543 Smpl @ 44100 Hz
+35 ms is 1680 Smpl @ 48000 Smpl/s
+```
+
+Try it in [the Compiler Explorer](https://godbolt.org/z/3bvEvebMx).
+
+
 # Why do we need typed quantities?
 
 ## Limitations of units-only solutions
@@ -2581,1371 +2977,6 @@ quantity q = 42 * m;
 
 Unit symbols introduce a lot of short identifiers into the current namespace, and that is why they
 are opt-in. A user has to explicitly "import" them from a dedicated `unit_symbols` namespace.
-
-
-
-# Design details and rationale
-
-<img src="img/design.svg" style="display: block; margin-left: auto; margin-right: auto; width: 60%;"/>
-
-## Expression templates
-
-Modern C++ physical quantities and units libraries use opaque types to improve the user experience while
-analyzing compile-time errors or inspecting types in a debugger. This is a huge usability improvement
-over the older libraries that use aliases to refer to long instantiations of class templates.
-
-### Derived entities
-
-Having such strong types for entities is not enough. While doing arithmetics on them, we get derived
-entities, and they also should be easy to understand and correlate with the code written by the user.
-This is where expression templates come into play.
-
-The library should use the same unified approach to represent the results of arithmetics on all
-kinds of entities. It is worth mentioning that a generic purpose expression templates library
-is not a good solution for a physical quantities and units library.
-
-Let's assume that we want to represent the results of the following two unit equations:
-
-- `metre / second * second`
-- `metre * metre / metre`
-
-Both of them should result in a type equivalent to `metre`. A general-purpose library will probably
-result with the types similar to the below:
-
-- `mul<div<metre, second>, second>`
-- `div<mul<metre, metre>, metre>`
-
-Comparing such types for equivalence would not only be very expensive at compile-time but would also
-be really confusing to the users observing them in the compilation logs. This is why we need
-a dedicated solution here.
-
-In a physical quantities and units library, we need expression templates to express the results of
-
-- dimension equations,
-- quantity type equations,
-- unit equations, and
-- unit magnitude equations.
-
-If the above equation results in a derived entity, we must create a type that clearly
-describes what we are dealing with. We need to pack a simplified expression
-template into some container for that. There are various possibilities here. The table below presents
-the types generated from unit expressions by two leading products on the market in this subject:
-
-<!-- markdownlint-disable MD013 -->
-
-| Unit           | [@MP-UNITS]                                                            | [@AU]                                                                          |
-|----------------|------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| `N⋅m`          | `derived_unit<metre, newton>`                                          | `UnitProduct<Meters, Newtons>`                                                 |
-| `1/s`          | `derived_unit<one, per<second>>`                                       | `Pow<Seconds, -1>`                                                             |
-| `km/h`         | `derived_unit<kilo_<metre>, per<hour>>`                                | `UnitProduct<Kilo<Meters>, Pow<Hours, -1>>`                                    |
-| `kg⋅m²/(s³⋅K)` | `derived_unit<kilogram, pow<metre, 2>, per<kelvin, power<second, 3>>>` | `UnitProduct<Pow<Meters, 2>, Kilo<Grams>, Pow<Seconds, -3>, Pow<Kelvins, -1>>` |
-| `m²/m`         | `metre`                                                                | `Meters`                                                                       |
-| `km/m`         | `derived_unit<kilo_<metre>, per<metre>>`                               | `UnitProduct<Pow<Meters, -1>, Kilo<Meters>>`                                   |
-| `m/m`          | `one`                                                                  | `UnitProduct<>`                                                                |
-
-<!-- markdownlint-enable MD013 -->
-
-It is a matter of taste which solution is better. While discussing the pros and cons here, we
-should remember that our users often do not have a scientific background. This is why
-we recommend to use syntax that is as similar to the correct English language as possible.
-It consistently uses the `derived_` prefix for types representing derived units,
-dimensions, and quantity specifications. Those are instantiated first with the contents of
-the numerator followed by the entities of the denominator (if present) enclosed in the
-`per<...>` expression template.
-
-### Identities
-
-The arithmetics on units, dimensions, and quantity types require a special identity value. Such value
-can be returned as a result of the division of the same entities, or using it should not modify the
-expression template on multiplication.
-
-We chose the following names here:
-
-- `one` in the domain of units,
-- `dimension_one` in the domain of dimensions,
-- `dimensionless` in the domain of quantity types.
-
-The above names were selected based on the following quote from [@ISO80000]:
-
-> A quantity whose dimensional exponents are all equal to zero has the dimensional product denoted
-> A<sup>0</sup>B<sup>0</sup>C<sup>0</sup>… = 1, where the symbol 1 denotes the corresponding
-> dimension. There is no agreement on how to refer to such quantities. They have been called
-> **dimensionless** quantities (although this term should now be avoided), quantities with
-> **dimension one**, quantities with dimension number, or quantities with the **unit one**.
-> Such quantities are dimensionally simply numbers. To avoid confusion, it is helpful to use
-> explicit units with these quantities where possible, e.g., m/m, nmol/mol, rad, as specified
-> in the SI Brochure.
-
-### Supported operations and their results
-
-The table below presents all the operations that can be done on units, dimensions, and quantity
-types in a quantities and units library. The right column presents corresponding expression
-templates being their results:
-
-|                   Operation                   | Resulting template expression arguments |
-|:---------------------------------------------:|:---------------------------------------:|
-|                    `A * B`                    |                 `A, B`                  |
-|                    `B * A`                    |                 `A, B`                  |
-|                    `A * A`                    |              `power<A, 2>`              |
-|               `{identity} * A`                |                   `A`                   |
-|               `A * {identity}`                |                   `A`                   |
-|                    `A / B`                    |               `A, per<B>`               |
-|                    `A / A`                    |              `{identity}`               |
-|               `A / {identity}`                |                   `A`                   |
-|               `{identity} / A`                |          `{identity}, per<A>`           |
-|                  `pow<2>(A)`                  |              `power<A, 2>`              |
-|             `pow<2>({identity})`              |              `{identity}`               |
-|          `sqrt(A)` or `pow<1, 2>(A)`          |            `power<A, 1, 2>`             |
-| `sqrt({identity})` or `pow<1, 2>({identity})` |              `{identity}`               |
-
-### Simplifying the resulting expression templates
-
-To limit the length and improve the readability of generated types, there are many rules to simplify
-the resulting expression template.
-
-1. **Ordering**
-
-    The resulting comma-separated arguments of multiplication are always sorted according to
-    a specific predicate. This is why:
-
-    ```cpp
-    static_assert(A * B == B * A);
-    static_assert(std::is_same_v<decltype(A * B), decltype(B * A)>);
-    ```
-
-    This is probably the most important of all the steps, as it allows comparing types and enables
-    the rest of the simplification rules.
-
-    Units and dimensions have unique symbols, but ordering quantity types might not be that
-    trivial. Although the ISQ defined in [@ISO80000] provides symbols for each
-    quantity, there is little use for them in the C++ code. This is caused by the fact that
-    such symbols use a lot of characters that are not available with the Unicode encoding.
-    Most of the limitations correspond to Unicode providing only a minimal set of characters
-    available as subscripts, which are often used to differentiate various quantities of the same
-    kind. For example, it is impossible to encode the symbols of the following quantities:
-
-    - _c_<sub>sat</sub> - _specific heat capacity at saturated vapour pressure_,
-    - _μ_<sub>JT</sub> - _Joule-Thomson coefficient_,
-    - _w_<sub>H<sub>2</sub>O</sub> - _mass fraction of water_,
-    - _σ_<sub>Ω,E</sub> - _direction and energy distribution of cross section_,
-    - _d_<sub>1/2</sub> - _half-value thickness_,
-    - _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
-
-    This is why the library chose to use type name identifiers in such cases.
-
-2. **Aggregation**
-
-    In case two of the same type identifiers are found next to each other on the argument list, they
-    will be aggregated in one entry:
-
-    |              Before              |      After       |
-    |:--------------------------------:|:----------------:|
-    |              `A, A`              |  `power<A, 2>`   |
-    |         `A, power<A, 2>`         |  `power<A, 3>`   |
-    |  `power<A, 1, 2>, power<A, 2>`   | `power<A, 5, 2>` |
-    | `power<A, 1, 2>, power<A, 1, 2>` |       `A`        |
-
-3. **Simplification**
-
-    In case two of the same type identifiers are found in the numerator and denominator argument lists,
-    they are being simplified into one entry:
-
-    |        Before         |        After         |
-    |:---------------------:|:--------------------:|
-    |      `A, per<A>`      |     `{identity}`     |
-    | `power<A, 2>, per<A>` |         `A`          |
-    | `power<A, 3>, per<A>` |    `power<A, 2>`     |
-    | `A, per<power<A, 2>>` | `{identity}, per<A>` |
-
-    It is important to notice here that only the elements with exactly the same type are being
-    simplified. This means that, for example, `m/m` results in `one`, but `km/m` will not be
-    simplified. The resulting derived unit will preserve both symbols and their relative
-    magnitude. This allows us to properly print symbols of some units or constants that require
-    such behavior. For example, the Hubble constant is expressed in `km⋅s⁻¹⋅Mpc⁻¹`, where both
-    `km` and `Mpc` are units of _length_.
-
-4. **Repacking**
-
-    In case an expression uses two results of some other operations, the components of its arguments
-    are repacked into one resulting type and simplified there.
-
-    For example, assuming:
-
-    ```cpp
-    constexpr auto X = A / B;
-    ```
-
-    then:
-
-    | Operation | Resulting template expression arguments |
-    |:---------:|:---------------------------------------:|
-    |  `X * B`  |                   `A`                   |
-    |  `X * A`  |          `power<A, 2>, per<B>`          |
-    |  `X * X`  |     `power<A, 2>, per<power<B, 2>>`     |
-    |  `X / X`  |              `{identity}`               |
-    |  `X / A`  |          `{identity}, per<B>`           |
-    |  `X / B`  |          `A, per<power<B, 2>>`          |
-
-Please note that for as long as for the ordering step in some cases, we use user-provided
-symbols, the aggregation, and the next steps do not benefit from those. They always use type
-identifiers to determine whether the operation should be performed.
-
-Unit symbols are not guaranteed to be unique in the project. For example, someone may use `"s"`
-as a symbol for a count of samples, which, when used in a unit expression with seconds, would
-cause fatal consequences (e.g., `sample * second` would yield `s²`, or `sample / second` would
-result in `one`).
-
-Some units would provide worse text output if the ordering step used type identifiers rather
-than unit symbols. For example, `si::metre * si::second * cgs::second` would result
-in `s m s`, or `newton * metre` would result in `m N`, which is not how we typically spell this
-unit. However, for the sake of consistency, we may also consider changing the algorithm used for
-ordering to be based on type identifiers.
-
-### Expression templates in action
-
-Thanks to all of the steps described above, a user may write the code like this one:
-
-```cpp
-using namespace mp_units::si::unit_symbols;
-quantity speed = isq::speed(60. * km / h);
-quantity duration = 8 * s;
-quantity acceleration1 = speed / duration;
-quantity acceleration2 = isq::acceleration(acceleration1.in(m / s2));
-std::cout << "acceleration: " << acceleration1 << " (" << acceleration2 << ")\n";
-```
-
-the text output provides:
-
-```text
-acceleration: 7.5 km h⁻¹ s⁻¹ (2.08333 m/s²)
-```
-
-The above program will produce the following types for _acceleration_ quantities:
-
-- `acceleration1`
-
-    ```text
-    quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>,
-                       derived_unit<si::kilo_<si::metre>, per<non_si::hour, si::second>>>{},
-             double>
-    ```
-
-- `acceleration2`
-
-    ```text
-    quantity<reference<isq::acceleration,
-                       derived_unit<si::metre, per<power<si::second, 2>>>>{},
-             double>>
-    ```
-
-
-
-# Text output
-
-A quantity value contains a numerical value and a unit. Both of them may have various text
-representations. Not only numbers but also units can be formatted in many different ways.
-Additionally, every dimension can be represented as a text as well.
-
-This chapter will discuss the different options we have here.
-
-_Note: For now, there is no standardized way to handle formatted text input in the C++ standard
-library, so this paper does not propose any approach to convert text to quantities. If
-[@P1729R3] will be accepted by the LEWG, then we will add a proper "Text input" chapter as well._
-
-## Symbols
-
-The definitions of dimensions, units, prefixes, and constants require unique text symbols to be
-assigned for each entity. Those symbols can be composed to express dimensions and units of base and
-derived quantities.
-
-### Symbol definition examples
-
-_Note: The below code examples are based on the latest version of the [@MP-UNITS] library and
-might not be the final version proposed for standardization._
-
-Dimensions:
-
-```cpp
-inline constexpr struct dim_length : base_dimension<"L"> {} dim_length;
-inline constexpr struct dim_mass : base_dimension<"M"> {} dim_mass;
-inline constexpr struct dim_time : base_dimension<"T"> {} dim_time;
-inline constexpr struct dim_electric_current : base_dimension<"I"> {} dim_electric_current;
-inline constexpr struct dim_thermodynamic_temperature : base_dimension<{"Θ", "O"}> {} dim_thermodynamic_temperature;
-inline constexpr struct dim_amount_of_substance : base_dimension<"N"> {} dim_amount_of_substance;
-inline constexpr struct dim_luminous_intensity : base_dimension<"J"> {} dim_luminous_intensity;
-```
-
-Units:
-
-```cpp
-inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
-inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
-inline constexpr struct gram : named_unit<"g", kind_of<isq::mass>> {} gram;
-inline constexpr struct kilogram : decltype(kilo<gram>) {} kilogram;
-
-inline constexpr struct newton : named_unit<"N", kilogram * metre / square(second)> {} newton;
-inline constexpr struct joule : named_unit<"J", newton * metre> {} joule;
-inline constexpr struct watt : named_unit<"W", joule / second> {} watt;
-inline constexpr struct coulomb : named_unit<"C", ampere * second> {} coulomb;
-inline constexpr struct volt : named_unit<"V", watt / ampere> {} volt;
-inline constexpr struct farad : named_unit<"F", coulomb / volt> {} farad;
-inline constexpr struct ohm : named_unit<{"Ω", "ohm"}, volt / ampere> {} ohm;
-```
-
-Prefixes:
-
-```cpp
-template<PrefixableUnit auto U> struct micro_ : prefixed_unit<{"µ", "u"}, mag_power<10, -6>, U> {};
-template<PrefixableUnit auto U> struct milli_ : prefixed_unit<"m", mag_power<10, -3>, U> {};
-template<PrefixableUnit auto U> struct centi_ : prefixed_unit<"c", mag_power<10, -2>, U> {};
-template<PrefixableUnit auto U> struct deci_  : prefixed_unit<"d", mag_power<10, -1>, U> {};
-template<PrefixableUnit auto U> struct deca_  : prefixed_unit<"da", mag_power<10, 1>, U> {};
-template<PrefixableUnit auto U> struct hecto_ : prefixed_unit<"h", mag_power<10, 2>, U> {};
-template<PrefixableUnit auto U> struct kilo_  : prefixed_unit<"k", mag_power<10, 3>, U> {};
-template<PrefixableUnit auto U> struct mega_  : prefixed_unit<"M", mag_power<10, 6>, U> {};
-```
-
-Constants:
-
-```cpp
-inline constexpr struct hyperfine_structure_transition_frequency_of_cs :
-  named_unit<{"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
-inline constexpr struct speed_of_light_in_vacuum :
-  named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
-inline constexpr struct planck_constant :
-  named_unit<"h", mag<ratio{662'607'015, 100'000'000}> * mag_power<10, -34> * joule * second> {} planck_constant;
-inline constexpr struct elementary_charge :
-  named_unit<"e", mag<ratio{1'602'176'634, 1'000'000'000}> * mag_power<10, -19> * coulomb> {} elementary_charge;
-inline constexpr struct boltzmann_constant :
-  named_unit<"k", mag<ratio{1'380'649, 1'000'000}> * mag_power<10, -23> * joule / kelvin> {} boltzmann_constant;
-inline constexpr struct avogadro_constant :
-  named_unit<"N_A", mag<ratio{602'214'076, 100'000'000}> * mag_power<10, 23> / mole> {} avogadro_constant;
-inline constexpr struct luminous_efficacy :
-  named_unit<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
-```
-
-### Lack of Unicode subscript characters
-
-Unicode provides only a minimal set of characters available as subscripts, which are often used to
-differentiate various constants and quantities of the same kind. To workaround this issue,
-[@MP-UNITS] uses '_' character to specify that the following characters should be considered
-a subscript of the symbol.
-
-### Symbols for quantity types
-
-Although the ISQ defined in [@ISO80000] provides symbols for each quantity type, there is little use
-for them in the C++ code. In the [@MP-UNITS] project, we never had a request to provide such symbol
-definitions. Even though having them for completeness could be nice, they seem to not be required
-by the domain experts for their daily jobs. Also, it is worth noting that providing those raises
-some additional standardization and implementation challenges.
-
-If we decide to provide symbols, the rest of this chapter provides the domain information to assess
-the complexity and potential issues with standardization and implementation of those.
-
-All ISQ quantities have an official symbol assigned in their definitions, and how those
-should be printed is exactly specified. [@ISO80000] explicitly states:
-
-> The quantity symbols shall be written in italic (sloping) type, irrespective of the type used
-> in the rest of the text.
-
-Additionally, [@ISO80000] provides additional requirements for printing quantities of vector
-and tensor characters:
-
-- vectors should be printed with a boldface type or have a right arrow above the letter symbol
-  (e.g., **_a_** or $\mathit{\overrightarrow{a}}$),
-- tensors should use either boldface sans serif type or have two arrows above the letter symbol
-  (e.g., **_T_** or $\overrightarrow{\overrightarrow{T}}$).
-
-_Note: In the above examples, the second symbol with arrows above should also use letters written
-       in italics. The author could not find a way to format it properly in this document._
-
-There are also a few requirements for printing subscripts of quantity types.
-[@ISO80000] states:
-
-> The following principles for the printing of subscripts apply:
->
-> - A subscript that represents a physical quantity or a mathematical variable, such as a running
->   number, is printed in italic (sloping) type.
-> - Other subscripts, such as those representing words or fixed numbers, are printed in roman
->   (upright) type.
-
-It is worth noting that only a limited set of Unicode characters are available as subscripts.
-Those are often used to differentiate various quantities of the same kind.
-
-For example, it is impossible to encode the symbols of the following quantities:
-
-- _c_<sub>sat</sub> - _specific heat capacity at saturated vapour pressure_,
-- _μ_<sub>JT</sub> - _Joule-Thomson coefficient_,
-- _w_<sub>H<sub>2</sub>O</sub> - _mass fraction of water_,
-- _σ_<sub>Ω,E</sub> - _direction and energy distribution of cross section_,
-- _d_<sub>1/2</sub> - _half-value thickness_,
-- _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
-
-It is important to state that the same issues are related to constant definitions. For them,
-in the [Symbol definition examples] chapter, we proposed to use the '_' character instead, as
-stated in [Lack of Unicode subscript characters]. We could use the same practice here.
-
-Another challenge here might be related to the fact that [@ISO80000] often provides more than
-one symbol for the same quantity. For example:
-
-- _frequency_ can use _f_ or _ν_,
-- _time constant_ can use _τ_ or _T_ (_T_ is also the only symbol provided for the
-  _period duration_ quantity),
-- _thickness_ can use _d_ or _δ_,
-- _diameter_ can use _d_ or _D_ (which again conflicts with the _diameter_ symbol).
-
-Last but not least, it is worth noting that symbols of ISQ base quantities are not necessary
-the same as official dimension symbols of those quantities:
-
-| Quantity type               |  Quantity type symbol  | Dimension symbol |
-|-----------------------------|:----------------------:|:----------------:|
-| _length_                    |        _l_, _L_        |        L         |
-| _mass_                      |          _m_           |        M         |
-| _time_                      |          _t_           |        T         |
-| _electric current_          |        _I_, _i_        |        I         |
-| _thermodynamic temperature_ |        _T_, _Θ_        |        Θ         |
-| _amount of substance_       |         _n_(X)         |        N         |
-| _luminous intensity_        | _I_<sub>v</sub>, (_I_) |        J         |
-
-Founding a way to define, use, and print named quantity types is not enough. What should also
-be covered here is the text output of derived quantities. There are plenty of operations that one
-might do on scalar, vector, and tensor quantities, and all of them result in another quantity type,
-which should also be able to be printed in the console text output.
-
-Taking all the challenges and issues mentioned above, we do not propose providing quantity type
-symbols in their definitions and any text input/output support for those.
-
-### `fixed_string`
-
-As shown above, symbols are provided as class NTTPs in the library. This means that the string
-type used for such a purpose has to satisfy the structural type requirements of the C++ language.
-One of such requirements is to expose all the data members publicly. So far, none of the existing
-string types in the C++ standard library satisfies such requirements. This is why we need to
-introduce a new type.
-
-Such type should:
-
-- satisfy structural type requirements,
-- be equality comparable and potentially totally ordered,
-- store and provide concatenation support for zero-ended strings,
-- provide storage that, if set at compile time, would also be available for read-only access at
-  runtime,
-- provide at least read-only access to the contained storage.
-
-Such a type does not need to expose a string-like interface. In case its interface is immutable, we
-can easily wrap it with `std::string_view` to get such an interface for free.
-
-This type is being proposed separately in [@P3094_PRE].
-
-### `symbol_text`
-
-Many symbols of units, prefixes, and constants require using a Unicode character set.
-For example:
-
-- Θ - thermodynamic temperature dimension
-- µ - micro
-- Ω - ohm
-- °C - degree Celsius
-- °F - degree Fahrenheit
-- ° - degree
-- ′ - arcminute
-- ″ - arcsecond
-- ᵍ - gradian
-- Å - angstrom
-- M_☉ - solar mass
-- Δν_Cs - hyperfine structure transition frequency of Cs
-- g₀ - standard gravity
-- μ₀ - magnetic constant
-- c₀ - speed of light
-- H₀ - hubble constant
-
-The library should provide such Unicode output by default to be consistent with official systems'
-specifications.
-
-On the other hand, plenty of terminals do not support Unicode characters. Also, general engineering
-experience shows that people often prefer to work with a basic literal character set. This is why
-all such entities should provide an alternative spelling in their definitions.
-
-This is where `symbol_text` comes into play. It is a simple wrapper over the two `fixed_string`
-objects:
-
-```cpp
-template<typename UnicodeCharT, std::size_t N, std::size_t M>
-struct basic_symbol_text {
-  basic_fixed_string<UnicodeCharT, N> unicode_;  // exposition only
-  basic_fixed_string<char, M> ascii_;            // exposition only
-
-  constexpr explicit(false) basic_symbol_text(char txt);
-  constexpr explicit(false) basic_symbol_text(const char (&txt)[N + 1]);
-  constexpr explicit(false) basic_symbol_text(const basic_fixed_string<char, N>& txt);
-  constexpr basic_symbol_text(const UnicodeCharT (&u)[N + 1], const char (&a)[M + 1]);
-  constexpr basic_symbol_text(const basic_fixed_string<UnicodeCharT, N>& u, const basic_fixed_string<char, M>& a);
-
-  [[nodiscard]] constexpr const auto& unicode() const;
-  [[nodiscard]] constexpr const auto& ascii() const;
-
-  [[nodiscard]] constexpr bool empty() const;
-
-  template<std::size_t N2, std::size_t M2>
-  [[nodiscard]] constexpr friend basic_symbol_text<UnicodeCharT, N + N2, M + M2> operator+(
-    const basic_symbol_text& lhs, const basic_symbol_text<UnicodeCharT, N2, M2>& rhs);
-
-  template<typename UnicodeCharT2, std::size_t N2, std::size_t M2>
-  [[nodiscard]] friend constexpr auto operator<=>(const basic_symbol_text& lhs,
-                                                  const basic_symbol_text<UnicodeCharT2, N2, M2>& rhs) noexcept;
-
-  template<typename UnicodeCharT2, std::size_t N2, std::size_t M2>
-  [[nodiscard]] friend constexpr bool operator==(const basic_symbol_text& lhs,
-                                                 const basic_symbol_text<UnicodeCharT2, N2, M2>& rhs) noexcept;
-};
-
-basic_symbol_text(char) -> basic_symbol_text<char, 1, 1>;
-
-template<std::size_t N>
-basic_symbol_text(const char (&)[N]) -> basic_symbol_text<char, N - 1, N - 1>;
-
-template<std::size_t N>
-basic_symbol_text(const basic_fixed_string<char, N>&) -> basic_symbol_text<char, N, N>;
-
-template<typename UnicodeCharT, std::size_t N, std::size_t M>
-basic_symbol_text(const UnicodeCharT (&)[N], const char (&)[M]) -> basic_symbol_text<UnicodeCharT, N - 1, M - 1>;
-
-template<typename UnicodeCharT, std::size_t N, std::size_t M>
-basic_symbol_text(const basic_fixed_string<UnicodeCharT, N>&, const basic_fixed_string<char, M>&)
-  -> basic_symbol_text<UnicodeCharT, N, M>;
-```
-
-_Note: There is literally no way in the current version of the C++ language to output Unicode
-character types (`char8_t`, `char16_t`, and `char32_t`) to the console, the [@MP-UNITS] library
-currently uses `char` to encode both strings._
-
-### Derived dimensions symbols generation
-
-TBD
-
-### Derived unit symbols generation
-
-Based on the provided definitions for base units, the library creates symbols for derived ones.
-
-#### `unit_symbol_formatting`
-
-`unit_symbol_formatting` is a data type describing the configuration of the symbol generation
-algorithm. It contains three orthogonal fields, and each of them has a default value.
-
-```cpp
-enum class text_encoding : std::int8_t {
-  unicode,  // m³;  µs
-  ascii,    // m^3; us
-  default_encoding = unicode
-};
-
-enum class unit_symbol_solidus : std::int8_t {
-  one_denominator,  // m/s;   kg m⁻¹ s⁻¹
-  always,           // m/s;   kg/(m s)
-  never,            // m s⁻¹; kg m⁻¹ s⁻¹
-  default_denominator = one_denominator
-};
-
-enum class unit_symbol_separator : std::int8_t {
-  space,          // kg m²/s²
-  half_high_dot,  // kg⋅m²/s²  (valid only for Unicode encoding)
-  default_separator = space
-};
-
-struct unit_symbol_formatting {
-  text_encoding encoding = text_encoding::default_encoding;
-  unit_symbol_solidus solidus = unit_symbol_solidus::default_denominator;
-  unit_symbol_separator separator = unit_symbol_separator::default_separator;
-};
-```
-
-#### `unit_symbol()`
-
-Returns a `fixed_string` storing the symbol of the unit for the provided configuration:
-
-```cpp
-template<unit_symbol_formatting fmt = unit_symbol_formatting{}, typename CharT = char, Unit U>
-[[nodiscard]] consteval auto unit_symbol(U);
-```
-
-_Note 1: This function could return a `std::string_view` pointing to the internal static buffer._
-
-_Note 2: It could be refactored to `unit_symbol(U, fmt)` when [@P1045R1] is available._
-
-For example:
-
-```cpp
-static_assert(unit_symbol<{.solidus = unit_symbol_solidus::never,
-                           .separator = unit_symbol_separator::half_high_dot}>(kg * m / s2) == "kg⋅m⋅s⁻²");
-```
-
-#### `unit_symbol_to()`
-
-Inserts the generated unit symbol to the output text iterator at runtime based on the provided
-configuration.
-
-```cpp
-template<typename CharT = char, std::output_iterator<CharT> Out, Unit U>
-constexpr Out unit_symbol_to(Out out, U u, unit_symbol_formatting fmt = unit_symbol_formatting{});
-```
-
-For example:
-
-```cpp
-std::string txt;
-unit_symbol_to(std::back_inserter(txt), kg * m / s2,
-               {.solidus = unit_symbol_solidus::never, .separator = unit_symbol_separator::half_high_dot});
-std::cout << txt << "\n";
-```
-
-The above prints:
-
-```text
-kg⋅m⋅s⁻²
-```
-
-## `space_before_unit_symbol` customization point
-
-The [@SI] says:
-
-> The numerical value always precedes the unit and a space is always used to separate the unit from
-> the number. ... The only exceptions to this rule are for the unit symbols for degree, minute and
-> second for plane angle, `°`, `′` and `″`, respectively, for which no space is left between the
-> numerical value and the unit symbol.
-
-There are more units with such properties. For example, percent (`%`) and per mille(`‰`).
-
-To support the above, the library exposes `space_before_unit_symbol` customization point.
-By default, its value is `true` for all the units. This means that a number and a unit will be
-separated by the space in the output text. To change this behavior, a user should provide
-a partial specialization for a specific unit:
-
-```cpp
-template<>
-inline constexpr bool space_before_unit_symbol<non_si::degree> = false;
-```
-
-The above works only for the default formatting or for the format strings that use `%?` placement
-type (`std::format("{}", q)` is equivalent to `std::format("{:%N%?%U}", q)`).
-
-In case a user provides custom format specification (e.g., `std::format("{:%N %U}", q)`),
-the library will always obey this specification for all the units (no matter what the actual
-value of the `space_before_unit_symbol` customization point is) and the separating space will always
-be used in this case.
-
-
-## Output streams
-
-The easiest way to print a dimension, unit, or quantity is to provide its object to the output
-stream:
-
-```cpp
-const quantity v1 = avg_speed(220. * km, 2 * h);
-const quantity v2 = avg_speed(140. * mi, 2 * h);
-std::cout << v1 << '\n';  // 110 km/h
-std::cout << v2 << '\n';  // 70 mi/h
-```
-
-The text output will always print the value using the default formatting for this entity.
-
-### Output stream formatting
-
-Only basic formatting can be applied for output streams. It includes control over width, fill,
-and alignment.
-
-The numerical value of the quantity will be printed according to the current stream state and standard
-manipulators may be used to customize that (assuming that the underlying representation type
-respects them).
-
-```cpp
-std::cout << "|" << std::setw(10) << 123 * m << "|\n";                       // |     123 m|
-std::cout << "|" << std::setw(10) << std::left << 123 * m << "|\n";          // |123 m     |
-std::cout << "|" << std::setw(10) << std::setfill('*') << 123 * m << "|\n";  // |123 m*****|
-```
-
-Detailed formatting of any entity may be obtained with `std::format()` usage and then provided
-to the stream output if needed.
-
-_Note: Custom stream manipulators may be provided to control a dimension and unit symbol output
-if requested by WG21._
-
-
-## Text formatting
-
-The library provides custom formatters for `std::format` facility, which allows fine-grained control
-over what and how it is being printed in the text output.
-
-### Controlling width, fill, and alignment
-
-Formatting grammar for all the entities provides control over width, fill, and alignment. The C++
-standard grammar tokens `fill-and-align` and `width` are being used. They treat the entity as
-a contiguous text to be aligned. For example, here are a few examples of the quantity numerical
-value and symbol formatting:
-
-```cpp
-std::println("|{:0}|", 123 * m);     // |123 m|
-std::println("|{:10}|", 123 * m);    // |     123 m|
-std::println("|{:<10}|", 123 * m);   // |123 m     |
-std::println("|{:>10}|", 123 * m);   // |     123 m|
-std::println("|{:^10}|", 123 * m);   // |  123 m   |
-std::println("|{:*<10}|", 123 * m);  // |123 m*****|
-std::println("|{:*>10}|", 123 * m);  // |*****123 m|
-std::println("|{:*^10}|", 123 * m);  // |**123 m***|
-```
-
-It is important to note that in the second line above, the quantity text is aligned to
-the right by default, which is consistent with the formatting of numeric types. Units and dimensions behave
-as text and, thus, are aligned to the left by default.
-
-### Dimension formatting
-
-```bnf
-dimension-format-spec ::= [fill-and-align] [width] [dimension-spec]
-dimension-spec        ::= [text-encoding]
-text-encoding         ::= 'U' | 'A'
-```
-
-In the above grammar:
-
-- `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
-  chapter of the C++ standard specification,
-- `text-encoding` token specifies the symbol text encoding:
-    - `U` (default) uses the **Unicode** symbols defined by [@ISO80000] (e.g., `LT⁻²`),
-    - `A` forces non-standard **ASCII**-only output (e.g., `LT^-2`).
-
-
-### Unit formatting
-
-```bnf
-unit-format-spec      ::= [fill-and-align] [width] [unit-spec]
-unit-spec             ::= [text-encoding] [unit-symbol-solidus] [unit-symbol-separator] [L]
-                          [text-encoding] [unit-symbol-separator] [unit-symbol-solidus] [L]
-                          [unit-symbol-solidus] [text-encoding] [unit-symbol-separator] [L]
-                          [unit-symbol-solidus] [unit-symbol-separator] [text-encoding] [L]
-                          [unit-symbol-separator] [text-encoding] [unit-symbol-solidus] [L]
-                          [unit-symbol-separator] [unit-symbol-solidus] [text-encoding] [L]
-unit-symbol-solidus   ::= '1' | 'a' | 'n'
-unit-symbol-separator ::= 's' | 'd'
-```
-
-In the above grammar:
-
-- `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
-  chapter of the C++ standard specification,
-- `unit-symbol-solidus` token specifies how the division of units should look like:
-    - '1' (default) outputs `/` only when there is only **one** unit in the denominator, otherwise
-      negative exponents are printed (e.g., `m/s`, `kg m⁻¹ s⁻¹`)
-    - 'a' **always** uses solidus (e.g., `m/s`, `kg/(m s)`)
-    - 'n' **never** prints solidus, which means that negative exponents are always used
-      (e.g., `m s⁻¹`, `kg m⁻¹ s⁻¹`)
-- `unit-symbol-separator` token specifies how multiplied unit symbols should be separated:
-    - 's' (default) uses **space** as a separator (e.g., `kg m²/s²`)
-    - 'd' uses half-high **dot** (`⋅`) as a separator (e.g., `kg⋅m²/s²`) (requires the Unicode encoding)
-- 'L' is reserved for possible future localization use in case C++ standard library gets access to
-  the ICU-like database.
-
-_Note: The intent of the above grammar was that the elements of `unit-spec` can appear in
-any order as they have unique characters. Users shouldn't have to remember the order of those tokens
-to control the formatting of a unit symbol._
-
-Unit symbols of some quantities are specified to use Unicode signs by the [@SI] (e.g., `Ω` symbol
-for the _resistance_ quantity). The library follows this by default. From the engineering point of
-view, sometimes Unicode text might not be the best solution as terminals of many (especially
-embedded) devices can output only letters from the basic literal character set only. In such a case,
-the unit symbol can be forced to be printed using such characters thanks to `text-encoding` token:
-
-```cpp
-std::println("{}", si::ohm);      // Ω
-std::println("{:A}", si::ohm);    // ohm
-std::println("{}", us);           // µs
-std::println("{:A}", us);         // us
-std::println("{}", m / s2);       // m/s²
-std::println("{:A}", m / s2);     // m/s^2
-```
-
-Additionally, both [@ISO80000] and [@SI] leave some freedom on how to print unit symbols.
-This is why two additional tokens were introduced.
-
-`unit-symbol-solidus` specifies how the division of units should look like. By default,
-`/` will be used only when the denominator contains only one unit. However, with the 'a' or 'n'
-options, we can force the facility to print the `/` character always (even when there are more units
-in the denominator), or never, in which case a parenthesis will be added to enclose all denominator
-units.
-
-```cpp
-std::println("{}", m / s);          // m/s
-std::println("{}", kg / m / s2);    // kg m⁻¹ s⁻²
-std::println("{:a}", m / s);        // m/s
-std::println("{:a}", kg / m / s2);  // kg/(m s²)
-std::println("{:n}", m / s);        // m s⁻¹
-std::println("{:n}", kg / m / s2);  // kg m⁻¹ s⁻²
-```
-
-Also, there are a few options to separate the units being multiplied. [@ISO80000] (part 1) says:
-
-> When symbols for quantities are combined in a product of two or more quantities, this combination
-> is indicated in one of the following ways: `ab`, `a b`, `a · b`, `a × b`
->
-> _NOTE 1_ In some fields, e.g., vector algebra, distinction is made between `a ∙ b` and `a × b`.
-
-The library supports `a b` and `a · b` only. Additionally, we decided that the extraneous space
-in the latter case makes the result too verbose, so we decided just to use the `·` symbol as
-a separator.
-
-The `unit-symbol-separator` token allows us to obtain the following outputs:
-
-```cpp
-std::println("{}", kg * m2 / s2);    // kg m²/s²
-std::println("{:d}", kg * m2 / s2);  // kg⋅m²/s²
-```
-
-_Note: 'd' requires the Unicode encoding to be set._
-
-
-### Quantity formatting
-
-```bnf
-quantity-format-spec        ::= [fill-and-align] [width] [quantity-specs]
-quantity-specs              ::= conversion-spec
-                                quantity-specs conversion-spec
-                                quantity-specs literal-char
-literal-char                ::= <any character other than '{', '}', or '%'>
-conversion-spec             ::= placement-spec
-                                subentity-replacement-field
-placement-spec              ::= '%' placement-type
-placement-type              ::= 'N' | 'U' | 'D' | '?' | '%'
-subentity-replacement-field ::= '{' '%' subentity-id [format-specifier] '}'
-subentity-id                ::= literal-char
-                                subentity-id literal-char
-format-specifier            ::= ':' format-spec
-format-spec                 ::= <as specified by the formatter for the argument type; cannot start with '}'>
-```
-
-In the above grammar:
-
-- `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
-  chapter of the C++ standard specification,
-- `placement-type` token specifies which entity should be put and where:
-    - 'N' inserts a default-formatted numerical value of the quantity,
-    - 'U' inserts a default-formatted unit of the quantity,
-    - 'D' inserts a default-formatted dimension of the quantity,
-    - '?' inserts an optional separator between the number and a unit based on the value of
-      `space_before_unit_symbol` for this unit,
-    - '%' just inserts '%'.
-- `subentity-replacement-field` token allows the composition of formatters. The following identifiers
-  are recognized by the quantity formatter:
-    - "N" passes `format-spec` to the `formatter` specialization for the quantity representation
-      type,
-    - "U" passes `format-spec` to the `formatter` specialization for the unit type,
-    - "D" passes `format-spec` to the `formatter` specialization for the dimension type.
-
-#### Default formatting
-
-To format `quantity` values, the formatting facility uses `quantity-format-spec`. If left empty,
-the default formatting is applied. The same default formatting is also applied to the output streams.
-This is why the following code lines produce the same output:
-
-```cpp
-std::cout << "Distance: " << 123 * km << "\n";
-std::cout << std::format("Distance: {}\n", 123 * km);
-std::cout << std::format("Distance: {:%N%?%U}\n", 123 * km);
-std::cout << std::format("Distance: {:{%N}%?{%U}}\n", 123 * km);
-```
-
-Please note that for some quantities the `{:%N %U}` format may provide a different output than
-the default one, as some units have `space_before_unit_symbol` customization point explicitly
-set to `false` (e.g., `%` and `°`).
-
-#### Quantity numerical value, unit symbol, or both?
-
-Thanks to the grammar provided above, the user can easily decide to either:
-
-- print a whole quantity:
-
-    ```cpp
-    std::println("Speed: {}", 120 * km / h);
-    ```
-
-    ```text
-    Speed: 120 km/h
-    ```
-
-- print only specific components (numerical value, unit, or dimension):
-
-    ```cpp
-    std::println("Speed:\n- number: {0:%N}\n- unit: {0:%U}\n- dimension: {0:%D}", 120 * km / h);
-    ```
-
-    ```text
-    Speed:
-    - number: 120
-    - unit: km/h
-    - dimension: LT⁻¹
-    ```
-
-- provide custom quantity formatting
-
-    ```cpp
-    std::println("Speed: {:%N in %U}", 120 * km / h);
-    ```
-
-    ```text
-    Speed: 120 in km/h
-    ```
-
-- provide custom formatting for components:
-
-    ```cpp
-    std::println("Speed: {:{%N:.2f} {%U:n}}", 100. * km / (3 * h));
-    ```
-
-    ```text
-    Speed: 33.33 km h⁻¹
-    ```
-
-`placement-spec` and `subentity-replacement-field` greatly simplify element access and formatting
-of the quantity. Without them the second caese above would require the following:
-
-```cpp
-const auto q = 120 * km / h;
-std::println("Speed:\n- number: {}\n- unit: {}\n- dimension: {}",
-             q.numerical_value_ref_in(q.unit), q.unit, q.dimension);
-```
-
-Providing such support also simplifies the specification and implementation effort of this
-library. Initially, [@MP-UNITS] library was providing numerical value modifiers inplace
-of its format specification, but it:
-
-- worked only with fundamental arithmetic types and was not able to adjust to different format
-  specifications of custom representation types,
-- was quite hard to parse and format everything in a 100% compatible way with the formatting
-  specified in the C++ standard and already implemented in the underlying standard library.
-
-_Note 1: The above grammar allows repeating the same field many times, possibly with a different
-format spec. For example, `std::println("Speed: {:%N {%N:.4f} {%N:.2f} {%U:n}}", 100. * km / (3 * h))`._
-
-## Quantity point text output
-
-The library does not provide a text output for quantity points, as printing just a number and a unit
-is not enough to adequately describe a quantity point. Often, an additional postfix is required.
-
-For example, the text output of `42 m` may mean many things and can also be confused with an output
-of a regular quantity. On the other hand, printing `42 m AMSL` for altitudes above mean sea level
-is a much better solution, but the library does not have enough information to print it that way by
-itself.
-
-
-## Text output open questions
-
-1. Which C++ character type should be used for symbols in Unicode encoding?
-2. Are we OK with the usage of '_' for denoting a subsript identifier?
-3. Are we OK with no text output support of quantity types?
-4. Which character type should `basic_symbol_text` be used in a single-argument constructor?
-5. How to name a non-Unicode accessor member function (e.g., `.ascii()`)? The same name should
-   consistently be used in `text_encoding` and in the formatting grammar.
-6. Should `unit_symbol()` return `std::string_view` or `basic_fixed_string`?
-7. Do we care about ostreams enough to introduce custom manipulators to format units?
-8. What about the localization for units? Will we get something like ICU in the C++ standard?
-9. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
-   proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
-   we OK with this?
-10. Should we provide support for quantity points?
-
-
-# Usage examples
-
-## Basic quantity equations
-
-Let's start with a really simple example presenting basic operations that every physical quantities
-and units library should provide:
-
-```cpp
-import mp_units;
-
-using namespace mp_units;
-using namespace mp_units::si::unit_symbols;
-
-// simple numeric operations
-static_assert(10 * km / 2 == 5 * km);
-
-// conversions to common units
-static_assert(1 * h == 3600 * s);
-static_assert(1 * km + 1 * m == 1001 * m);
-
-// derived quantities
-static_assert(1 * km / (1 * s) == 1000 * m / s);
-static_assert(2 * km / h * (2 * h) == 4 * km);
-static_assert(2 * km / (2 * km / h) == 1 * h);
-
-static_assert(2 * m * (3 * m) == 6 * m2);
-
-static_assert(10 * km / (5 * km) == 2 * one);
-
-static_assert(1000 / (1 * s) == 1 * kHz);
-```
-
-Try it in [the Compiler Explorer](https://godbolt.org/z/sYfoPzTvT).
-
-## Hello units
-
-The next example serves as a showcase of various features available in the [@MP-UNITS] library.
-
-```cpp
-import mp_units;
-import std;
-
-using namespace mp_units;
-
-constexpr QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto d,
-                                                QuantityOf<isq::time> auto t)
-{
-  return d / t;
-}
-
-int main()
-{
-  using namespace mp_units::si::unit_symbols;
-  using namespace mp_units::international::unit_symbols;
-
-  constexpr quantity v1 = 110 * km / h;
-  constexpr quantity v2 = 70 * mph;
-  constexpr quantity v3 = avg_speed(220. * isq::distance[km], 2 * h);
-  constexpr quantity v4 = avg_speed(isq::distance(140. * mi), 2 * h);
-  constexpr quantity v5 = v3.in(m / s);
-  constexpr quantity v6 = value_cast<m / s>(v4);
-  constexpr quantity v7 = value_cast<int>(v6);
-
-  std::cout << v1 << '\n';                                        // 110 km/h
-  std::cout << std::setw(10) << std::setfill('*') << v2 << '\n';  // ***70 mi/h
-  std::cout << std::format("{:*^10}\n", v3);                      // *110 km/h*
-  std::println("{:%N in %U}", v4);                                // 70 in mi/h
-  std::println("{:{%N:.2f}%?%U}", v5);                            // 30.56 m/s
-  std::println("{:{%N:.2f}%?{%U:n}}", v6);                        // 31.29 m s⁻¹
-  std::println("{:%N}", v7);                                      // 31
-}
-```
-
-Try it in [the Compiler Explorer](https://godbolt.org/z/aPe7naKrE).
-
-## Storage tank
-
-This example estimates the process of filling a storage tank with some contents. It presents:
-
-- [The importance of supporting more than one distinct quantity of the same kind](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#system-of-quantities-is-not-only-about-kinds),
-- [faster-than-lightspeed constants](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/faster_than_lightspeed_constants/),
-- how easy it is to [add custom quantity types](https://mpusz.github.io/mp-units/2.0/users_guide/framework_basics/systems_of_quantities/#defining-quantities)
-when needed, and
-- [interoperability with `std::chrono::duration`](https://mpusz.github.io/mp-units/2.1/users_guide/framework_basics/concepts/#QuantityLike).
-
-```cpp
-import mp_units;
-import std;
-
-// allows standard gravity (acceleration) and weight (force) to be expressed with scalar representation
-// types instead of requiring the usage of Linear Algebra library for this simple example
-template<class T>
-  requires mp_units::is_scalar<T>
-inline constexpr bool mp_units::is_vector<T> = true;
-
-namespace {
-
-using namespace mp_units;
-using namespace mp_units::si::unit_symbols;
-
-// add a custom quantity type of kind isq::length
-inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
-
-// add a custom derived quantity type of kind isq::area
-// with a constrained quantity equation
-inline constexpr struct horizontal_area : quantity_spec<horizontal_length * isq::width> {} horizontal_area;
-
-inline constexpr auto g = 1 * si::standard_gravity;
-inline constexpr auto air_density = isq::mass_density(1.225 * kg / m3);
-
-class StorageTank {
-  quantity<horizontal_area[m2]> base_;
-  quantity<isq::height[m]> height_;
-  quantity<isq::mass_density[kg / m3]> density_ = air_density;
-public:
-  constexpr StorageTank(const quantity<horizontal_area[m2]>& base, const quantity<isq::height[m]>& height) :
-      base_(base), height_(height)
-  {
-  }
-
-  constexpr void set_contents_density(const quantity<isq::mass_density[kg / m3]>& density)
-  {
-    assert(density > air_density);
-    density_ = density;
-  }
-
-  [[nodiscard]] constexpr QuantityOf<isq::weight> auto filled_weight() const
-  {
-    const auto volume = isq::volume(base_ * height_);
-    const QuantityOf<isq::mass> auto mass = density_ * volume;
-    return isq::weight(mass * g);
-  }
-
-  [[nodiscard]] constexpr quantity<isq::height[m]> fill_level(const quantity<isq::mass[kg]>& measured_mass) const
-  {
-    return height_ * measured_mass * g / filled_weight();
-  }
-
-  [[nodiscard]] constexpr quantity<isq::volume[m3]> spare_capacity(const quantity<isq::mass[kg]>& measured_mass) const
-  {
-    return (height_ - fill_level(measured_mass)) * base_;
-  }
-};
-
-
-class CylindricalStorageTank : public StorageTank {
-public:
-  constexpr CylindricalStorageTank(const quantity<isq::radius[m]>& radius, const quantity<isq::height[m]>& height) :
-      StorageTank(quantity_cast<horizontal_area>(std::numbers::pi * pow<2>(radius)), height)
-  {
-  }
-};
-
-class RectangularStorageTank : public StorageTank {
-public:
-  constexpr RectangularStorageTank(const quantity<horizontal_length[m]>& length, const quantity<isq::width[m]>& width,
-                                   const quantity<isq::height[m]>& height) :
-      StorageTank(length * width, height)
-  {
-  }
-};
-
-}  // namespace
-
-
-int main()
-{
-  const quantity height = isq::height(200 * mm);
-  auto tank = RectangularStorageTank(horizontal_length(1'000 * mm), isq::width(500 * mm), height);
-  tank.set_contents_density(1'000 * kg / m3);
-
-  const auto duration = std::chrono::seconds{200};
-  const quantity fill_time = value_cast<int>(quantity{duration});  // time since starting fill
-  const quantity measured_mass = 20. * kg;                         // measured mass at fill_time
-
-  const quantity fill_level = tank.fill_level(measured_mass);
-  const quantity spare_capacity = tank.spare_capacity(measured_mass);
-  const quantity filled_weight = tank.filled_weight();
-
-  const QuantityOf<isq::mass_change_rate> auto input_flow_rate = measured_mass / fill_time;
-  const QuantityOf<isq::speed> auto float_rise_rate = fill_level / fill_time;
-  const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
-
-  const quantity fill_ratio = fill_level / height;
-
-  std::println("fill height at {} = {} ({} full)", fill_time, fill_level, fill_ratio.in(percent));
-  std::println("fill weight at {} = {} ({})", fill_time, filled_weight, filled_weight.in(N));
-  std::println("spare capacity at {} = {}", fill_time, spare_capacity);
-  std::println("input flow rate = {}", input_flow_rate);
-  std::println("float rise rate = {}", float_rise_rate);
-  std::println("tank full E.T.A. at current flow rate = {}", fill_time_left.in(s));
-}
-```
-
-The above code outputs:
-
-```text
-fill height at 200 s = 0.04 m (20% full)
-fill weight at 200 s = 100 g₀ kg (980.665 N)
-spare capacity at 200 s = 0.08 m³
-input flow rate = 0.1 kg/s
-float rise rate = 2e-04 m/s
-tank full E.T.A. at current flow rate = 800 s
-```
-
-Try it in [the Compiler Explorer](https://godbolt.org/z/cW19WYr3M).
-
-## Bridge across the Rhine
-
-The following example codifies the history of a famous issue during the construction of a bridge across
-the Rhine River between the German and Swiss parts of the town Laufenburg [@HOCHRHEINBRÜCKE].
-It also nicely presents how [the Affine Space is being modeled in the library](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/).
-
-
-```cpp
-import mp_units;
-import std;
-
-using namespace mp_units;
-using namespace mp_units::si::unit_symbols;
-
-constexpr struct amsterdam_sea_level : absolute_point_origin<amsterdam_sea_level, isq::altitude> {
-} amsterdam_sea_level;
-
-constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level - 27 * cm> {
-} mediterranean_sea_level;
-
-using altitude_DE = quantity_point<isq::altitude[m], amsterdam_sea_level>;
-using altitude_CH = quantity_point<isq::altitude[m], mediterranean_sea_level>;
-
-template<auto R, typename Rep>
-std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_DE::point_origin, Rep> alt)
-{
-  return os << alt.quantity_ref_from(altitude_DE::point_origin) << " AMSL(DE)";
-}
-
-template<auto R, typename Rep>
-std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_CH::point_origin, Rep> alt)
-{
-  return os << alt.quantity_ref_from(altitude_CH::point_origin) << " AMSL(CH)";
-}
-
-template<auto R, typename Rep>
-struct std::formatter<quantity_point<R, altitude_DE::point_origin, Rep>> : formatter<quantity<R, Rep>> {
-  template<typename FormatContext>
-  auto format(const quantity_point<R, altitude_DE::point_origin, Rep>& alt, FormatContext& ctx) const
-  {
-    formatter<quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_DE::point_origin), ctx);
-    return std::format_to(ctx.out(), " AMSL(DE)");
-  }
-};
-
-template<auto R, typename Rep>
-struct std::formatter<quantity_point<R, altitude_CH::point_origin, Rep>> : formatter<quantity<R, Rep>> {
-  template<typename FormatContext>
-  auto format(const quantity_point<R, altitude_CH::point_origin, Rep>& alt, FormatContext& ctx) const
-  {
-    formatter<quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_CH::point_origin), ctx);
-    return std::format_to(ctx.out(), " AMSL(CH)");
-  }
-};
-
-int main()
-{
-  // expected bridge altitude in a specific reference system
-  quantity_point expected_bridge_alt = amsterdam_sea_level + 330 * m;
-
-  // some nearest landmark altitudes on both sides of the river
-  // equal but not equal ;-)
-  altitude_DE landmark_alt_DE = altitude_DE::point_origin + 300 * m;
-  altitude_CH landmark_alt_CH = altitude_CH::point_origin + 300 * m;
-
-  // artifical deltas from landmarks of the bridge base on both sides of the river
-  quantity delta_DE = isq::height(3 * m);
-  quantity delta_CH = isq::height(-2 * m);
-
-  // artificial altitude of the bridge base on both sides of the river
-  quantity_point bridge_base_alt_DE = landmark_alt_DE + delta_DE;
-  quantity_point bridge_base_alt_CH = landmark_alt_CH + delta_CH;
-
-  // artificial height of the required bridge pilar height on both sides of the river
-  quantity bridge_pilar_height_DE = expected_bridge_alt - bridge_base_alt_DE;
-  quantity bridge_pilar_height_CH = expected_bridge_alt - bridge_base_alt_CH;
-
-  std::println("Bridge pillars height:");
-  std::println("- Germany:     {}", bridge_pilar_height_DE);
-  std::println("- Switzerland: {}", bridge_pilar_height_CH);
-
-  // artificial bridge altitude on both sides of the river in both systems
-  quantity_point bridge_road_alt_DE = bridge_base_alt_DE + bridge_pilar_height_DE;
-  quantity_point bridge_road_alt_CH = bridge_base_alt_CH + bridge_pilar_height_CH;
-
-  std::println("Bridge road altitude:");
-  std::println("- Germany:     {}", bridge_road_alt_DE);
-  std::println("- Switzerland: {}", bridge_road_alt_CH);
-
-  std::println("Bridge road altitude relative to the Amsterdam Sea Level:");
-  std::println("- Germany:     {}", bridge_road_alt_DE.quantity_from(amsterdam_sea_level));
-  std::println("- Switzerland: {}", bridge_road_alt_CH.quantity_from(amsterdam_sea_level));
-}
-```
-
-The above provides the following text output:
-
-```text
-Bridge pillars height:
-- Germany:     27 m
-- Switzerland: 3227 cm
-Bridge road altitude:
-- Germany:     330 m AMSL(DE)
-- Switzerland: 33027 cm AMSL(CH)
-Bridge road altitude relative to the Amsterdam Sea Level:
-- Germany:     330 m
-- Switzerland: 33000 cm
-```
-
-Try it in [the Compiler Explorer](https://godbolt.org/z/oEW1vfeMG).
-
-## User defined quantities and units
-
-Users can easily define new quantities and units for domain-specific
-use-cases.  This example from digital signal processing will show how to
-define custom units for counting
-[digital samples](https://en.wikipedia.org/wiki/Sampling_(signal_processing))
-and how they can be converted to time measured in milliseconds:
-
-```cpp
-import mp_units;
-import std;
-
-namespace dsp_dsq {
-
-using namespace mp_units;
-
-inline constexpr struct SampleCount : quantity_spec<dimensionless, is_kind> {} SampleCount;
-inline constexpr struct SampleDuration : quantity_spec<isq::time> {} SampleDuration;
-inline constexpr struct SamplingRate : quantity_spec<isq::frequency, SampleCount / isq::time> {} SamplingRate;
-
-inline constexpr struct Sample : named_unit<"Smpl", one, kind_of<SampleCount>> {} Sample;
-
-namespace unit_symbols {
-inline constexpr auto Smpl = Sample;
-}
-
-}
-
-int main()
-{
-  using namespace dsp_dsq::unit_symbols;
-  using namespace mp_units::si::unit_symbols;
-
-  const auto sr1 = 44100.f * Hz;
-  const auto sr2 = 48000.f * Smpl / s;
-
-  const auto bufferSize = 512 * Smpl;
-
-  const auto sampleTime1 = (bufferSize / sr1).in(s);
-  const auto sampleTime2 = (bufferSize / sr2).in(ms);
-
-  const auto sampleDuration1 = (1 / sr1).in(ms);
-  const auto sampleDuration2 = dsp_dsq::SampleDuration(1 / sr2).in(ms);
-
-  const auto rampTime = 35.f * ms;
-  const auto rampSamples1 = value_cast<int>((rampTime * sr1).in(Smpl));
-  const auto rampSamples2 = value_cast<int>((rampTime * sr2).in(Smpl));
-
-  std::println("Sample rate 1 is: {}", sr1);
-  std::println("Sample rate 2 is: {}", sr2);
-
-  std::println("{} @ {} is {:{%N:.5f} %U}", bufferSize, sr1, sampleTime1);
-  std::println("{} @ {} is {:{%N:.5f} %U}", bufferSize, sr2, sampleTime2);
-
-  std::println("One sample @ {} is {:{%N:.5f} %U}", sr1, sampleDuration1);
-  std::println("One sample @ {} is {:{%N:.5f} %U}", sr2, sampleDuration2);
-
-  std::println("{} is {} @ {}", rampTime, rampSamples1, sr1);
-  std::println("{} is {} @ {}", rampTime, rampSamples2, sr2);
-}
-```
-
-The above code outputs:
-
-```text
-Sample rate 1 is: 44100 Hz
-Sample rate 2 is: 48000 Smpl/s
-512 Smpl @ 44100 Hz is 0.01161 s
-512 Smpl @ 48000 Smpl/s is 10.66667 ms
-One sample @ 44100 Hz is 0.02268 ms
-One sample @ 48000 Smpl/s is 0.02083 ms
-35 ms is 1543 Smpl @ 44100 Hz
-35 ms is 1680 Smpl @ 48000 Smpl/s
-```
-
-Try it in [the Compiler Explorer](https://godbolt.org/z/3bvEvebMx).
 
 
 # Safety
@@ -4914,6 +3945,974 @@ anyone.
 
 Hopefully, this requirement on structural types will be relaxed before the library gets
 standardized.
+
+
+# Text output
+
+A quantity value contains a numerical value and a unit. Both of them may have various text
+representations. Not only numbers but also units can be formatted in many different ways.
+Additionally, every dimension can be represented as a text as well.
+
+This chapter will discuss the different options we have here.
+
+_Note: For now, there is no standardized way to handle formatted text input in the C++ standard
+library, so this paper does not propose any approach to convert text to quantities. If
+[@P1729R3] will be accepted by the LEWG, then we will add a proper "Text input" chapter as well._
+
+## Symbols
+
+The definitions of dimensions, units, prefixes, and constants require unique text symbols to be
+assigned for each entity. Those symbols can be composed to express dimensions and units of base and
+derived quantities.
+
+### Symbol definition examples
+
+_Note: The below code examples are based on the latest version of the [@MP-UNITS] library and
+might not be the final version proposed for standardization._
+
+Dimensions:
+
+```cpp
+inline constexpr struct dim_length : base_dimension<"L"> {} dim_length;
+inline constexpr struct dim_mass : base_dimension<"M"> {} dim_mass;
+inline constexpr struct dim_time : base_dimension<"T"> {} dim_time;
+inline constexpr struct dim_electric_current : base_dimension<"I"> {} dim_electric_current;
+inline constexpr struct dim_thermodynamic_temperature : base_dimension<{"Θ", "O"}> {} dim_thermodynamic_temperature;
+inline constexpr struct dim_amount_of_substance : base_dimension<"N"> {} dim_amount_of_substance;
+inline constexpr struct dim_luminous_intensity : base_dimension<"J"> {} dim_luminous_intensity;
+```
+
+Units:
+
+```cpp
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct gram : named_unit<"g", kind_of<isq::mass>> {} gram;
+inline constexpr struct kilogram : decltype(kilo<gram>) {} kilogram;
+
+inline constexpr struct newton : named_unit<"N", kilogram * metre / square(second)> {} newton;
+inline constexpr struct joule : named_unit<"J", newton * metre> {} joule;
+inline constexpr struct watt : named_unit<"W", joule / second> {} watt;
+inline constexpr struct coulomb : named_unit<"C", ampere * second> {} coulomb;
+inline constexpr struct volt : named_unit<"V", watt / ampere> {} volt;
+inline constexpr struct farad : named_unit<"F", coulomb / volt> {} farad;
+inline constexpr struct ohm : named_unit<{"Ω", "ohm"}, volt / ampere> {} ohm;
+```
+
+Prefixes:
+
+```cpp
+template<PrefixableUnit auto U> struct micro_ : prefixed_unit<{"µ", "u"}, mag_power<10, -6>, U> {};
+template<PrefixableUnit auto U> struct milli_ : prefixed_unit<"m", mag_power<10, -3>, U> {};
+template<PrefixableUnit auto U> struct centi_ : prefixed_unit<"c", mag_power<10, -2>, U> {};
+template<PrefixableUnit auto U> struct deci_  : prefixed_unit<"d", mag_power<10, -1>, U> {};
+template<PrefixableUnit auto U> struct deca_  : prefixed_unit<"da", mag_power<10, 1>, U> {};
+template<PrefixableUnit auto U> struct hecto_ : prefixed_unit<"h", mag_power<10, 2>, U> {};
+template<PrefixableUnit auto U> struct kilo_  : prefixed_unit<"k", mag_power<10, 3>, U> {};
+template<PrefixableUnit auto U> struct mega_  : prefixed_unit<"M", mag_power<10, 6>, U> {};
+```
+
+Constants:
+
+```cpp
+inline constexpr struct hyperfine_structure_transition_frequency_of_cs :
+  named_unit<{"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
+inline constexpr struct speed_of_light_in_vacuum :
+  named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
+inline constexpr struct planck_constant :
+  named_unit<"h", mag<ratio{662'607'015, 100'000'000}> * mag_power<10, -34> * joule * second> {} planck_constant;
+inline constexpr struct elementary_charge :
+  named_unit<"e", mag<ratio{1'602'176'634, 1'000'000'000}> * mag_power<10, -19> * coulomb> {} elementary_charge;
+inline constexpr struct boltzmann_constant :
+  named_unit<"k", mag<ratio{1'380'649, 1'000'000}> * mag_power<10, -23> * joule / kelvin> {} boltzmann_constant;
+inline constexpr struct avogadro_constant :
+  named_unit<"N_A", mag<ratio{602'214'076, 100'000'000}> * mag_power<10, 23> / mole> {} avogadro_constant;
+inline constexpr struct luminous_efficacy :
+  named_unit<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
+```
+
+### Lack of Unicode subscript characters
+
+Unicode provides only a minimal set of characters available as subscripts, which are often used to
+differentiate various constants and quantities of the same kind. To workaround this issue,
+[@MP-UNITS] uses '_' character to specify that the following characters should be considered
+a subscript of the symbol.
+
+### Symbols for quantity types
+
+Although the ISQ defined in [@ISO80000] provides symbols for each quantity type, there is little use
+for them in the C++ code. In the [@MP-UNITS] project, we never had a request to provide such symbol
+definitions. Even though having them for completeness could be nice, they seem to not be required
+by the domain experts for their daily jobs. Also, it is worth noting that providing those raises
+some additional standardization and implementation challenges.
+
+If we decide to provide symbols, the rest of this chapter provides the domain information to assess
+the complexity and potential issues with standardization and implementation of those.
+
+All ISQ quantities have an official symbol assigned in their definitions, and how those
+should be printed is exactly specified. [@ISO80000] explicitly states:
+
+> The quantity symbols shall be written in italic (sloping) type, irrespective of the type used
+> in the rest of the text.
+
+Additionally, [@ISO80000] provides additional requirements for printing quantities of vector
+and tensor characters:
+
+- vectors should be printed with a boldface type or have a right arrow above the letter symbol
+  (e.g., **_a_** or $\mathit{\overrightarrow{a}}$),
+- tensors should use either boldface sans serif type or have two arrows above the letter symbol
+  (e.g., **_T_** or $\overrightarrow{\overrightarrow{T}}$).
+
+_Note: In the above examples, the second symbol with arrows above should also use letters written
+       in italics. The author could not find a way to format it properly in this document._
+
+There are also a few requirements for printing subscripts of quantity types.
+[@ISO80000] states:
+
+> The following principles for the printing of subscripts apply:
+>
+> - A subscript that represents a physical quantity or a mathematical variable, such as a running
+>   number, is printed in italic (sloping) type.
+> - Other subscripts, such as those representing words or fixed numbers, are printed in roman
+>   (upright) type.
+
+It is worth noting that only a limited set of Unicode characters are available as subscripts.
+Those are often used to differentiate various quantities of the same kind.
+
+For example, it is impossible to encode the symbols of the following quantities:
+
+- _c_<sub>sat</sub> - _specific heat capacity at saturated vapour pressure_,
+- _μ_<sub>JT</sub> - _Joule-Thomson coefficient_,
+- _w_<sub>H<sub>2</sub>O</sub> - _mass fraction of water_,
+- _σ_<sub>Ω,E</sub> - _direction and energy distribution of cross section_,
+- _d_<sub>1/2</sub> - _half-value thickness_,
+- _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
+
+It is important to state that the same issues are related to constant definitions. For them,
+in the [Symbol definition examples] chapter, we proposed to use the '_' character instead, as
+stated in [Lack of Unicode subscript characters]. We could use the same practice here.
+
+Another challenge here might be related to the fact that [@ISO80000] often provides more than
+one symbol for the same quantity. For example:
+
+- _frequency_ can use _f_ or _ν_,
+- _time constant_ can use _τ_ or _T_ (_T_ is also the only symbol provided for the
+  _period duration_ quantity),
+- _thickness_ can use _d_ or _δ_,
+- _diameter_ can use _d_ or _D_ (which again conflicts with the _diameter_ symbol).
+
+Last but not least, it is worth noting that symbols of ISQ base quantities are not necessary
+the same as official dimension symbols of those quantities:
+
+| Quantity type               |  Quantity type symbol  | Dimension symbol |
+|-----------------------------|:----------------------:|:----------------:|
+| _length_                    |        _l_, _L_        |        L         |
+| _mass_                      |          _m_           |        M         |
+| _time_                      |          _t_           |        T         |
+| _electric current_          |        _I_, _i_        |        I         |
+| _thermodynamic temperature_ |        _T_, _Θ_        |        Θ         |
+| _amount of substance_       |         _n_(X)         |        N         |
+| _luminous intensity_        | _I_<sub>v</sub>, (_I_) |        J         |
+
+Founding a way to define, use, and print named quantity types is not enough. What should also
+be covered here is the text output of derived quantities. There are plenty of operations that one
+might do on scalar, vector, and tensor quantities, and all of them result in another quantity type,
+which should also be able to be printed in the console text output.
+
+Taking all the challenges and issues mentioned above, we do not propose providing quantity type
+symbols in their definitions and any text input/output support for those.
+
+### `fixed_string`
+
+As shown above, symbols are provided as class NTTPs in the library. This means that the string
+type used for such a purpose has to satisfy the structural type requirements of the C++ language.
+One of such requirements is to expose all the data members publicly. So far, none of the existing
+string types in the C++ standard library satisfies such requirements. This is why we need to
+introduce a new type.
+
+Such type should:
+
+- satisfy structural type requirements,
+- be equality comparable and potentially totally ordered,
+- store and provide concatenation support for zero-ended strings,
+- provide storage that, if set at compile time, would also be available for read-only access at
+  runtime,
+- provide at least read-only access to the contained storage.
+
+Such a type does not need to expose a string-like interface. In case its interface is immutable, we
+can easily wrap it with `std::string_view` to get such an interface for free.
+
+This type is being proposed separately in [@P3094_PRE].
+
+### `symbol_text`
+
+Many symbols of units, prefixes, and constants require using a Unicode character set.
+For example:
+
+- Θ - thermodynamic temperature dimension
+- µ - micro
+- Ω - ohm
+- °C - degree Celsius
+- °F - degree Fahrenheit
+- ° - degree
+- ′ - arcminute
+- ″ - arcsecond
+- ᵍ - gradian
+- Å - angstrom
+- M_☉ - solar mass
+- Δν_Cs - hyperfine structure transition frequency of Cs
+- g₀ - standard gravity
+- μ₀ - magnetic constant
+- c₀ - speed of light
+- H₀ - hubble constant
+
+The library should provide such Unicode output by default to be consistent with official systems'
+specifications.
+
+On the other hand, plenty of terminals do not support Unicode characters. Also, general engineering
+experience shows that people often prefer to work with a basic literal character set. This is why
+all such entities should provide an alternative spelling in their definitions.
+
+This is where `symbol_text` comes into play. It is a simple wrapper over the two `fixed_string`
+objects:
+
+```cpp
+template<typename UnicodeCharT, std::size_t N, std::size_t M>
+struct basic_symbol_text {
+  basic_fixed_string<UnicodeCharT, N> unicode_;  // exposition only
+  basic_fixed_string<char, M> ascii_;            // exposition only
+
+  constexpr explicit(false) basic_symbol_text(char txt);
+  constexpr explicit(false) basic_symbol_text(const char (&txt)[N + 1]);
+  constexpr explicit(false) basic_symbol_text(const basic_fixed_string<char, N>& txt);
+  constexpr basic_symbol_text(const UnicodeCharT (&u)[N + 1], const char (&a)[M + 1]);
+  constexpr basic_symbol_text(const basic_fixed_string<UnicodeCharT, N>& u, const basic_fixed_string<char, M>& a);
+
+  [[nodiscard]] constexpr const auto& unicode() const;
+  [[nodiscard]] constexpr const auto& ascii() const;
+
+  [[nodiscard]] constexpr bool empty() const;
+
+  template<std::size_t N2, std::size_t M2>
+  [[nodiscard]] constexpr friend basic_symbol_text<UnicodeCharT, N + N2, M + M2> operator+(
+    const basic_symbol_text& lhs, const basic_symbol_text<UnicodeCharT, N2, M2>& rhs);
+
+  template<typename UnicodeCharT2, std::size_t N2, std::size_t M2>
+  [[nodiscard]] friend constexpr auto operator<=>(const basic_symbol_text& lhs,
+                                                  const basic_symbol_text<UnicodeCharT2, N2, M2>& rhs) noexcept;
+
+  template<typename UnicodeCharT2, std::size_t N2, std::size_t M2>
+  [[nodiscard]] friend constexpr bool operator==(const basic_symbol_text& lhs,
+                                                 const basic_symbol_text<UnicodeCharT2, N2, M2>& rhs) noexcept;
+};
+
+basic_symbol_text(char) -> basic_symbol_text<char, 1, 1>;
+
+template<std::size_t N>
+basic_symbol_text(const char (&)[N]) -> basic_symbol_text<char, N - 1, N - 1>;
+
+template<std::size_t N>
+basic_symbol_text(const basic_fixed_string<char, N>&) -> basic_symbol_text<char, N, N>;
+
+template<typename UnicodeCharT, std::size_t N, std::size_t M>
+basic_symbol_text(const UnicodeCharT (&)[N], const char (&)[M]) -> basic_symbol_text<UnicodeCharT, N - 1, M - 1>;
+
+template<typename UnicodeCharT, std::size_t N, std::size_t M>
+basic_symbol_text(const basic_fixed_string<UnicodeCharT, N>&, const basic_fixed_string<char, M>&)
+  -> basic_symbol_text<UnicodeCharT, N, M>;
+```
+
+_Note: There is literally no way in the current version of the C++ language to output Unicode
+character types (`char8_t`, `char16_t`, and `char32_t`) to the console, the [@MP-UNITS] library
+currently uses `char` to encode both strings._
+
+### Derived dimensions symbols generation
+
+TBD
+
+### Derived unit symbols generation
+
+Based on the provided definitions for base units, the library creates symbols for derived ones.
+
+#### `unit_symbol_formatting`
+
+`unit_symbol_formatting` is a data type describing the configuration of the symbol generation
+algorithm. It contains three orthogonal fields, and each of them has a default value.
+
+```cpp
+enum class text_encoding : std::int8_t {
+  unicode,  // m³;  µs
+  ascii,    // m^3; us
+  default_encoding = unicode
+};
+
+enum class unit_symbol_solidus : std::int8_t {
+  one_denominator,  // m/s;   kg m⁻¹ s⁻¹
+  always,           // m/s;   kg/(m s)
+  never,            // m s⁻¹; kg m⁻¹ s⁻¹
+  default_denominator = one_denominator
+};
+
+enum class unit_symbol_separator : std::int8_t {
+  space,          // kg m²/s²
+  half_high_dot,  // kg⋅m²/s²  (valid only for Unicode encoding)
+  default_separator = space
+};
+
+struct unit_symbol_formatting {
+  text_encoding encoding = text_encoding::default_encoding;
+  unit_symbol_solidus solidus = unit_symbol_solidus::default_denominator;
+  unit_symbol_separator separator = unit_symbol_separator::default_separator;
+};
+```
+
+#### `unit_symbol()`
+
+Returns a `fixed_string` storing the symbol of the unit for the provided configuration:
+
+```cpp
+template<unit_symbol_formatting fmt = unit_symbol_formatting{}, typename CharT = char, Unit U>
+[[nodiscard]] consteval auto unit_symbol(U);
+```
+
+_Note 1: This function could return a `std::string_view` pointing to the internal static buffer._
+
+_Note 2: It could be refactored to `unit_symbol(U, fmt)` when [@P1045R1] is available._
+
+For example:
+
+```cpp
+static_assert(unit_symbol<{.solidus = unit_symbol_solidus::never,
+                           .separator = unit_symbol_separator::half_high_dot}>(kg * m / s2) == "kg⋅m⋅s⁻²");
+```
+
+#### `unit_symbol_to()`
+
+Inserts the generated unit symbol to the output text iterator at runtime based on the provided
+configuration.
+
+```cpp
+template<typename CharT = char, std::output_iterator<CharT> Out, Unit U>
+constexpr Out unit_symbol_to(Out out, U u, unit_symbol_formatting fmt = unit_symbol_formatting{});
+```
+
+For example:
+
+```cpp
+std::string txt;
+unit_symbol_to(std::back_inserter(txt), kg * m / s2,
+               {.solidus = unit_symbol_solidus::never, .separator = unit_symbol_separator::half_high_dot});
+std::cout << txt << "\n";
+```
+
+The above prints:
+
+```text
+kg⋅m⋅s⁻²
+```
+
+## `space_before_unit_symbol` customization point
+
+The [@SI] says:
+
+> The numerical value always precedes the unit and a space is always used to separate the unit from
+> the number. ... The only exceptions to this rule are for the unit symbols for degree, minute and
+> second for plane angle, `°`, `′` and `″`, respectively, for which no space is left between the
+> numerical value and the unit symbol.
+
+There are more units with such properties. For example, percent (`%`) and per mille(`‰`).
+
+To support the above, the library exposes `space_before_unit_symbol` customization point.
+By default, its value is `true` for all the units. This means that a number and a unit will be
+separated by the space in the output text. To change this behavior, a user should provide
+a partial specialization for a specific unit:
+
+```cpp
+template<>
+inline constexpr bool space_before_unit_symbol<non_si::degree> = false;
+```
+
+The above works only for the default formatting or for the format strings that use `%?` placement
+type (`std::format("{}", q)` is equivalent to `std::format("{:%N%?%U}", q)`).
+
+In case a user provides custom format specification (e.g., `std::format("{:%N %U}", q)`),
+the library will always obey this specification for all the units (no matter what the actual
+value of the `space_before_unit_symbol` customization point is) and the separating space will always
+be used in this case.
+
+
+## Output streams
+
+The easiest way to print a dimension, unit, or quantity is to provide its object to the output
+stream:
+
+```cpp
+const quantity v1 = avg_speed(220. * km, 2 * h);
+const quantity v2 = avg_speed(140. * mi, 2 * h);
+std::cout << v1 << '\n';  // 110 km/h
+std::cout << v2 << '\n';  // 70 mi/h
+```
+
+The text output will always print the value using the default formatting for this entity.
+
+### Output stream formatting
+
+Only basic formatting can be applied for output streams. It includes control over width, fill,
+and alignment.
+
+The numerical value of the quantity will be printed according to the current stream state and standard
+manipulators may be used to customize that (assuming that the underlying representation type
+respects them).
+
+```cpp
+std::cout << "|" << std::setw(10) << 123 * m << "|\n";                       // |     123 m|
+std::cout << "|" << std::setw(10) << std::left << 123 * m << "|\n";          // |123 m     |
+std::cout << "|" << std::setw(10) << std::setfill('*') << 123 * m << "|\n";  // |123 m*****|
+```
+
+Detailed formatting of any entity may be obtained with `std::format()` usage and then provided
+to the stream output if needed.
+
+_Note: Custom stream manipulators may be provided to control a dimension and unit symbol output
+if requested by WG21._
+
+
+## Text formatting
+
+The library provides custom formatters for `std::format` facility, which allows fine-grained control
+over what and how it is being printed in the text output.
+
+### Controlling width, fill, and alignment
+
+Formatting grammar for all the entities provides control over width, fill, and alignment. The C++
+standard grammar tokens `fill-and-align` and `width` are being used. They treat the entity as
+a contiguous text to be aligned. For example, here are a few examples of the quantity numerical
+value and symbol formatting:
+
+```cpp
+std::println("|{:0}|", 123 * m);     // |123 m|
+std::println("|{:10}|", 123 * m);    // |     123 m|
+std::println("|{:<10}|", 123 * m);   // |123 m     |
+std::println("|{:>10}|", 123 * m);   // |     123 m|
+std::println("|{:^10}|", 123 * m);   // |  123 m   |
+std::println("|{:*<10}|", 123 * m);  // |123 m*****|
+std::println("|{:*>10}|", 123 * m);  // |*****123 m|
+std::println("|{:*^10}|", 123 * m);  // |**123 m***|
+```
+
+It is important to note that in the second line above, the quantity text is aligned to
+the right by default, which is consistent with the formatting of numeric types. Units and dimensions behave
+as text and, thus, are aligned to the left by default.
+
+### Dimension formatting
+
+```bnf
+dimension-format-spec ::= [fill-and-align] [width] [dimension-spec]
+dimension-spec        ::= [text-encoding]
+text-encoding         ::= 'U' | 'A'
+```
+
+In the above grammar:
+
+- `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
+  chapter of the C++ standard specification,
+- `text-encoding` token specifies the symbol text encoding:
+    - `U` (default) uses the **Unicode** symbols defined by [@ISO80000] (e.g., `LT⁻²`),
+    - `A` forces non-standard **ASCII**-only output (e.g., `LT^-2`).
+
+
+### Unit formatting
+
+```bnf
+unit-format-spec      ::= [fill-and-align] [width] [unit-spec]
+unit-spec             ::= [text-encoding] [unit-symbol-solidus] [unit-symbol-separator] [L]
+                          [text-encoding] [unit-symbol-separator] [unit-symbol-solidus] [L]
+                          [unit-symbol-solidus] [text-encoding] [unit-symbol-separator] [L]
+                          [unit-symbol-solidus] [unit-symbol-separator] [text-encoding] [L]
+                          [unit-symbol-separator] [text-encoding] [unit-symbol-solidus] [L]
+                          [unit-symbol-separator] [unit-symbol-solidus] [text-encoding] [L]
+unit-symbol-solidus   ::= '1' | 'a' | 'n'
+unit-symbol-separator ::= 's' | 'd'
+```
+
+In the above grammar:
+
+- `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
+  chapter of the C++ standard specification,
+- `unit-symbol-solidus` token specifies how the division of units should look like:
+    - '1' (default) outputs `/` only when there is only **one** unit in the denominator, otherwise
+      negative exponents are printed (e.g., `m/s`, `kg m⁻¹ s⁻¹`)
+    - 'a' **always** uses solidus (e.g., `m/s`, `kg/(m s)`)
+    - 'n' **never** prints solidus, which means that negative exponents are always used
+      (e.g., `m s⁻¹`, `kg m⁻¹ s⁻¹`)
+- `unit-symbol-separator` token specifies how multiplied unit symbols should be separated:
+    - 's' (default) uses **space** as a separator (e.g., `kg m²/s²`)
+    - 'd' uses half-high **dot** (`⋅`) as a separator (e.g., `kg⋅m²/s²`) (requires the Unicode encoding)
+- 'L' is reserved for possible future localization use in case C++ standard library gets access to
+  the ICU-like database.
+
+_Note: The intent of the above grammar was that the elements of `unit-spec` can appear in
+any order as they have unique characters. Users shouldn't have to remember the order of those tokens
+to control the formatting of a unit symbol._
+
+Unit symbols of some quantities are specified to use Unicode signs by the [@SI] (e.g., `Ω` symbol
+for the _resistance_ quantity). The library follows this by default. From the engineering point of
+view, sometimes Unicode text might not be the best solution as terminals of many (especially
+embedded) devices can output only letters from the basic literal character set only. In such a case,
+the unit symbol can be forced to be printed using such characters thanks to `text-encoding` token:
+
+```cpp
+std::println("{}", si::ohm);      // Ω
+std::println("{:A}", si::ohm);    // ohm
+std::println("{}", us);           // µs
+std::println("{:A}", us);         // us
+std::println("{}", m / s2);       // m/s²
+std::println("{:A}", m / s2);     // m/s^2
+```
+
+Additionally, both [@ISO80000] and [@SI] leave some freedom on how to print unit symbols.
+This is why two additional tokens were introduced.
+
+`unit-symbol-solidus` specifies how the division of units should look like. By default,
+`/` will be used only when the denominator contains only one unit. However, with the 'a' or 'n'
+options, we can force the facility to print the `/` character always (even when there are more units
+in the denominator), or never, in which case a parenthesis will be added to enclose all denominator
+units.
+
+```cpp
+std::println("{}", m / s);          // m/s
+std::println("{}", kg / m / s2);    // kg m⁻¹ s⁻²
+std::println("{:a}", m / s);        // m/s
+std::println("{:a}", kg / m / s2);  // kg/(m s²)
+std::println("{:n}", m / s);        // m s⁻¹
+std::println("{:n}", kg / m / s2);  // kg m⁻¹ s⁻²
+```
+
+Also, there are a few options to separate the units being multiplied. [@ISO80000] (part 1) says:
+
+> When symbols for quantities are combined in a product of two or more quantities, this combination
+> is indicated in one of the following ways: `ab`, `a b`, `a · b`, `a × b`
+>
+> _NOTE 1_ In some fields, e.g., vector algebra, distinction is made between `a ∙ b` and `a × b`.
+
+The library supports `a b` and `a · b` only. Additionally, we decided that the extraneous space
+in the latter case makes the result too verbose, so we decided just to use the `·` symbol as
+a separator.
+
+The `unit-symbol-separator` token allows us to obtain the following outputs:
+
+```cpp
+std::println("{}", kg * m2 / s2);    // kg m²/s²
+std::println("{:d}", kg * m2 / s2);  // kg⋅m²/s²
+```
+
+_Note: 'd' requires the Unicode encoding to be set._
+
+
+### Quantity formatting
+
+```bnf
+quantity-format-spec        ::= [fill-and-align] [width] [quantity-specs]
+quantity-specs              ::= conversion-spec
+                                quantity-specs conversion-spec
+                                quantity-specs literal-char
+literal-char                ::= <any character other than '{', '}', or '%'>
+conversion-spec             ::= placement-spec
+                                subentity-replacement-field
+placement-spec              ::= '%' placement-type
+placement-type              ::= 'N' | 'U' | 'D' | '?' | '%'
+subentity-replacement-field ::= '{' '%' subentity-id [format-specifier] '}'
+subentity-id                ::= literal-char
+                                subentity-id literal-char
+format-specifier            ::= ':' format-spec
+format-spec                 ::= <as specified by the formatter for the argument type; cannot start with '}'>
+```
+
+In the above grammar:
+
+- `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
+  chapter of the C++ standard specification,
+- `placement-type` token specifies which entity should be put and where:
+    - 'N' inserts a default-formatted numerical value of the quantity,
+    - 'U' inserts a default-formatted unit of the quantity,
+    - 'D' inserts a default-formatted dimension of the quantity,
+    - '?' inserts an optional separator between the number and a unit based on the value of
+      `space_before_unit_symbol` for this unit,
+    - '%' just inserts '%'.
+- `subentity-replacement-field` token allows the composition of formatters. The following identifiers
+  are recognized by the quantity formatter:
+    - "N" passes `format-spec` to the `formatter` specialization for the quantity representation
+      type,
+    - "U" passes `format-spec` to the `formatter` specialization for the unit type,
+    - "D" passes `format-spec` to the `formatter` specialization for the dimension type.
+
+#### Default formatting
+
+To format `quantity` values, the formatting facility uses `quantity-format-spec`. If left empty,
+the default formatting is applied. The same default formatting is also applied to the output streams.
+This is why the following code lines produce the same output:
+
+```cpp
+std::cout << "Distance: " << 123 * km << "\n";
+std::cout << std::format("Distance: {}\n", 123 * km);
+std::cout << std::format("Distance: {:%N%?%U}\n", 123 * km);
+std::cout << std::format("Distance: {:{%N}%?{%U}}\n", 123 * km);
+```
+
+Please note that for some quantities the `{:%N %U}` format may provide a different output than
+the default one, as some units have `space_before_unit_symbol` customization point explicitly
+set to `false` (e.g., `%` and `°`).
+
+#### Quantity numerical value, unit symbol, or both?
+
+Thanks to the grammar provided above, the user can easily decide to either:
+
+- print a whole quantity:
+
+    ```cpp
+    std::println("Speed: {}", 120 * km / h);
+    ```
+
+    ```text
+    Speed: 120 km/h
+    ```
+
+- print only specific components (numerical value, unit, or dimension):
+
+    ```cpp
+    std::println("Speed:\n- number: {0:%N}\n- unit: {0:%U}\n- dimension: {0:%D}", 120 * km / h);
+    ```
+
+    ```text
+    Speed:
+    - number: 120
+    - unit: km/h
+    - dimension: LT⁻¹
+    ```
+
+- provide custom quantity formatting
+
+    ```cpp
+    std::println("Speed: {:%N in %U}", 120 * km / h);
+    ```
+
+    ```text
+    Speed: 120 in km/h
+    ```
+
+- provide custom formatting for components:
+
+    ```cpp
+    std::println("Speed: {:{%N:.2f} {%U:n}}", 100. * km / (3 * h));
+    ```
+
+    ```text
+    Speed: 33.33 km h⁻¹
+    ```
+
+`placement-spec` and `subentity-replacement-field` greatly simplify element access and formatting
+of the quantity. Without them the second caese above would require the following:
+
+```cpp
+const auto q = 120 * km / h;
+std::println("Speed:\n- number: {}\n- unit: {}\n- dimension: {}",
+             q.numerical_value_ref_in(q.unit), q.unit, q.dimension);
+```
+
+Providing such support also simplifies the specification and implementation effort of this
+library. Initially, [@MP-UNITS] library was providing numerical value modifiers inplace
+of its format specification, but it:
+
+- worked only with fundamental arithmetic types and was not able to adjust to different format
+  specifications of custom representation types,
+- was quite hard to parse and format everything in a 100% compatible way with the formatting
+  specified in the C++ standard and already implemented in the underlying standard library.
+
+_Note 1: The above grammar allows repeating the same field many times, possibly with a different
+format spec. For example, `std::println("Speed: {:%N {%N:.4f} {%N:.2f} {%U:n}}", 100. * km / (3 * h))`._
+
+## Quantity point text output
+
+The library does not provide a text output for quantity points, as printing just a number and a unit
+is not enough to adequately describe a quantity point. Often, an additional postfix is required.
+
+For example, the text output of `42 m` may mean many things and can also be confused with an output
+of a regular quantity. On the other hand, printing `42 m AMSL` for altitudes above mean sea level
+is a much better solution, but the library does not have enough information to print it that way by
+itself.
+
+
+## Text output open questions
+
+1. Which C++ character type should be used for symbols in Unicode encoding?
+2. Are we OK with the usage of '_' for denoting a subsript identifier?
+3. Are we OK with no text output support of quantity types?
+4. Which character type should `basic_symbol_text` be used in a single-argument constructor?
+5. How to name a non-Unicode accessor member function (e.g., `.ascii()`)? The same name should
+   consistently be used in `text_encoding` and in the formatting grammar.
+6. Should `unit_symbol()` return `std::string_view` or `basic_fixed_string`?
+7. Do we care about ostreams enough to introduce custom manipulators to format units?
+8. What about the localization for units? Will we get something like ICU in the C++ standard?
+9. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
+   proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
+   we OK with this?
+10. Should we provide support for quantity points?
+
+
+# Design details and rationale
+
+<img src="img/design.svg" style="display: block; margin-left: auto; margin-right: auto; width: 60%;"/>
+
+## Expression templates
+
+Modern C++ physical quantities and units libraries use opaque types to improve the user experience while
+analyzing compile-time errors or inspecting types in a debugger. This is a huge usability improvement
+over the older libraries that use aliases to refer to long instantiations of class templates.
+
+### Derived entities
+
+Having such strong types for entities is not enough. While doing arithmetics on them, we get derived
+entities, and they also should be easy to understand and correlate with the code written by the user.
+This is where expression templates come into play.
+
+The library should use the same unified approach to represent the results of arithmetics on all
+kinds of entities. It is worth mentioning that a generic purpose expression templates library
+is not a good solution for a physical quantities and units library.
+
+Let's assume that we want to represent the results of the following two unit equations:
+
+- `metre / second * second`
+- `metre * metre / metre`
+
+Both of them should result in a type equivalent to `metre`. A general-purpose library will probably
+result with the types similar to the below:
+
+- `mul<div<metre, second>, second>`
+- `div<mul<metre, metre>, metre>`
+
+Comparing such types for equivalence would not only be very expensive at compile-time but would also
+be really confusing to the users observing them in the compilation logs. This is why we need
+a dedicated solution here.
+
+In a physical quantities and units library, we need expression templates to express the results of
+
+- dimension equations,
+- quantity type equations,
+- unit equations, and
+- unit magnitude equations.
+
+If the above equation results in a derived entity, we must create a type that clearly
+describes what we are dealing with. We need to pack a simplified expression
+template into some container for that. There are various possibilities here. The table below presents
+the types generated from unit expressions by two leading products on the market in this subject:
+
+<!-- markdownlint-disable MD013 -->
+
+| Unit           | [@MP-UNITS]                                                            | [@AU]                                                                          |
+|----------------|------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| `N⋅m`          | `derived_unit<metre, newton>`                                          | `UnitProduct<Meters, Newtons>`                                                 |
+| `1/s`          | `derived_unit<one, per<second>>`                                       | `Pow<Seconds, -1>`                                                             |
+| `km/h`         | `derived_unit<kilo_<metre>, per<hour>>`                                | `UnitProduct<Kilo<Meters>, Pow<Hours, -1>>`                                    |
+| `kg⋅m²/(s³⋅K)` | `derived_unit<kilogram, pow<metre, 2>, per<kelvin, power<second, 3>>>` | `UnitProduct<Pow<Meters, 2>, Kilo<Grams>, Pow<Seconds, -3>, Pow<Kelvins, -1>>` |
+| `m²/m`         | `metre`                                                                | `Meters`                                                                       |
+| `km/m`         | `derived_unit<kilo_<metre>, per<metre>>`                               | `UnitProduct<Pow<Meters, -1>, Kilo<Meters>>`                                   |
+| `m/m`          | `one`                                                                  | `UnitProduct<>`                                                                |
+
+<!-- markdownlint-enable MD013 -->
+
+It is a matter of taste which solution is better. While discussing the pros and cons here, we
+should remember that our users often do not have a scientific background. This is why
+we recommend to use syntax that is as similar to the correct English language as possible.
+It consistently uses the `derived_` prefix for types representing derived units,
+dimensions, and quantity specifications. Those are instantiated first with the contents of
+the numerator followed by the entities of the denominator (if present) enclosed in the
+`per<...>` expression template.
+
+### Identities
+
+The arithmetics on units, dimensions, and quantity types require a special identity value. Such value
+can be returned as a result of the division of the same entities, or using it should not modify the
+expression template on multiplication.
+
+We chose the following names here:
+
+- `one` in the domain of units,
+- `dimension_one` in the domain of dimensions,
+- `dimensionless` in the domain of quantity types.
+
+The above names were selected based on the following quote from [@ISO80000]:
+
+> A quantity whose dimensional exponents are all equal to zero has the dimensional product denoted
+> A<sup>0</sup>B<sup>0</sup>C<sup>0</sup>… = 1, where the symbol 1 denotes the corresponding
+> dimension. There is no agreement on how to refer to such quantities. They have been called
+> **dimensionless** quantities (although this term should now be avoided), quantities with
+> **dimension one**, quantities with dimension number, or quantities with the **unit one**.
+> Such quantities are dimensionally simply numbers. To avoid confusion, it is helpful to use
+> explicit units with these quantities where possible, e.g., m/m, nmol/mol, rad, as specified
+> in the SI Brochure.
+
+### Supported operations and their results
+
+The table below presents all the operations that can be done on units, dimensions, and quantity
+types in a quantities and units library. The right column presents corresponding expression
+templates being their results:
+
+|                   Operation                   | Resulting template expression arguments |
+|:---------------------------------------------:|:---------------------------------------:|
+|                    `A * B`                    |                 `A, B`                  |
+|                    `B * A`                    |                 `A, B`                  |
+|                    `A * A`                    |              `power<A, 2>`              |
+|               `{identity} * A`                |                   `A`                   |
+|               `A * {identity}`                |                   `A`                   |
+|                    `A / B`                    |               `A, per<B>`               |
+|                    `A / A`                    |              `{identity}`               |
+|               `A / {identity}`                |                   `A`                   |
+|               `{identity} / A`                |          `{identity}, per<A>`           |
+|                  `pow<2>(A)`                  |              `power<A, 2>`              |
+|             `pow<2>({identity})`              |              `{identity}`               |
+|          `sqrt(A)` or `pow<1, 2>(A)`          |            `power<A, 1, 2>`             |
+| `sqrt({identity})` or `pow<1, 2>({identity})` |              `{identity}`               |
+
+### Simplifying the resulting expression templates
+
+To limit the length and improve the readability of generated types, there are many rules to simplify
+the resulting expression template.
+
+1. **Ordering**
+
+    The resulting comma-separated arguments of multiplication are always sorted according to
+    a specific predicate. This is why:
+
+    ```cpp
+    static_assert(A * B == B * A);
+    static_assert(std::is_same_v<decltype(A * B), decltype(B * A)>);
+    ```
+
+    This is probably the most important of all the steps, as it allows comparing types and enables
+    the rest of the simplification rules.
+
+    Units and dimensions have unique symbols, but ordering quantity types might not be that
+    trivial. Although the ISQ defined in [@ISO80000] provides symbols for each
+    quantity, there is little use for them in the C++ code. This is caused by the fact that
+    such symbols use a lot of characters that are not available with the Unicode encoding.
+    Most of the limitations correspond to Unicode providing only a minimal set of characters
+    available as subscripts, which are often used to differentiate various quantities of the same
+    kind. For example, it is impossible to encode the symbols of the following quantities:
+
+    - _c_<sub>sat</sub> - _specific heat capacity at saturated vapour pressure_,
+    - _μ_<sub>JT</sub> - _Joule-Thomson coefficient_,
+    - _w_<sub>H<sub>2</sub>O</sub> - _mass fraction of water_,
+    - _σ_<sub>Ω,E</sub> - _direction and energy distribution of cross section_,
+    - _d_<sub>1/2</sub> - _half-value thickness_,
+    - _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
+
+    This is why the library chose to use type name identifiers in such cases.
+
+2. **Aggregation**
+
+    In case two of the same type identifiers are found next to each other on the argument list, they
+    will be aggregated in one entry:
+
+    |              Before              |      After       |
+    |:--------------------------------:|:----------------:|
+    |              `A, A`              |  `power<A, 2>`   |
+    |         `A, power<A, 2>`         |  `power<A, 3>`   |
+    |  `power<A, 1, 2>, power<A, 2>`   | `power<A, 5, 2>` |
+    | `power<A, 1, 2>, power<A, 1, 2>` |       `A`        |
+
+3. **Simplification**
+
+    In case two of the same type identifiers are found in the numerator and denominator argument lists,
+    they are being simplified into one entry:
+
+    |        Before         |        After         |
+    |:---------------------:|:--------------------:|
+    |      `A, per<A>`      |     `{identity}`     |
+    | `power<A, 2>, per<A>` |         `A`          |
+    | `power<A, 3>, per<A>` |    `power<A, 2>`     |
+    | `A, per<power<A, 2>>` | `{identity}, per<A>` |
+
+    It is important to notice here that only the elements with exactly the same type are being
+    simplified. This means that, for example, `m/m` results in `one`, but `km/m` will not be
+    simplified. The resulting derived unit will preserve both symbols and their relative
+    magnitude. This allows us to properly print symbols of some units or constants that require
+    such behavior. For example, the Hubble constant is expressed in `km⋅s⁻¹⋅Mpc⁻¹`, where both
+    `km` and `Mpc` are units of _length_.
+
+4. **Repacking**
+
+    In case an expression uses two results of some other operations, the components of its arguments
+    are repacked into one resulting type and simplified there.
+
+    For example, assuming:
+
+    ```cpp
+    constexpr auto X = A / B;
+    ```
+
+    then:
+
+    | Operation | Resulting template expression arguments |
+    |:---------:|:---------------------------------------:|
+    |  `X * B`  |                   `A`                   |
+    |  `X * A`  |          `power<A, 2>, per<B>`          |
+    |  `X * X`  |     `power<A, 2>, per<power<B, 2>>`     |
+    |  `X / X`  |              `{identity}`               |
+    |  `X / A`  |          `{identity}, per<B>`           |
+    |  `X / B`  |          `A, per<power<B, 2>>`          |
+
+Please note that for as long as for the ordering step in some cases, we use user-provided
+symbols, the aggregation, and the next steps do not benefit from those. They always use type
+identifiers to determine whether the operation should be performed.
+
+Unit symbols are not guaranteed to be unique in the project. For example, someone may use `"s"`
+as a symbol for a count of samples, which, when used in a unit expression with seconds, would
+cause fatal consequences (e.g., `sample * second` would yield `s²`, or `sample / second` would
+result in `one`).
+
+Some units would provide worse text output if the ordering step used type identifiers rather
+than unit symbols. For example, `si::metre * si::second * cgs::second` would result
+in `s m s`, or `newton * metre` would result in `m N`, which is not how we typically spell this
+unit. However, for the sake of consistency, we may also consider changing the algorithm used for
+ordering to be based on type identifiers.
+
+### Expression templates in action
+
+Thanks to all of the steps described above, a user may write the code like this one:
+
+```cpp
+using namespace mp_units::si::unit_symbols;
+quantity speed = isq::speed(60. * km / h);
+quantity duration = 8 * s;
+quantity acceleration1 = speed / duration;
+quantity acceleration2 = isq::acceleration(acceleration1.in(m / s2));
+std::cout << "acceleration: " << acceleration1 << " (" << acceleration2 << ")\n";
+```
+
+the text output provides:
+
+```text
+acceleration: 7.5 km h⁻¹ s⁻¹ (2.08333 m/s²)
+```
+
+The above program will produce the following types for _acceleration_ quantities:
+
+- `acceleration1`
+
+    ```text
+    quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>,
+                       derived_unit<si::kilo_<si::metre>, per<non_si::hour, si::second>>>{},
+             double>
+    ```
+
+- `acceleration2`
+
+    ```text
+    quantity<reference<isq::acceleration,
+                       derived_unit<si::metre, per<power<si::second, 2>>>>{},
+             double>>
+    ```
+
 
 
 # Teachability
