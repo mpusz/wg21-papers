@@ -3383,13 +3383,8 @@ public:
 This does not provide strongly typed interfaces anymore.
 
 Again, it turns out that [@ISO80000] has an answer. This specification standardizes hundreds
-of quantities, many of which are of the same kind. For example, for quantities of the kind length,
-it provides the following:
-
-![](img/quantities_of_length.svg)
-
-As we can see, various quantities of the same kind are not a flat set. They form a hierarchy
-tree which influences:
+of quantities, many of which are of the same kind. Various quantities of the same kind are
+not a flat set. They form a hierarchy tree which influences:
 
 - conversion rules,
 - the quantity type being the result of adding or subtracting different quantities of the same kind.
