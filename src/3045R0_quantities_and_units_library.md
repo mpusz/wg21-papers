@@ -1095,9 +1095,8 @@ More about typed quantities can be found in the following chapters:
 
 The affine space has two types of entities:
 
-- **_point_** - a position specified with coordinate values (e.g. location, address, etc.)
-- **_vector_** - the difference between two points (e.g. shift, offset, displacement, duration, etc.)
-
+- **_point_** - a position specified with coordinate values (e.g., location, address, etc.)
+- **_vector_** - the difference between two points (e.g., shift, offset, displacement, duration, etc.)
 
 The _vector_ described here is specific to the affine space theory and is not the same thing as
 the quantity of a vector character that we discuss later (although, in some cases, those
@@ -1124,6 +1123,22 @@ It is not possible to:
 - subtract a _point_ from a _vector_,
 - multiply nor divide _points_ with anything else.
 
+### _Points_ are more common than most of us imagine
+
+_Point_ abstractions should be used more often in the C++ software.
+They are not only about _temperature_ or _time_. _Points_ are everywhere around us and should become
+more popular in the products we implement. They can be used to implement:
+
+- _temperature_ points,
+- timestamps,
+- daily _mass_ readouts from the scale,
+- _altitudes_ of mountain peaks on a map,
+- current _speed_ displayed on a car's speed-o-meter,
+- today's _price_ of instruments on the market,
+- and many more.
+
+Improving the affine space's _Points_ intuition will allow us to write better and safer software.
+
 ### _Vector_ is modeled by `quantity`
 
 Up until now, each time when we used a `quantity` in our code, we were modeling some kind of a
@@ -1136,129 +1151,205 @@ difference between two things:
 As we already know, a `quantity` type provides all operations required for the _vector_ type in
 an affine space.
 
-### _Point_ is modeled by `PointOrigin` and `quantity_point`
+### _Point_ is modeled by `quantity_point` and `PointOrigin`
 
 In the library, the _point_ abstraction is modeled by:
 
-- The `PointOrigin` concept that specifies a measurement's origin, and
-- the `quantity_point` class template that specifies a _point_ relative to a specified origin.
-
-#### Absolute _point_ origin
-
-The **absolute point origin** specifies where the "zero" of our measurement's scale is. Users can
-specify such an origin by deriving from the `absolute_point_origin` class template:
-
-```cpp
-constexpr struct mean_sea_level : absolute_point_origin<isq::altitude> {} mean_sea_level;
-```
+- the `PointOrigin` concept that specifies a measurement's origin, and
+- the `quantity_point` class template that specifies a _point_ relative to a predefined origin.
 
 #### `quantity_point`
 
-The `quantity_point` class template specifies an absolute quantity with respect to an origin:
+The `quantity_point` class template specifies an absolute quantity measured from a predefined
+origin:
 
 ```cpp
 template<Reference auto R,
-         PointOriginFor<get_quantity_spec(R)> auto PO,
+         PointOriginFor<get_quantity_spec(R)> auto PO = default_point_origin(R),
          RepresentationOf<get_quantity_spec(R).character> Rep = double>
 class quantity_point;
 ```
 
 As we can see above, the `quantity_point` class template exposes one additional parameter compared
 to `quantity`. The `PO` parameter satisfies a `PointOriginFor` concept and specifies the origin of
-our measurement scale.
+our measurement scale. By default, it is initialized with a quantity's zeroth point using
+the following rules:
 
-As a _point_ can be represented with a _vector_ from the origin, a `quantity_point` class
-template can be created with the following operations:
+- if the measurement unit of a quantity specifies its point origin in its definition
+  (e.g., degree Celsius), then this point is being used,
+- otherwise, an instantiation of `zeroth_point_origin<QuantitySpec>` is being used which
+  provides a zeroth point for a specific quantity type.
 
-```cpp
-quantity_point qp1 = mean_sea_level + 42 * m;
-quantity_point qp2 = 42 * m + mean_sea_level;
-quantity_point qp3 = mean_sea_level - 42 * m;
-```
+#### Implicit point origin
 
-It is not allowed to subtract a _point_ from a _vector_, thus `42 * m - mean_sea_level` is an
-invalid operation.
+Let's assume that Alice goes for a trip driving a car. She likes taking notes about interesting
+places that she visits on the road. For every such item, she writes down:
 
-Similarly to the creation of a quantity, if someone does not like the operator-based syntax to create
-a `quantity_point`, the same results can be achieved with two-parameter constructor:
+- its name,
+- a readout from the car's odometer at the location,
+- a current timestamp.
 
-```cpp
-quantity_point qp4{42 * m, mean_sea_level};
-quantity_point qp5{-42 * m, mean_sea_level};
-```
-
-The provided `quantity` representing an offset from the origin is stored inside the `quantity_point`
-class template and can be obtained with the `quantity_from(PointOrigin)` member function:
+We can implement this in the following way:
 
 ```cpp
-constexpr quantity_point everest_base_camp_alt = mean_sea_level + isq::altitude(5364 * m);
-static_assert(everest_base_camp_alt.quantity_from(mean_sea_level) == 5364 * m);
+using std::chrono::system_clock;
+
+struct trip_log_item {
+  std::string name;
+  quantity_point<isq::distance[km]> odometer;
+  quantity_point<si::second> timestamp;
+};
+using trip_log = std::vector<trip_log_item>;
 ```
-
-#### Relative _point_ origin
-
-We often do not have only one ultimate "zero" point when we measure things.
-
-Continuing the Mount Everest trip example above, measuring all daily hikes from the `mean_sea_level`
-might not be efficient. Maybe we know that we are not good climbers, so all our climbs can be
-represented with an 8-bit integer type allowing us to save memory in our database of climbs?
-Why not use `everest_base_camp_alt` as our reference point?
-
-For this purpose, we can define a `relative_point_origin` in the following way:
 
 ```cpp
-constexpr struct everest_base_camp : relative_point_origin<everest_base_camp_alt> {} everest_base_camp;
+trip_log log;
+
+quantity_point timestamp_1{quantity{system_clock::now().time_since_epoch()}};
+log.emplace_back("home", quantity_point{1356 * km}, timestamp_1);
+
+// some time passes
+
+quantity_point timestamp_2{quantity{system_clock::now().time_since_epoch()}};
+log.emplace_back("castle", quantity_point{1401 * km}, timestamp_2);
 ```
 
-The above can be used as an origin for subsequent _points_:
+This is an excellent example of where points are helpful. There is no doubt about the correctness
+of their usage in this scenario:
+
+- adding two odometer readouts or two timestamps have no physical sense, and that is why we will
+  expect a compile-time error when we try to perform such operations accidentally,
+- subtracting two odometer readouts or timestamps is perfectly valid and results in a quantity
+  storing the interval value between the two points.
+
+Having such a database, we can print the trip log in the following way:
 
 ```cpp
-constexpr quantity_point first_climb_alt = everest_base_camp + isq::altitude(std::uint8_t{42} * m);
-static_assert(first_climb_alt.quantity_from(everest_base_camp) == 42 * m);
-static_assert(first_climb_alt.quantity_from(mean_sea_level) == 5406 * m);
+for (const auto& item : log) {
+  std::cout << "POI: " << item.name << "\n";
+  std::cout << "- Distance from home: " << item.odometer - log.front().odometer << "\n";
+  std::cout << "- Trip duration from start: " << (item.timestamp - log.front().timestamp).in(non_si::minute) << "\n";
+}
 ```
 
-As we can see above, the `quantity_from()` member function returns a relative distance from the
-provided point origin.
+Moreover, if Alice had reset the car's trip odometer before leaving home, we could have rewritten
+one of the previous lines like that:
 
-#### Converting between different representations of the same _point_
+```cpp
+std::cout << "Distance from home: " << item.odometer.quantity_from_zero() << "\n";
+```
 
-As we might represent the same _point_ with _vectors_ from various origins, the library provides
-facilities to convert the _point_ to the `quantity_point` class templates expressed in terms of
-different origins.
+The above always returns a quantity measured from the "ultimate" zeroth point of a scale used for
+this specific quantity type.
 
-For this purpose, we can either use:
+Storing _points_ is the most efficient representation we can choose in this scenario:
 
-- A converting constructor:
+- to store a value, we read it directly from the instrument, and no additional transformation
+  is needed,
+- to print the absolute value (e.g., odometer), we have the value available right away,
+- to get any relative quantity (e.g., distance from the start, distance from the previous point,
+  etc.), we have to perform a single subtraction operation.
 
-    ```cpp
-    constexpr quantity_point<isq::altitude[m], mean_sea_level, int> qp = first_climb_alt;
-    static_assert(qp.quantity_ref_from(qp.origin) == 5406 * m);
-    ```
+If we stored _vectors_ in our database instead, we would have to pay at runtime for additional
+operations:
 
-- A dedicated conversion interface:
+- to store a quantity, we would have to perform the subtraction right away to get the interval
+  between the current value and some reference point,
+- to print the absolute value, we would have to add the quantity to the reference point that
+  we need to store somewhere in the database as well,
+- to get a relative quantity, only the currently stored one is immediate; all other values
+  will require at least one quantity addition operation.
 
-    ```cpp
-    constexpr quantity_point qp = first_climb_alt.point_for(mean_sea_level);
-    static_assert(qp.quantity_ref_from(qp.origin) == 5406 * m);
-    ```
+Now, let's assume that Bob, a friend of Alice, also keeps a log of his trips but he, of
+course, measures distances from his own home with the odometer in his car. Everything is fine as
+long as we deal with one trip at a time, but if we start to work with both at once, we may
+accidentally subtract points from different trips. The library will not prevent
+us from doing so.
 
-It is only allowed to convert between various origins defined in terms of the same
-`absolute_point_origin`. Even if it is possible to express the same _point_ as a _vector_
-from another `absolute_point_origin`, the library will not provide such a conversion.
-A custom user-defined conversion function will be needed to add this functionality.
+The points from Alice's and Bob's trips should be considered separate, and to enforce it at
+compilation time, we need to introduce explicit origins.
 
-Said another way, in the library, there is no way to spell how two distinct `absolute_point_origin`
-types relate to each other.
+#### Absolute _point_ origin
+
+The **absolute point origin** specifies the "zero" of our measurement's scale. User can
+specify such an origin by deriving from the `absolute_point_origin` class template:
+
+```cpp
+enum class actor { alice, bob };
+
+template<actor A>
+struct zeroth_odometer_t : absolute_point_origin<zeroth_odometer_t<A>, isq::distance> {};
+
+template<actor A>
+inline constexpr zeroth_odometer_t<A> zeroth_odometer;
+```
+
+Odometer is not the only one that can get an explicit point origin in our case. As timestamps are
+provided by the `std::chrono::system_clock`, their values are always relative to the epoch of this
+clock.
+
+Now, we can refactor our database to benefit from the explicit points:
+
+```cpp
+template<actor A>
+struct trip_log_item {
+  std::string point_name;
+  quantity_point<si::kilo<si::metre>, zeroth_odometer<A>> odometer;
+  quantity_point<si::second, chrono_point_origin<system_clock>> timestamp;
+};
+
+template<actor A>
+using trip_log = std::vector<trip_log_item<A>>;
+```
+
+We also need to update the initialization part in our code. In the case of implicit zeroth origins,
+we could construct `quantity_point` directly from the value of a `quantity`. This is no longer
+the case.
+As a _point_ can be represented with a _vector_ from the origin, to improve the safety of the code
+we write, a `quantity_point` class template must be created with one of the following operations:
+
+```cpp
+quantity_point qp1 = zeroth_odometer<actor::alice> + 1356 * km;
+quantity_point qp2 = 1356 * km + zeroth_odometer<actor::alice>;
+quantity_point qp3 = zeroth_odometer<actor::alice> - 1356 * km;
+```
+
+Although, the `qp3` above does not have a physical sense in this specific scenario.
+
+_Note: It is not allowed to subtract a point from a vector thus
+`1356 * km - zeroth_odometer<actor::alice>` is an invalid operation._
+
+Similarly to creation of a quantity, if someone does not like the operator-based syntax to
+create a `quantity_point`, the same results can be achieved with a two-parameter constructor:
+
+```cpp
+quantity_point qp4{1356 * km, zeroth_odometer<actor::alice>};
+```
+
+Also, as now our timestamps have a proper point origin provided in a type, we can simplify the
+previous code by directly converting `std::chrono::time_point` to our `quantity_point` type.
+
+With all the above, we can refactor our initialization part to the following:
+
+```cpp
+trip_log<actor::alice> alice_log;
+
+alice_log.emplace_back("home", zeroth_odometer<actor::alice> + 1356 * km, system_clock::now());
+
+// some time passes
+
+alice_log.emplace_back("castle", zeroth_odometer<actor::alice> + 1401 * km, system_clock::now());
+```
 
 #### _Point_ arithmetics
 
-Let's assume we will attend the CppCon conference hosted in Aurora, CO, and we want to estimate
-the distance we will travel. We have to take a taxi to a local airport, fly to DEN airport with
-a stopover in FRA, and, in the end, get a cab to the Gaylord Rockies Resort & Convention Center:
+As another example, let's assume we will attend the CppCon conference hosted in Aurora, CO,
+and we want to estimate the distance we will travel. We have to take a taxi to a local airport,
+fly to DEN airport with a stopover in FRA, and, in the end, get a cab to the Gaylord Rockies
+Resort & Convention Center:
 
 ```cpp
-constexpr struct home : absolute_point_origin<isq::distance> {} home;
+constexpr struct home : absolute_point_origin<home, isq::distance> {} home;
 
 quantity_point<isq::distance[km], home> home_airport = home + 15 * km;
 quantity_point<isq::distance[km], home> fra_airport = home_airport + 829 * km;
@@ -1301,63 +1392,197 @@ Flight distance: 8944 km
 Taxi distance:   31.2544 km
 ```
 
+_Note: It is not allowed to subtract two point origins defined in terms of `absolute_point_origin`
+(e.g., `home - home`) as those do not contain information about the unit, so we are not able
+to determine a resulting `quantity` type._
+
+#### Relative _point_ origin
+
+We often do not have only one ultimate "zero" point when we measure things.
+
+For example, let's assume that we have the following absolute point origin:
+
+```cpp
+constexpr struct mean_sea_level : absolute_point_origin<mean_sea_level, isq::altitude> {} mean_sea_level;
+```
+
+If we want to model a trip to Mount Everest, measuring all daily hikes from the `mean_sea_level`
+might not be efficient. We may know that we are not good climbers, so all our climbs can be
+represented with an 8-bit integer type, allowing us to save memory in our database of climbs.
+
+For this purpose, we can define a `relative_point_origin` in the following way:
+
+```cpp
+constexpr struct everest_base_camp : relative_point_origin<mean_sea_level + 5364 * m> {} everest_base_camp;
+```
+
+The above can be used as an origin for subsequent _Points_:
+
+```cpp
+constexpr quantity_point first_climb_alt = everest_base_camp + isq::altitude(std::uint8_t{42} * m);
+static_assert(first_climb_alt.quantity_from(everest_base_camp) == 42 * m);
+static_assert(first_climb_alt.quantity_from(mean_sea_level) == 5406 * m);
+static_assert(first_climb_alt.quantity_from_zero() == 5406 * m);
+```
+
+As we can see above, the `quantity_from()` member function returns a relative distance from the
+provided point origin while the `quantity_from_zero()` returns the distance from the absolute point
+origin.
+
+#### Converting between different representations of the same _point_
+
+As we might represent the same _point_ with _vectors_ from various origins, the library provides
+facilities to convert the _point_ to the `quantity_point` class templates expressed in terms of
+different origins.
+
+For this purpose, we can either use:
+
+- A converting constructor:
+
+    ```cpp
+    constexpr quantity_point<isq::altitude[m], mean_sea_level, int> qp = first_climb_alt;
+    static_assert(qp.quantity_ref_from(qp.point_origin) == 5406 * m);
+    ```
+
+- A dedicated conversion interface:
+
+    ```cpp
+    constexpr quantity_point qp = first_climb_alt.point_for(mean_sea_level);
+    static_assert(qp.quantity_ref_from(qp.point_origin) == 5406 * m);
+    ```
+
+It is only allowed to convert between various origins defined in terms of the same
+`absolute_point_origin`. Even if it is possible to express the same _point_ as a _vector_
+from another `absolute_point_origin`, the library will not provide such a conversion.
+A custom user-defined conversion function will be needed to add this functionality.
+
+Said another way, in the library, there is no way to spell how two distinct `absolute_point_origin`
+types relate to each other.
+
 #### Temperature support
 
-Another important example of relative point origins is support of temperature quantity points in
-units different than kelvin (K).
+Another important example of relative point origins is support of temperature quantity points.
 
-The [@SI] definition in the library provides two predefined point origins:
+The [@SI] definition in the library provides a few predefined point origins for this purpose:
 
 ```cpp
 namespace si {
 
-inline constexpr struct absolute_zero : absolute_point_origin<isq::thermodynamic_temperature> {} absolute_zero;
-inline constexpr struct ice_point : relative_point_origin<absolute_zero + 273.15 * kelvin> {} ice_point;
+inline constexpr struct absolute_zero : absolute_point_origin<absolute_zero, isq::thermodynamic_temperature> {} absolute_zero;
+inline constexpr struct zeroth_kelvin : decltype(absolute_zero) {} zeroth_kelvin;
+
+inline constexpr struct ice_point : relative_point_origin<quantity_point{273'150 * milli<kelvin>}> {} ice_point;
+inline constexpr struct zeroth_degree_Celsius : decltype(ice_point) {} zeroth_degree_Celsius;
+
+}
+
+namespace usc {
+
+inline constexpr struct zeroth_degree_Fahrenheit :
+  relative_point_origin<si::zeroth_degree_Celsius - 32 * (mag<ratio{5, 9}> * si::degree_Celsius)> {} zeroth_degree_Fahrenheit;
 
 }
 ```
 
-With the above, we can be explicit about the origin of our temperature point. For example, if
-we want to implement the degrees Celsius scale, we can do it as follows:
+The above is a great example of how point origins can be stacked on top of each other:
+
+- `usc::zeroth_degree_Fahrenheit` is defined relative to `si::zeroth_degree_Celsius`
+- `si::zeroth_degree_Celsius` is defined relative to `si::zeroth_kelvin`.
+
+_Note: Notice that while stacking point origins, we can use not only different representation types
+but also different units for origins and a _point_. In the above example, the relative
+point origin for degree Celsius is defined in terms of `si::kelvin`, while the quantity point
+for it will use `si::degree_Celsius` as a unit._
+
+The temperature point origins defined above are provided explicitly in the respective units'
+definitions:
 
 ```cpp
-using Celsius_point = quantity_point<isq::Celsius_temperature[deg_C], si::ice_point>;
+namespace si {
+
+inline constexpr struct kelvin :
+    named_unit<"K", kind_of<isq::thermodynamic_temperature>, zeroth_kelvin> {} kelvin;
+inline constexpr struct degree_Celsius :
+    named_unit<basic_symbol_text{"°C", "`C"}, kelvin, zeroth_degree_Celsius> {} degree_Celsius;
+
+}
+
+namespace usc {
+
+inline constexpr struct degree_Fahrenheit :
+    named_unit<basic_symbol_text{"°F", "`F"}, mag<ratio{5, 9}> * si::degree_Celsius,
+               zeroth_degree_Fahrenheit> {} degree_Fahrenheit;
+
+}
 ```
 
-Notice that while stacking point origins, we can use not only different representation types,
-but also different units for an origin and a _point_. In the above example, the relative
-point origin is defined in terms of `si::kelvin`, while the quantity point uses
-`si::degree_Celsius`.
+Now let's see how we can benefit from the above definitions. We have quite a few alternatives to
+choose from here. Depending on our needs or taste we can:
 
-To play a bit with temperatures, we can implement a simple room's AC temperature controller in
+- be explicit about the unit and origin:
+
+    ```cpp
+    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q1 = si::zeroth_degree_Celsius + 20.5 * deg_C;
+    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q2 = {20.5 * deg_C, si::zeroth_degree_Celsius};
+    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q3{20.5 * deg_C};
+    ```
+
+- specify a unit and use its zeroth point origin implicitly:
+
+    ```cpp
+    quantity_point<si::degree_Celsius> q4 = si::zeroth_degree_Celsius + 20.5 * deg_C;
+    quantity_point<si::degree_Celsius> q5 = {20.5 * deg_C, si::zeroth_degree_Celsius};
+    quantity_point<si::degree_Celsius> q6{20.5 * deg_C};
+    ```
+
+- benefit from CTAD:
+
+    ```cpp
+    quantity_point q7 = si::zeroth_degree_Celsius + 20.5 * deg_C;
+    quantity_point q8 = {20.5 * deg_C, si::zeroth_degree_Celsius};
+    quantity_point q9{20.5 * deg_C};
+    ```
+
+In all of the above cases, we end up with the `quantity_point` of the same type and value.
+
+To play a bit more with temperatures, we can implement a simple room AC temperature controller in
 the following way:
 
 ```cpp
-constexpr struct room_reference_temp : relative_point_origin<si::ice_point + 21 * deg_C> {} room_reference_temp;
+constexpr struct room_reference_temp : relative_point_origin<quantity_point{21 * deg_C}> {} room_reference_temp;
 using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
 
 constexpr auto step_delta = isq::Celsius_temperature(0.5 * deg_C);
 constexpr int number_of_steps = 6;
 
-room_temp room_low = room_reference_temp - number_of_steps * step_delta;
-room_temp room_high = room_reference_temp + number_of_steps * step_delta;
+room_temp room_ref{};
+room_temp room_low = room_ref - number_of_steps * step_delta;
+room_temp room_high = room_ref + number_of_steps * step_delta;
 
-std::println("| {:<14} | {:^18} | {:^18} | {:^18} |", "Temperature", "Room reference", "Ice point", "Absolute zero");
+std::println("Room reference temperature: {} ({}, {})\n",
+             room_ref.quantity_from_zero(),
+             room_ref.in(usc::degree_Fahrenheit).quantity_from_zero(),
+             room_ref.in(si::kelvin).quantity_from_zero());
+
+std::println("| {:<14} | {:^18} | {:^18} | {:^18} |",
+             "Temperature", "Room reference", "Ice point", "Absolute zero");
 std::println("|{0:=^16}|{0:=^20}|{0:=^20}|{0:=^20}|", "");
 
-auto print = [&](std::string_view label, auto v){
-  std::println("| {:<14} | {:^18} | {:^18} | {:^18} |",
-               label, v - room_reference_temp, v - si::ice_point, v - si::absolute_zero);
+auto print = [&](std::string_view label, auto v) {
+  std::println("| {:<14} | {:^18} | {:^18} | {:^18:N[.2f]} |", label,
+               v - room_reference_temp, (v - si::ice_point).in(deg_C), (v - si::absolute_zero).in(deg_C));
 };
 
 print("Lowest", room_low);
-print("Default", room_reference_temp);
+print("Default", room_ref);
 print("Highest", room_high);
 ```
 
 The above prints:
 
 ```text
+Room reference temperature: 21 °C (69.8 °F, 294.15 K)
+
 | Temperature    |   Room reference   |     Ice point      |   Absolute zero    |
 |================|====================|====================|====================|
 | Lowest         |       -3 °C        |       18 °C        |     291.15 °C      |
