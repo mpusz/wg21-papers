@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-02-11" />
+  <meta name="dcterms.date" content="2024-02-13" />
   <title>Fast first-factor finding function</title>
   <style>
       code{white-space: pre-wrap;}
@@ -462,7 +462,7 @@ function</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2024-02-11</td>
+    <td>2024-02-13</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -501,15 +501,17 @@ factor”<span></span></a></li>
 </ul></li>
 <li><a href="#proposal" id="toc-proposal"><span class="toc-section-number">3</span> Proposal<span></span></a>
 <ul>
-<li><a href="#usage-examples" id="toc-usage-examples"><span class="toc-section-number">3.1</span> Usage
+<li><a href="#compiler-iteration-limits" id="toc-compiler-iteration-limits"><span class="toc-section-number">3.1</span> Compiler iteration
+limits<span></span></a></li>
+<li><a href="#usage-examples" id="toc-usage-examples"><span class="toc-section-number">3.2</span> Usage
 examples<span></span></a></li>
-<li><a href="#open-questions" id="toc-open-questions"><span class="toc-section-number">3.2</span> Open questions<span></span></a>
+<li><a href="#open-questions" id="toc-open-questions"><span class="toc-section-number">3.3</span> Open questions<span></span></a>
 <ul>
-<li><a href="#contract-for-numbers-less-than-2" id="toc-contract-for-numbers-less-than-2"><span class="toc-section-number">3.2.1</span> Contract for numbers less than
+<li><a href="#contract-for-numbers-less-than-2" id="toc-contract-for-numbers-less-than-2"><span class="toc-section-number">3.3.1</span> Contract for numbers less than
 2<span></span></a></li>
-<li><a href="#contract-for-negative-numbers" id="toc-contract-for-negative-numbers"><span class="toc-section-number">3.2.2</span> Contract for negative
+<li><a href="#contract-for-negative-numbers" id="toc-contract-for-negative-numbers"><span class="toc-section-number">3.3.2</span> Contract for negative
 numbers<span></span></a></li>
-<li><a href="#larger-integer-types" id="toc-larger-integer-types"><span class="toc-section-number">3.2.3</span> Larger integer
+<li><a href="#larger-integer-types" id="toc-larger-integer-types"><span class="toc-section-number">3.3.3</span> Larger integer
 types<span></span></a></li>
 </ul></li>
 </ul></li>
@@ -735,7 +737,27 @@ possible.</p>
 below. However, in every case, the return type should be the same as the
 input type, because the result of the function can clearly never exceed
 its input.</p>
-<h2 data-number="3.1" id="usage-examples"><span class="header-section-number">3.1</span> Usage examples<a href="#usage-examples" class="self-link"></a></h2>
+<h2 data-number="3.1" id="compiler-iteration-limits"><span class="header-section-number">3.1</span> Compiler iteration limits<a href="#compiler-iteration-limits" class="self-link"></a></h2>
+<p>The compiler iteration limits that we mentioned above present an
+additional complication. We have already seen that there are inputs that
+exceed these limits for naive algorithms, preventing compilation. We
+don’t yet know whether there are any inputs that would exceed the limits
+for the more efficient algorithms that we would like to use. (After all,
+avoiding the need to research, tune, and implement these algorithms
+ourselves was a major reason for writing this paper!)</p>
+<p>Pessimistically, we’ll assume that there do exist inputs that will
+exceed the compiler’s preferred iteration limits. If that happens, the
+compiler will need to circumvent these limits for
+<code class="sourceCode default">std::first_factor</code> in order to be
+compliant with the standard.</p>
+<p>We are open to suggestion as to the mechanism. Perhaps the compiler
+can provide directives to disable these limits for <em>individual blocks
+of code</em>. These directives could be either private (for
+compiler-internal use cases only), or public (for end users as well). In
+any case, the most important point for this present proposal is that
+<code class="sourceCode default">std::first_factor</code> must be able
+to produce a result for every input at compile time.</p>
+<h2 data-number="3.2" id="usage-examples"><span class="header-section-number">3.2</span> Usage examples<a href="#usage-examples" class="self-link"></a></h2>
 <p>Here is one example of how to factorize an unsigned integer using
 this function:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>vector<span class="op">&lt;</span>std<span class="op">::</span><span class="dt">uint64_t</span><span class="op">&gt;</span> factorize<span class="op">(</span>std<span class="op">::</span><span class="dt">uint64_t</span> n<span class="op">)</span> <span class="op">{</span></span>
@@ -824,20 +846,20 @@ simple with
 <code class="sourceCode default">std::is_prime</code> in the standard
 library as well, because a dedicated primality test can be done much
 more quickly, in polynomial time.</p>
-<h2 data-number="3.2" id="open-questions"><span class="header-section-number">3.2</span> Open questions<a href="#open-questions" class="self-link"></a></h2>
+<h2 data-number="3.3" id="open-questions"><span class="header-section-number">3.3</span> Open questions<a href="#open-questions" class="self-link"></a></h2>
 <p>The above core requirement does not fully specify this function.
 There are other open questions that we must consider before
 standardizing. However, the answers are generally less important: the
 integer factorization use case wouldn’t depend on the details for any of
 them.</p>
-<h3 data-number="3.2.1" id="contract-for-numbers-less-than-2"><span class="header-section-number">3.2.1</span> Contract for numbers less
+<h3 data-number="3.3.1" id="contract-for-numbers-less-than-2"><span class="header-section-number">3.3.1</span> Contract for numbers less
 than 2<a href="#contract-for-numbers-less-than-2" class="self-link"></a></h3>
 <p>The fundamental theorem of arithmetic applies only to integers
 greater than 1. Unsigned types have two more possible inputs, 1 and 0,
 and we must decide what to return for them. There are two natural
 choices: return the number itself, or return the multiplicative
 identity, 1. This paper takes no position as to which is better.</p>
-<h3 data-number="3.2.2" id="contract-for-negative-numbers"><span class="header-section-number">3.2.2</span> Contract for negative
+<h3 data-number="3.3.2" id="contract-for-negative-numbers"><span class="header-section-number">3.3.2</span> Contract for negative
 numbers<a href="#contract-for-negative-numbers" class="self-link"></a></h3>
 <p>It’s natural to consider providing overloads for other integral
 types. If any of them are signed, then we have to decide how to handle
@@ -849,7 +871,7 @@ value.</p></li>
 <li><p>Return the smallest prime factor of the absolute value.</p></li>
 </ol>
 <p>This paper takes no position as to which is best.</p>
-<h3 data-number="3.2.3" id="larger-integer-types"><span class="header-section-number">3.2.3</span> Larger integer types<a href="#larger-integer-types" class="self-link"></a></h3>
+<h3 data-number="3.3.3" id="larger-integer-types"><span class="header-section-number">3.3.3</span> Larger integer types<a href="#larger-integer-types" class="self-link"></a></h3>
 <p>The difficulty of integer factorization grows very rapidly with the
 number of bits. Although it is known to be sub-exponential, no
 polynomial-time algorithm has ever been discovered, and most experts
@@ -878,14 +900,26 @@ would make the library meaningfully harder to implement. It would also
 mean that other projects that require integer factorization would be
 unable to take advantage of the work, even though it’s already done and
 included (although hidden) in their standard library.</p>
+<p>Even that may not be enough. It’s possible that even the ideal
+implementation will run into compiler iteration limits for certain
+inputs. If that turns out to be true, then declining to add this
+function means that we can’t have a standard units library, either — at
+least, not one that supports every unit.</p>
 <h1 data-number="5" id="conclusion"><span class="header-section-number">5</span> Conclusion<a href="#conclusion" class="self-link"></a></h1>
 <p>Integer factorization is perhaps the most basic and useful operation
 in all of number theory. While basic implementations are easy to write,
-robust and efficient implementations are tricky and subtle. Providing a
-high quality implementation in the C++ standard library would unblock at
-least a future standard units and quantities library. Given the wide
-diversity of use cases for integer factorization, we expect it would
-also enable many more applications that we can’t yet anticipate.</p>
+robust and efficient implementations are tricky and subtle. If results
+are required at compile time, the difficulty increases even more,
+because compilers limit the number of algorithmic iterations. In fact,
+there’s a real risk that a
+<code class="sourceCode default">constexpr</code> function that produces
+results for every 64-bit input is even possible for end user code!</p>
+<p>Providing a high quality implementation in the C++ standard library
+would make a future standard units and quantities library much easier to
+write, and may even be a hard blocker for it. But that’s not the only
+reason to desire it: given the wide diversity of use cases for integer
+factorization, we expect it would also enable many more applications
+that we can’t yet anticipate.</p>
 </div>
 </div>
 </body>
