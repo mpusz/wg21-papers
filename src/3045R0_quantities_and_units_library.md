@@ -745,6 +745,9 @@ flowchart TD
 
 <img src="img/domain_introduction.svg" style="display: block; margin-left: auto; margin-right: auto; width: 30%;"/>
 
+_Note: A more detailed graph of framework's entities can be found in the [Framework entities]
+chapter._
+
 ## Dimension
 
 [Dimension](https://jcgm.bipm.org/vim/en/1.7.html) specifies the dependence of a quantity on the base
@@ -4661,6 +4664,15 @@ itself.
 
 
 # Design details and rationale
+
+_Note: This chapter provides more design details and rationale for them. It tries to not repeat
+information already provided in the previous chapters so a user is expected to be familar with
+them already._
+
+## Framework entities
+
+The below graph presents the most important entities of the library's framework and how they
+relate to each other.
 
 <img src="img/design.svg" style="display: block; margin-left: auto; margin-right: auto; width: 60%;"/>
 
