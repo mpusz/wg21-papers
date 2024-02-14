@@ -5449,6 +5449,25 @@ QuantityOf<isq::speed> auto s = 60 * speed;
 ```
 
 
+## Quantities
+
+The `quantity` class template is a workhorse of the library. It can be considered a generalization
+of `std::chrono::duration`, but is not directly compatible with it.
+
+Based on the ISO definition provided in the [Quantity references] chapter, the `quantity` class
+template has the following signature:
+
+```cpp
+template<Reference auto R, RepresentationOf<get_quantity_spec(R).character> Rep = double>
+class quantity;
+```
+
+It stores only one data member of `Rep` type. Unfortunately, this data member has to be publicly
+exposed to satisfy the C++ language requirements for
+[structural types](https://eel.is/c++draft/temp.param#def:type,structural). Hopefully, the language
+rules for structural types will improve with time before this library gets standardized.
+
+
 
 # Teachability
 
