@@ -52,6 +52,12 @@ paper adds a detailed design description and also includes the most important pa
 are superseded by this paper. The plan and scope described in [@P2980R1] might still be updated
 based on the current progress and feedback from the upcoming discussions.
 
+<!-- TODO remove this note in the future -->
+
+_Note: This paper is incomplete and many chapters are still missing. It is published to gather
+early feedback and possibly get acceptance for the major design decisions of the library.
+More details will arrive in the next revisions of this paper._
+
 
 # Terms and definitions
 
