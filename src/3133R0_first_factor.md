@@ -203,15 +203,11 @@ compilation.  We don't yet know whether there are any inputs that would exceed t
 more efficient algorithms that we would like to use.  (After all, avoiding the need to research,
 tune, and implement these algorithms ourselves was a major reason for writing this paper!)
 
-Pessimistically, we'll assume that there do exist inputs that will exceed the compiler's preferred
-iteration limits.  If that happens, the compiler will need to circumvent these limits for
-`std::first_factor` in order to be compliant with the standard.
-
-We are open to suggestion as to the mechanism.  Perhaps the compiler can provide directives to
-disable these limits for _individual blocks of code_.  These directives could be either private (for
-compiler-internal use cases only), or public (for end users as well).  In any case, the most
-important point for this present proposal is that `std::first_factor` must be able to produce
-a result for every input at compile time.
+The pessimistic outcome would be that every possible "pure C++" implementation has at least one
+input that would exceed these iteration limits for some compiler.  If that happens, the
+implementation will probably need help from compiler internals.  We don't expect this to be
+a problem, because there's precedent for this with some type traits (see, for example,
+[@IS_TRIVIALLY_CONSTRUCTIBLE]).
 
 ## Usage examples
 
@@ -372,12 +368,13 @@ Integer factorization is perhaps the most basic and useful operation in all of n
 basic implementations are easy to write, robust and efficient implementations are tricky and subtle.
 If results are required at compile time, the difficulty increases even more, because compilers limit
 the number of algorithmic iterations.  In fact, there's a real risk that a `constexpr` function that
-produces results for every 64-bit input is even possible for end user code!
+produces results for every 64-bit input is not even possible for end user code!
 
-Providing a high quality implementation in the C++ standard library would make a future standard
-units and quantities library much easier to write, and may even be a hard blocker for it.  But
-that's not the only reason to desire it: given the wide diversity of use cases for integer
-factorization, we expect it would also enable many more applications that we can't yet anticipate.
+Providing a high quality `first_factor` implementation in the C++ standard library would pave the
+way for a future standard units and quantities library.  (Without it, the latter is at least much
+harder to write, and may even be impossible.)  But that's not the only reason to desire it: given
+the wide diversity of use cases for integer factorization, we expect it would also enable many more
+applications that we can't yet anticipate.
 
 ---
 references:
@@ -412,4 +409,8 @@ references:
   citation-label: vector space discussion
   title: "Vector Space Representations"
   URL: <https://aurora-opensource.github.io/au/0.3.4/discussion/implementation/vector_space/>
+- id: IS_TRIVIALLY_CONSTRUCTIBLE
+  citation-label: is_trivially_constructible discussion
+  title: "Discussion on `is_trivially_constructible` implementation (StackOverflow)"
+  URL: https://stackoverflow.com/q/49901309/15777264
 ---

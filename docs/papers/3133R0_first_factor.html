@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-02-13" />
+  <meta name="dcterms.date" content="2024-02-14" />
   <title>Fast first-factor finding function</title>
   <style>
       code{white-space: pre-wrap;}
@@ -462,7 +462,7 @@ function</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2024-02-13</td>
+    <td>2024-02-14</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -745,18 +745,13 @@ don’t yet know whether there are any inputs that would exceed the limits
 for the more efficient algorithms that we would like to use. (After all,
 avoiding the need to research, tune, and implement these algorithms
 ourselves was a major reason for writing this paper!)</p>
-<p>Pessimistically, we’ll assume that there do exist inputs that will
-exceed the compiler’s preferred iteration limits. If that happens, the
-compiler will need to circumvent these limits for
-<code class="sourceCode default">std::first_factor</code> in order to be
-compliant with the standard.</p>
-<p>We are open to suggestion as to the mechanism. Perhaps the compiler
-can provide directives to disable these limits for <em>individual blocks
-of code</em>. These directives could be either private (for
-compiler-internal use cases only), or public (for end users as well). In
-any case, the most important point for this present proposal is that
-<code class="sourceCode default">std::first_factor</code> must be able
-to produce a result for every input at compile time.</p>
+<p>The pessimistic outcome would be that every possible “pure C++”
+implementation has at least one input that would exceed these iteration
+limits for some compiler. If that happens, the implementation will
+probably need help from compiler internals. We don’t expect this to be a
+problem, because there’s precedent for this with some type traits (see,
+for example, <span class="citation" data-cites="IS_TRIVIALLY_CONSTRUCTIBLE">[<a href="#ref-IS_TRIVIALLY_CONSTRUCTIBLE" role="doc-biblioref">is_trivially_constructible
+discussion</a>]</span>).</p>
 <h2 data-number="3.2" id="usage-examples"><span class="header-section-number">3.2</span> Usage examples<a href="#usage-examples" class="self-link"></a></h2>
 <p>Here is one example of how to factorize an unsigned integer using
 this function:</p>
@@ -913,17 +908,25 @@ are required at compile time, the difficulty increases even more,
 because compilers limit the number of algorithmic iterations. In fact,
 there’s a real risk that a
 <code class="sourceCode default">constexpr</code> function that produces
-results for every 64-bit input is even possible for end user code!</p>
-<p>Providing a high quality implementation in the C++ standard library
-would make a future standard units and quantities library much easier to
-write, and may even be a hard blocker for it. But that’s not the only
-reason to desire it: given the wide diversity of use cases for integer
+results for every 64-bit input is not even possible for end user
+code!</p>
+<p>Providing a high quality
+<code class="sourceCode default">first_factor</code> implementation in
+the C++ standard library would pave the way for a future standard units
+and quantities library. (Without it, the latter is at least much harder
+to write, and may even be impossible.) But that’s not the only reason to
+desire it: given the wide diversity of use cases for integer
 factorization, we expect it would also enable many more applications
 that we can’t yet anticipate.</p>
 <h1 data-number="6" id="bibliography"><span class="header-section-number">6</span> References<a href="#bibliography" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
 <div id="ref-AU" class="csl-entry" role="doc-biblioentry">
 [Au] The Au Units library. <a href="https://aurora-opensource.github.io/au"><div class="csl-block">https://aurora-opensource.github.io/au</div></a>
+</div>
+<div id="ref-IS_TRIVIALLY_CONSTRUCTIBLE" class="csl-entry" role="doc-biblioentry">
+[is_trivially_constructible discussion] Discussion on
+<code class="sourceCode default">is_trivially_constructible</code>
+implementation (StackOverflow). <a href="https://stackoverflow.com/q/49901309/15777264"><div class="csl-block">https://stackoverflow.com/q/49901309/15777264</div></a>
 </div>
 <div id="ref-MP-UNITS" class="csl-entry" role="doc-biblioentry">
 [mp-units] mp-units - A Physical Quantities and Units library for C++.
