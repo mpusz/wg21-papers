@@ -4682,10 +4682,21 @@ This chapter enumerates all the user-facing concepts in the library.
 
 <!-- TODO Remove this note in the future -->
 
-_Note: We understand that at this stage of the paper, without a detailed synopsis, it might be too
+_Note 1: We understand that at this stage of the paper, without a detailed synopsis, it might be too
 early to review exact definitions of concepts. We list them here so the reader can familiarize
 with the count and granularity of them, so to have a better idea about the scope and look and feel
 of the library._
+
+_Note 2: Initially, C++20 was meant to use `CamelCase` for all the concept identifiers.
+Frustratingly, `CamelCase` concepts got dropped from the C++ standard at the last moment before
+releasing C++20. Now, we are facing the predictable consequences of running out of names.
+As long as some concepts in the library could be easily named with a `standard_case` there are
+some that are hard to distinguish from the corresponding type names, such as `Quantity`,
+`QuantityPoint`, `QuantitySpec`, or `Reference`. This is why we decided to use `CamelCase`
+consistently for all the concept identifiers to make it clear when we are talking about a type
+or concept identifier. However, we are aware that this might be a temporary solution. In case
+the library gets standardized, we can expect the LEWG to bikeshed/rename all of the concept
+identifiers to a `standard_case`, even if it will result in a harder to understand code._
 
 ### `Dimension<T> concept` { #Dimension-concept }
 
