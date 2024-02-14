@@ -5467,6 +5467,71 @@ exposed to satisfy the C++ language requirements for
 [structural types](https://eel.is/c++draft/temp.param#def:type,structural). Hopefully, the language
 rules for structural types will improve with time before this library gets standardized.
 
+
+### Why don't we use UDLs to create quantities?
+
+[Constructing a quantity] chapter describes and explains why we introduced
+the multiply syntax as a construction helper for quantities. Many people ask why we chose
+this approach over battle-proven User Defined Literals (UDLs) that work well for the
+`std::chrono` library.
+
+It turns out that many reasons make UDLs a poor choice for a physical units library:
+
+1. UDLs work only with literals (compile-time known values). Our observation is that besides
+   the unit tests, only a few compile-time known quantity values are used in the production
+   code. Please note that for [Physical constants], we recommend using units rather than
+   compile-time constants.
+2. Typical implementations of UDLs tend to always use the widest representation type available.
+   In the case of `std::chrono::duration`, the following is true:
+
+    ```cpp
+    using namespace std::chrono_literals;
+    auto d1 = 42s;
+    auto d2 = 42.s;
+    static_assert(std::is_same_v<decltype(d1)::rep, std::int64_t>);
+    static_assert(std::is_same_v<decltype(d2)::rep, long double>);
+    ```
+
+   When such UDL is intermixed in arithmetics with any quantity type of a shorter representation
+   type, it will always expand it to the longest one. In other words, such long type spreads until
+   all types use it everywhere.
+
+3. While increasing the coverage for the [@MP-UNITS] library, we learned that many unit symbols
+   conflict with built-in types or numeric extensions. A few of those are: `F` (farad), `J` (joule),
+   `W` (watt), `K` (kelvin), `d` (day), `l` or `L` (litre), `erg`, `ergps`. Using the `_` prefix
+   would make it work for [@MP-UNITS], but if the library is standardized, those naming
+   collisions would be a big issue. This is why we came up with the `_q_` prefix that would become
+   `q_` after standardization (e.g., `42q_s`), which is not that nice anymore.
+
+4. UDLs with the same identifiers defined in different namespace can't be disambiguated in the C++
+   language. If both SI and CGS systems define `q_s` UDL for a second unit, then it would not be
+   possible to specify which one to use in case both namespaces are "imported" with using directives.
+
+5. Another bad property of UDLs is that they do not compose. A coherent unit of angular momentum
+   would have a UDL specified as `q_kg_m2_per_s`. Now imagine that we want to make every possible
+   user happy. How many variations of that unit would we predefine for differently scaled versions
+   of all unit ingredients?
+
+6. UDLs are also really expensive to define and specify. Typically, for each unit, we need two
+   definitions. One for integral and another one for floating-point representation. In version
+   0.8.0 of the [@MP-UNITS] library, the coherent unit of angular momentum was defined as:
+
+    ```cpp
+    constexpr auto operator"" _q_kg_m2_per_s(unsigned long long l)
+    {
+      gsl_ExpectsAudit(std::in_range<std::int64_t>(l));
+      return angular_momentum<kilogram_metre_sq_per_second, std::int64_t>(static_cast<std::int64_t>(l));
+    }
+
+    constexpr auto operator"" _q_kg_m2_per_s(long double l)
+    {
+      return angular_momentum<kilogram_metre_sq_per_second, long double>(l);
+    }
+    ```
+
+The multiply syntax that we chose for this library does not have any of those issues.
+
+
 ### Quantity arithmetics
 
 #### `quantity` is a numeric wrapper
