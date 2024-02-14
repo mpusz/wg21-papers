@@ -196,6 +196,24 @@ There may be other overloads besides the above for `std::uint64_t`, as we'll dis
 However, in every case, the return type should be the same as the input type, because the result of
 the function can clearly never exceed its input.
 
+## Compiler iteration limits
+
+The compiler iteration limits that we mentioned above present an additional complication.  We have
+already seen that there are inputs that exceed these limits for naive algorithms, preventing
+compilation.  We don't yet know whether there are any inputs that would exceed the limits for the
+more efficient algorithms that we would like to use.  (After all, avoiding the need to research,
+tune, and implement these algorithms ourselves was a major reason for writing this paper!)
+
+Pessimistically, we'll assume that there do exist inputs that will exceed the compiler's preferred
+iteration limits.  If that happens, the compiler will need to circumvent these limits for
+`std::first_factor` in order to be compliant with the standard.
+
+We are open to suggestion as to the mechanism.  Perhaps the compiler can provide directives to
+disable these limits for _individual blocks of code_.  These directives could be either private (for
+compiler-internal use cases only), or public (for end users as well).  In any case, the most
+important point for this present proposal is that `std::first_factor` must be able to produce
+a result for every input at compile time.
+
 ## Usage examples
 
 Here is one example of how to factorize an unsigned integer using this function:
@@ -344,10 +362,20 @@ library meaningfully harder to implement.  It would also mean that other project
 integer factorization would be unable to take advantage of the work, even though it's already done
 and included (although hidden) in their standard library.
 
+Even that may not be enough.  It's possible that even the ideal implementation will run into
+compiler iteration limits for certain inputs.  If that turns out to be true, then declining to add
+this function means that we can't have a standard units library, either --- at least, not one that
+supports every unit.
+
 # Conclusion
 
 Integer factorization is perhaps the most basic and useful operation in all of number theory.  While
 basic implementations are easy to write, robust and efficient implementations are tricky and subtle.
-Providing a high quality implementation in the C++ standard library would unblock at least a future
-standard units and quantities library.  Given the wide diversity of use cases for integer
+If results are required at compile time, the difficulty increases even more, because compilers limit
+the number of algorithmic iterations.  In fact, there's a real risk that a `constexpr` function that
+produces results for every 64-bit input is even possible for end user code!
+
+Providing a high quality implementation in the C++ standard library would make a future standard
+units and quantities library much easier to write, and may even be a hard blocker for it.  But
+that's not the only reason to desire it: given the wide diversity of use cases for integer
 factorization, we expect it would also enable many more applications that we can't yet anticipate.
