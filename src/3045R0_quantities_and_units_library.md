@@ -4984,6 +4984,34 @@ quantity_point qp = time_point_cast<std::chrono::seconds>(std::chrono::system_cl
 std::chrono::sys_seconds q = qp + 42 * s;
 ```
 
+## Operations on units, dimensions, and quantity types
+
+Modern C++ physical quantities and units library should expose compile-time constants for units,
+dimensions, and quantity types. Each of such constants should be of a different type. Said otherwise,
+every unit, dimension, and quantity type has a unique type and a compile-time instance.
+This allows us to do regular algebra on such identifiers and get proper types as results of such
+operations.
+
+The operations exposed by such a library should include at least:
+
+- multiplication (e.g. `newton * metre`),
+- division (e.g. `metre / second`),
+- power (e.g. `pow<2>(metre)` or `pow<1, 2>(metre * metre)`).
+
+To improve the usability of the library, we also recommend adding:
+
+- square root (e.g. `sqrt(metre * metre)` as equivalent to `pow<1, 2>(metre * metre)`),
+- cubic root (e.g. `cbrt(metre * metre * metre)` as equivalent to `pow<1, 3>(metre * metre * metre)`),
+- inversion (e.g. `inverse(second)` as equivalent to `one / second`).
+
+Additionally, for units only, to improve the readability of the code, it makes sense to expose the following:
+
+- square power (e.g. `square(metre)` is equivalent to `pow<2>(metre)`),
+- cubic power (e.g. `cubic(metre)` is equivalent to `pow<3>(metre)`).
+
+The above two functions could also be considered for dimensions and quantity types. However,
+`cubic(length)` does not seem to make much sense, and probably `pow<3>(length)` should be
+preferred instead.
 
 ## Expression templates
 
