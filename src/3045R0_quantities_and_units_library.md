@@ -21,6 +21,7 @@ author:
     email: <isocxx@rothmichaels.us>
   - name: Vincent Reverdy
     email: <vince.rev@gmail.com>
+toc-depth: 4
 ---
 
 
