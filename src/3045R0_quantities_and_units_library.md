@@ -5401,6 +5401,53 @@ m = 5.34799e-27 kg
 E = 8.01088e-10 J
 ```
 
+## Quantity references
+
+_Note: We know that probably the term "reference" will not survive too long in the Committee,
+but we couldn't find a better name for it in the [@MP-UNITS] library
+(<https://github.com/mpusz/mp-units/issues/486>)._
+
+[@ISO-GUIDE] says:
+
+> **quantity** - property of a phenomenon, body, or substance, where the property has a magnitude
+> that can be expressed as a number and a reference. ...
+> A reference can be a measurement unit, a measurement procedure, a reference material, or
+> a combination of such.
+
+In the library a quantity reference represents all the domain-specific meta-data about the quantity
+besides its representation type and its value. A [`Reference`](#Reference-concept) concept is
+satisfied by either of:
+
+- an associated unit (e.g., `si::metre`),
+- an instantiation of the `reference<QuantitySpec, Unit>` class template explicitly specifying
+  the quantity type and its unit.
+
+A reference type is implicitly created as a result of the following expression:
+
+```cpp
+constexpr Reference auto distance = isq::distance[m];
+```
+
+The above example defines a variable of type `reference<isq::distance, si::metre>`.
+
+The `reference` class template also exposes an arithmetic interface similar to the one that we have
+already discussed in case of units and quantity types. It simply forwards the operation
+to its quantity type and unit members.
+
+```cpp
+constexpr ReferenceOf<isq::speed> auto speed = distance / si::second;
+```
+
+As a result we get a `reference<derived_quantity_spec<distance, per<time>>, derived_unit<metre, per<second>>>`
+type.
+
+Similarly to the [`AssociatedUnit`](#AssociatedUnit-concept), such a reference can be used to
+construct a quantity:
+
+```cpp
+QuantityOf<isq::speed> auto s = 60 * speed;
+```
+
 
 
 # Teachability
