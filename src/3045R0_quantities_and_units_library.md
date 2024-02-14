@@ -6,7 +6,6 @@ audience:
   - SG6 Numerics
   - SG16 Unicode
   - SG18 Library Evolution Working Group Incubator (LEWGI)
-  - ABI Review Group (ARG)
 author:
   - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
     email: <mateusz.pusz@gmail.com>
