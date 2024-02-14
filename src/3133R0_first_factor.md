@@ -37,10 +37,10 @@ number in a tiny fraction of a second.  The program source code is also written 
 easy to produce a C++ implementation.
 
 The immediate motivation is that this would unblock the currently active proposal for a standard
-units library, described in P3045.  However, factoring integers is such a common and basic operation
---- and the proposed function such a small addition --- that we believe its inclusion would be well
-justified by the wide variety of use cases it would support, many of which we cannot easily
-anticipate.
+units library, described in [@P3045_PRE].  However, factoring integers is such a common and basic
+operation --- and the proposed function such a small addition --- that we believe its inclusion
+would be well justified by the wide variety of use cases it would support, many of which we cannot
+easily anticipate.
 
 # Use case: magnitudes for units
 
@@ -59,12 +59,12 @@ perform those operations in this representation:
 - For rational powers, we simply multiply each exponent by the power.
 
 This representation has been shown to work very well in practice, across multiple widely used C++
-units libraries (mp-units and Au).  The bottleneck is factoring numbers that contain a very large
-prime factor.  Consider a robust but inefficient factorization method, such as trial division, or
-its wheel factorization enhancement.  While this does take a very long time, there's an even bigger
-problem.  Compilers _limit the number of iterations_ in a `constexpr` loop, and these algorithms can
-easily exceed this limit for large inputs: we get a _compilation error_ rather than an excessively
-slow compilation.
+units libraries ([@MP-UNITS] and [@AU]).  The bottleneck is factoring numbers that contain a very
+large prime factor.  Consider a robust but inefficient factorization method, such as trial division,
+or its wheel factorization enhancement.  While this does take a very long time, there's an even
+bigger problem.  Compilers _limit the number of iterations_ in a `constexpr` loop, and these
+algorithms can easily exceed this limit for large inputs: we get a _compilation error_ rather than
+an excessively slow compilation.
 
 This problem is more than just theoretical: for example, the exact definition of the proton mass in
 SI units involves the number 1,672,621,923,695, one of whose factors is 334,524,384,739, which is
@@ -123,8 +123,7 @@ a vector space:
 - The **product** operation plays the role of **vector addition**
 
 For this reason, we refer to this representation as the "vector space" representation.  See
-(https://aurora-opensource.github.io/au/0.3.4/discussion/implementation/vector_space/) for more
-discussion on this connection.
+the [@VECTOR-SPACE-DISCUSSION] for more details on this connection.
 
 While this strategy may come across as very abstract and theoretical, it has direct practical
 implications.  When we upgraded the mp-units library from a `std::ratio`-like representation to the
@@ -379,3 +378,38 @@ Providing a high quality implementation in the C++ standard library would make a
 units and quantities library much easier to write, and may even be a hard blocker for it.  But
 that's not the only reason to desire it: given the wide diversity of use cases for integer
 factorization, we expect it would also enable many more applications that we can't yet anticipate.
+
+---
+references:
+- id: P3045_PRE
+  citation-label: P3045
+  author:
+  - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
+    email: <mateusz.pusz@gmail.com>
+  - name: Dominik Berner
+    email: <dominik.berner@gmail.com>
+  - name: Johel Ernesto Guerrero Peña
+    email: <johelegp@gmail.com>
+  - name: Chip Hogg ([Aurora Innovation](https://aurora.tech/))
+    email: <charles.r.hogg@gmail.com>
+  - name: Nicolas Holthaus
+    email: <nholthaus@gmail.com>
+  - name: Roth Michaels ([Native Instruments](https://www.native-instruments.com))
+    email: <isocxx@rothmichaels.us>
+  - name: Vincent Reverdy
+    email: <vince.rev@gmail.com>
+  title: "Quantities and units library"
+  url: <https://wg21.link/p3045>
+- id: MP-UNITS
+  citation-label: mp-units
+  title: "mp-units - A Physical Quantities and Units library for C++"
+  URL: <https://mpusz.github.io/mp-units>
+- id: AU
+  citation-label: Au
+  title: "The Au Units library"
+  URL: <https://aurora-opensource.github.io/au>
+- id: VECTOR-SPACE-DISCUSSION
+  citation-label: vector space discussion
+  title: "Vector Space Representations"
+  URL: <https://aurora-opensource.github.io/au/0.3.4/discussion/implementation/vector_space/>
+---

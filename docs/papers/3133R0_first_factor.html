@@ -518,6 +518,7 @@ types<span></span></a></li>
 <li><a href="#what-if-we-dont-add-this" id="toc-what-if-we-dont-add-this"><span class="toc-section-number">4</span> What if we don’t add
 this?<span></span></a></li>
 <li><a href="#conclusion" id="toc-conclusion"><span class="toc-section-number">5</span> Conclusion<span></span></a></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">6</span> References<span></span></a></li>
 </ul>
 </div>
 <h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
@@ -550,11 +551,11 @@ properties.</p>
 also written in C, so it would be easy to produce a C++
 implementation.</p>
 <p>The immediate motivation is that this would unblock the currently
-active proposal for a standard units library, described in P3045.
-However, factoring integers is such a common and basic operation — and
-the proposed function such a small addition — that we believe its
-inclusion would be well justified by the wide variety of use cases it
-would support, many of which we cannot easily anticipate.</p>
+active proposal for a standard units library, described in <span class="citation" data-cites="P3045_PRE">[<a href="#ref-P3045_PRE" role="doc-biblioref">P3045</a>]</span>. However, factoring integers is
+such a common and basic operation — and the proposed function such a
+small addition — that we believe its inclusion would be well justified
+by the wide variety of use cases it would support, many of which we
+cannot easily anticipate.</p>
 <h1 data-number="2" id="use-case-magnitudes-for-units"><span class="header-section-number">2</span> Use case: magnitudes for units<a href="#use-case-magnitudes-for-units" class="self-link"></a></h1>
 <p>The connection between integer factorization and a units library may
 not be immediately obvious. We’ll begin with a brief outline, which
@@ -576,12 +577,12 @@ factor.</li>
 power.</li>
 </ul>
 <p>This representation has been shown to work very well in practice,
-across multiple widely used C++ units libraries (mp-units and Au). The
-bottleneck is factoring numbers that contain a very large prime factor.
-Consider a robust but inefficient factorization method, such as trial
-division, or its wheel factorization enhancement. While this does take a
-very long time, there’s an even bigger problem. Compilers <em>limit the
-number of iterations</em> in a
+across multiple widely used C++ units libraries (<span class="citation" data-cites="MP-UNITS">[<a href="#ref-MP-UNITS" role="doc-biblioref">mp-units</a>]</span> and <span class="citation" data-cites="AU">[<a href="#ref-AU" role="doc-biblioref">Au</a>]</span>).
+The bottleneck is factoring numbers that contain a very large prime
+factor. Consider a robust but inefficient factorization method, such as
+trial division, or its wheel factorization enhancement. While this does
+take a very long time, there’s an even bigger problem. Compilers
+<em>limit the number of iterations</em> in a
 <code class="sourceCode default">constexpr</code> loop, and these
 algorithms can easily exceed this limit for large inputs: we get a
 <em>compilation error</em> rather than an excessively slow
@@ -654,9 +655,8 @@ multiplication</strong></li>
 <strong>vector addition</strong></li>
 </ul>
 <p>For this reason, we refer to this representation as the “vector
-space” representation. See
-(https://aurora-opensource.github.io/au/0.3.4/discussion/implementation/vector_space/)
-for more discussion on this connection.</p>
+space” representation. See the <span class="citation" data-cites="VECTOR-SPACE-DISCUSSION">[<a href="#ref-VECTOR-SPACE-DISCUSSION" role="doc-biblioref">vector space
+discussion</a>]</span> for more details on this connection.</p>
 <p>While this strategy may come across as very abstract and theoretical,
 it has direct practical implications. When we upgraded the mp-units
 library from a <code class="sourceCode default">std::ratio</code>-like
@@ -920,6 +920,22 @@ write, and may even be a hard blocker for it. But that’s not the only
 reason to desire it: given the wide diversity of use cases for integer
 factorization, we expect it would also enable many more applications
 that we can’t yet anticipate.</p>
+<h1 data-number="6" id="bibliography"><span class="header-section-number">6</span> References<a href="#bibliography" class="self-link"></a></h1>
+<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-AU" class="csl-entry" role="doc-biblioentry">
+[Au] The Au Units library. <a href="https://aurora-opensource.github.io/au"><div class="csl-block">https://aurora-opensource.github.io/au</div></a>
+</div>
+<div id="ref-MP-UNITS" class="csl-entry" role="doc-biblioentry">
+[mp-units] mp-units - A Physical Quantities and Units library for C++.
+<a href="https://mpusz.github.io/mp-units"><div class="csl-block">https://mpusz.github.io/mp-units</div></a>
+</div>
+<div id="ref-P3045_PRE" class="csl-entry" role="doc-biblioentry">
+[P3045] Quantities and units library. <a href="https://wg21.link/p3045"><div class="csl-block">https://wg21.link/p3045</div></a>
+</div>
+<div id="ref-VECTOR-SPACE-DISCUSSION" class="csl-entry" role="doc-biblioentry">
+[vector space discussion] Vector Space Representations. <a href="https://aurora-opensource.github.io/au/0.3.4/discussion/implementation/vector_space/"><div class="csl-block">https://aurora-opensource.github.io/au/0.3.4/discussion/implementation/vector_space/</div></a>
+</div>
+</div>
 </div>
 </div>
 </body>
