@@ -5906,6 +5906,353 @@ number generators.
 We plan to provide a separate paper on those in the future.
 
 
+### Dimensionless quantities
+
+The quantities we discussed so far always had some specific type and physical dimension.
+However, this is not always the case. While performing various computations, we sometimes end up with
+so-called "dimensionless" quantities, which [@ISO-GUIDE] correctly defines as quantities of dimension
+one:
+
+> - Quantity for which all the exponents of the factors corresponding to the base quantities in
+>   its quantity dimension are zero.
+> - The measurement units and values of quantities of dimension one are numbers, but such quantities
+>   convey more information than a number.
+> - Some quantities of dimension one are defined as the ratios of two quantities of the same kind.
+> - Numbers of entities are quantities of dimension one.
+
+
+#### Dividing two quantities of the same kind
+
+Dividing two quantities of the same kind always results in a quantity of dimension one. However,
+depending on what type of quantities we divide or what their units are, we may end up with slightly
+different types.
+
+Dividing two quantities of the same dimension always results in a quantity with the dimension being
+`dimension_one`. This is often different for other physical units libraries, which may return a raw
+representation type for such cases. A raw value is also always returned from the division of two
+`std::chrono::duration` values.
+
+In the initial design of the [@MP-UNITS] library, the resulting type of division of two quantities
+was their common representation type (just like `std::chrono::duration`):
+
+```cpp
+static_assert(std::is_same_v<decltype(10 * km / (5 * km)), int>);
+```
+
+The reasoning behind it was not providing a false impression of a strong `quantity` type for
+something that looks and feels like a regular number. Also, all of the mathematic and trigonometric
+functions were working fine out of the box with such representation types, so we did not have to rewrite
+`sin()`, `cos()`, `exp()`, and others.
+
+However, the feedback we got from the production usage was that such an approach is really bad for
+generic programming. It is hard to handle the result of the two quantities' division (or multiplication)
+as it might be either a quantity or a fundamental type. If we want to raise such a result to some power,
+we must use `units::pow` or `std::pow` depending on the resulting type
+(`units::pow` takes the power as template arguments).
+Those are only a few issues
+related to such an approach.
+
+Moreover, suppose we divide quantities of the same dimension, but with units of significantly different
+magnitudes. In such case, we may end up with a really small or a huge floating-point value, which
+may result in losing lots of precision. Returning a dimensionless quantity from such cases allows
+us to benefit from all the properties of scaled units and is consistent with the rest of the library.
+
+##### Dividing quantities of the same type
+
+First, let's analyze what happens if we divide two quantities of the same type:
+
+```cpp
+constexpr QuantityOf<dimensionless> auto q = isq::height(200 * m) / isq::height(50 * m);
+```
+
+In such a case, we end up with a dimensionless quantity that has the following properties:
+
+```cpp
+static_assert(q.quantity_spec == dimensionless);
+static_assert(q.dimension == dimension_one);
+static_assert(q.unit == one);
+```
+
+In case we would like to print its value, we would see a raw value of `4` in the output with no unit
+being printed.
+
+##### Dividing quantities of different types
+
+We can divide quantities of the same dimension and unit but of different quantity types:
+
+```cpp
+constexpr QuantityOf<dimensionless> auto q = isq::work(200 * J) / isq::heat(50 * J);
+```
+
+Again we end up with `dimension_one` and `one`, but this time:
+
+```cpp
+static_assert(q.quantity_spec == isq::work / isq::heat);
+```
+
+As shown above, the result is not of a `dimensionless` type anymore. Instead, we get a quantity type
+derived from the performed quantity equation. According to the [@ISO80000], _work_ divided by _heat_
+is the recipe for the _thermodynamic efficiency_ quantity, thus:
+
+```cpp
+static_assert(implicitly_convertible(q.quantity_spec, isq::efficiency_thermodynamics));
+```
+
+Please note that the quantity of `isq::efficiency_thermodynamics` is of a kind `dimensionless`,
+so it is implicitly convertible to `dimensionless` and satisfies the
+[`QuantityOf<dimensionless>`](#QuantityOf-concept) concept.
+
+##### Dividing quantities of different units
+
+Now, let's see what happens when we divide two quantities of the same type but different units:
+
+```cpp
+constexpr QuantityOf<dimensionless> auto q = isq::height(4 * km) / isq::height(2 * m);
+```
+
+This time we get a quantity of `dimensionless` type with a `dimension_one` as its dimension.
+However, the resulting unit is not `one` anymore:
+
+```cpp
+static_assert(q.unit == mag_power<10, 3> * one);
+```
+
+In case we would print the text output of this quantity, we would not see a raw value of `2000`,
+but `2 km/m`.
+
+First, it may look surprising, but this is actually consistent with the division of quantities
+of different dimensions. For example, if we divide `4 * km / (2 * s)`, we do not expect `km` to be
+"expanded" to `m` before the division, right? We would expect the result of `2 * (km / s)`, which is
+exactly what we get when we divide quantities of the same kind.
+
+This is a compelling feature that allows us to express huge or tiny ratios without the need
+for big and expensive representation types. With this, we can easily define things like
+a [Hubble's constant](https://en.wikipedia.org/wiki/Hubble%27s_law#Dimensionless_Hubble_constant)
+that uses a unit that is proportional to the ratio of kilometers per megaparsecs, which are both
+units of length:
+
+```cpp
+inline constexpr struct hubble_constant :
+    named_unit<{"H₀", "H_0"}, mag<ratio{701, 10}> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
+} hubble_constant;
+```
+
+#### Counts of things
+
+Another important use case for dimensionless quantities is to provide strong types for counts
+of things. For example:
+
+- [@ISO80000] (part 3) provides a _rotation_ quantity defined as the number of revolutions,
+- [@ISO80000] (part 6) provides a _number of turns in a winding_ quantity,
+- [@ISO80000] (part 13) provides a _Hamming distance_ quantity defined as the number of digit positions
+  in which the corresponding digits of two words of the same length are different.
+
+Thanks to assigning strong names to such quantities, they can be used in the quantity equation of
+other quantities. For example, _rotational frequency_ is defined by `rotation / duration`.
+
+#### Lack of convertibility from fundamental types
+
+As stated before, the division of two quantities of the same kind results in a quantity of
+dimension one. Even though it does not have a specific physical dimension it still uses units with
+various ratios such as `one`, `percent`, `radian`, `degree`, etc. It is essential to be explicit
+about which unit we want to use for such a quantity.
+
+However, in some cases, this might look like an overkill. In the [Basic quantity equations] chapter
+one of the lines looks as follows:
+
+```cpp
+static_assert(10 * km / (5 * km) == 2 * one);
+```
+
+Another example could be subtracting a value `1` from the dimensionless quantity that we can
+find in [Storage tank] example:
+
+```cpp
+const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
+```
+
+Some physical quantities and units libraries (e.g. [@BOOST-UNITS]) provide
+[implicit conversions from the values of representation types to such quantities](https://www.boost.org/doc/libs/1_83_0/doc/html/boost_units/Quantities.html#boost_units.Quantities.Quantity_Construction_and_Conversion).
+
+With such support, the above examples would look in the following way:
+
+```cpp
+static_assert(10 * km / (5 * km) == 2);
+```
+
+```cpp
+const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1) * fill_time;
+```
+
+Such simplification might look tempting, and the [@MP-UNITS] initially provided a special support
+that allowed the above to compile. However, in the V2 version of the library, it was removed.
+There are a few reasons for that:
+
+- Such support has sense only for quantities of dimension one with a unit `one`. In the case of all
+  the other units, the specific unit should still be provided.
+
+- If we provide implicit conversions from the representation type to a quantity of dimension one
+  with a unit `one` and we start depending on such a feature, we might end up with compile-time
+  errors after refactoring the unit in a type of such a quantity. For example:
+
+::: cmptable
+
+##### Before
+
+```cpp
+struct my_data {
+  quantity<dimensionless[one]> value;
+};
+
+my_data data1{.value = 42};
+my_data data2{.value = 42 * one};
+```
+
+##### After
+
+```cpp
+struct my_data {
+  quantity<dimensionless[percent]> value;
+};
+
+my_data data1{.value = 42};        // Compile-time error
+my_data data2{.value = 42 * one};  // OK
+```
+
+:::
+
+- Such support is purely additive (it can be added later) and requires a bunch of additional
+  overloads not only for a constructor but for arithmetic operators and comparisons as well.
+
+Please also note that we will still need to use explicit units to create a quantity for some cases.
+For example, in the following code, `asin(-1)` would use the overload from the `<math>` header of
+the C++ standard library rather than the one for quantities provided in `<mp-units/math.h>`
+header file:
+
+```cpp
+REQUIRE_THAT(asin(-1 * one), AlmostEquals(-90. * deg));
+```
+
+The authors of this paper are not opposed to providing support for conversions from the raw value
+to the dimensionless quantity of a unit `one`. If WG21 groups decide that is a good direction,
+we will provide additional interfaces to the library to support such a scenario. If we choose
+to go this path, two questions should be answered first:
+
+1. Should such a conversion be explicit or implicit?
+
+    We may be tempted to stay on the safe side and choose explicit conversions here. However, this
+    would make the following expression illegal or at least awkward:
+
+    ```cpp
+    static_assert(10 * km / (5 * km) + 1 == 3);
+    ```
+
+    It would be strange to support arithmetics against the raw value if the quantity type can't
+    be implicitly constructed from it.
+
+2. Should we support converting from the dimensionless quantity with unit `one` to the
+raw value? And if yes, should it be implicit or explicit?
+
+    It could probably be better to allow implicit conversions to work with legacy interfaces or
+    to benefit from regular math-related functions that work on fundamental types.
+    Otherwise, we will need to type something like this in our code:
+
+    ```cpp
+    auto res = sin(static_cast<double>(q));
+    ```
+
+    which really is not a great improvement over:
+
+    ```cpp
+    auto res = sin(q.numerical_value_in(one));
+    ```
+
+
+#### Predefined units of the dimensionless quantity
+
+As we observed above, the most common unit for dimensionless quantities is `one`. It has the
+ratio of `1` and does not output any textual symbol.
+
+A unit `one` is special in the entire type system of units as it is considered to be an identity
+operand in the unit expression templates. This means that, for example:
+
+```cpp
+static_assert(one * one == one);
+static_assert(one * si::metre == si::metre);
+static_assert(si::metre / si::metre == one);
+```
+
+The same is also true for `dimension_one` and `dimensionless` in the domains of dimensions
+and quantity specifications, respectively.
+
+Besides the unit `one`, there are a few other scaled units predefined in the library for usage
+with dimensionless quantities:
+
+```cpp
+inline constexpr struct percent : named_unit<"%", mag<ratio{1, 100}> * one> {} percent;
+inline constexpr struct per_mille : named_unit<{"‰", "%o"}, mag<ratio(1, 1000)> * one> {} per_mille;
+inline constexpr struct parts_per_million : named_unit<"ppm", mag<ratio(1, 1'000'000)> * one> {} parts_per_million;
+inline constexpr auto ppm = parts_per_million;
+```
+
+#### Angular quantities
+
+Special, often controversial, examples of dimensionless quantities are the _angular measure_
+and _solid angular measure_ quantities that are defined in [@ISO80000] (part 3) to be the result of
+a division of `arc_length / radius` and `area / pow<2>(radius)` respectively.
+Moreover, [@ISO80000] also explicitly states that both can be expressed in the unit `one`.
+This means that both `isq::angular_measure` and `isq::solid_angular_measure` should be of
+a kind of `dimensionless`.
+
+On the other hand, [@ISO80000] also specifies that the unit `radian` can be used for
+_angular measure_, and the unit `steradian` can be used for _solid angular measure_.
+Those should not be mixed or used to express other types of dimensionless quantities.
+We should not be able to measure:
+
+- basic dimensionless quantity in radians or steradians,
+- _angular measure_ in steradians,
+- _solid angular measure_ in radians.
+
+This means that both `isq::angular_measure` and `isq::solid_angular_measure` should also be
+quantity kinds by themselves.
+
+_Note: Many people claim that angle being a dimensionless quantity is a bad idea. There are
+proposals submitted to make an angle a base quantity and `rad` to become a base unit in both [@SI]
+and [@ISO80000]._
+
+#### Nested quantity kinds
+
+Angular quantities are not the only ones with such a "strange" behavior. A similar
+case is the _storage capacity_ quantity specified in [@ISO80000] (part 13) that again allows
+expressing it in both `one` and `bit` units.
+
+Those cases make dimensionless quantities an exceptional tree in the library. This is the only
+quantity hierarchy that contains more than one quantity kind in its tree:
+
+![](img/quantities_of_dimensionless.svg)
+
+To provide such support in the library, we provided an `is_kind` specifier that can be appended
+to the quantity specification:
+
+```cpp
+inline constexpr struct angular_measure : quantity_spec<dimensionless, arc_length / radius, is_kind> {} angular_measure;
+inline constexpr struct solid_angular_measure : quantity_spec<dimensionless, area / pow<2>(radius), is_kind> {} solid_angular_measure;
+inline constexpr struct storage_capacity : quantity_spec<dimensionless, is_kind> {} storage_capacity;
+```
+
+With the above, we can constrain `radian`, `steradian`, and `bit` to be allowed for usage with
+specific quantity kinds only:
+
+```cpp
+inline constexpr struct radian : named_unit<"rad", metre / metre, kind_of<isq::angular_measure>> {} radian;
+inline constexpr struct steradian : named_unit<"sr", square(metre) / square(metre), kind_of<isq::solid_angular_measure>> {} steradian;
+inline constexpr struct bit : named_unit<"bit", one, kind_of<storage_capacity>> {} bit;
+```
+
+This still allows the usage of `one` (possibly scaled) for such quantities which is exactly what
+we wanted to achieve.
+
+
 
 
 # Teachability
