@@ -6816,6 +6816,65 @@ Landing: 2023-11-18 15:07:01 MST
 
 # Teachability
 
+Through the last years [@MP-UNITS] library proved to be very intuitive to both novices in
+the domain and non-C++ experts. Thanks to the user-friendly multiply syntax, support for CTAD,
+excellent readability of generated types in compiler error messages, and simplicity of systems
+definitions, this library makes it easy to do the first steps in the dimensional analysis domain.
+
+If someone is new to the domain, a concise introduction of [Systems of units], the [@SI], and
+the US Customary System (and how it relates to SI) might be needed.
+
+After that, every new user, even a C++ newbie, should have no problems with understanding the topics
+of the [Unit-based quantities (simple mode)] chapter and should be able to start using the
+library successfully. At least as long as they keep operating in the safety zone using
+floating-point representation types.
+
+Eventually, the library will stand in the way, disallowing "unsafe" conversions. This would be
+a perfect place to mention the importance of providing safe interfaces at compile-time and describe
+why narrowing conversions are unwelcome and what the side effects of those might be. After that,
+forced conversions in the library should be presented.
+
+In case a target audience needs to interact with legacy interfaces that take raw numeric values,
+[Obtaining a numerical value of a quantity] chapter should be introduced. In such a case, it is
+important to warn students of why this operation is unsafe and what are the potential
+maintainability issues.
+
+Next, we could show how easy extending the library with custom units is. A simple and funny
+example like the below could be a great exercise here:
+
+```cpp
+import mp_units;
+import std;
+
+inline constexpr struct smoot : std::named_unit<"smoot", std::mag<67> * std::usc::inch> {} smoot;
+
+int main()
+{
+  constexpr std::quantity dist = 364.4 * smoot;
+  std::println("Harvard Bridge length = {:{%N:.5} %U} ({:{%N:.5} %U}, {:{%N:.5} %U}) ± 1 εar",
+               dist, dist.in(usc::foot), dist.in(si::metre));
+}
+```
+
+After a while, we can also introduce students to [The affine space] abstractions and discuss
+the [Temperature support].
+
+With the above, we have learned enough for most users' needs and do not need to delve into
+more details. The library is intuitive and will prevent all errors at compile time.
+
+For more advanced classes, groups, or use cases, we can introduce [Generic Interfaces] and
+[Systems of quantities] but we don't have to describe every detail and corner cases of quantity
+types design and their convertibility. It is good to start here with
+[Why do we need typed quantities?], followed by [Quantities of the same kind] and
+[System of quantities is not only about kinds].
+
+According to our experience, the most common pitfall in using quantity types might be related to
+the names chosen for them by the [@ISO80000] (e.g., _length_). It might be good to describe what
+_length_ means when we say "every _height_ is a _length_" and what it means when we describe
+a box of _length_, _width_, and _height_ dimensions. In the latter case, _length_ will not restrict
+us to the horizontal dimension only. This is how the ISQ is defined, and we should accept this.
+However, we should present a way to define _horizontal length_ as presented in the
+[Comparing, adding, and subtracting quantities of the same kind] and describe its rationale.
 
 
 # Acknowledgements
