@@ -46,11 +46,10 @@ to this activity.
 - [P2981R1: Improving our safety with a physical quantities and units library](papers/2981R1_improving_our_safety_with_a_physical_quantities_and_units_library.html)
 - [P2982R0: `std::quantity` as a numeric type](papers/2982R0_std_quantity_as_a_numeric_type.html)
 - [P2982R1: `std::quantity` as a numeric type](papers/2982R1_std_quantity_as_a_numeric_type.html)
+- [P3045R0: Quantities and units library](papers/3045R0_quantities_and_units_library.html)
+- [P3094R0: `std::basic_fixed_string`](papers/3094R0_std_basic_fixed_string.html)
 
 ### Under Development
-
-- [D3045R0: Quantities and units library](papers/3045R0_quantities_and_units_library.html)
-- [D3094R0: `std::basic_fixed_string`](papers/3094R0_std_basic_fixed_string.html)
 
 ## More Papers
 
