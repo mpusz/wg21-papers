@@ -2988,6 +2988,109 @@ Unit symbols introduce a lot of short identifiers into the current namespace, an
 are opt-in. A user has to explicitly "import" them from a dedicated `unit_symbols` namespace.
 
 
+## Systems definitions
+
+### Conventions
+
+#### New style of definitions
+
+The [@MP-UNITS] library decided to use a rather unusual pattern to define entities, but it proved
+really successful, and we got great feedback from users so far.
+
+Here is how we define metre and second [@SI] base units:
+
+```cpp
+inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
+```
+
+Please note that the above reuses the same identifier for a type and its value. The rationale
+behind this is that:
+
+- Users always work with values and never have to spell such a type name.
+- The types appear in the compilation errors and during debugging.
+
+To improve compiler errors' readability and make it easier to correlate them with a user's written
+code, a new idiom in the library is to use the same identifier for a type and its instance.
+
+#### Strong types instead of aliases
+
+Let's look again at the above units definitions. Another essential point to notice is that
+all the types describing entities in the library are short, nicely named identifiers
+that derive from longer, more verbose class template instantiations. This is really important
+to improve the user experience while debugging the program or analyzing the compilation error.
+
+_Note: Such a practice is rare in the industry. Some popular C++ physical units libraries generate
+enormously long error messages._
+
+#### Entities composability
+
+Many physical units libraries (in C++ or any other programming language) assign strong types
+to library entities (e.g., derived units). While `metre_per_second` as a type may not look too
+scary, consider, for example, units of angular momentum. If we followed this path, its
+coherent unit would look like `kilogram_metre_sq_per_second`. Now, consider how many scaled
+versions of this unit you would predefine in the library to ensure that all users are happy with
+your choice? How expensive would it be from the implementation point of view? How expensive would
+it be to standardize?
+
+This is why, in this library, we put a strong requirement to make everything as composable as
+possible. For example, to create a quantity with a unit of _speed_, one may write:
+
+```cpp
+quantity<si::metre / si::second> q;
+```
+
+In case we use such a unit often and would prefer to have a handy helper for it, we can
+always do something like this:
+
+```cpp
+constexpr auto metre_per_second = si::metre / si::second;
+quantity<metre_per_second> q;
+```
+
+or choose any shorter identifier of our choice.
+
+Coming back to the angular momentum case, thanks to the composability of units, a user can
+create such a quantity in the following way:
+
+```cpp
+using namespace mp_units::si::unit_symbols;
+auto q = la_vector{1, 2, 3} * isq::angular_momentum[kg * m2 / s];
+```
+
+It is a much better solution. It is terse and easy to understand. Please also notice how
+easy it is to obtain any scaled version of such a unit (e.g., `mg * square(mm) / min`)
+without having to introduce hundreds of types to predefine them.
+
+#### Value-based equations
+
+This library is based on C++20, significantly improving user experience. One such improvement
+is the usage of value-based equations.
+
+As we have learned above, the entities are being used as values in the code, and they compose.
+Moreover, derived entities can be defined in the library using such value-based equations.
+This is a considerable improvement compared to what we can find in other physical units libraries or
+what we have to deal with when we want to write some equations for `std::ratio`.
+
+For example, below are a few definitions of the [@SI] derived units showing the power of C++20
+extensions to Non-Type Template Parameters, which allow us to directly pass a result of
+the value-based unit equation to a class template definition:
+
+```cpp
+inline constexpr struct newton : named_unit<"N", kilogram * metre / square(second)> {} newton;
+inline constexpr struct pascal : named_unit<"Pa", newton / square(metre)> {} pascal;
+inline constexpr struct joule : named_unit<"J", newton * metre> {} joule;
+```
+
+### Defining systems of quantities
+
+TBD
+
+### Defining systems of units
+
+TBD
+
+
 # Safety
 
 ## Safety features
