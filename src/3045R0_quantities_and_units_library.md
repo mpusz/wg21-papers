@@ -4768,6 +4768,92 @@ relate to each other.
 
 <img src="img/design.svg" style="display: block; margin-left: auto; margin-right: auto; width: 60%;"/>
 
+Some of the entities were already introduced in the [Quick domain introduction] chapter. Below
+we describe the remaining ones.
+
+### Quantity character
+
+[@ISO80000] explicitly states that quantities (even of the same kind) may have different characters:
+
+- scalar,
+- vector,
+- tensor.
+
+The quantity character in the library is implemented with the `quantity_character` enumeration:
+
+```cpp
+enum class quantity_character { scalar, vector, tensor };
+```
+
+More information on quantity characters can be found in the [Character of a quantity] chapter.
+
+### Quantity specification
+
+Dimension is not enough to describe a quantity. This is why [@ISO80000] provides hundreds of named
+quantity types. It turns out that there are many more quantity types in the ISQ than the named
+units in the [@SI].
+
+This is why the library introduces a quantity specification entity that stores:
+
+- [Dimension],
+- [Quantity type],
+- [Quantity character],
+- the quantity equation being the recipe to create this quantity (only for derived quantities that
+  specify such a recipe).
+
+For example:
+
+- `isq::length`, `isq::mass`, `isq::time`, `isq::electric_current`, `isq::thermodynamic_temperature`,
+  `isq::amount_of_substance`, and `isq::luminous_intensity` are the specifications of base quantities
+  in the ISQ.
+- `isq::width`, `isq::height`, `isq::radius`, and `isq::position_vector` are only a few of many
+   quantities of a kind length specified in the ISQ.
+- `isq::area`, `isq::speed`, `isq::moment_of_force` are only a few of many derived quantities provided
+  in the ISQ.
+
+### Unit
+
+A unit is a concrete amount of a quantity that allows us to measure the values of quantities of
+the same kind and represent the result as a number being the ratio of the two quantities.
+
+For example:
+
+- `si::second`, `si::metre`, `si::kilogram`, `si::ampere`, `si::kelvin`, `si::mole`, and `si::candela`
+  are the base units of the [@SI].
+- `si::kilo<si::metre>` is a prefixed unit of length.
+- `si::radian`, `si::newton`, and `si::watt` are examples of named derived units within the [@SI].
+- `non_si::minute` is an example of a scaled unit of time.
+- `si::si2019::speed_of_light_in_vacuum` is a physical constant standardized by the SI in 2019.
+
+_Note: In this library, physical constants are also implemented as units._
+
+### Quantity representation
+
+Quantity representation defines the type used to store the numerical value of a quantity. Such
+a type should be of a specific quantity character provided in the quantity specification.
+
+_Note: By default, all floating-point and integral (besides `bool`) types are treated as scalars._
+
+### Point origin
+
+In the affine space theory, the point origin specifies where the "zero" of our measurement's scale
+is.
+
+In this library, we have two types of point origins:
+
+- absolute - defines an absolute "zero" for our point,
+- relative - defines an origin that has some "offset" relative to an absolute point.
+
+_Note: More information on this subject can be found in [The affine space] chapter._
+
+### Quantity point
+
+Quantity point implements a point in the affine space theory. Its value can be easily created by
+adding/subtracting the quantity with a point origin.
+
+_Note: More information on this subject can be found in [The affine space] chapter._
+
+
 ## Concepts
 
 This chapter enumerates all the user-facing concepts in the library.
