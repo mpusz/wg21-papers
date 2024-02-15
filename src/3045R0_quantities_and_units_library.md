@@ -2100,47 +2100,110 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/oEW1vfeMG).
 
 ## User defined quantities and units
 
-Users can easily define new quantities and units for domain-specific
-use-cases.  This example from digital signal processing will show how to
-define custom units for counting
-[digital samples](https://en.wikipedia.org/wiki/Sampling_(signal_processing))
-and how they can be converted to time measured in milliseconds:
+Users can easily define new quantities and units for domain-specific use-cases. This example from
+digital signal processing domain will show how to define custom strongly typed dimensionless
+quantities, units for them, and how they can be converted to time measured in milliseconds:
 
 ```cpp
 import mp_units;
 import std;
 
-namespace dsp_dsq {
-
 using namespace mp_units;
 
+namespace ni {
+
+// quantities
 inline constexpr struct SampleCount : quantity_spec<dimensionless, is_kind> {} SampleCount;
 inline constexpr struct SampleDuration : quantity_spec<isq::time> {} SampleDuration;
 inline constexpr struct SamplingRate : quantity_spec<isq::frequency, SampleCount / isq::time> {} SamplingRate;
 
+inline constexpr struct UnitSampleAmount : quantity_spec<dimensionless, is_kind> {} UnitSampleAmount;
+inline constexpr auto Amplitude = UnitSampleAmount;
+inline constexpr auto Level = UnitSampleAmount;
+inline constexpr struct Power : quantity_spec<Level * Level> {} Power;
+
+inline constexpr struct MIDIClock : quantity_spec<dimensionless, is_kind> {} MIDIClock;
+
+inline constexpr struct BeatCount : quantity_spec<dimensionless, is_kind> {} BeatCount;
+inline constexpr struct BeatDuration : quantity_spec<isq::time> {} BeatDuration;
+inline constexpr struct Tempo : quantity_spec<isq::frequency, BeatCount / isq::time> {} Tempo;
+
+// units
 inline constexpr struct Sample : named_unit<"Smpl", one, kind_of<SampleCount>> {} Sample;
+inline constexpr struct SampleValue : named_unit<"PCM", one, kind_of<UnitSampleAmount>> {} SampleValue;
+inline constexpr struct MIDIPulse : named_unit<"p", one, kind_of<MIDIClock>> {} MIDIPulse;
+
+inline constexpr struct QuarterNote : named_unit<"q", one, kind_of<BeatCount>> {} QuarterNote;
+inline constexpr struct HalfNote : named_unit<"h", mag<2> * QuarterNote> {} HalfNote;
+inline constexpr struct DottedHalfNote : named_unit<"h.", mag<3> * QuarterNote> {} DottedHalfNote;
+inline constexpr struct WholeNote : named_unit<"w", mag<4> * QuarterNote> {} WholeNote;
+inline constexpr struct EightNote : named_unit<"8th", mag<ratio{1, 2}> * QuarterNote> {} EightNote;
+inline constexpr struct DottedQuarterNote : named_unit<"q.", mag<3> * EightNote> {} DottedQuarterNote;
+inline constexpr struct QuarterNoteTriplet : named_unit<"qt", mag<ratio{1, 3}> * HalfNote> {} QuarterNoteTriplet;
+inline constexpr struct SixteenthNote : named_unit<"16th", mag<ratio{1, 2}> * EightNote> {} SixteenthNote;
+inline constexpr struct DottedEightNote : named_unit<"q.", mag<3> * SixteenthNote> {} DottedEightNote;
+
+inline constexpr auto Beat = QuarterNote;
+
+inline constexpr struct BeatsPerMinute : named_unit<"bpm", Beat / si::minute> {} BeatsPerMinute;
+inline constexpr struct MIDIPulsePerQuarter : named_unit<"ppqn", MIDIPulse / QuarterNote> {} MIDIPulsePerQuarter;
 
 namespace unit_symbols {
+
 inline constexpr auto Smpl = Sample;
+inline constexpr auto pcm = SampleValue;
+inline constexpr auto p = MIDIPulse;
+
+inline constexpr auto n_wd = 3 * HalfNote;
+inline constexpr auto n_w = WholeNote;
+inline constexpr auto n_hd = DottedHalfNote;
+inline constexpr auto n_h = HalfNote;
+inline constexpr auto n_qd = DottedQuarterNote;
+inline constexpr auto n_q = QuarterNote;
+inline constexpr auto n_qt = QuarterNoteTriplet;
+inline constexpr auto n_8thd = DottedEightNote;
+inline constexpr auto n_8th = EightNote;
+inline constexpr auto n_16th = SixteenthNote;
+
+}
+
+quantity<BeatsPerMinute, float> GetTempo()
+{
+  return 110 * BeatsPerMinute;
+}
+
+quantity<MIDIPulsePerQuarter, unsigned> GetPPQN()
+{
+  return 960 * MIDIPulse / QuarterNote;
+}
+
+quantity<MIDIPulse, unsigned> GetTransportPos()
+{
+  return 15836 * MIDIPulse;
+}
+
+quantity<SamplingRate[si::hertz], float> GetSampleRate()
+{
+  return 44100.f * si::hertz;
 }
 
 }
 
 int main()
 {
-  using namespace dsp_dsq::unit_symbols;
+  using namespace ni::unit_symbols;
   using namespace mp_units::si::unit_symbols;
 
-  const auto sr1 = 44100.f * Hz;
+  const auto sr1 = ni::GetSampleRate();
   const auto sr2 = 48000.f * Smpl / s;
 
-  const auto bufferSize = 512 * Smpl;
+  const auto samples = 512 * Smpl;
 
-  const auto sampleTime1 = (bufferSize / sr1).in(s);
-  const auto sampleTime2 = (bufferSize / sr2).in(ms);
+  const auto sampleTime1 = (samples / sr1).in(s);
+  const auto sampleTime2 = (samples / sr2).in(ms);
 
   const auto sampleDuration1 = (1 / sr1).in(ms);
-  const auto sampleDuration2 = dsp_dsq::SampleDuration(1 / sr2).in(ms);
+  const auto sampleDuration2 = (1 / sr2).in(ms);
 
   const auto rampTime = 35.f * ms;
   const auto rampSamples1 = value_cast<int>((rampTime * sr1).in(Smpl));
@@ -2149,14 +2212,41 @@ int main()
   std::println("Sample rate 1 is: {}", sr1);
   std::println("Sample rate 2 is: {}", sr2);
 
-  std::println("{} @ {} is {:{%N:.5f} %U}", bufferSize, sr1, sampleTime1);
-  std::println("{} @ {} is {:{%N:.5f} %U}", bufferSize, sr2, sampleTime2);
+  std::println("{} @ {} is {:{%N:.5f} %U}", samples, sr1, sampleTime1);
+  std::println("{} @ {} is {:{%N:.5f} %U}", samples, sr2, sampleTime2);
 
   std::println("One sample @ {} is {:{%N:.5f} %U}", sr1, sampleDuration1);
   std::println("One sample @ {} is {:{%N:.5f} %U}", sr2, sampleDuration2);
 
   std::println("{} is {} @ {}", rampTime, rampSamples1, sr1);
   std::println("{} is {} @ {}", rampTime, rampSamples2, sr2);
+
+  auto sampleValue = -0.4f * pcm;
+  auto power1 = sampleValue * sampleValue;
+  auto power2 = -0.2 * pow<2>(pcm);
+
+  auto tempo = ni::GetTempo();
+  auto reverbBeats = 1 * n_qd;
+  auto reverbTime = reverbBeats / tempo;
+
+  auto pulsePerQuarter = value_cast<float>(ni::GetPPQN());
+  auto transportPosition = ni::GetTransportPos();
+  auto transportBeats = (transportPosition / pulsePerQuarter).in(n_q);
+  auto transportTime = (transportBeats / tempo).in(s);
+
+  std::println("SampleValue is: {}", sampleValue);
+  std::println("Power 1 is: {}", power1);
+  std::println("Power 2 is: {}", power2);
+
+  std::println("Tempo is: {}", tempo);
+  std::println("Reverb Beats is: {}", reverbBeats);
+  std::println("Reverb Time is: {}", reverbTime.in(s));
+  std::println("Pulse Per Quarter is: {}", pulsePerQuarter);
+  std::println("Transport Position is: {}", transportPosition);
+  std::println("Transport Beats is: {}", transportBeats);
+  std::println("Transport Time is: {}", transportTime);
+
+  // auto error = 1 * Smpl + 1 * pcm + 1 * p + 1 * Beat;  // Compile-time error
 }
 ```
 
@@ -2171,9 +2261,23 @@ One sample @ 44100 Hz is 0.02268 ms
 One sample @ 48000 Smpl/s is 0.02083 ms
 35 ms is 1543 Smpl @ 44100 Hz
 35 ms is 1680 Smpl @ 48000 Smpl/s
+SampleValue is: -0.4 PCM
+Power 1 is: 0.16000001 PCM²
+Power 2 is: -0.2 PCM²
+Tempo is: 110 bpm
+Reverb Beats is: 1 q.
+Reverb Time is: 0.8181818 s
+Pulse Per Quarter is: 960 ppqn
+Transport Position is: 15836 p
+Transport Beats is: 16.495832 q
+Transport Time is: 8.997726 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/3bvEvebMx).
+Try it in [the Compiler Explorer](https://godbolt.org/z/MvGTc5Eva).
+
+_Note: More about this example can be found in
+["Exploration of Strongly-typed Units in C++: A Case Study from Digital Audio"](https://www.youtube.com/watch?v=oxnCdIfC4Z4)
+CppCon 2023 talk by Roth Michaels._
 
 
 # Why do we need typed quantities?
