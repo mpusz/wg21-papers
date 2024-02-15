@@ -776,7 +776,7 @@ For example:
 
 ## Quantity type
 
-[Dimension is not enough to describe a quantity]. This is why [@ISO80000] provides hundreds of
+Dimension is not enough to describe a quantity. This is why [@ISO80000] provides hundreds of
 named quantity types. It turns out that there are many more quantity types in the ISQ than the named
 units in the [@SI].
 
@@ -3458,8 +3458,8 @@ The rest of them are wrong to allow such operations. Doing so may lead to vulner
 when two unrelated quantities of the same dimension are accidentally added or assigned to each other.
 
 The reason for most of the libraries on the market to be wrong in this field is the fact that their
-quantities are implemented only in terms of the concept of dimension. However, we've just learned
-that a [Dimension is not enough to describe a quantity].
+quantities are implemented only in terms of the concept of dimension. However, we've learned that
+a dimension is not enough to describe a quantity.
 
 The library goes beyond that and properly models quantity kinds. We believe that it is a significant
 feature that improves the safety of the library.
