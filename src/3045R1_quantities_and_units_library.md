@@ -3068,7 +3068,7 @@ inline constexpr struct mag_pi : magnitude<std::numbers::pi_v<long double>> {} m
 ```
 
 ```cpp
-inline constexpr struct degree : named_unit<{"°", "deg"}, mag_pi / mag<180> * si::radian> {} degree;
+inline constexpr struct degree : named_unit<{u8"°", "deg"}, mag_pi / mag<180> * si::radian> {} degree;
 ```
 
 ### Unit symbols
@@ -4085,7 +4085,7 @@ inline constexpr struct dim_length : base_dimension<"L"> {} dim_length;
 inline constexpr struct dim_mass : base_dimension<"M"> {} dim_mass;
 inline constexpr struct dim_time : base_dimension<"T"> {} dim_time;
 inline constexpr struct dim_electric_current : base_dimension<"I"> {} dim_electric_current;
-inline constexpr struct dim_thermodynamic_temperature : base_dimension<{"Θ", "O"}> {} dim_thermodynamic_temperature;
+inline constexpr struct dim_thermodynamic_temperature : base_dimension<{u8"Θ", "O"}> {} dim_thermodynamic_temperature;
 inline constexpr struct dim_amount_of_substance : base_dimension<"N"> {} dim_amount_of_substance;
 inline constexpr struct dim_luminous_intensity : base_dimension<"J"> {} dim_luminous_intensity;
 ```
@@ -4104,13 +4104,13 @@ inline constexpr struct watt : named_unit<"W", joule / second> {} watt;
 inline constexpr struct coulomb : named_unit<"C", ampere * second> {} coulomb;
 inline constexpr struct volt : named_unit<"V", watt / ampere> {} volt;
 inline constexpr struct farad : named_unit<"F", coulomb / volt> {} farad;
-inline constexpr struct ohm : named_unit<{"Ω", "ohm"}, volt / ampere> {} ohm;
+inline constexpr struct ohm : named_unit<{u8"Ω", "ohm"}, volt / ampere> {} ohm;
 ```
 
 Prefixes:
 
 ```cpp
-template<PrefixableUnit auto U> struct micro_ : prefixed_unit<{"µ", "u"}, mag_power<10, -6>, U> {};
+template<PrefixableUnit auto U> struct micro_ : prefixed_unit<{u8"µ", "u"}, mag_power<10, -6>, U> {};
 template<PrefixableUnit auto U> struct milli_ : prefixed_unit<"m", mag_power<10, -3>, U> {};
 template<PrefixableUnit auto U> struct centi_ : prefixed_unit<"c", mag_power<10, -2>, U> {};
 template<PrefixableUnit auto U> struct deci_  : prefixed_unit<"d", mag_power<10, -1>, U> {};
@@ -4124,7 +4124,7 @@ Constants:
 
 ```cpp
 inline constexpr struct hyperfine_structure_transition_frequency_of_cs :
-  named_unit<{"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
+  named_unit<{u8"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
 inline constexpr struct speed_of_light_in_vacuum :
   named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
 inline constexpr struct planck_constant :
@@ -5601,7 +5601,7 @@ inline constexpr struct speed_of_light_in_vacuum :
 }  // namespace si2019
 
 inline constexpr struct magnetic_constant :
-  named_unit<{"μ₀", "u_0"}, mag<4> * mag_pi * mag_power<10, -7> * henry / metre> {} magnetic_constant;
+  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag_pi * mag_power<10, -7> * henry / metre> {} magnetic_constant;
 
 }  // namespace si
 ```
@@ -6391,7 +6391,7 @@ units of length:
 
 ```cpp
 inline constexpr struct hubble_constant :
-    named_unit<{"H₀", "H_0"}, mag<ratio{701, 10}> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
+    named_unit<{u8"H₀", "H_0"}, mag<ratio{701, 10}> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
 } hubble_constant;
 ```
 
@@ -6548,7 +6548,7 @@ with dimensionless quantities:
 
 ```cpp
 inline constexpr struct percent : named_unit<"%", mag<ratio{1, 100}> * one> {} percent;
-inline constexpr struct per_mille : named_unit<{"‰", "%o"}, mag<ratio(1, 1000)> * one> {} per_mille;
+inline constexpr struct per_mille : named_unit<{u8"‰", "%o"}, mag<ratio(1, 1000)> * one> {} per_mille;
 inline constexpr struct parts_per_million : named_unit<"ppm", mag<ratio(1, 1'000'000)> * one> {} parts_per_million;
 inline constexpr auto ppm = parts_per_million;
 ```
