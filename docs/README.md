@@ -51,6 +51,8 @@ to this activity.
 
 ### Under Development
 
+- [D3045R1: Quantities and units library](papers/3045R0_quantities_and_units_library.html)
+
 ## More Papers
 
 All official ISO C++ Committee papers are available from [the C++ mailings](http://open-std.org/jtc1/sc22/wg21/docs/papers).
