@@ -51,7 +51,8 @@ to this activity.
 
 ### Under Development
 
-- [D3045R1: Quantities and units library](papers/3045R0_quantities_and_units_library.html)
+- [P2982R2: `std::quantity` as a numeric type](papers/2982R2_std_quantity_as_a_numeric_type.html)
+- [D3045R1: Quantities and units library](papers/3045R1_quantities_and_units_library.html)
 - [D3094R1: `std::basic_fixed_string`](papers/3094R1_std_basic_fixed_string.html)
 
 ## More Papers
