@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-03-18" />
+  <meta name="dcterms.date" content="2024-03-20" />
   <title>`std::basic_fixed_string`</title>
   <style>
       code{white-space: pre-wrap;}
@@ -427,7 +427,7 @@ code.sourceCode > span { display: inline; }
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2024-03-18</td>
+    <td>2024-03-20</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -724,9 +724,10 @@ array of characters ended with
 <code class="sourceCode default">\0</code>.</p>
 <p>Calling such a constructor does not impose any runtime overhead as it
 is meant to be called at compile time while processing an NTTP argument.
-This should satisfy point 2. above (see [Should the constructor from
-string literal be <code class="sourceCode default">consteval</code>?]
-for more discussion on this subject).</p>
+This should satisfy point 2. above (see <a href="#should-the-constructor-from-a-string-literal-be-consteval">Should
+the constructor from a string literal be
+<code class="sourceCode default">consteval</code>?</a> for more
+discussion on this subject).</p>
 <h2 data-number="6.2" id="constructor-taking-the-list-of-characters"><span class="header-section-number">6.2</span> Constructor taking the list of
 characters<a href="#constructor-taking-the-list-of-characters" class="self-link"></a></h2>
 <p>This constructor enables a few use cases that are hard to implement
@@ -865,29 +866,26 @@ range/view-like interface:</p>
 <span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> CharT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
 <span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>basic_fixed_string<span class="op">(</span><span class="kw">const</span> CharT <span class="op">(&amp;</span>str<span class="op">)[</span>N<span class="op">])</span> <span class="op">-&gt;</span> basic_fixed_string<span class="op">&lt;</span>CharT, N <span class="op">-</span> <span class="dv">1</span><span class="op">&gt;</span>;</span>
 <span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> CharT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>basic_fixed_string<span class="op">(</span><span class="kw">const</span> CharT<span class="op">*</span> ptr, integral_constant<span class="op">&lt;</span><span class="dt">size_t</span>, N<span class="op">&gt;)</span> <span class="op">-&gt;</span> basic_fixed_string<span class="op">&lt;</span>CharT, N<span class="op">&gt;</span>;</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> CharT, convertible_to<span class="op">&lt;</span>CharT<span class="op">&gt;...</span> Rest<span class="op">&gt;</span></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>basic_fixed_string<span class="op">(</span>CharT, Rest<span class="op">...)</span> <span class="op">-&gt;</span> basic_fixed_string<span class="op">&lt;</span>CharT, <span class="dv">1</span> <span class="op">+</span> <span class="kw">sizeof</span><span class="op">...(</span>Rest<span class="op">)&gt;</span>;</span>
 <span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> CharT, convertible_to<span class="op">&lt;</span>CharT<span class="op">&gt;...</span> Rest<span class="op">&gt;</span></span>
-<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>basic_fixed_string<span class="op">(</span>CharT, Rest<span class="op">...)</span> <span class="op">-&gt;</span> basic_fixed_string<span class="op">&lt;</span>CharT, <span class="dv">1</span> <span class="op">+</span> <span class="kw">sizeof</span><span class="op">...(</span>Rest<span class="op">)&gt;</span>;</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char</span>, N<span class="op">&gt;</span>;</span>
 <span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char</span>, N<span class="op">&gt;</span>;</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_wstring <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">wchar_t</span>, N<span class="op">&gt;</span>;</span>
 <span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_wstring <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">wchar_t</span>, N<span class="op">&gt;</span>;</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_u8string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char8_t</span>, N<span class="op">&gt;</span>;</span>
 <span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_u8string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char8_t</span>, N<span class="op">&gt;</span>;</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_u16string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char16_t</span>, N<span class="op">&gt;</span>;</span>
 <span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_u16string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char16_t</span>, N<span class="op">&gt;</span>;</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_u32string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char32_t</span>, N<span class="op">&gt;</span>;</span>
 <span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> fixed_u32string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char32_t</span>, N<span class="op">&gt;</span>;</span>
-<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> CharT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> formatter<span class="op">&lt;</span>basic_fixed_string<span class="op">&lt;</span>CharT, N<span class="op">&gt;&gt;</span> <span class="op">:</span> formatter<span class="op">&lt;</span>basic_string_view<span class="op">&lt;</span>CharT<span class="op">&gt;&gt;</span> <span class="op">{}</span>;</span></code></pre></div>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> CharT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> formatter<span class="op">&lt;</span>basic_fixed_string<span class="op">&lt;</span>CharT, N<span class="op">&gt;&gt;</span> <span class="op">:</span> formatter<span class="op">&lt;</span>basic_string_view<span class="op">&lt;</span>CharT<span class="op">&gt;&gt;</span> <span class="op">{}</span>;</span></code></pre></div>
 <h1 data-number="10" id="acknowledgements"><span class="header-section-number">10</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this

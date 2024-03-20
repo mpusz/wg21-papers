@@ -111,12 +111,13 @@ interface anyway.
 On the other hand, such an interface would allow running every `constexpr` algorithm from the C++
 standard library on such a range at compile time.
 
-Suppose we decide to add such an interface. In that case, it is worth pointing out that wrapping the type in the
-`std::string_view` would not be enough to obtain a proper string-like mutating interface. As we
-do not have another string-like reference type that provides mutating capabilities we can end
-up with the need to implement the entire string interface in this class as well.
+Suppose we decide to add such an interface. In that case, it is worth pointing out that wrapping
+the type in the `std::string_view` would not be enough to obtain a proper string-like mutating
+interface. As we do not have another string-like reference type that provides mutating capabilities
+we can end up with the need to implement the entire string interface in this class as well.
 
-This is why the author does not propose adding it to the first iteration. We can always easily add such an interface later if a need arises.
+This is why the author does not propose adding it to the first iteration. We can always easily add
+such an interface later if a need arises.
 
 ## `inplace_string`
 
@@ -141,9 +142,9 @@ accessible at runtime in such cases.
 
 ## Using `std::array` for storage
 
-We could consider using `std::array` instead, as it satisfies the current requirements for structural types.
-However, it does not properly construct from string literals and does not provide string-like
-concatenation interfaces.
+We could consider using `std::array` instead, as it satisfies the current requirements for
+structural types. However, it does not properly construct from string literals and does not
+provide string-like concatenation interfaces.
 
 ## Just wait for the C++ language to solve it
 
@@ -151,9 +152,9 @@ concatenation interfaces.
 C++ language. However, this proposal's primary author is no longer active in C++ standardization,
 and there have been no updates to the paper in the last two years.
 
-We can't wait for the C++ language to change forever. For example, the quantities and units library will be impossible to standardize
-without such a feature. This is why the author recommends progressing with the `basic_fixed_string`
-approach.
+We can't wait for the C++ language to change forever. For example, the quantities and units library
+will be impossible to standardize without such a feature. This is why the author recommends
+progressing with the `basic_fixed_string` approach.
 
 
 # Design rationale
@@ -192,15 +193,17 @@ characters ended with `\0`.
 
 Calling such a constructor does not impose any runtime overhead as it is meant to be called at
 compile time while processing an NTTP argument. This should satisfy point 2. above (see
-[Should the constructor from string literal be `consteval`?] for more discussion on this subject).
+[Should the constructor from a string literal be `consteval`?] for more discussion on this subject).
 
 ## Constructor taking the list of characters
 
 This constructor enables a few use cases that are hard to implement otherwise:
 
-1. `std::basic_fixed_string(static_cast<char>('0' + Value))` (used in [mp-units](https://github.com/mpusz/mp-units))
+1. `std::basic_fixed_string(static_cast<char>('0' + Value))`
+   (used in [mp-units](https://github.com/mpusz/mp-units))
 2. `std::fixed_string{'V', 'P', 'B', (char)version}` (credit to Hana Dusíková)
-3. `std::fixed_string{'W', 'e', 'i', 'r', 'd', '\0', 'b', 'u', 't', ' ', 't', 'r', 'u', 'e'}` (credit to Tom Honermann)
+3. `std::fixed_string{'W', 'e', 'i', 'r', 'd', '\0', 'b', 'u', 't', ' ', 't', 'r', 'u', 'e'}`
+   (credit to Tom Honermann)
 
 
 # Open questions
@@ -325,9 +328,6 @@ struct basic_fixed_string {
 
 template<typename CharT, size_t N>
 basic_fixed_string(const CharT (&str)[N]) -> basic_fixed_string<CharT, N - 1>;
-
-template<typename CharT, size_t N>
-basic_fixed_string(const CharT* ptr, integral_constant<size_t, N>) -> basic_fixed_string<CharT, N>;
 
 template<typename CharT, convertible_to<CharT>... Rest>
 basic_fixed_string(CharT, Rest...) -> basic_fixed_string<CharT, 1 + sizeof...(Rest)>;
