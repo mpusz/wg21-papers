@@ -25,6 +25,18 @@ toc-depth: 4
 ---
 
 
+# Revision history
+
+## Changes since [@P3045R0]
+
+- [The affine space] chapter rewritten nearly from scratch.
+- One more dependency added to the table in the [Dependencies on other proposals] chapter.
+- `basic_symbol_text` renamed to `symbol_text`.
+- `symbol_text` now always stores `char8_t` and `char` versions of symbols.
+- In case UTF-8 symbol is used, now it has to be provided as an UTF-8 (`u8`) literal.
+- Minor editorial changes and additional clarifications added to the [Text output] chapter.
+
+
 # Introduction
 
 Several groups in the ISO C++ Committee reviewed the "P1935: A C++ Approach to Physical Units"
@@ -74,8 +86,7 @@ in the C++ standard library.
 
 The only interaction of this proposal with the C++ standard facilities is the compatibility
 mode with `std::chrono` types (`duration` and `time_point`) described in
-<!-- Broken link: -->
-[Compatibility with `std::chrono::duration` and `std::chrono::time_point`].
+[Interoperability with the `std::chrono` abstractions].
 
 We should also mention the potential confusion of users with having two different ways to deal
 with time abstractions in the C++ standard library. If this proposal gets accepted:
@@ -94,15 +105,22 @@ in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                      | Priority |         Papers         | Description                                                                                               |
-|------------------------------|:--------:|:----------------------:|-----------------------------------------------------------------------------------------------------------|
-| `fixed_string`               |    1     |       [@P3094R0]       | String-like structural type with inline storage (can be used as an NTTP)                                  |
-| Compile-time prime numbers   |    1     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers        |
-| Value-preserving conversions |    1     | [@P0870R5], [@P2509R0] | Type trait stating if the conversion from one type to another is value preserving or not                  |
-| Number concepts              |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers                                                              |
-| Bounded numeric types        |    3     |      [@P2993_PRE]      | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics) |
+| Feature                      | Priority |         Papers         | Description                                                                                                |
+|------------------------------|:--------:|:----------------------:|------------------------------------------------------------------------------------------------------------|
+| `fixed_string`               |    1     |       [@P3094R0]       | String-like structural type with inline storage (can be used as an NTTP).                                  |
+| Nested entities formatting   |    1     |          ???           | Possibility to override the format string in the parse and format contexts.                                |
+| Compile-time prime numbers   |    2     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
+| Value-preserving conversions |    2     | [@P0870R5], [@P2509R0] | Type trait stating if the conversion from one type to another is value preserving or not.                  |
+| Number concepts              |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
+| Bounded numeric types        |    3     |      [@P2993_PRE]      | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
 
 <!-- markdownlint-enable MD013 -->
+
+Priorities used above:
+
+1. Mandatory to implement the library or exposed in its public interfaces.
+2. Functional extension/improvement to the framework design but worse alternatives are currently available.
+3. Not needed for the library's implementation but improves its use cases.
 
 
 # About authors
@@ -1105,11 +1123,15 @@ More about typed quantities can be found in the following chapters:
 The affine space has two types of entities:
 
 - **_point_** - a position specified with coordinate values (e.g., location, address, etc.)
-- **_vector_** - the difference between two points (e.g., shift, offset, displacement, duration, etc.)
+- **_displacement vectors_** - the difference between two points (e.g., shift, offset,
+  displacement, duration, etc.)
 
-The _vector_ described here is specific to the affine space theory and is not the same thing as
-the quantity of a vector character that we discuss later (although, in some cases, those
+The _displacement vector_ described here is specific to the affine space theory and is not the same
+thing as the quantity of a vector character that we discuss later (although, in some cases, those
 terms may overlap).
+
+In the following subchapters we will often refer to _displacement vectors_ simply as _vectors_ for
+brevity.
 
 ### Operations in the affine space
 
@@ -1148,17 +1170,17 @@ more popular in the products we implement. They can be used to implement:
 
 Improving the affine space's _Points_ intuition will allow us to write better and safer software.
 
-### _Vector_ is modeled by `quantity`
+### _Displacement vector_ is modeled by `quantity`
 
 Up until now, each time when we used a `quantity` in our code, we were modeling some kind of a
 difference between two things:
 
-- the distance between two points
-- duration between two time points
-- the difference in speed (even if relative to `0`)
+- the distance between two points,
+- duration between two time points,
+- the difference in speed (even if relative to `0`).
 
-As we already know, a `quantity` type provides all operations required for the _vector_ type in
-an affine space.
+As we already know, a `quantity` type provides all operations required for the _displacement vector_
+abstraction in an affine space.
 
 ### _Point_ is modeled by `quantity_point` and `PointOrigin`
 
@@ -1181,296 +1203,224 @@ class quantity_point;
 
 As we can see above, the `quantity_point` class template exposes one additional parameter compared
 to `quantity`. The `PO` parameter satisfies a [`PointOriginFor`](#PointOriginFor-concept) concept
-and specifies the origin of our measurement scale. By default, it is initialized with a quantity's
-zeroth point using the following rules:
+and specifies the origin of our measurement scale.
+
+Each `quantity_point` internally stores a `quantity` object which represents a _displacement vector_
+from the predefined origin. Thanks to this, an instantiation of a `quantity_point` can be considered
+as a model of a vector space from such an origin.
+
+Forcing the user to manually predefine an origin for every domain may be cumbersome and discourage
+users from using such abstractions at all. This is why by default, the `PO` template
+parameter is initialized with the `default_point_origin(R)` that provides the quantity points'
+scale zeroth point using the following rules:
 
 - if the measurement unit of a quantity specifies its point origin in its definition
   (e.g., degree Celsius), then this point is being used,
 - otherwise, an instantiation of `zeroth_point_origin<QuantitySpec>` is being used which
-  provides a zeroth point for a specific quantity type.
+  provides a well-established zeroth point for a specific quantity type.
 
-#### Implicit point origin
+#### `zeroth_point_origin<QuantitySpec>`
 
-Let's assume that Alice goes for a trip driving a car. She likes taking notes about interesting
-places that she visits on the road. For every such item, she writes down:
+`zeroth_point_origin<QuantitySpec>` is meant to be used in cases where the specific domain has
+a well-established non-controversial zeroth point on the measurement scale. This saves the user
+from the need of writing a boilerplate code that would predefine such a type for such domain.
 
-- its name,
-- a readout from the car's odometer at the location,
-- a current timestamp.
-
-We can implement this in the following way:
+<img src="img/affine_space_1.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
 
 ```cpp
-using std::chrono::system_clock;
+quantity_point<isq::distance[si::metre]> qp1{100 * m};
+quantity_point<isq::distance[si::metre]> qp2{120 * m};
 
-struct trip_log_item {
-  std::string name;
-  quantity_point<isq::distance[km]> odometer;
-  quantity_point<si::second> timestamp;
-};
-using trip_log = std::vector<trip_log_item>;
+assert(qp1.quantity_from_zero() == 100 * m);
+assert(qp2.quantity_from_zero() == 120 * m);
+
+assert(qp2 - qp1 == 20 * m);
+assert(qp1 - qp2 == -20 * m);
+
+// auto res = qp1 + qp2;   // Compile-time error
 ```
+
+In the above code `100 * m` and `120 * m` still creates two quantities which serve as displacement
+vectors here. Quantity point objects can be explicitly constructed from such quantities only when
+its origin is an instantiation of the `zeroth_point_origin<QuantitySpec>`.
+
+We can use `.quantity_from_zero()` to obtain the displacement vector of a point from the origin.
+
+It is important to mention here that simplicity comes with a safety cost here. For some users it
+might be surprising that the usage of `zeroth_point_origin<QuantitySpec>` makes various quantity
+point objects compatible as long as quantity types used in the origin and reference are
+compatible:
 
 ```cpp
-trip_log log;
+quantity_point<si::metre> qp1{isq::distance(100 * m)};
+quantity_point<si::metre> qp2{isq::height(120 * m)};
 
-quantity_point timestamp_1{quantity{system_clock::now().time_since_epoch()}};
-log.emplace_back("home", quantity_point{1356 * km}, timestamp_1);
-
-// some time passes
-
-quantity_point timestamp_2{quantity{system_clock::now().time_since_epoch()}};
-log.emplace_back("castle", quantity_point{1401 * km}, timestamp_2);
+assert(qp2 - qp1 == 20 * m);
+assert(qp1 - qp2 == -20 * m);
 ```
-
-This is an excellent example of where points are helpful. There is no doubt about the correctness
-of their usage in this scenario:
-
-- adding two odometer readouts or two timestamps have no physical sense, and that is why we will
-  expect a compile-time error when we try to perform such operations accidentally,
-- subtracting two odometer readouts or timestamps is perfectly valid and results in a quantity
-  storing the interval value between the two points.
-
-Having such a database, we can print the trip log in the following way:
-
-```cpp
-for (const auto& item : log) {
-  std::cout << "POI: " << item.name << "\n";
-  std::cout << "- Distance from home: " << item.odometer - log.front().odometer << "\n";
-  std::cout << "- Trip duration from start: " << (item.timestamp - log.front().timestamp).in(non_si::minute) << "\n";
-}
-```
-
-Moreover, if Alice had reset the car's trip odometer before leaving home, we could have rewritten
-one of the previous lines like that:
-
-```cpp
-std::cout << "Distance from home: " << item.odometer.quantity_from_zero() << "\n";
-```
-
-The above always returns a quantity measured from the "ultimate" zeroth point of a scale used for
-this specific quantity type.
-
-Storing _points_ is the most efficient representation we can choose in this scenario:
-
-- to store a value, we read it directly from the instrument, and no additional transformation
-  is needed,
-- to print the absolute value (e.g., odometer), we have the value available right away,
-- to get any relative quantity (e.g., distance from the start, distance from the previous point,
-  etc.), we have to perform a single subtraction operation.
-
-If we stored _vectors_ in our database instead, we would have to pay at runtime for additional
-operations:
-
-- to store a quantity, we would have to perform the subtraction right away to get the interval
-  between the current value and some reference point,
-- to print the absolute value, we would have to add the quantity to the reference point that
-  we need to store somewhere in the database as well,
-- to get a relative quantity, only the currently stored one is immediate; all other values
-  will require at least one quantity addition operation.
-
-Now, let's assume that Bob, a friend of Alice, also keeps a log of his trips but he, of
-course, measures distances from his own home with the odometer in his car. Everything is fine as
-long as we deal with one trip at a time, but if we start to work with both at once, we may
-accidentally subtract points from different trips. The library will not prevent
-us from doing so.
-
-The points from Alice's and Bob's trips should be considered separate, and to enforce it at
-compilation time, we need to introduce explicit origins.
 
 #### Absolute _point_ origin
 
-The **absolute point origin** specifies the "zero" of our measurement's scale. User can
-specify such an origin by deriving from the `absolute_point_origin` class template:
+In cases where we want to implement an isolated independent space which points are not compatible
+with other spaces, even of the same quantity type, we should manually predefine an absolute point
+origin.
+
+<img src="img/affine_space_2.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
 
 ```cpp
-enum class actor { alice, bob };
+inline constexpr struct origin : absolute_point_origin<origin, isq::distance> {} origin;
 
-template<actor A>
-struct zeroth_odometer_t : absolute_point_origin<zeroth_odometer_t<A>, isq::distance> {};
+// quantity_point<si::metre, origin> qp1{100 * m};  // Compile-time error
+// quantity_point<si::metre, origin> qp2{120 * m};  // Compile-time error
+quantity_point<si::metre, origin> qp1 = origin + 100 * m;
+quantity_point<si::metre, origin> qp2 = 120 * m + origin;
 
-template<actor A>
-inline constexpr zeroth_odometer_t<A> zeroth_odometer;
+assert(qp1.quantity_from_zero() == 100 * m);
+assert(qp2.quantity_from_zero() == 120 * m);
+
+assert(qp1 - origin == 100 * m);
+assert(qp2 - origin == 120 * m);
+assert(origin - qp1 == -100 * m);
+assert(origin - qp2 == -120 * m);
+
+assert(qp2 - qp1 == 20 * m);
 ```
 
-Odometer is not the only one that can get an explicit point origin in our case. As timestamps are
-provided by the `std::chrono::system_clock`, their values are always relative to the epoch of this
-clock.
+This time we can't construct quantity point from any quantity. In order to prevent potential safety
+issues, when a custom point origin is being used, we always need to provide its object in the
+expression that results with a quantity point instantiation.
 
-Now, we can refactor our database to benefit from the explicit points:
+Similarly to quantities, if someone does not like the arithmetic way to construct a quantity
+point a two-parameter constructor can be used:
 
 ```cpp
-template<actor A>
-struct trip_log_item {
-  std::string point_name;
-  quantity_point<si::kilo<si::metre>, zeroth_odometer<A>> odometer;
-  quantity_point<si::second, chrono_point_origin<system_clock>> timestamp;
-};
-
-template<actor A>
-using trip_log = std::vector<trip_log_item<A>>;
+quantity_point qp1{100 * m, origin};
 ```
 
-We also need to update the initialization part in our code. In the case of implicit zeroth origins,
-we could construct `quantity_point` directly from the value of a `quantity`. This is no longer
-the case.
-As a _point_ can be represented with a _vector_ from the origin, to improve the safety of the code
-we write, a `quantity_point` class template must be created with one of the following operations:
+Again, CTAD helps to always use exactly the type that we need in a current case.
+
+Finally, please note that it is not allowed to subtract two point origins defined in terms of
+`absolute_point_origin` (e.g., `origin - origin`) as those do not contain information about the
+unit, so we are not able to determine a resulting `quantity` type.
+
+Absolute point origins are also perfect to establish independent spaces even if the same quantity
+type and unit is being used:
+
+<img src="img/affine_space_3.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
 
 ```cpp
-quantity_point qp1 = zeroth_odometer<actor::alice> + 1356 * km;
-quantity_point qp2 = 1356 * km + zeroth_odometer<actor::alice>;
-quantity_point qp3 = zeroth_odometer<actor::alice> - 1356 * km;
+inline constexpr struct origin1 : absolute_point_origin<origin1, isq::distance> {} origin1;
+inline constexpr struct origin2 : absolute_point_origin<origin2, isq::distance> {} origin2;
+
+quantity_point qp1 = origin1 + 100 * m;
+quantity_point qp2 = origin2 + 120 * m;
+
+assert(qp1.quantity_from_zero() == 100 * m);
+assert(qp2.quantity_from_zero() == 120 * m);
+
+assert(qp1 - origin1 == 100 * m);
+assert(qp2 - origin2 == 120 * m);
+assert(origin1 - qp1 == -100 * m);
+assert(origin2 - qp2 == -120 * m);
+
+// assert(qp2 - qp1 == 20 * m);       // Compile-time error
+// assert(qp1 - origin2 == 100 * m);  // Compile-time error
+// assert(qp2 - origin1 == 120 * m);  // Compile-time error
 ```
-
-Although, the `qp3` above does not have a physical sense in this specific scenario.
-
-_Note: It is not allowed to subtract a point from a vector thus
-`1356 * km - zeroth_odometer<actor::alice>` is an invalid operation._
-
-Similarly to creation of a quantity, if someone does not like the operator-based syntax to
-create a `quantity_point`, the same results can be achieved with a two-parameter constructor:
-
-```cpp
-quantity_point qp4{1356 * km, zeroth_odometer<actor::alice>};
-```
-
-Also, as now our timestamps have a proper point origin provided in a type, we can simplify the
-previous code by directly converting `std::chrono::time_point` to our `quantity_point` type.
-
-With all the above, we can refactor our initialization part to the following:
-
-```cpp
-trip_log<actor::alice> alice_log;
-
-alice_log.emplace_back("home", zeroth_odometer<actor::alice> + 1356 * km, system_clock::now());
-
-// some time passes
-
-alice_log.emplace_back("castle", zeroth_odometer<actor::alice> + 1401 * km, system_clock::now());
-```
-
-#### _Point_ arithmetics
-
-As another example, let's assume we will attend the CppCon conference hosted in Aurora, CO,
-and we want to estimate the distance we will travel. We have to take a taxi to a local airport,
-fly to DEN airport with a stopover in FRA, and, in the end, get a cab to the Gaylord Rockies
-Resort & Convention Center:
-
-```cpp
-constexpr struct home : absolute_point_origin<home, isq::distance> {} home;
-
-quantity_point<isq::distance[km], home> home_airport = home + 15 * km;
-quantity_point<isq::distance[km], home> fra_airport = home_airport + 829 * km;
-quantity_point<isq::distance[km], home> den_airport = fra_airport + 8115 * km;
-quantity_point<isq::distance[km], home> cppcon_venue = den_airport + 10.1 * mi;
-```
-
-As we can see above, we can easily get a new point by adding a quantity to an origin or another
-quantity point.
-
-If we want to find out the distance traveled between two points, we simply subtract them:
-
-```cpp
-quantity<isq::distance[km]> total = cppcon_venue - home;
-quantity<isq::distance[km]> flight = den_airport - home_airport;
-```
-
-If we would like to find out the total distance traveled by taxi as well, we have to do a bit
-more calculations:
-
-```cpp
-quantity<isq::distance[km]> taxi1 = home_airport - home;
-quantity<isq::distance[km]> taxi2 = cppcon_venue - den_airport;
-quantity<isq::distance[km]> taxi = taxi1 + taxi2;
-```
-
-Now, if we print the results:
-
-```cpp
-std::cout << "Total distance:  " << total << "\n";
-std::cout << "Flight distance: " << flight << "\n";
-std::cout << "Taxi distance:   " << taxi << "\n";
-```
-
-we will see the following output:
-
-```text
-Total distance:  8975.25 km
-Flight distance: 8944 km
-Taxi distance:   31.2544 km
-```
-
-_Note: It is not allowed to subtract two point origins defined in terms of `absolute_point_origin`
-(e.g., `home - home`) as those do not contain information about the unit, so we are not able
-to determine a resulting `quantity` type._
 
 #### Relative _point_ origin
 
-We often do not have only one ultimate "zero" point when we measure things.
+We often do not have only one ultimate "zero" point when we measure things. Often we have one
+common scale but we measure various quantities relative to different points and still expect
+those points to be compatible. There are many examples here but probably the most common are
+temperatures, timestamps, and altitudes.
 
-For example, let's assume that we have the following absolute point origin:
+For such cases relative point origins should be used:
 
-```cpp
-constexpr struct mean_sea_level : absolute_point_origin<mean_sea_level, isq::altitude> {} mean_sea_level;
-```
-
-If we want to model a trip to Mount Everest, measuring all daily hikes from the `mean_sea_level`
-might not be efficient. We may know that we are not good climbers, so all our climbs can be
-represented with an 8-bit integer type, allowing us to save memory in our database of climbs.
-
-For this purpose, we can define a `relative_point_origin` in the following way:
+<img src="img/affine_space_4.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
 
 ```cpp
-constexpr struct everest_base_camp : relative_point_origin<mean_sea_level + 5364 * m> {} everest_base_camp;
-```
+inline constexpr struct A : absolute_point_origin<A, isq::distance> {} A;
+inline constexpr struct B : relative_point_origin<A + 10 * m> {} B;
+inline constexpr struct C : relative_point_origin<B + 10 * m> {} C;
+inline constexpr struct D : relative_point_origin<A + 30 * m> {} D;
 
-The above can be used as an origin for subsequent _Points_:
+quantity_point qp1 = C + 100 * m;
+quantity_point qp2 = D + 120 * m;
 
-```cpp
-constexpr quantity_point first_climb_alt = everest_base_camp + isq::altitude(std::uint8_t{42} * m);
-static_assert(first_climb_alt.quantity_from(everest_base_camp) == 42 * m);
-static_assert(first_climb_alt.quantity_from(mean_sea_level) == 5406 * m);
-static_assert(first_climb_alt.quantity_from_zero() == 5406 * m);
+assert(qp1.quantity_ref_from(qp1.point_origin()) == 100 * m);
+assert(qp2.quantity_ref_from(qp2.point_origin()) == 120 * m);
+
+assert(qp1.quantity_from_zero() == 120 * m);
+assert(qp2.quantity_from_zero() == 150 * m);
+
+assert(qp1 - A == 120 * m);
+assert(qp1 - B == 110 * m);
+assert(qp1 - C == 100 * m);
+assert(qp1 - D == 90 * m);
+assert(qp1.quantity_from(A) == 120 * m);
+assert(qp1.quantity_from(B) == 110 * m);
+assert(qp1.quantity_from(C) == 100 * m);
+assert(qp1.quantity_from(D) == 90 * m);
+
+assert(qp2 - A == 150 * m);
+assert(qp2 - B == 140 * m);
+assert(qp2 - C == 130 * m);
+assert(qp2 - D == 120 * m);
+assert(qp2.quantity_from(A) == 150 * m);
+assert(qp2.quantity_from(B) == 140 * m);
+assert(qp2.quantity_from(C) == 130 * m);
+assert(qp2.quantity_from(D) == 120 * m);
+
+assert(qp2 - qp1 == 30 * m);
+
+assert(B - A == 10 * m);
+assert(C - A == 20 * m);
+assert(D - A == 30 * m);
+assert(D - C == 10 * m);
 ```
 
 As we can see above, the `quantity_from()` member function returns a relative distance from the
-provided point origin while the `quantity_from_zero()` returns the distance from the absolute point
-origin.
+provided point origin while the `quantity_from_zero()` always returns the distance from the
+absolute point origin.
+
+Also, please note that as long as we can't subtract two absolute point origins from each other,
+it is possible to subtract relative ones or a relative and absolute one. 
 
 #### Converting between different representations of the same _point_
 
-As we might represent the same _point_ with _vectors_ from various origins, the library provides
-facilities to convert the _point_ to the `quantity_point` class templates expressed in terms of
-different origins.
+As we might represent the same _point_ with _displacement vectors_ from various origins, the
+library provides facilities to convert the same _point_ to the `quantity_point` class templates
+expressed in terms of different origins.
 
 For this purpose, we can either use:
 
 - A converting constructor:
 
     ```cpp
-    constexpr quantity_point<isq::altitude[m], mean_sea_level, int> qp = first_climb_alt;
-    static_assert(qp.quantity_ref_from(qp.point_origin) == 5406 * m);
+    quantity_point<si::metre, B> qp3 = qp1;
+    assert(qp3.quantity_ref_from(qp3.point_origin()) == 130 * m);
     ```
 
 - A dedicated conversion interface:
 
     ```cpp
-    constexpr quantity_point qp = first_climb_alt.point_for(mean_sea_level);
-    static_assert(qp.quantity_ref_from(qp.point_origin) == 5406 * m);
+    quantity_point qp4 = qp1.point_for(B);
+    assert(qp4.quantity_ref_from(qp4.point_origin()) == 130 * m);
     ```
 
 It is only allowed to convert between various origins defined in terms of the same
-`absolute_point_origin`. Even if it is possible to express the same _point_ as a _vector_
-from another `absolute_point_origin`, the library will not provide such a conversion.
-A custom user-defined conversion function will be needed to add this functionality.
+`absolute_point_origin`. Even if it is possible to express the same _point_ as a
+_displacement vector_ from another `absolute_point_origin`, the library will not provide such
+a conversion. A custom user-defined conversion function will be needed to add this functionality.
 
 Said another way, in the library, there is no way to spell how two distinct `absolute_point_origin`
 types relate to each other.
 
 #### Temperature support
 
-Another important example of relative point origins is support of temperature quantity points.
+Support for temperature quantity points is probably one of the most common examples of relative
+point origins in action that we use in daily life.
 
 The [@SI] definition in the library provides a few predefined point origins for this purpose:
 
@@ -1512,14 +1462,14 @@ namespace si {
 inline constexpr struct kelvin :
     named_unit<"K", kind_of<isq::thermodynamic_temperature>, zeroth_kelvin> {} kelvin;
 inline constexpr struct degree_Celsius :
-    named_unit<basic_symbol_text{"°C", "`C"}, kelvin, zeroth_degree_Celsius> {} degree_Celsius;
+    named_unit<{u8"°C", "`C"}, kelvin, zeroth_degree_Celsius> {} degree_Celsius;
 
 }
 
 namespace usc {
 
 inline constexpr struct degree_Fahrenheit :
-    named_unit<basic_symbol_text{"°F", "`F"}, mag<ratio{5, 9}> * si::degree_Celsius,
+    named_unit<{u8"°F", "`F"}, mag<ratio{5, 9}> * si::degree_Celsius,
                zeroth_degree_Fahrenheit> {} degree_Fahrenheit;
 
 }
@@ -4285,49 +4235,44 @@ This is where `symbol_text` comes into play. It is a simple wrapper over the two
 objects:
 
 ```cpp
-template<typename UnicodeCharT, std::size_t N, std::size_t M>
-struct basic_symbol_text {
-  basic_fixed_string<UnicodeCharT, N> unicode_;  // exposition only
-  basic_fixed_string<char, M> ascii_;            // exposition only
+template<std::size_t N, std::size_t M>
+struct symbol_text {
+  fixed_u8string<N> unicode_;  // exposition only
+  fixed_string<M> ascii_;      // exposition only
 
-  constexpr explicit(false) basic_symbol_text(char txt);
-  constexpr explicit(false) basic_symbol_text(const char (&txt)[N + 1]);
-  constexpr explicit(false) basic_symbol_text(const basic_fixed_string<char, N>& txt);
-  constexpr basic_symbol_text(const UnicodeCharT (&u)[N + 1], const char (&a)[M + 1]);
-  constexpr basic_symbol_text(const basic_fixed_string<UnicodeCharT, N>& u, const basic_fixed_string<char, M>& a);
-
+  constexpr explicit(false) symbol_text(char ch);
+  constexpr explicit(false) symbol_text(const char (&txt)[N + 1]);
+  constexpr explicit(false) symbol_text(const fixed_string<N>& txt);
+  constexpr symbol_text(const char8_t (&u)[N + 1], const char (&a)[M + 1]);
+  constexpr symbol_text(const fixed_u8string<N>& u, const fixed_string<M>& a);
   [[nodiscard]] constexpr const auto& unicode() const;
   [[nodiscard]] constexpr const auto& ascii() const;
 
   [[nodiscard]] constexpr bool empty() const;
 
   template<std::size_t N2, std::size_t M2>
-  [[nodiscard]] constexpr friend basic_symbol_text<UnicodeCharT, N + N2, M + M2> operator+(
-    const basic_symbol_text& lhs, const basic_symbol_text<UnicodeCharT, N2, M2>& rhs);
+  [[nodiscard]] constexpr friend symbol_text<N + N2, M + M2> operator+(const symbol_text& lhs,
+                                                                       const symbol_text<N2, M2>& rhs);
 
-  template<typename UnicodeCharT2, std::size_t N2, std::size_t M2>
-  [[nodiscard]] friend constexpr auto operator<=>(const basic_symbol_text& lhs,
-                                                  const basic_symbol_text<UnicodeCharT2, N2, M2>& rhs) noexcept;
-
-  template<typename UnicodeCharT2, std::size_t N2, std::size_t M2>
-  [[nodiscard]] friend constexpr bool operator==(const basic_symbol_text& lhs,
-                                                 const basic_symbol_text<UnicodeCharT2, N2, M2>& rhs) noexcept;
+  template<std::size_t N2, std::size_t M2>
+  [[nodiscard]] friend constexpr auto operator<=>(const symbol_text& lhs, const symbol_text<N2, M2>& rhs) noexcept;
+  template<std::size_t N2, std::size_t M2>
+  [[nodiscard]] friend constexpr bool operator==(const symbol_text& lhs, const symbol_text<N2, M2>& rhs) noexcept;
 };
 
-basic_symbol_text(char) -> basic_symbol_text<char, 1, 1>;
+symbol_text(char) -> symbol_text<1, 1>;
 
 template<std::size_t N>
-basic_symbol_text(const char (&)[N]) -> basic_symbol_text<char, N - 1, N - 1>;
+symbol_text(const char (&)[N]) -> symbol_text<N - 1, N - 1>;
 
 template<std::size_t N>
-basic_symbol_text(const basic_fixed_string<char, N>&) -> basic_symbol_text<char, N, N>;
+symbol_text(const fixed_string<N>&) -> symbol_text<N, N>;
 
-template<typename UnicodeCharT, std::size_t N, std::size_t M>
-basic_symbol_text(const UnicodeCharT (&)[N], const char (&)[M]) -> basic_symbol_text<UnicodeCharT, N - 1, M - 1>;
+template<std::size_t N, std::size_t M>
+symbol_text(const char8_t (&)[N], const char (&)[M]) -> symbol_text<N - 1, M - 1>;
 
-template<typename UnicodeCharT, std::size_t N, std::size_t M>
-basic_symbol_text(const basic_fixed_string<UnicodeCharT, N>&, const basic_fixed_string<char, M>&)
-  -> basic_symbol_text<UnicodeCharT, N, M>;
+template<std::size_t N, std::size_t M>
+symbol_text(const fixed_u8string<N>&, const fixed_string<M>&) -> symbol_text<N, M>;
 ```
 
 _Note: There is literally no way in the current version of the C++ language to output Unicode
@@ -4441,7 +4386,7 @@ inline constexpr bool space_before_unit_symbol<non_si::degree> = false;
 ```
 
 The above works only for the default formatting or for the format strings that use `%?` placement
-type (`std::format("{}", q)` is equivalent to `std::format("{:%N%?%U}", q)`).
+field (`std::format("{}", q)` is equivalent to `std::format("{:%N%?%U}", q)`).
 
 In case a user provides custom format specification (e.g., `std::format("{:%N %U}", q)`),
 the library will always obey this specification for all the units (no matter what the actual
@@ -4457,8 +4402,10 @@ stream:
 ```cpp
 const quantity v1 = avg_speed(220. * km, 2 * h);
 const quantity v2 = avg_speed(140. * mi, 2 * h);
-std::cout << v1 << '\n';  // 110 km/h
-std::cout << v2 << '\n';  // 70 mi/h
+std::cout << v1 << '\n';            // 110 km/h
+std::cout << v2 << '\n';            // 70 mi/h
+std::cout << v2.unit << '\n';       // mi/h
+std::cout << v2.dimension << '\n';  // LT⁻¹
 ```
 
 The text output will always print the value using the default formatting for this entity.
@@ -4527,6 +4474,20 @@ In the above grammar:
 - `text-encoding` token specifies the symbol text encoding:
     - `U` (default) uses the **Unicode** symbols defined by [@ISO80000] (e.g., `LT⁻²`),
     - `A` forces non-standard **ASCII**-only output (e.g., `LT^-2`).
+
+Dimension symbols of some quantities are specified to use Unicode signs by the ISQ (e.g., `Θ`
+symbol for the _thermodynamic temperature_ dimension). The library follows this by default.
+From the engineering point of view, sometimes Unicode text might not be the best solution
+as terminals of many (especially embedded) devices can output only letters from the basic
+literal character set only. In such a case, the dimension symbol can be forced to be printed
+using such characters thanks to `text-encoding` token:
+
+```cpp
+std::println("{}", isq::dim_thermodynamic_temperature);   // Θ
+std::println("{:A}", isq::dim_thermodynamic_temperature); // O
+std::println("{}", isq::power.dimension);                 // L²MT⁻³
+std::println("{:A}", isq::power.dimension);               // L^2MT^-3
+```
 
 
 ### Unit formatting
@@ -4646,13 +4607,13 @@ In the above grammar:
     - 'D' inserts a default-formatted dimension of the quantity,
     - '?' inserts an optional separator between the number and a unit based on the value of
       `space_before_unit_symbol` for this unit,
-    - '%' just inserts '%'.
+    - '%' just inserts '%' character.
 - `subentity-replacement-field` token allows the composition of formatters. The following identifiers
   are recognized by the quantity formatter:
-    - "N" passes `format-spec` to the `formatter` specialization for the quantity representation
+    - 'N' passes `format-spec` to the `formatter` specialization for the quantity representation
       type,
-    - "U" passes `format-spec` to the `formatter` specialization for the unit type,
-    - "D" passes `format-spec` to the `formatter` specialization for the dimension type.
+    - 'U' passes `format-spec` to the `formatter` specialization for the unit type,
+    - 'D' passes `format-spec` to the `formatter` specialization for the dimension type.
 
 #### Default formatting
 
@@ -4685,20 +4646,7 @@ Thanks to the grammar provided above, the user can easily decide to either:
     Speed: 120 km/h
     ```
 
-- print only specific components (numerical value, unit, or dimension):
-
-    ```cpp
-    std::println("Speed:\n- number: {0:%N}\n- unit: {0:%U}\n- dimension: {0:%D}", 120 * km / h);
-    ```
-
-    ```text
-    Speed:
-    - number: 120
-    - unit: km/h
-    - dimension: LT⁻¹
-    ```
-
-- provide custom quantity formatting
+- provide custom quantity formatting:
 
     ```cpp
     std::println("Speed: {:%N in %U}", 120 * km / h);
@@ -4718,8 +4666,22 @@ Thanks to the grammar provided above, the user can easily decide to either:
     Speed: 33.33 km h⁻¹
     ```
 
+- print only specific components (numerical value, unit, or dimension):
+
+    ```cpp
+    std::println("Speed:\n- number: {0:%N}\n- unit: {0:%U}\n- dimension: {0:%D}", 120 * km / h);
+    ```
+
+    ```text
+    Speed:
+    - number: 120
+    - unit: km/h
+    - dimension: LT⁻¹
+    ```
+
+
 `placement-spec` and `subentity-replacement-field` greatly simplify element access and formatting
-of the quantity. Without them the second caese above would require the following:
+of the quantity. Without them the second case above would require the following:
 
 ```cpp
 const auto q = 120 * km / h;
@@ -4741,30 +4703,35 @@ format spec. For example, `std::println("Speed: {:%N {%N:.4f} {%N:.2f} {%U:n}}",
 
 ## Quantity point text output
 
-The library does not provide a text output for quantity points, as printing just a number and a unit
-is not enough to adequately describe a quantity point. Often, an additional postfix is required.
+The library does not provide a text output for quantity points. The quantity stored inside
+is just an implementation detail of this type. It is a vector from a specific origin.
+Without the knowledge of the origin, the vector by itself is useless as we can't determine
+which point it describes.
 
-For example, the text output of `42 m` may mean many things and can also be confused with an output
-of a regular quantity. On the other hand, printing `42 m AMSL` for altitudes above mean sea level
-is a much better solution, but the library does not have enough information to print it that way by
-itself.
+In the current library design, point origin does not provide any text in its definition.
+Even if we could add such information to the point's definition, we would not
+know how to output it in the text. There may be many ways to do it. For example, should we
+prepend or append the origin part to the quantity text?
+
+For example, the text output of `42 m` for a quantity point may mean many things. It may be
+an offset from the mountain top, sea level, or maybe the center of Mars.
+Printing `42 m AMSL` for altitudes above mean sea level is a much better solution, but the
+library does not have enough information to print it that way by itself.
 
 
 ## Text output open questions
 
-1. Which C++ character type should be used for symbols in Unicode encoding?
-2. Are we OK with the usage of '_' for denoting a subsript identifier?
-3. Are we OK with no text output support of quantity types?
-4. Which character type should `basic_symbol_text` be used in a single-argument constructor?
-5. How to name a non-Unicode accessor member function (e.g., `.ascii()`)? The same name should
+1. Are we OK with the usage of '_' for denoting a subsript identifier?
+2. Are we OK with no text output support of quantity types?
+3. How to name a non-Unicode accessor member function (e.g., `.ascii()`)? The same name should
    consistently be used in `text_encoding` and in the formatting grammar.
-6. Should `unit_symbol()` return `std::string_view` or `basic_fixed_string`?
-7. Do we care about ostreams enough to introduce custom manipulators to format units?
-8. What about the localization for units? Will we get something like ICU in the C++ standard?
-9. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
+4. Should `unit_symbol()` and `dimension_symbol` return `std::string_view` or `basic_fixed_string`?
+5. Do we care about ostreams enough to introduce custom manipulators to format dimensions and units?
+6. What about the localization for units? Will we get something like ICU in the C++ standard?
+7. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
    proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
    we OK with this?
-10. Should we provide support for quantity points?
+8. Should we provide text support for quantity points? What about temperatires?
 
 
 # Design details and rationale
