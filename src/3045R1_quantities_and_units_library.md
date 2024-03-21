@@ -1499,8 +1499,8 @@ inline constexpr struct D : relative_point_origin<A + 30 * m> {} D;
 quantity_point qp1 = C + 100 * m;
 quantity_point qp2 = D + 120 * m;
 
-assert(qp1.quantity_ref_from(qp1.point_origin()) == 100 * m);
-assert(qp2.quantity_ref_from(qp2.point_origin()) == 120 * m);
+assert(qp1.quantity_ref_from(qp1.point_origin) == 100 * m);
+assert(qp2.quantity_ref_from(qp2.point_origin) == 120 * m);
 
 assert(qp1.quantity_from_zero() == 120 * m);
 assert(qp2.quantity_from_zero() == 150 * m);
@@ -1550,14 +1550,14 @@ For this purpose, we can either use:
 
     ```cpp
     quantity_point<si::metre, B> qp3 = qp1;
-    assert(qp3.quantity_ref_from(qp3.point_origin()) == 130 * m);
+    assert(qp3.quantity_ref_from(qp3.point_origin) == 110 * m);
     ```
 
 - A dedicated conversion interface:
 
     ```cpp
     quantity_point qp4 = qp1.point_for(B);
-    assert(qp4.quantity_ref_from(qp4.point_origin()) == 130 * m);
+    assert(qp4.quantity_ref_from(qp4.point_origin) == 110 * m);
     ```
 
 It is only allowed to convert between various origins defined in terms of the same
