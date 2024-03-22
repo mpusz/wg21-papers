@@ -1539,7 +1539,7 @@ provided point origin while the `quantity_from_zero()` always returns the distan
 absolute point origin.
 
 Also, please note that as long as we can't subtract two absolute point origins from each other,
-it is possible to subtract relative ones or a relative and absolute one. 
+it is possible to subtract relative ones or a relative and absolute one.
 
 #### Converting between different representations of the same _point_
 
@@ -1547,21 +1547,35 @@ As we might represent the same _point_ with _displacement vectors_ from various 
 library provides facilities to convert the same _point_ to the `quantity_point` class templates
 expressed in terms of different origins.
 
+<img src="img/affine_space_5.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
+
 For this purpose, we can use either:
 
 - A converting constructor:
 
     ```cpp
-    quantity_point<si::metre, B> qp3 = qp1;
-    assert(qp3.quantity_ref_from(qp3.point_origin) == 110 * m);
+    quantity_point<si::metre, C> qp2C = qp2;
+    assert(qp2C.quantity_ref_from(qp2C.point_origin) == 130 * m);
     ```
 
 - A dedicated conversion interface:
 
     ```cpp
-    quantity_point qp4 = qp1.point_for(B);
-    assert(qp4.quantity_ref_from(qp4.point_origin) == 110 * m);
+    quantity_point qp2B = qp2.point_for(B);
+    quantity_point qp2A = qp2.point_for(A);
+
+    assert(qp2B.quantity_ref_from(qp2B.point_origin) == 140 * m);
+    assert(qp2A.quantity_ref_from(qp2A.point_origin) == 150 * m);
     ```
+
+It is important to understand that the point remains the same after such a translation
+(all of them compare equal):
+
+```cpp
+assert(qp2 == qp2C);
+assert(qp2 == qp2B);
+assert(qp2 == qp2A);
+```
 
 It is only allowed to convert between various origins defined in terms of the same
 `absolute_point_origin`. Even if it is possible to express the same _point_ as a
