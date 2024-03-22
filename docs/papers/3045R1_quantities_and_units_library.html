@@ -2419,15 +2419,15 @@ that would predefine such a type for such a domain.</p>
 <span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="co">// auto res = qp1 + qp2;   // Compile-time error</span></span></code></pre></div>
 <p>In the above code <code class="sourceCode default">100 * m</code> and
 <code class="sourceCode default">120 * m</code> still create two
-quantities that serve as displacement vectors here. Quantity point
-objects can be explicitly constructed from such quantities only when
-their origin is an instantiation of the <code class="sourceCode default">zeroth_point_origin&lt;QuantitySpec&gt;</code>.</p>
+quantities that serve as <em>displacement vectors</em> here. Quantity
+point objects can be explicitly constructed from such quantities only
+when their origin is an instantiation of the <code class="sourceCode default">zeroth_point_origin&lt;QuantitySpec&gt;</code>.</p>
 <p>It is really important to understand that even though we can use
 <code class="sourceCode default">.quantity_from_zero()</code> to obtain
-the displacement vector of a point from the origin, the point by itself
-does not represent or have any associated physical value. It is just a
-point in some space. The same point can be expressed with different
-displacement vectors from different origins.</p>
+the <em>displacement vector</em> of a point from the origin, the point
+by itself does not represent or have any associated physical value. It
+is just a point in some space. The same point can be expressed with
+different <em>displacement vectors</em> from different origins.</p>
 <p>It is also worth mentioning that simplicity comes with a safety cost
 here. For some users, it might be surprising that the usage of <code class="sourceCode default">zeroth_point_origin&lt;QuantitySpec&gt;</code>
 makes various quantity point objects compatible as long as quantity

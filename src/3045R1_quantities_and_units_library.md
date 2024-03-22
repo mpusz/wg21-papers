@@ -1391,14 +1391,14 @@ assert(qp1 - qp2 == -20 * m);
 // auto res = qp1 + qp2;   // Compile-time error
 ```
 
-In the above code `100 * m` and `120 * m` still create two quantities that serve as displacement
-vectors here. Quantity point objects can be explicitly constructed from such quantities only when
+In the above code `100 * m` and `120 * m` still create two quantities that serve as _displacement
+vectors_ here. Quantity point objects can be explicitly constructed from such quantities only when
 their origin is an instantiation of the `zeroth_point_origin<QuantitySpec>`.
 
 It is really important to understand that even though we can use `.quantity_from_zero()` to obtain
-the displacement vector of a point from the origin, the point by itself does not represent or have
+the _displacement vector_ of a point from the origin, the point by itself does not represent or have
 any associated physical value. It is just a point in some space. The same point can be expressed
-with different displacement vectors from different origins.
+with different _displacement vectors_ from different origins.
 
 It is also worth mentioning that simplicity comes with a safety cost here. For some users, it
 might be surprising that the usage of `zeroth_point_origin<QuantitySpec>` makes various quantity
