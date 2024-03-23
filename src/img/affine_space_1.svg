@@ -3,8 +3,8 @@
 
 <svg
    width="96.519447mm"
-   height="18.953735mm"
-   viewBox="0 0 96.519447 18.953735"
+   height="18.977507mm"
+   viewBox="0 0 96.519447 18.977507"
    version="1.1"
    id="svg1"
    xmlns="http://www.w3.org/2000/svg"
@@ -30,7 +30,7 @@
   </defs>
   <g
      id="layer1"
-     transform="translate(-25.688031,-5.1616558)">
+     transform="translate(-25.688031,-5.1378845)">
     <path
        style="fill:#000000;stroke:#000000;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#DartArrow-7)"
        d="M 25.688031,20.190804 H 118.68548"
@@ -41,7 +41,7 @@
        id="path7-6" />
     <path
        style="fill:#000000;stroke:#a4a4a4;stroke-width:0.297823;stroke-dasharray:1.19129, 0.297823;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 38.972582,10.873633 v 8.066961"
+       d="M 38.972582,6.4770492 V 18.940594"
        id="path2-2-2" />
     <path
        style="fill:#000000;stroke:#a4a4a4;stroke-width:0.298;stroke-dasharray:1.192, 0.298;stroke-dashoffset:0;stroke-opacity:1"
@@ -183,5 +183,34 @@
          style="font-size:2.82222px;stroke-width:0"
          x="120.04948"
          y="23.910408">Q</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:2.11667px;font-family:Arial;-inkscape-font-specification:'Arial Bold';mix-blend-mode:normal;fill:#a4a4a4;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none"
+       x="54.035492"
+       y="6.6788778"
+       id="text2-2-7-49-5-3-2-6-2"><tspan
+         id="tspan2-9-0-96-4-1-8-8-1"
+         style="font-size:2.11667px;fill:#a4a4a4;fill-opacity:1;stroke-width:0;stroke-dasharray:none"
+         x="54.035492"
+         y="6.6788778">qp1.quantity_from_zero()</tspan></text>
+    <g
+       id="path8-0-9-8-0-0-0"
+       transform="translate(-0.21367231,-90.9375)">
+      <path
+         style="color:#000000;fill:#a4a4a4;fill-opacity:0.960784;-inkscape-stroke:none"
+         d="M 39.107719,99.071826 H 94.115772"
+         id="path56-0" />
+      <path
+         style="color:#000000;fill:#a4a4a4;fill-opacity:0.960784;-inkscape-stroke:none"
+         d="m 39.107422,98.947266 v 0.25 h 55.007812 v -0.25 z"
+         id="path57-8" />
+      <g
+         id="g55-4">
+        <path
+           style="color:#000000;fill:#a4a4a4;-inkscape-stroke:none"
+           d="m 92.820312,98.164062 -0.158203,0.316407 1.183594,0.591797 -1.183594,0.591796 0.158203,0.316407 1.816407,-0.908203 z"
+           id="path55-9" />
+      </g>
+    </g>
   </g>
 </svg>

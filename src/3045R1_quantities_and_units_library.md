@@ -1376,7 +1376,7 @@ scale zeroth point using the following rules:
 a well-established, non-controversial zeroth point on the measurement scale. This saves the user
 from the need to write a boilerplate code that would predefine such a type for such a domain.
 
-<img src="img/affine_space_1.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
+<img src="img/affine_space_1.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 quantity_point<isq::distance[si::metre]> qp1{100 * m};
@@ -1419,7 +1419,7 @@ In cases where we want to implement an isolated independent space in which point
 with other spaces, even of the same quantity type, we should manually predefine an absolute point
 origin.
 
-<img src="img/affine_space_2.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
+<img src="img/affine_space_2.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 inline constexpr struct origin : absolute_point_origin<origin, isq::distance> {} origin;
@@ -1429,8 +1429,10 @@ inline constexpr struct origin : absolute_point_origin<origin, isq::distance> {}
 quantity_point<si::metre, origin> qp1 = origin + 100 * m;
 quantity_point<si::metre, origin> qp2 = 120 * m + origin;
 
-assert(qp1.quantity_from_zero() == 100 * m);
-assert(qp2.quantity_from_zero() == 120 * m);
+// assert(qp1.quantity_from_zero() == 100 * m);   // Compile-time error  
+// assert(qp2.quantity_from_zero() == 120 * m);   // Compile-time error
+assert(qp1.quantity_from(origin) == 100 * m);
+assert(qp2.quantity_from(origin) == 120 * m);
 
 assert(qp1 - origin == 100 * m);
 assert(qp2 - origin == 120 * m);
@@ -1460,7 +1462,7 @@ unit, so we cannot determine a resulting `quantity` type.
 Absolute point origins are also perfect for establishing independent spaces even if the same quantity
 type and unit is being used:
 
-<img src="img/affine_space_3.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
+<img src="img/affine_space_3.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 inline constexpr struct origin1 : absolute_point_origin<origin1, isq::distance> {} origin1;
@@ -1469,17 +1471,19 @@ inline constexpr struct origin2 : absolute_point_origin<origin2, isq::distance> 
 quantity_point qp1 = origin1 + 100 * m;
 quantity_point qp2 = origin2 + 120 * m;
 
-assert(qp1.quantity_from_zero() == 100 * m);
-assert(qp2.quantity_from_zero() == 120 * m);
+assert(qp1.quantity_from(origin1) == 100 * m);
+assert(qp2.quantity_from(origin2) == 120 * m);
 
 assert(qp1 - origin1 == 100 * m);
 assert(qp2 - origin2 == 120 * m);
 assert(origin1 - qp1 == -100 * m);
 assert(origin2 - qp2 == -120 * m);
 
-// assert(qp2 - qp1 == 20 * m);       // Compile-time error
-// assert(qp1 - origin2 == 100 * m);  // Compile-time error
-// assert(qp2 - origin1 == 120 * m);  // Compile-time error
+// assert(qp2 - qp1 == 20 * m);                    // Compile-time error
+// assert(qp1 - origin2 == 100 * m);               // Compile-time error
+// assert(qp2 - origin1 == 120 * m);               // Compile-time error
+// assert(qp1.quantity_from(origin2) == 100 * m);  // Compile-time error
+// assert(qp2.quantity_from(origin1) == 120 * m);  // Compile-time error
 ```
 
 #### Relative _point_ origin
@@ -1491,7 +1495,7 @@ temperatures, timestamps, and altitudes.
 
 For such cases, relative point origins should be used:
 
-<img src="img/affine_space_4.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
+<img src="img/affine_space_4.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 inline constexpr struct A : absolute_point_origin<A, isq::distance> {} A;
@@ -1504,9 +1508,6 @@ quantity_point qp2 = D + 120 * m;
 
 assert(qp1.quantity_ref_from(qp1.point_origin) == 100 * m);
 assert(qp2.quantity_ref_from(qp2.point_origin) == 120 * m);
-
-assert(qp1.quantity_from_zero() == 120 * m);
-assert(qp2.quantity_from_zero() == 150 * m);
 
 assert(qp1 - A == 120 * m);
 assert(qp1 - B == 110 * m);
@@ -1547,7 +1548,7 @@ As we might represent the same _point_ with _displacement vectors_ from various 
 library provides facilities to convert the same _point_ to the `quantity_point` class templates
 expressed in terms of different origins.
 
-<img src="img/affine_space_5.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
+<img src="img/affine_space_5.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 For this purpose, we can use either:
 
@@ -1675,6 +1676,8 @@ In all of the above cases, we end up with the `quantity_point` of the same type 
 To play a bit more with temperatures, we can implement a simple room AC temperature controller in
 the following way:
 
+<img src="img/affine_space_6.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
+
 ```cpp
 constexpr struct room_reference_temp : relative_point_origin<quantity_point{21 * deg_C}> {} room_reference_temp;
 using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
@@ -1717,8 +1720,8 @@ Room reference temperature: 21 °C (69.8 °F, 294.15 K)
 | Highest        |        3 °C        |       24 °C        |     297.15 °C      |
 ```
 
-More about temperatures can be found in the
-[Potential surprises while working with temperatures] chapter.
+More about temperatures can be found in the [Potential surprises while working with temperatures]
+chapter.
 
 ## User-defined representation types
 
