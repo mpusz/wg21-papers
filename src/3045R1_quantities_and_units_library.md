@@ -994,6 +994,12 @@ an instance of the type
 type generation is optimized to be easily understood even by non-experts in the domain.
 The library tries to keep the type's readability as close to English as possible.
 
+To learn find more discussion on a quantity creation syntax please refer to the following chapters:
+
+- [`explicit` is not explicit enough],
+- [Why don't we use UDLs to create quantities?],
+- [Potential surprises during units composition].
+
 ### Typical operations on quantities
 
 Various quantities can be multiplied or divided to obtain other derived quantities. Quantities of
@@ -1052,6 +1058,9 @@ This time, we will see the following in the text output:
 The speed limit in m/s is 27.7778 m/s
 ```
 
+More details about conversions can be found in the [Safe unit conversions] and
+[Preventing truncation of data] chapters.
+
 #### Obtaining a numerical value of a quantity
 
 Last but not least, if we need to obtain the numerical value of a quantity and pass it to some
@@ -1086,6 +1095,9 @@ This member function again requires a target unit to enforce safety. This overlo
 participate in overload resolution if the provided unit has a different scaling factor than
 the current one.
 
+Please refer to the [Safe quantity numerical value getters] chapter for more details on this
+subject.
+
 ## Typed quantities (safer mode)
 
 Simple mode is all about and just about units. In case we care about a specific quantity type,
@@ -1116,6 +1128,10 @@ More about typed quantities can be found in the following chapters:
 - [Systems of quantities] describes their conversion and arithmetic rules.
 - [Constraining a derived unit to work only with a specific derived quantity] provides a solution
   to the problem of units of quantities different kinds but the same dimension.
+- [Quantity kinds improve safety] and [Additional safety introduced by modeling various quantities of the same kind]
+  discuss the safety benefits of quantity kinds.
+- [Limitations of systems of quantities] discusses cases that can't be addressed with the current
+  design of systems of quantities.
 
 
 ## Generic interfaces
