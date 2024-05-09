@@ -29,8 +29,10 @@ toc-depth: 4
 
 ## Changes since [@P3045R0]
 
-- [The affine space] chapter rewritten nearly from scratch.
 - One more dependency added to the table in the [Dependencies on other proposals] chapter.
+- [The affine space] chapter rewritten nearly from scratch.
+- `qp.quantity_from_zero()` does not work for user's named origins anymore.
+- `qp.quantity_from()` now works with other quantity points as well.
 - `basic_symbol_text` renamed to `symbol_text`.
 - `symbol_text` now always stores `char8_t` and `char` versions of symbols.
 - In case UTF-8 symbol is used, now it has to be provided as an UTF-8 (`u8`) literal.
@@ -1333,7 +1335,7 @@ more popular in the products we implement. They can be used to implement:
 - timestamps,
 - daily _mass_ readouts from the scale,
 - _altitudes_ of mountain peaks on a map,
-- current _speed_ displayed on a car's speed-o-meter,
+- current _path length_ measured by the car's odometer,
 - today's _price_ of instruments on the market,
 - and many more.
 
@@ -1344,9 +1346,9 @@ Improving the affine space's _Points_ intuition will allow us to write better an
 Up until now, each time when we used a `quantity` in our code, we were modeling some kind of a
 difference between two things:
 
-- the distance between two points,
-- duration between two time points,
-- the difference in speed (even if relative to `0`).
+- the _distance_ between two points,
+- _duration_ between two time points,
+- the difference in _speed_ (even if relative to `0`).
 
 As we already know, a `quantity` type provides all operations required for the _displacement vector_
 abstraction in an affine space.
@@ -1384,15 +1386,16 @@ parameter is initialized with the `default_point_origin(R)` that provides the qu
 scale zeroth point using the following rules:
 
 - if the measurement unit of a quantity specifies its point origin in its definition
-  (e.g., degree Celsius), then this point is being used,
+  (e.g., degree Celsius), then this origin is being used,
 - otherwise, an instantiation of `zeroth_point_origin<QuantitySpec>` is being used which
   provides a well-established zeroth point for a specific quantity type.
 
 #### `zeroth_point_origin<QuantitySpec>`
 
 `zeroth_point_origin<QuantitySpec>` is meant to be used in cases where the specific domain has
-a well-established, non-controversial zeroth point on the measurement scale. This saves the user
-from the need to write a boilerplate code that would predefine such a type for such a domain.
+a well-established, non-controversial, and unique zeroth point on the measurement scale.
+This saves the user from the need to write a boilerplate code that would predefine such a type
+for this domain.
 
 <img src="img/affine_space_1.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
@@ -1402,6 +1405,8 @@ quantity_point<isq::distance[si::metre]> qp2{120 * m};
 
 assert(qp1.quantity_from_zero() == 100 * m);
 assert(qp2.quantity_from_zero() == 120 * m);
+assert(qp2.quantity_from(qp1) == 20 * m);
+assert(qp1.quantity_from(qp2) == -20 * m);
 
 assert(qp2 - qp1 == 20 * m);
 assert(qp1 - qp2 == -20 * m);
@@ -1427,6 +1432,8 @@ compatible:
 quantity_point<si::metre> qp1{isq::distance(100 * m)};
 quantity_point<si::metre> qp2{isq::height(120 * m)};
 
+assert(qp2.quantity_from(qp1) == 20 * m);
+assert(qp1.quantity_from(qp2) == -20 * m);
 assert(qp2 - qp1 == 20 * m);
 assert(qp1 - qp2 == -20 * m);
 ```
@@ -1447,22 +1454,31 @@ inline constexpr struct origin : absolute_point_origin<origin, isq::distance> {}
 quantity_point<si::metre, origin> qp1 = origin + 100 * m;
 quantity_point<si::metre, origin> qp2 = 120 * m + origin;
 
-// assert(qp1.quantity_from_zero() == 100 * m);   // Compile-time error  
+// assert(qp1.quantity_from_zero() == 100 * m);   // Compile-time error
 // assert(qp2.quantity_from_zero() == 120 * m);   // Compile-time error
 assert(qp1.quantity_from(origin) == 100 * m);
 assert(qp2.quantity_from(origin) == 120 * m);
+assert(qp2.quantity_from(qp1) == 20 * m);
+assert(qp1.quantity_from(qp2) == -20 * m);
 
 assert(qp1 - origin == 100 * m);
 assert(qp2 - origin == 120 * m);
+assert(qp2 - qp1 == 20 * m);
+assert(qp1 - qp2 == -20 * m);
+
 assert(origin - qp1 == -100 * m);
 assert(origin - qp2 == -120 * m);
 
-assert(qp2 - qp1 == 20 * m);
+// assert(origin - origin == 0 * m);   // Compile-time error
 ```
 
-This time, we can't construct a quantity point from any quantity. In order to prevent potential safety
-issues, when a custom point origin is being used, we always need to provide its object in
-an expression that results in a quantity point instantiation.
+We can't construct a quantity point directly from the quantity anymore when a custom, named origin
+is used. To prevent potential safety and maintenance issues, we always need to
+explicitly provide both a compatible origin and a quantity measured from it to construct a quantity
+point.
+
+Said otherwise, a quantity point defined in terms of a specific origin is the result of adding
+the origin and the _displacement vector_ measured from it to the point we create.
 
 Similarly to quantities, if someone does not like the arithmetic way to construct a quantity
 point a two-parameter constructor can be used:
@@ -1473,9 +1489,19 @@ quantity_point qp1{100 * m, origin};
 
 Again, CTAD always helps to use precisely the type we need in a current case.
 
+We can't construct a quantity point directly from the quantity anymore when a custom, named origin
+is used. To prevent potential safety and maintenance issues, we always need to
+explicitly provide both a compatible origin and a quantity measured from it to construct a quantity
+point.
+
+Said otherwise, a quantity point defined in terms of a specific origin is the result of adding
+the origin and the _displacement vector_ measured from it to the point we create.
+
 Finally, please note that it is not allowed to subtract two point origins defined in terms of
 `absolute_point_origin` (e.g., `origin - origin`) as those do not contain information about the
 unit, so we cannot determine a resulting `quantity` type.
+
+##### Modeling independent spaces in one domain
 
 Absolute point origins are also perfect for establishing independent spaces even if the same quantity
 type and unit is being used:
@@ -1500,6 +1526,7 @@ assert(origin2 - qp2 == -120 * m);
 // assert(qp2 - qp1 == 20 * m);                    // Compile-time error
 // assert(qp1 - origin2 == 100 * m);               // Compile-time error
 // assert(qp2 - origin1 == 120 * m);               // Compile-time error
+// assert(qp2.quantity_from(qp1) == 20 * m);       // Compile-time error
 // assert(qp1.quantity_from(origin2) == 100 * m);  // Compile-time error
 // assert(qp2.quantity_from(origin1) == 120 * m);  // Compile-time error
 ```
@@ -1527,38 +1554,40 @@ quantity_point qp2 = D + 120 * m;
 assert(qp1.quantity_ref_from(qp1.point_origin) == 100 * m);
 assert(qp2.quantity_ref_from(qp2.point_origin) == 120 * m);
 
-assert(qp1 - A == 120 * m);
-assert(qp1 - B == 110 * m);
-assert(qp1 - C == 100 * m);
-assert(qp1 - D == 90 * m);
+assert(qp2.quantity_from(qp1) == 30 * m);
+assert(qp1.quantity_from(qp2) == -30 * m);
+assert(qp2 - qp1 == 30 * m);
+assert(qp1 - qp2 == -30 * m);
+
 assert(qp1.quantity_from(A) == 120 * m);
 assert(qp1.quantity_from(B) == 110 * m);
 assert(qp1.quantity_from(C) == 100 * m);
 assert(qp1.quantity_from(D) == 90 * m);
+assert(qp1 - A == 120 * m);
+assert(qp1 - B == 110 * m);
+assert(qp1 - C == 100 * m);
+assert(qp1 - D == 90 * m);
 
-assert(qp2 - A == 150 * m);
-assert(qp2 - B == 140 * m);
-assert(qp2 - C == 130 * m);
-assert(qp2 - D == 120 * m);
 assert(qp2.quantity_from(A) == 150 * m);
 assert(qp2.quantity_from(B) == 140 * m);
 assert(qp2.quantity_from(C) == 130 * m);
 assert(qp2.quantity_from(D) == 120 * m);
-
-assert(qp2 - qp1 == 30 * m);
+assert(qp2 - A == 150 * m);
+assert(qp2 - B == 140 * m);
+assert(qp2 - C == 130 * m);
+assert(qp2 - D == 120 * m);
 
 assert(B - A == 10 * m);
 assert(C - A == 20 * m);
 assert(D - A == 30 * m);
 assert(D - C == 10 * m);
+
+assert(B - B == 0 * m);
+// assert(A - A == 0 * m);  // Compile-time error
 ```
 
-As we can see above, the `quantity_from()` member function returns a relative distance from the
-provided point origin while the `quantity_from_zero()` always returns the distance from the
-absolute point origin.
-
-Also, please note that as long as we can't subtract two absolute point origins from each other,
-it is possible to subtract relative ones or a relative and absolute one.
+Even though we can't subtract two absolute point origins from each other, it is possible to
+subtract relative ones or relative and absolute ones.
 
 #### Converting between different representations of the same _point_
 
@@ -1587,8 +1616,8 @@ For this purpose, we can use either:
     assert(qp2A.quantity_ref_from(qp2A.point_origin) == 150 * m);
     ```
 
-It is important to understand that the point remains the same after such a translation
-(all of them compare equal):
+It is important to understand that all such translations still describe exactly the same point
+(e.g., all of them compare equal):
 
 ```cpp
 assert(qp2 == qp2C);
@@ -1599,7 +1628,7 @@ assert(qp2 == qp2A);
 It is only allowed to convert between various origins defined in terms of the same
 `absolute_point_origin`. Even if it is possible to express the same _point_ as a
 _displacement vector_ from another `absolute_point_origin`, the library will not provide such
-a conversion. A custom user-defined conversion function will be needed to add this functionality.
+a conversion. A custom user-defined conversion function will be needed to add such a functionality.
 
 Said another way, in the library, there is no way to spell how two distinct `absolute_point_origin`
 types relate to each other.
@@ -1625,7 +1654,7 @@ inline constexpr struct zeroth_degree_Celsius : decltype(ice_point) {} zeroth_de
 namespace usc {
 
 inline constexpr struct zeroth_degree_Fahrenheit :
-  relative_point_origin<si::zeroth_degree_Celsius - 32 * (mag<ratio{5, 9}> * si::degree_Celsius)> {} zeroth_degree_Fahrenheit;
+  relative_point_origin<quantity_point{-32 * (mag_ratio<5, 9> * si::degree_Celsius)}> {} zeroth_degree_Fahrenheit;
 
 }
 ```
@@ -1636,9 +1665,9 @@ The above is a great example of how point origins can be stacked on top of each 
 - `si::zeroth_degree_Celsius` is defined relative to `si::zeroth_kelvin`.
 
 _Note: Notice that while stacking point origins, we can use not only different representation types
-but also different units for origins and a _point_. In the above example, the relative
-point origin for degree Celsius is defined in terms of `si::kelvin`, while the quantity point
-for it will use `si::degree_Celsius` as a unit._
+and units for origins and a _point_. In the above example, the relative point origin for degree
+Celsius is defined in terms of `si::kelvin`, while the quantity point for it will use
+`si::degree_Celsius` as a unit.
 
 The temperature point origins defined above are provided explicitly in the respective units'
 definitions:
@@ -1661,6 +1690,10 @@ inline constexpr struct degree_Fahrenheit :
 
 }
 ```
+
+As it was described above, `default_point_origin(R)` returns a `zeroth_point_origin<QuantitySpec>`
+when a unit does not provide any origin in its definition. As of today, the units of temperature
+are the only ones in the entire library that provide such origins.
 
 Now, let's see how we can benefit from the above definitions. We have quite a few alternatives to
 choose from here. Depending on our needs or tastes, we can:
