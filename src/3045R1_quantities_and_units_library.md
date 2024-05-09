@@ -35,6 +35,8 @@ toc-depth: 4
 - `symbol_text` now always stores `char8_t` and `char` versions of symbols.
 - In case UTF-8 symbol is used, now it has to be provided as an UTF-8 (`u8`) literal.
 - Minor editorial changes and additional clarifications added to the [Text output] chapter.
+- `mag<ratio{N, D}>` replaced with `mag_ratio<N, D>` so the `ratio` type becomes the implementation
+  detail rather than the public interface of the library
 
 
 # Introduction
@@ -1654,7 +1656,7 @@ inline constexpr struct degree_Celsius :
 namespace usc {
 
 inline constexpr struct degree_Fahrenheit :
-    named_unit<{u8"°F", "`F"}, mag<ratio{5, 9}> * si::degree_Celsius,
+    named_unit<{u8"°F", "`F"}, mag_ratio<5, 9> * si::degree_Celsius,
                zeroth_degree_Fahrenheit> {} degree_Fahrenheit;
 
 }
@@ -2124,10 +2126,10 @@ inline constexpr struct QuarterNote : named_unit<"q", one, kind_of<BeatCount>> {
 inline constexpr struct HalfNote : named_unit<"h", mag<2> * QuarterNote> {} HalfNote;
 inline constexpr struct DottedHalfNote : named_unit<"h.", mag<3> * QuarterNote> {} DottedHalfNote;
 inline constexpr struct WholeNote : named_unit<"w", mag<4> * QuarterNote> {} WholeNote;
-inline constexpr struct EightNote : named_unit<"8th", mag<ratio{1, 2}> * QuarterNote> {} EightNote;
+inline constexpr struct EightNote : named_unit<"8th", mag_ratio<1, 2> * QuarterNote> {} EightNote;
 inline constexpr struct DottedQuarterNote : named_unit<"q.", mag<3> * EightNote> {} DottedQuarterNote;
-inline constexpr struct QuarterNoteTriplet : named_unit<"qt", mag<ratio{1, 3}> * HalfNote> {} QuarterNoteTriplet;
-inline constexpr struct SixteenthNote : named_unit<"16th", mag<ratio{1, 2}> * EightNote> {} SixteenthNote;
+inline constexpr struct QuarterNoteTriplet : named_unit<"qt", mag_ratio<1, 3> * HalfNote> {} QuarterNoteTriplet;
+inline constexpr struct SixteenthNote : named_unit<"16th", mag_ratio<1, 2> * EightNote> {} SixteenthNote;
 inline constexpr struct DottedEightNote : named_unit<"q.", mag<3> * SixteenthNote> {} DottedEightNote;
 
 inline constexpr auto Beat = QuarterNote;
@@ -3031,20 +3033,20 @@ predefined SI prefixes. Those include units like minute, hour, or electronvolt:
 inline constexpr struct minute : named_unit<"min", mag<60> * si::second> {} minute;
 inline constexpr struct hour : named_unit<"h", mag<60> * minute> {} hour;
 inline constexpr struct electronvolt : named_unit<"eV",
-    mag<ratio{1'602'176'634, 1'000'000'000}> * mag_power<10, -19> * si::joule> {} electronvolt;
+    mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * si::joule> {} electronvolt;
 ```
 
 Also, units of other systems of units are often defined in terms of scaled versions of other
 (often SI) units. For example, the international yard is defined as:
 
 ```cpp
-inline constexpr struct yard : named_unit<"yd", mag<ratio{9'144, 10'000}> * si::metre> {} yard;
+inline constexpr struct yard : named_unit<"yd", mag_ratio<9'144, 10'000> * si::metre> {} yard;
 ```
 
 and then a `foot` can be defined as:
 
 ```cpp
-inline constexpr struct foot : named_unit<"ft", mag<ratio{1, 3}> * yard> {} foot;
+inline constexpr struct foot : named_unit<"ft", mag_ratio<1, 3> * yard> {} foot;
 ```
 
 For some units, a magnitude might also be irrational. The best example here is a `degree` which
@@ -4115,13 +4117,13 @@ inline constexpr struct hyperfine_structure_transition_frequency_of_cs :
 inline constexpr struct speed_of_light_in_vacuum :
   named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
 inline constexpr struct planck_constant :
-  named_unit<"h", mag<ratio{662'607'015, 100'000'000}> * mag_power<10, -34> * joule * second> {} planck_constant;
+  named_unit<"h", mag_ratio<662'607'015, 100'000'000> * mag_power<10, -34> * joule * second> {} planck_constant;
 inline constexpr struct elementary_charge :
-  named_unit<"e", mag<ratio{1'602'176'634, 1'000'000'000}> * mag_power<10, -19> * coulomb> {} elementary_charge;
+  named_unit<"e", mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * coulomb> {} elementary_charge;
 inline constexpr struct boltzmann_constant :
-  named_unit<"k", mag<ratio{1'380'649, 1'000'000}> * mag_power<10, -23> * joule / kelvin> {} boltzmann_constant;
+  named_unit<"k", mag_ratio<1'380'649, 1'000'000> * mag_power<10, -23> * joule / kelvin> {} boltzmann_constant;
 inline constexpr struct avogadro_constant :
-  named_unit<"N_A", mag<ratio{602'214'076, 100'000'000}> * mag_power<10, 23> / mole> {} avogadro_constant;
+  named_unit<"N_A", mag_ratio<602'214'076, 100'000'000> * mag_power<10, 23> / mole> {} avogadro_constant;
 inline constexpr struct luminous_efficacy :
   named_unit<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
 ```
@@ -6395,7 +6397,7 @@ units of length:
 
 ```cpp
 inline constexpr struct hubble_constant :
-    named_unit<{u8"H₀", "H_0"}, mag<ratio{701, 10}> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
+    named_unit<{u8"H₀", "H_0"}, mag_ratio<701, 10> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
 } hubble_constant;
 ```
 
@@ -6551,9 +6553,9 @@ Besides the unit `one`, there are a few other scaled units predefined in the lib
 with dimensionless quantities:
 
 ```cpp
-inline constexpr struct percent : named_unit<"%", mag<ratio{1, 100}> * one> {} percent;
-inline constexpr struct per_mille : named_unit<{u8"‰", "%o"}, mag<ratio(1, 1000)> * one> {} per_mille;
-inline constexpr struct parts_per_million : named_unit<"ppm", mag<ratio(1, 1'000'000)> * one> {} parts_per_million;
+inline constexpr struct percent : named_unit<"%", mag_ratio<1, 100> * one> {} percent;
+inline constexpr struct per_mille : named_unit<{u8"‰", "%o"}, mag_ratio<1, 1000> * one> {} per_mille;
+inline constexpr struct parts_per_million : named_unit<"ppm", mag_ratio<1, 1'000'000> * one> {} parts_per_million;
 inline constexpr auto ppm = parts_per_million;
 ```
 
