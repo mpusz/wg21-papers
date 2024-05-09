@@ -1707,23 +1707,23 @@ room_temp room_ref{};
 room_temp room_low = room_ref - number_of_steps * step_delta;
 room_temp room_high = room_ref + number_of_steps * step_delta;
 
-std::println("Room reference temperature: {} ({}, {})\n",
+std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
              room_ref.quantity_from_zero(),
-             room_ref.in(usc::degree_Fahrenheit).quantity_from_zero(),
-             room_ref.in(si::kelvin).quantity_from_zero());
+             room_ref.in(deg_F).quantity_from_zero(),
+             room_ref.in(K).quantity_from_zero());
 
-std::println("| {:<14} | {:^18} | {:^18} | {:^18} |",
-             "Temperature", "Room reference", "Ice point", "Absolute zero");
-std::println("|{0:=^16}|{0:=^20}|{0:=^20}|{0:=^20}|", "");
+std::println("| {:<18} | {:^18} | {:^18} | {:^18} |",
+             "Temperature delta", "Room reference", "Ice point", "Absolute zero");
+std::println("|{0:=^20}|{0:=^20}|{0:=^20}|{0:=^20}|", "");
 
-auto print = [&](std::string_view label, auto v) {
-  std::println("| {:<14} | {:^18} | {:^18} | {:^18:N[.2f]} |", label,
+auto print_temp = [&](std::string_view label, auto v) {
+  std::println("| {:<18} | {:^18} | {:^18} | {:^18:N[.2f]} |", label,
                v - room_reference_temp, (v - si::ice_point).in(deg_C), (v - si::absolute_zero).in(deg_C));
 };
 
-print("Lowest", room_low);
-print("Default", room_ref);
-print("Highest", room_high);
+print_temp("Lowest", room_low);
+print_temp("Default", room_ref);
+print_temp("Highest", room_high);
 ```
 
 The above prints:
@@ -1731,11 +1731,11 @@ The above prints:
 ```text
 Room reference temperature: 21 °C (69.8 °F, 294.15 K)
 
-| Temperature    |   Room reference   |     Ice point      |   Absolute zero    |
-|================|====================|====================|====================|
-| Lowest         |       -3 °C        |       18 °C        |     291.15 °C      |
-| Default        |        0 °C        |       21 °C        |     294.15 °C      |
-| Highest        |        3 °C        |       24 °C        |     297.15 °C      |
+| Temperature delta  |   Room reference   |     Ice point      |   Absolute zero    |
+|====================|====================|====================|====================|
+| Lowest             |       -3 °C        |       18 °C        |     291.15 °C      |
+| Default            |        0 °C        |       21 °C        |     294.15 °C      |
+| Highest            |        3 °C        |       24 °C        |     297.15 °C      |
 ```
 
 More about temperatures can be found in the [Potential surprises while working with temperatures]
@@ -1835,9 +1835,9 @@ int main()
   std::cout << v1 << '\n';                                        // 110 km/h
   std::cout << std::setw(10) << std::setfill('*') << v2 << '\n';  // ***70 mi/h
   std::cout << std::format("{:*^10}\n", v3);                      // *110 km/h*
-  std::println("{:%N in %U}", v4);                                // 70 in mi/h
-  std::println("{:{%N:.2f}%?%U}", v5);                            // 30.56 m/s
-  std::println("{:{%N:.2f}%?{%U:n}}", v6);                        // 31.29 m s⁻¹
+  std::println("{:%N in %U of %D}", v4);                          // 70 in mi/h of LT⁻¹
+  std::println("{::N[.2f]}", v5);                                 // 30.56 m/s
+  std::println("{::N[.2f]U[dn]}", v6);                            // 31.29 m⋅s⁻¹
   std::println("{:%N}", v7);                                      // 31
 }
 ```
@@ -2201,11 +2201,11 @@ int main()
   std::println("Sample rate 1 is: {}", sr1);
   std::println("Sample rate 2 is: {}", sr2);
 
-  std::println("{} @ {} is {:{%N:.5f} %U}", samples, sr1, sampleTime1);
-  std::println("{} @ {} is {:{%N:.5f} %U}", samples, sr2, sampleTime2);
+  std::println("{} @ {} is {::N[.5f]}", samples, sr1, sampleTime1);
+  std::println("{} @ {} is {::N[.5f]}", samples, sr2, sampleTime2);
 
-  std::println("One sample @ {} is {:{%N:.5f} %U}", sr1, sampleDuration1);
-  std::println("One sample @ {} is {:{%N:.5f} %U}", sr2, sampleDuration2);
+  std::println("One sample @ {} is {::N[.5f]}", sr1, sampleDuration1);
+  std::println("One sample @ {} is {::N[.5f]}", sr2, sampleDuration2);
 
   std::println("{} is {} @ {}", rampTime, rampSamples1, sr1);
   std::println("{} is {} @ {}", rampTime, rampSamples2, sr2);
@@ -3971,7 +3971,7 @@ of their scales, we have to be explicit. We can do it in several ways:
                 qp1 - si::zeroth_kelvin,
                 (qp1 - si::zeroth_degree_Celsius).in(deg_C),
                 (qp1 - usc::zeroth_degree_Fahrenheit).in(deg_F));
-    std::println("qp2: {:{%N:.2f} %U}, {}, {}",
+    std::println("qp2: {::N[.2f]}, {}, {}",
                 (qp2 - si::zeroth_kelvin).in(K),
                 qp2 - si::zeroth_degree_Celsius,
                 (qp2 - usc::zeroth_degree_Fahrenheit).in(deg_F));
@@ -3984,7 +3984,7 @@ of their scales, we have to be explicit. We can do it in several ways:
                 qp1.quantity_from(si::zeroth_kelvin),
                 qp1.quantity_from(si::zeroth_degree_Celsius).in(deg_C),
                 qp1.quantity_from(usc::zeroth_degree_Fahrenheit).in(deg_F));
-    std::println("qp2: {:{%N:.2f} %U}, {}, {}",
+    std::println("qp2: {::N[:.2f]}, {}, {}",
                 qp2.quantity_from(si::zeroth_kelvin).in(K),
                 qp2.quantity_from(si::zeroth_degree_Celsius),
                 qp2.quantity_from(usc::zeroth_degree_Fahrenheit).in(deg_F));
@@ -3998,7 +3998,7 @@ of their scales, we have to be explicit. We can do it in several ways:
                 qp1.quantity_from_zero(),
                 qp1.in(deg_C).quantity_from_zero(),
                 qp1.in(deg_F).quantity_from_zero());
-    fmt::println("qp2: {:{%N:.2f} %U}, {}, {}",
+    fmt::println("qp2: {::N[.2f]}, {}, {}",
                 qp2.in(K).quantity_from_zero(),
                 qp2.quantity_from_zero(),
                 qp2.in(deg_F).quantity_from_zero());
@@ -4698,7 +4698,7 @@ Thanks to the grammar provided above, the user can easily decide to either:
 - provide custom formatting for components:
 
     ```cpp
-    std::println("Speed: {:{%N:.2f} {%U:n}}", 100. * km / (3 * h));
+    std::println("Speed: {::N[.2f]U[n]}", 100. * km / (3 * h));
     ```
 
     ```text
@@ -6961,7 +6961,7 @@ inline constexpr struct smoot : std::named_unit<"smoot", std::mag<67> * std::usc
 int main()
 {
   constexpr std::quantity dist = 364.4 * smoot;
-  std::println("Harvard Bridge length = {:{%N:.5} %U} ({:{%N:.5} %U}, {:{%N:.5} %U}) ± 1 εar",
+  std::println("Harvard Bridge length = {::N[.5]} ({::N[.5]}, {::N[.5]}) ± 1 εar",
                dist, dist.in(usc::foot), dist.in(si::metre));
 }
 ```
