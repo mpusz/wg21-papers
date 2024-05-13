@@ -36,6 +36,10 @@ toc-depth: 4
 - `basic_symbol_text` renamed to `symbol_text`.
 - `symbol_text` now always stores `char8_t` and `char` versions of symbols.
 - In case UTF-8 symbol is used, now it has to be provided as an UTF-8 (`u8`) literal.
+- `[[nodiscard]]` removed from `basic_symbol_text`
+- [Symbols of derived dimensions] added and the entire symbols generation text refactored into
+  the [Symbols for derived entities] chapter.
+- Quantity formatting refactored to the new syntax agreed with Victor Zverovich.
 - Minor editorial changes and additional clarifications added to the [Text output] chapter.
 - `mag<ratio{N, D}>` replaced with `mag_ratio<N, D>` so the `ratio` type becomes the implementation
   detail rather than the public interface of the library
@@ -4162,6 +4166,12 @@ inline constexpr struct luminous_efficacy :
   named_unit<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
 ```
 
+_Note: Two symbols always have to be provided if the primary symbol contains characters outside of
+the [basic literal character set](https://en.cppreference.com/w/cpp/language/charset).
+The first must be provided as a UTF-8 literal and may contain any Unicode characters.
+The second one must provide an alternative spelling and only use characters from within of
+[basic literal character set](https://en.cppreference.com/w/cpp/language/charset)._
+
 ### Lack of Unicode subscript characters
 
 Unicode provides only a minimal set of characters available as subscripts, which are often used to
@@ -4318,19 +4328,20 @@ struct symbol_text {
   constexpr explicit(false) symbol_text(const fixed_string<N>& txt);
   constexpr symbol_text(const char8_t (&u)[N + 1], const char (&a)[M + 1]);
   constexpr symbol_text(const fixed_u8string<N>& u, const fixed_string<M>& a);
-  [[nodiscard]] constexpr const auto& unicode() const;
-  [[nodiscard]] constexpr const auto& ascii() const;
 
-  [[nodiscard]] constexpr bool empty() const;
+  constexpr const auto& unicode() const;
+  constexpr const auto& ascii() const;
 
-  template<std::size_t N2, std::size_t M2>
-  [[nodiscard]] constexpr friend symbol_text<N + N2, M + M2> operator+(const symbol_text& lhs,
-                                                                       const symbol_text<N2, M2>& rhs);
+  constexpr bool empty() const;
 
   template<std::size_t N2, std::size_t M2>
-  [[nodiscard]] friend constexpr auto operator<=>(const symbol_text& lhs, const symbol_text<N2, M2>& rhs) noexcept;
+  constexpr friend symbol_text<N + N2, M + M2> operator+(const symbol_text& lhs, const symbol_text<N2, M2>& rhs);
+
   template<std::size_t N2, std::size_t M2>
-  [[nodiscard]] friend constexpr bool operator==(const symbol_text& lhs, const symbol_text<N2, M2>& rhs) noexcept;
+  friend constexpr auto operator<=>(const symbol_text& lhs, const symbol_text<N2, M2>& rhs) noexcept;
+
+  template<std::size_t N2, std::size_t M2>
+  friend constexpr bool operator==(const symbol_text& lhs, const symbol_text<N2, M2>& rhs) noexcept;
 };
 
 symbol_text(char) -> symbol_text<1, 1>;
@@ -4348,30 +4359,87 @@ template<std::size_t N, std::size_t M>
 symbol_text(const fixed_u8string<N>&, const fixed_string<M>&) -> symbol_text<N, M>;
 ```
 
-_Note: There is literally no way in the current version of the C++ language to output Unicode
-character types (`char8_t`, `char16_t`, and `char32_t`) to the console, the [@MP-UNITS] library
-currently uses `char` to encode both strings._
+### Symbols for derived entities
 
-### Derived dimensions symbols generation
+#### `text_encoding`
 
-TBD
+ISQ and [@SI] standards always specify symbols using Unicode encoding. This is why it is a default
+and primary target for text output. However, in some applications or environments, a standard
+ASCII-like text output using only the characters from the
+[basic literal character set](https://en.cppreference.com/w/cpp/language/charset) can be preferred
+by users.
 
-### Derived unit symbols generation
-
-Based on the provided definitions for base units, the library creates symbols for derived ones.
-
-#### `unit_symbol_formatting`
-
-`unit_symbol_formatting` is a data type describing the configuration of the symbol generation
-algorithm. It contains three orthogonal fields, and each of them has a default value.
+This is why the library provides an option to change the default encoding to the ASCII one with:
 
 ```cpp
 enum class text_encoding : std::int8_t {
-  unicode,  // m³;  µs
-  ascii,    // m^3; us
+  unicode,  // µs; m³;  L²MT⁻³
+  ascii,    // us; m^3; L^2MT^-3
   default_encoding = unicode
 };
+```
 
+#### Symbols of derived dimensions
+
+##### `dimension_symbol_formatting`
+
+`dimension_symbol_formatting` is a data type describing the configuration of the symbol generation
+algorithm.
+
+```cpp
+struct dimension_symbol_formatting {
+  text_encoding encoding = text_encoding::default_encoding;
+};
+```
+
+##### `dimension_symbol()`
+
+Returns a `std::string_view` with the symbol of a dimension for the provided configuration:
+
+```cpp
+template<dimension_symbol_formatting fmt = dimension_symbol_formatting{}, typename CharT = char, Dimension D>
+consteval std::string_view dimension_symbol(D);
+```
+
+_Note: It could be refactored to `dimension_symbol(D, fmt)` when [@P1045R1] is available._
+
+For example:
+
+```cpp
+static_assert(dimension_symbol<{.encoding = text_encoding::ascii}>(isq::power.dimension) == "L^2MT^-3");
+```
+
+##### `dimension_symbol_to()`
+
+Inserts the generated dimension symbol into the output text iterator at runtime.
+
+```cpp
+template<typename CharT = char, std::output_iterator<CharT> Out, Dimension D>
+constexpr Out dimension_symbol_to(Out out, D d, dimension_symbol_formatting fmt = dimension_symbol_formatting{});
+```
+
+For example:
+
+```cpp
+std::string txt;
+dimension_symbol_to(std::back_inserter(txt), isq::power.dimension, {.encoding = text_encoding::ascii});
+std::cout << txt << "\n";
+```
+
+The above prints:
+
+```text
+L^2MT^-3
+```
+
+#### Symbols of derived units
+
+##### `unit_symbol_formatting`
+
+`unit_symbol_formatting` is a data type describing the configuration of the symbol generation
+algorithm. It contains three orthogonal fields, each with a default value.
+
+```cpp
 enum class unit_symbol_solidus : std::int8_t {
   one_denominator,  // m/s;   kg m⁻¹ s⁻¹
   always,           // m/s;   kg/(m s)
@@ -4392,18 +4460,23 @@ struct unit_symbol_formatting {
 };
 ```
 
-#### `unit_symbol()`
+`unit_symbol_solidus` impacts how the division of unit symbols is being presented in the text
+output. By default, the '/' will be printed if only one unit component is in the
+denominator. Otherwise, the exponent syntax will be used.
 
-Returns a `fixed_string` storing the symbol of the unit for the provided configuration:
+`unit_symbol_separator` specifies how multiple multiplied units should be separated from each
+other. By default, the space (' ') will be used as a separator.
+
+##### `unit_symbol()`
+
+Returns a `std::string_view` with the symbol of a unit for the provided configuration:
 
 ```cpp
 template<unit_symbol_formatting fmt = unit_symbol_formatting{}, typename CharT = char, Unit U>
-[[nodiscard]] consteval auto unit_symbol(U);
+consteval std::string_view unit_symbol(U);
 ```
 
-_Note 1: This function could return a `std::string_view` pointing to the internal static buffer._
-
-_Note 2: It could be refactored to `unit_symbol(U, fmt)` when [@P1045R1] is available._
+_Note: It could be refactored to `unit_symbol(U, fmt)` when [@P1045R1] is available._
 
 For example:
 
@@ -4412,10 +4485,9 @@ static_assert(unit_symbol<{.solidus = unit_symbol_solidus::never,
                            .separator = unit_symbol_separator::half_high_dot}>(kg * m / s2) == "kg⋅m⋅s⁻²");
 ```
 
-#### `unit_symbol_to()`
+##### `unit_symbol_to()`
 
-Inserts the generated unit symbol to the output text iterator at runtime based on the provided
-configuration.
+Inserts the generated unit symbol into the output text iterator at runtime.
 
 ```cpp
 template<typename CharT = char, std::output_iterator<CharT> Out, Unit U>
@@ -4436,6 +4508,7 @@ The above prints:
 ```text
 kg⋅m⋅s⁻²
 ```
+
 
 ## `space_before_unit_symbol` customization point
 
@@ -4528,21 +4601,21 @@ std::println("|{:*>10}|", 123 * m);  // |*****123 m|
 std::println("|{:*^10}|", 123 * m);  // |**123 m***|
 ```
 
-It is important to note that in the second line above, the quantity text is aligned to
-the right by default, which is consistent with the formatting of numeric types. Units and dimensions behave
+It is important to note that in the second line above, the quantity text is aligned to the right
+by default, which is consistent with the formatting of numeric types. Units and dimensions behave
 as text and, thus, are aligned to the left by default.
 
 ### Dimension formatting
 
-```bnf
-dimension-format-spec ::= [fill-and-align] [width] [dimension-spec]
-dimension-spec        ::= [text-encoding]
-text-encoding         ::= 'U' | 'A'
+```ebnf
+dimension-format-spec = [fill-and-align], [width], [dimension-spec];
+dimension-spec        = [text-encoding];
+text-encoding         = 'U' | 'A';
 ```
 
 In the above grammar:
 
-- `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
+- `fill-and-align` and `width` tokens are defined in the [format.string.std]{.sref}
   chapter of the C++ standard specification,
 - `text-encoding` token specifies the symbol text encoding:
     - `U` (default) uses the **Unicode** symbols defined by [@ISO80000] (e.g., `LT⁻²`),
@@ -4565,21 +4638,21 @@ std::println("{:A}", isq::power.dimension);               // L^2MT^-3
 
 ### Unit formatting
 
-```bnf
-unit-format-spec      ::= [fill-and-align] [width] [unit-spec]
-unit-spec             ::= [text-encoding] [unit-symbol-solidus] [unit-symbol-separator] [L]
-                          [text-encoding] [unit-symbol-separator] [unit-symbol-solidus] [L]
-                          [unit-symbol-solidus] [text-encoding] [unit-symbol-separator] [L]
-                          [unit-symbol-solidus] [unit-symbol-separator] [text-encoding] [L]
-                          [unit-symbol-separator] [text-encoding] [unit-symbol-solidus] [L]
-                          [unit-symbol-separator] [unit-symbol-solidus] [text-encoding] [L]
-unit-symbol-solidus   ::= '1' | 'a' | 'n'
-unit-symbol-separator ::= 's' | 'd'
+```ebnf
+unit-format-spec      = [fill-and-align], [width], [unit-spec];
+unit-spec             = [text-encoding], [unit-symbol-solidus], [unit-symbol-separator], [L]
+                      | [text-encoding], [unit-symbol-separator], [unit-symbol-solidus], [L]
+                      | [unit-symbol-solidus], [text-encoding], [unit-symbol-separator], [L]
+                      | [unit-symbol-solidus], [unit-symbol-separator], [text-encoding], [L]
+                      | [unit-symbol-separator], [text-encoding], [unit-symbol-solidus], [L]
+                      | [unit-symbol-separator], [unit-symbol-solidus], [text-encoding], [L];
+unit-symbol-solidus   = '1' | 'a' | 'n';
+unit-symbol-separator = 's' | 'd';
 ```
 
 In the above grammar:
 
-- `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
+- `fill-and-align` and `width` tokens are defined in the [format.string.std]{.sref}
   chapter of the C++ standard specification,
 - `unit-symbol-solidus` token specifies how the division of units should look like:
     - '1' (default) outputs `/` only when there is only **one** unit in the denominator, otherwise
@@ -4653,26 +4726,25 @@ _Note: 'd' requires the Unicode encoding to be set._
 
 ### Quantity formatting
 
-```bnf
-quantity-format-spec        ::= [fill-and-align] [width] [quantity-specs]
-quantity-specs              ::= conversion-spec
-                                quantity-specs conversion-spec
-                                quantity-specs literal-char
-literal-char                ::= <any character other than '{', '}', or '%'>
-conversion-spec             ::= placement-spec
-                                subentity-replacement-field
-placement-spec              ::= '%' placement-type
-placement-type              ::= 'N' | 'U' | 'D' | '?' | '%'
-subentity-replacement-field ::= '{' '%' subentity-id [format-specifier] '}'
-subentity-id                ::= literal-char
-                                subentity-id literal-char
-format-specifier            ::= ':' format-spec
-format-spec                 ::= <as specified by the formatter for the argument type; cannot start with '}'>
+```ebnf
+quantity-format-spec        = [fill-and-align], [widt4h], [quantity-specs], [defaults-specs];
+quantity-specs              = conversion-spec;
+                            | quantity-specs, conversion-spec;
+                            | quantity-specs, literal-char;
+literal-char                = ? any character other than '{', '}', or '%' ?;
+conversion-spec             = '%', placement-type;
+placement-type              = subentity-id | '?' | '%';
+defaults-specs              = ':', default-spec-list;
+default-spec-list           = default-spec;
+                            | default-spec-list, default-spec;
+default-spec                = subentity-id, '[' format-spec ']';
+subentity-id                = 'N' | 'U' | 'D';
+format-spec                 = ? as specified by the formatter for the argument type ?;
 ```
 
 In the above grammar:
 
-- `fill-and-align` and `width` tokens are defined in the [format.string.std](https://wg21.link/format.string.std)
+- `fill-and-align` and `width` tokens are defined in the [format.string.std]{.sref}
   chapter of the C++ standard specification,
 - `placement-type` token specifies which entity should be put and where:
     - 'N' inserts a default-formatted numerical value of the quantity,
@@ -4681,12 +4753,9 @@ In the above grammar:
     - '?' inserts an optional separator between the number and a unit based on the value of
       `space_before_unit_symbol` for this unit,
     - '%' just inserts '%' character.
-- `subentity-replacement-field` token allows the composition of formatters. The following identifiers
-  are recognized by the quantity formatter:
-    - 'N' passes `format-spec` to the `formatter` specialization for the quantity representation
-      type,
-    - 'U' passes `format-spec` to the `formatter` specialization for the unit type,
-    - 'D' passes `format-spec` to the `formatter` specialization for the dimension type.
+- `defaults-specs` token allows overwriting defaults for the underlying formatters with the custom
+  format string. Each override starts with a subentity identifier ('N', 'U', or 'D') followed by
+  the format string enclosed in square brackets.
 
 #### Default formatting
 
@@ -4698,7 +4767,6 @@ This is why the following code lines produce the same output:
 std::cout << "Distance: " << 123 * km << "\n";
 std::cout << std::format("Distance: {}\n", 123 * km);
 std::cout << std::format("Distance: {:%N%?%U}\n", 123 * km);
-std::cout << std::format("Distance: {:{%N}%?{%U}}\n", 123 * km);
 ```
 
 Please note that for some quantities the `{:%N %U}` format may provide a different output than
@@ -4752,9 +4820,8 @@ Thanks to the grammar provided above, the user can easily decide to either:
     - dimension: LT⁻¹
     ```
 
-
-`placement-spec` and `subentity-replacement-field` greatly simplify element access and formatting
-of the quantity. Without them the second case above would require the following:
+`placement-type` greatly simplify element access to the elements of the quantity. Without them
+the second case above would require the following:
 
 ```cpp
 const auto q = 120 * km / h;
@@ -4762,17 +4829,95 @@ std::println("Speed:\n- number: {}\n- unit: {}\n- dimension: {}",
              q.numerical_value_ref_in(q.unit), q.unit, q.dimension);
 ```
 
-Providing such support also simplifies the specification and implementation effort of this
-library. Initially, [@MP-UNITS] library was providing numerical value modifiers inplace
-of its format specification, but it:
+`default-spec` is crutial to provide formatting of user-defined representation types. Initially,
+[@MP-UNITS] library was providing numerical value modifiers inplace of its format specification
+similarly to `std::chrono::duration` formatter. However, it:
 
 - worked only with fundamental arithmetic types and was not able to adjust to different format
   specifications of custom representation types,
 - was quite hard to parse and format everything in a 100% compatible way with the formatting
   specified in the C++ standard and already implemented in the underlying standard library.
 
-_Note 1: The above grammar allows repeating the same field many times, possibly with a different
-format spec. For example, `std::println("Speed: {:%N {%N:.4f} {%N:.2f} {%U:n}}", 100. * km / (3 * h))`._
+#### Formatting of the quantity numerical value
+
+The representation type used as a numerical value of a quantity must provide its own formatter
+specialization. It will be called by the quantity formatter with the format-spec provided
+by the user in the `N` defaults specification.
+
+In case we use C++ fundamental arithmetic types with our quantities the standard formatter
+specified in [format.string.std](https://wg21.link/format.string.std) will be used. The rest
+of this chapter assumes that it is the case and provides some usage examples.
+
+`sign` token allows us to specify how the value's sign is being printed:
+
+```cpp
+std::println("{0},{0::N[+]},{0::N[-]},{0::N[ ]}", 1 * m);   // 1 m,+1 m,1 m, 1 m
+std::println("{0},{0::N[+]},{0::N[-]},{0::N[ ]}", -1 * m);  // -1 m,-1 m,-1 m,-1 m
+```
+
+where:
+
+- `+` indicates that a sign should be used for both non-negative and negative numbers,
+- `-` indicates that a sign should be used for negative numbers and negative zero only
+  (this is the default behavior),
+- `<space>` indicates that a leading space should be used for non-negative numbers other
+  than negative zero, and a minus sign for negative numbers and negative zero.
+
+`precision` token is allowed only for floating-point representation types:
+
+```cpp
+std::println("{::N[.0]}", 1.2345 * m);   // 1 m
+std::println("{::N[.1]}", 1.2345 * m);   // 1 m
+std::println("{::N[.2]}", 1.2345 * m);   // 1.2 m
+std::println("{::N[.3]}", 1.2345 * m);   // 1.23 m
+std::println("{::N[.0f]}", 1.2345 * m);  // 1 m
+std::println("{::N[.1f]}", 1.2345 * m);  // 1.2 m
+std::println("{::N[.2f]}", 1.2345 * m);  // 1.23 m
+```
+
+`type` specifies how a value of the representation type is being printed.
+For integral types:
+
+```cpp
+std::println("{::N[b]}", 42 * m);    // 101010 m
+std::println("{::N[B]}", 42 * m);    // 101010 m
+std::println("{::N[d]}", 42 * m);    // 42 m
+std::println("{::N[o]}", 42 * m);    // 52 m
+std::println("{::N[x]}", 42 * m);    // 2a m
+std::println("{::N[X]}", 42 * m);    // 2A m
+```
+
+The above can be printed in an alternate version thanks to the `#` token:
+
+```cpp
+std::println("{::N[#b]}", 42 * m);   // 0b101010 m
+std::println("{::N[#B]}", 42 * m);   // 0B101010 m
+std::println("{::N[#o]}", 42 * m);   // 052 m
+std::println("{::N[#x]}", 42 * m);   // 0x2a m
+std::println("{::N[#X]}", 42 * m);   // 0X2A m
+```
+
+For floating-point values, the `type` token works as follows:
+
+```cpp
+std::println("{::N[a]}",   1.2345678 * m);      // 1.3c0ca2a5b1d5dp+0 m
+std::println("{::N[.3a]}", 1.2345678 * m);      // 1.3c1p+0 m
+std::println("{::N[A]}",   1.2345678 * m);      // 1.3C0CA2A5B1D5DP+0 m
+std::println("{::N[.3A]}", 1.2345678 * m);      // 1.3C1P+0 m
+std::println("{::N[e]}",   1.2345678 * m);      // 1.234568e+00 m
+std::println("{::N[.3e]}", 1.2345678 * m);      // 1.235e+00 m
+std::println("{::N[E]}",   1.2345678 * m);      // 1.234568E+00 m
+std::println("{::N[.3E]}", 1.2345678 * m);      // 1.235E+00 m
+std::println("{::N[g]}",   1.2345678 * m);      // 1.23457 m
+std::println("{::N[g]}",   1.2345678e8 * m);    // 1.23457e+08 m
+std::println("{::N[.3g]}", 1.2345678 * m);      // 1.23 m
+std::println("{::N[.3g]}", 1.2345678e8 * m);    // 1.23e+08 m
+std::println("{::N[G]}",   1.2345678 * m);      // 1.23457 m
+std::println("{::N[G]}",   1.2345678e8 * m);    // 1.23457E+08 m
+std::println("{::N[.3G]}", 1.2345678 * m);      // 1.23 m
+std::println("{::N[.3G]}", 1.2345678e8 * m);    // 1.23E+08 m
+```
+
 
 ## Quantity point text output
 
@@ -4794,17 +4939,18 @@ library does not have enough information to print it that way by itself.
 
 ## Text output open questions
 
-1. Are we OK with the usage of '_' for denoting a subsript identifier?
+1. Should we somehow provide text support for quantity points? What about temperatures?
 2. Are we OK with no text output support of quantity types?
 3. How to name a non-Unicode accessor member function (e.g., `.ascii()`)? The same name should
+4. Should `unit_symbol()` and `dimension_symbol()` return `std::string_view` or
+  `basic_fixed_string`?
+5. What about the localization for units? Will we get something like ICU in the C++ standard?
    consistently be used in `text_encoding` and in the formatting grammar.
-4. Should `unit_symbol()` and `dimension_symbol` return `std::string_view` or `basic_fixed_string`?
-5. Do we care about ostreams enough to introduce custom manipulators to format dimensions and units?
-6. What about the localization for units? Will we get something like ICU in the C++ standard?
+6. Do we care about ostreams enough to introduce custom manipulators to format dimensions and units?
 7. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
    proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
    we OK with this?
-8. Should we provide text support for quantity points? What about temperatires?
+8. Are we OK with the usage of '_' for denoting a subscript identifier?
 
 
 # Design details and rationale
