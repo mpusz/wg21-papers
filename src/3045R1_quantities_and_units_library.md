@@ -39,6 +39,7 @@ toc-depth: 4
 - Minor editorial changes and additional clarifications added to the [Text output] chapter.
 - `mag<ratio{N, D}>` replaced with `mag_ratio<N, D>` so the `ratio` type becomes the implementation
   detail rather than the public interface of the library
+- Compiler Explorer links updated to reflect the latest design changes in the library
 
 
 # Introduction
@@ -1834,7 +1835,7 @@ static_assert(10 * km / (5 * km) == 2 * one);
 static_assert(1000 / (1 * s) == 1 * kHz);
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/sYfoPzTvT).
+Try it in [the Compiler Explorer](https://godbolt.org/z/8acPeq743).
 
 ## Hello units
 
@@ -1875,7 +1876,7 @@ int main()
 }
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/aPe7naKrE).
+Try it in [the Compiler Explorer](https://godbolt.org/z/nhqhT8Mzb).
 
 ## Storage tank
 
@@ -2007,7 +2008,7 @@ float rise rate = 2e-04 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/cW19WYr3M).
+Try it in [the Compiler Explorer](https://godbolt.org/z/bE4Ga6cqE).
 
 ## Bridge across the Rhine
 
@@ -2118,7 +2119,7 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 - Switzerland: 33000 cm
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/oEW1vfeMG).
+Try it in [the Compiler Explorer](https://godbolt.org/z/xb1qhjT6a).
 
 ## User defined quantities and units
 
@@ -2295,7 +2296,7 @@ Transport Beats is: 16.495832 q
 Transport Time is: 8.997726 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/MvGTc5Eva).
+Try it in [the Compiler Explorer](https://godbolt.org/z/hYWE1b1q1).
 
 _Note: More about this example can be found in
 ["Exploration of Strongly-typed Units in C++: A Case Study from Digital Audio"](https://www.youtube.com/watch?v=oxnCdIfC4Z4)
