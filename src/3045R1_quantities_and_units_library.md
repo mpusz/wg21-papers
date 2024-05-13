@@ -121,7 +121,7 @@ in other domains that we can get in the future from other authors.
 | Compile-time prime numbers   |    2     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
 | Value-preserving conversions |    2     | [@P0870R5], [@P2509R0] | Type trait stating if the conversion from one type to another is value preserving or not.                  |
 | Number concepts              |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
-| Bounded numeric types        |    3     |      [@P2993_PRE]      | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
+| Bounded numeric types        |    3     |       [@P2993R0]       | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -1790,7 +1790,7 @@ Those can be used to:
 - enable linear algebra usage.
 
 As of right now, we have two other concurrent proposals to SG6 in this subject on the fly
-([@P2993_PRE] and [@P3003R0]), so we do not provide any concrete requirements or recommendations here
+([@P2993R0] and [@P3003R0]), so we do not provide any concrete requirements or recommendations here
 so far.
 
 Based on the results of discussions on the mentioned proposals, we will provide correct guidelines
@@ -7290,13 +7290,6 @@ references:
   citation-label: nholthaus/units
   title: "UNITS - A compile-time, header-only, dimensional analysis and unit conversion library built on c++14 with no dependencies."
   URL: <https://github.com/nholthaus/units>
-- id: P2993_PRE
-  citation-label: P2993
-  author:
-    - family: Valenty
-      given: Luke
-  title: "Constrained Numbers"
-  URL: <https://wg21.link/p2993>
 - id: PINT
   citation-label: Pint
   title: "Pint: makes units easy"
