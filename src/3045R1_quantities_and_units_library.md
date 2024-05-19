@@ -225,7 +225,7 @@ in the field at various start-ups, MIT Lincoln Laboratory, and most recently, ST
 Technology Research).
 
 Nicolas became obsessed with dimensional analysis as a high school JETS team member after learning
-that the $125M Mars Climate Orbiter was destroyed due to a simple feet-to-meters miscalculation. He
+that the \$125M Mars Climate Orbiter was destroyed due to a simple feet-to-meters miscalculation. He
 developed the widely adopted C++ [@NHOLTHAUS-UNITS] library based on the findings of the 2002 white
 paper "Dimensional Analysis in C++" by Scott Meyers. Astounded that no one smarter had already
 written such a library, he continued with `units` 2.0 and 3.0 based on modern C++. Those libraries
@@ -772,7 +772,7 @@ flowchart TD
 
 <img src="img/domain_introduction.svg" style="display: block; margin-left: auto; margin-right: auto; width: 30%;"/>
 
-_Note: A more detailed graph of framework's entities can be found in the [Framework entities]
+_Note: A more detailed graph of the framework's entities can be found in the [Framework entities]
 chapter._
 
 ## Dimension
@@ -781,7 +781,7 @@ chapter._
 quantities of a particular system of quantities. It is represented as a product of powers of factors
 corresponding to the base quantities, omitting any numerical factor.
 
-Even though ISO does not officially define those, we find the below terms useful when discussing
+Even though ISO does not officially define these, we find the below terms useful when discussing
 the domain and its C++ implementation:
 
 - **base dimension** is the dimension of a [base quantity](https://jcgm.bipm.org/vim/en/1.4.html),
@@ -1041,11 +1041,18 @@ If we want to change the unit of a current quantity, we can use `.in(Unit)` memb
 std::cout << "The total distance in meters is " << (dist1 + dist2).in(m) << "\n";
 ```
 
-Trying to do the same for `speed_limit` is invalid and will result in a compile time error stating
-that the member function `.in()` was not found. This is caused by the fact that the scaling of an
-integral type by a rational or irrational factor is considered not value-preserving. To force such
-a conversion, we can use either a `.force_in(Unit)` member function or an explicit
-`value_cast<Unit>(Quantity)`.
+The `.in` utility has safety mechanisms to prevent accidentally losing precision.  For example, we
+could try doing the same thing to express `speed_limit` in `m/s`, which is equivalent to multiplying
+the underlying value by the non-integer factor $5 / 18$:
+
+```cpp
+std::cout << "The speed limit in m/s is " << speed_limit.in(m / s) << "\n";
+// Compiler error!  Does not work.
+```
+
+However, scaling an integral type by a rational or irrational factor is considered not
+value-preserving. To force such a conversion, we can use either a `.force_in(Unit)` member function
+or an explicit `value_cast<Unit>(Quantity)`.
 
 ```cpp
 std::cout << "The speed limit in m/s is " << speed_limit.force_in(m / s) << "\n";
@@ -4015,7 +4022,7 @@ of their scales, we have to be explicit. We can do it in several ways:
                 (qp2 - usc::zeroth_degree_Fahrenheit).in(deg_F));
     ```
 
-2. Using `quantity_from(PonitOrigin)` member function:
+2. Using `quantity_from(PointOrigin)` member function:
 
     ```cpp
     std::println("qp1: {}, {}, {}",
@@ -7173,7 +7180,8 @@ Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for s
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
 
 We would also like to thank Peter Sommerlad for providing valuable feedback that helped us shape
-the final version of this document.
+the final version of this document, and Michael Hordijk for discovering typos and improving the flow
+of some confusing passages.
 
 <!-- markdownlint-disable -->
 
