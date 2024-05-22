@@ -307,7 +307,7 @@ seems that the default implementation of `std::swap` would suffice.
 This particular interface is implemented, tested, and successfully used in the
 [mp-units](https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h)
 project. A complete implementation with tests can also be checked in the
-[Compiler Explorer](https://godbolt.org/z/xah74z3s9).
+[Compiler Explorer](https://godbolt.org/z/EaaW36YG7).
 
 
 # Wording
@@ -487,7 +487,7 @@ public:
     requires(sizeof...(Chars) == N) && (... && !is_pointer_v<Chars>)
   constexpr explicit basic_fixed_string(Chars... chars) noexcept;
 
-  consteval basic_fixed_string(const charT (&txt)[N + 1]);
+  consteval basic_fixed_string(const charT (&txt)[N + 1]) noexcept;
 
   template<input_iterator It, sentinel_for<It> S>
     requires convertible_to<iter_value_t<It>, charT>

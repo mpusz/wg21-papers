@@ -930,7 +930,7 @@ would suffice.</p>
 <p>This particular interface is implemented, tested, and successfully
 used in the <a href="https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h">mp-units</a>
 project. A complete implementation with tests can also be checked in the
-<a href="https://godbolt.org/z/xah74z3s9">Compiler Explorer</a>.</p>
+<a href="https://godbolt.org/z/EaaW36YG7">Compiler Explorer</a>.</p>
 <h1 data-number="9" id="wording"><span class="header-section-number">9</span> Wording<a href="#wording" class="self-link"></a></h1>
 <h2 data-number="9.1" id="version.syn"><span class="header-section-number">9.1</span> <a href="https://wg21.link/version.syn">Header <code class="sourceCode cpp"><span class="op">&lt;</span>version<span class="op">&gt;</span></code>
 synopsis</a><a href="#version.syn" class="self-link"></a></h2>
@@ -1180,7 +1180,7 @@ points at an object with value
 <span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><span class="kw">sizeof</span><span class="op">...(</span>Chars<span class="op">)</span> <span class="op">==</span> N<span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">(...</span> <span class="op">&amp;&amp;</span> <span class="op">!</span>is_pointer_v<span class="op">&lt;</span>Chars<span class="op">&gt;)</span></span>
 <span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span> basic_fixed_string<span class="op">(</span>Chars<span class="op">...</span> chars<span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">consteval</span> basic_fixed_string<span class="op">(</span><span class="kw">const</span> charT <span class="op">(&amp;</span>txt<span class="op">)[</span>N <span class="op">+</span> <span class="dv">1</span><span class="op">])</span>;</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">consteval</span> basic_fixed_string<span class="op">(</span><span class="kw">const</span> charT <span class="op">(&amp;</span>txt<span class="op">)[</span>N <span class="op">+</span> <span class="dv">1</span><span class="op">])</span> <span class="kw">noexcept</span>;</span>
 <span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span>input_iterator It, sentinel_for<span class="op">&lt;</span>It<span class="op">&gt;</span> S<span class="op">&gt;</span></span>
 <span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span> convertible_to<span class="op">&lt;</span>iter_value_t<span class="op">&lt;</span>It<span class="op">&gt;</span>, charT<span class="op">&gt;</span></span>
