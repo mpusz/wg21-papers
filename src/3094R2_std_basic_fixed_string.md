@@ -307,7 +307,7 @@ seems that the default implementation of `std::swap` would suffice.
 This particular interface is implemented, tested, and successfully used in the
 [mp-units](https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h)
 project. A complete implementation with tests can also be checked in the
-[Compiler Explorer](https://godbolt.org/z/hqeqrd67T).
+[Compiler Explorer](https://godbolt.org/z/xah74z3s9).
 
 
 # Wording
@@ -586,21 +586,28 @@ consteval basic_fixed_string(const charT (&txt)[N + 1]);
 
 [2]{.pnum} _Effects_: Constructs an object whose value is a copy of `txt`.
 
+[3]{.pnum} [_Note 1_: The program is ill-formed if `txt[N] != CharT()`. — _end note_]
+
 ```cpp
 template<input_iterator It, sentinel_for<It> S>
   requires convertible_to<iter_value_t<It>, charT>
 constexpr basic_fixed_string(It begin, S end);
 ```
 
-[3]{.pnum} _Effects_: Constructs an object from the values in the range `[begin, end)`,
+[4]{.pnum} _Preconditions_: `distance(begin, end) == N`.
+
+[5]{.pnum} _Effects_: Constructs an object from the values in the range `[begin, end)`,
 as specified in [sequence.reqmts]{.sref}.
+
 
 ```cpp
 template<@_container-compatible-range_@<charT> R>
 constexpr basic_fixed_string(from_range_t, R&& r);
 ```
 
-[4]{.pnum} _Effects_: Constructs an object from the values in the range `rg`, as specified
+[6]{.pnum} _Preconditions_: `ranges::size(r) == N`.
+
+[7]{.pnum} _Effects_: Constructs an object from the values in the range `rg`, as specified
 in [sequence.reqmts]{.sref}.
 
 #### Deduction guides { #fixed.string.deduct }
@@ -667,14 +674,18 @@ consteval friend basic_fixed_string<charT, N + N2 - 1, traits> operator+(const b
 [6]{.pnum} _Effects_: Returns a new fixed string object whose value is the joint value of
 `lhs` and `rhs`.
 
+[7]{.pnum} [_Note 1_: The program is ill-formed if `rhs[N2 - 1] != CharT()`. — _end note_]
+
 ```cpp
 template<size_t N1>
 consteval friend basic_fixed_string<charT, N1 + N - 1, traits> operator+(const charT (&lhs)[N1],
                                                                          const basic_fixed_string& rhs) noexcept;
 ```
 
-[7]{.pnum} _Effects_: Returns a new fixed string object whose value is the joint value of
+[8]{.pnum} _Effects_: Returns a new fixed string object whose value is the joint value of
 a subrange `[lhs[0], lhs[N1 - 1])` and `rhs` followed by the `charT()`.
+
+[9]{.pnum} [_Note 2_: The program is ill-formed if `lhs[N1 - 1] != CharT()`. — _end note_]
 
 
 #### Non-member comparison functions { #fixed.string.comparison }
@@ -704,6 +715,8 @@ friend consteval @_see below_@ operator<=>(const basic_fixed_string& lhs, const 
 ```cpp
 return lhs.view() @_op_@ std::basic_string_view<CharT, Traits>(rhs, rhs + N2 - 1);
 ```
+
+[3]{.pnum} [_Note 1_: The program is ill-formed if `rhs[N2 - 1] != CharT()`. — _end note_]
 
 #### Inserters and extractors { #fixed.string.io }
 

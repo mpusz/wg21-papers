@@ -930,7 +930,7 @@ would suffice.</p>
 <p>This particular interface is implemented, tested, and successfully
 used in the <a href="https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h">mp-units</a>
 project. A complete implementation with tests can also be checked in the
-<a href="https://godbolt.org/z/hqeqrd67T">Compiler Explorer</a>.</p>
+<a href="https://godbolt.org/z/xah74z3s9">Compiler Explorer</a>.</p>
 <h1 data-number="9" id="wording"><span class="header-section-number">9</span> Wording<a href="#wording" class="self-link"></a></h1>
 <h2 data-number="9.1" id="version.syn"><span class="header-section-number">9.1</span> <a href="https://wg21.link/version.syn">Header <code class="sourceCode cpp"><span class="op">&lt;</span>version<span class="op">&gt;</span></code>
 synopsis</a><a href="#version.syn" class="self-link"></a></h2>
@@ -1275,17 +1275,24 @@ before the call followed by the
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects</em>: Constructs an object whose value is a copy of
 <code class="sourceCode cpp">txt</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+[<em>Note 1</em>: The program is ill-formed if <code class="sourceCode cpp">txt<span class="op">[</span>N<span class="op">]</span> <span class="op">!=</span> CharT<span class="op">()</span></code>.
+— <em>end note</em>]</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>input_iterator It, sentinel_for<span class="op">&lt;</span>It<span class="op">&gt;</span> S<span class="op">&gt;</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> convertible_to<span class="op">&lt;</span>iter_value_t<span class="op">&lt;</span>It<span class="op">&gt;</span>, charT<span class="op">&gt;</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> basic_fixed_string<span class="op">(</span>It begin, S end<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Preconditions</em>: <code class="sourceCode cpp">distance<span class="op">(</span>begin, end<span class="op">)</span> <span class="op">==</span> N</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Effects</em>: Constructs an object from the values in the range
 <code class="sourceCode cpp"><span class="op">[</span>begin, end<span class="op">)</span></code>,
 as specified in <span>24.2.4
 <a href="https://wg21.link/sequence.reqmts">[sequence.reqmts]</a></span>.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>container-compatible-range</em><span class="op">&lt;</span>charT<span class="op">&gt;</span> R<span class="op">&gt;</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> basic_fixed_string<span class="op">(</span>from_range_t, R<span class="op">&amp;&amp;</span> r<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<em>Preconditions</em>: <code class="sourceCode cpp">ranges<span class="op">::</span>size<span class="op">(</span>r<span class="op">)</span> <span class="op">==</span> N</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Effects</em>: Constructs an object from the values in the range
 <code class="sourceCode cpp">rg</code>, as specified in <span>24.2.4
 <a href="https://wg21.link/sequence.reqmts">[sequence.reqmts]</a></span>.</p>
@@ -1337,14 +1344,20 @@ joint value of <code class="sourceCode cpp">lhs</code> and
 <em>Effects</em>: Returns a new fixed string object whose value is the
 joint value of <code class="sourceCode cpp">lhs</code> and
 <code class="sourceCode cpp">rhs</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+[<em>Note 1</em>: The program is ill-formed if <code class="sourceCode cpp">rhs<span class="op">[</span>N2 <span class="op">-</span> <span class="dv">1</span><span class="op">]</span> <span class="op">!=</span> CharT<span class="op">()</span></code>.
+— <em>end note</em>]</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N1<span class="op">&gt;</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="kw">consteval</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, N1 <span class="op">+</span> N <span class="op">-</span> <span class="dv">1</span>, traits<span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> charT <span class="op">(&amp;</span>lhs<span class="op">)[</span>N1<span class="op">]</span>,</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>                                                                         <span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects</em>: Returns a new fixed string object whose value is the
 joint value of a subrange <code class="sourceCode cpp"><span class="op">[</span>lhs<span class="op">[</span><span class="dv">0</span><span class="op">]</span>, lhs<span class="op">[</span>N1 <span class="op">-</span> <span class="dv">1</span><span class="op">])</span></code>
 and <code class="sourceCode cpp">rhs</code> followed by the
 <code class="sourceCode cpp">charT<span class="op">()</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+[<em>Note 2</em>: The program is ill-formed if <code class="sourceCode cpp">lhs<span class="op">[</span>N1 <span class="op">-</span> <span class="dv">1</span><span class="op">]</span> <span class="op">!=</span> CharT<span class="op">()</span></code>.
+— <em>end note</em>]</p>
 <h4 data-number="9.3.4.8" id="fixed.string.comparison"><span class="header-section-number">9.3.4.8</span> Non-member comparison
 functions<a href="#fixed.string.comparison" class="self-link"></a></h4>
 <div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
@@ -1363,6 +1376,9 @@ operator. Equivalent to:</p>
 <em>Effects</em>: Let <code class="sourceCode cpp">op</code> be the
 operator. Equivalent to:</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> lhs<span class="op">.</span>view<span class="op">()</span> <em>op</em> std<span class="op">::</span>basic_string_view<span class="op">&lt;</span>CharT, Traits<span class="op">&gt;(</span>rhs, rhs <span class="op">+</span> N2 <span class="op">-</span> <span class="dv">1</span><span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+[<em>Note 1</em>: The program is ill-formed if <code class="sourceCode cpp">rhs<span class="op">[</span>N2 <span class="op">-</span> <span class="dv">1</span><span class="op">]</span> <span class="op">!=</span> CharT<span class="op">()</span></code>.
+— <em>end note</em>]</p>
 <h4 data-number="9.3.4.9" id="fixed.string.io"><span class="header-section-number">9.3.4.9</span> Inserters and extractors<a href="#fixed.string.io" class="self-link"></a></h4>
 <div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">friend</span> basic_ostream<span class="op">&lt;</span>charT, traits<span class="op">&gt;&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>basic_ostream<span class="op">&lt;</span>charT, traits<span class="op">&gt;&amp;</span> os, <span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> str<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
