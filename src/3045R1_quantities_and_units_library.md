@@ -30,6 +30,7 @@ toc-depth: 4
 ## Changes since [@P3045R0]
 
 - One more dependency added to the table in the [Dependencies on other proposals] chapter.
+- [Safe unit conversions] chapter extended with more `value_cast` overloads.
 - [The affine space] chapter rewritten nearly from scratch.
 - [Magnitudes] chapter added.
 - `qp.quantity_from_zero()` does not work for user's named origins anymore.
@@ -3236,6 +3237,32 @@ quantity<si::metre, int> q2 = value_cast<int>(q1);
 As we can see, it is essential not to allow such truncating conversions to happen implicitly,
 and a good physical quantities and units library should fail at compile-time in case an user makes
 such a mistake.
+
+The same conversion utilities are also available for quantity points described in the next chapter.
+
+In some cases there is also a need to change both a unit and a representation type in one step.
+This is why the library also exposes the following functions:
+
+- `value_cast<Unit, Representation>(Quantity)`,
+- `value_cast<Unit, Representation>(QuantityPoint)`.
+
+Exposing such functions:
+
+- makes the code easier to write, understand, and maintain compared to nesting two independent
+  function calls,
+- allows the library to try to order those operations in the best way to prevent data truncation
+  or overflow.
+
+Additionally, in cases where users have typedefs for their quantity or quantity point types,
+the following two functions are provided to save unnecessary typing to obtain the contents of
+respective types:
+
+- `value_cast<Quantity>(Quantity)`,
+- `value_cast<QuantityPoint>(QuantityPoint)`.
+
+The above functions are constrained to accept destination types that have exactly the same quantity
+specification as the source function argument. This means that in case quantity specifications do
+not match, explicit `quantity_cast` should be used first.
 
 ### Safety introduced by the affine space abstractions
 
