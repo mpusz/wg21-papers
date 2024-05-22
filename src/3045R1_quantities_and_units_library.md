@@ -35,9 +35,10 @@ toc-depth: 4
 - `qp.quantity_from_zero()` does not work for user's named origins anymore.
 - `qp.quantity_from()` now works with other quantity points as well.
 - `basic_symbol_text` renamed to `symbol_text`.
+- `[[nodiscard]]` removed from `symbol_text`.
+- `symbol_text` constructors taking string literals made `consteval`.
 - `symbol_text` now always stores `char8_t` and `char` versions of symbols.
 - In case UTF-8 symbol is used, now it has to be provided as an UTF-8 (`u8`) literal.
-- `[[nodiscard]]` removed from `basic_symbol_text`
 - [Symbols of derived dimensions] added and the entire symbols generation text refactored into
   the [Symbols for derived entities] chapter.
 - Quantity formatting refactored to the new syntax agreed with Victor Zverovich.
@@ -4327,14 +4328,15 @@ objects:
 
 ```cpp
 template<std::size_t N, std::size_t M>
-struct symbol_text {
+class symbol_text {
+public:
   fixed_u8string<N> unicode_;  // exposition only
   fixed_string<M> ascii_;      // exposition only
 
   constexpr explicit(false) symbol_text(char ch);
-  constexpr explicit(false) symbol_text(const char (&txt)[N + 1]);
+  consteval explicit(false) symbol_text(const char (&txt)[N + 1]);
   constexpr explicit(false) symbol_text(const fixed_string<N>& txt);
-  constexpr symbol_text(const char8_t (&u)[N + 1], const char (&a)[M + 1]);
+  consteval symbol_text(const char8_t (&u)[N + 1], const char (&a)[M + 1]);
   constexpr symbol_text(const fixed_u8string<N>& u, const fixed_string<M>& a);
 
   constexpr const auto& unicode() const;
