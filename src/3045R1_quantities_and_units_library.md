@@ -5887,6 +5887,153 @@ m = 5.34799e-27 kg
 E = 8.01088e-10 J
 ```
 
+## Magnitudes
+
+A very common operation is to multiply an existing unit by a factor, creating a new, scaled unit.
+For example, the unit _foot_ can be multiplied by 3, producing the unit _yard_.
+
+The process also works in reverse; the ratio between any two units of the same dimension is
+a well-defined number.  For example, the ratio between one foot and one inch is 12.
+
+In principle, this scaling factor can be any positive real number.  In [@MP-UNITS] and [@AU], we
+have used the term "magnitude" to refer to this scaling factor.  (This should not be confused with
+other uses of the term, such as the logarithmic "magnitude" unit commonly used in astronomy).
+
+In the library implementation, each unit is associated with a magnitude.  However, for most units,
+the magnitude is a fully encapsulated implementation detail, not a user-facing value.
+
+This is because the notion of "the" magnitude of a unit is not generally meaningful: it has no
+physically observable consequence.  What _is_ meaningful is the _ratio_ of magnitudes between two
+units of the same quantity kind.  We could associate the _foot_, say, with any magnitude $m_f$ that
+we like --- but once we make that choice, we must assign $3m_f$ to the _yard_, and $m_f/12$ to the
+_inch_.  Separately and independently, we can assign any magnitude $m_s$ to the second, because it's
+an independent dimension --- but once we make that choice, it fixes the magnitude for derived units,
+and we must assign, say, $(5280 m_f) / (3600 m_s)$ to the _mile per hour_.
+
+### Requirements and representation
+
+A magnitude is a positive real number.  The best way to _represent_ it depends on how we will _use_
+it.
+
+To derive our requirements, note that magnitudes must support every operation which units do. Units
+are closed under _products_ and _rational powers_.  Therefore, our magnitude representation must
+support these operations natively and robustly; this is the most basic requirement. We must also
+support certain _irrational_ "ratios", such as the factor of $\frac{\pi}{180}$ between _degrees_ and
+_radians_.
+
+The usual approach, `std::ratio`, fails to satisfy these requirements in multiple ways.
+
+- It is not closed under rational powers (rather infamously, in the case of 2<sup>1/2</sup>).
+- It cannot represent irrational factors such as $\pi$.
+- It is too vulnerable to overflow when raised to powers.
+
+This motivates us to search for a better representation.
+
+#### Vector spaces, dimensions, and prime numbers
+
+The quickest way to find this better representation is via a quick detour.
+
+Consider the _dimensions_ of units, such as length, or speed.  All of the above requirements apply
+to dimensions, too --- but in this case, we already have a very good representation.  We start by
+singling out a set of dimensions to act as "base" dimensions: for example, the SI uses length, mass,
+time, electric current, temperature, amount of substance, and luminous intensity.  Other dimensions
+are formed by taking products and rational powers of these.  Our choice of base dimensions must
+satisfy two properties: _spanning_ (i.e., every dimension can be expressed as _some_
+product-of-powers of base dimensions), and _independence_ (i.e., _no_ dimension can be expressed by
+_multiple_ products-of-powers of base dimensions).
+
+We call this scheme the "vector space" representation, because it satisfies all of the axioms of
+a vector space.  Choosing the base dimensions is equivalent to choosing a set of _basis vectors_.
+Multiplying dimensions is equivalent to _vector addition_.  And raising dimensions to rational
+powers is equivalent to _scalar multiplication_.
+
+| Dimension concept | Corresponding vector space concept |
+|-------------------|------------------------------------|
+| Base dimensions   | Basis vectors                      |
+| Multiplication    | Vector addition                    |
+| Raising to rational power | Scalar multiplication |
+| Null dimension ("dimensionless") | Zero vector |
+
+This viewpoint lets us derive insights from our intuitions about vectors.  For example, just as
+we're free to make a _change of basis_, we could also choose a different set of _base dimensions_:
+an SI-like system could treat charge as fundamental rather than electrical current, and would still
+produce all the same results.
+
+Returning to our magnitude representation problem, it should be clear that a vector space solution
+would meet all of our requirements --- _if_ we can find a suitable choice of basis.
+
+To begin our search, note that each magnitude must have a unique representation.  This means that
+every combination of our basis elements must produce a unique value.  Prime numbers have this
+property!  Take any arbitrarily large (but finite) collection of primes, raise each prime to some
+chosen exponent, and compute the product: the result can't be expressed by any other collection of
+exponents.
+
+Already, this lets us represent every positive real number which `std::ratio` can represent, by
+breaking the numerator and denominator into their prime factorizations.  But we can go further, and
+handle irrational factors such as $\pi$ by introducing them as new basis vectors.  $\pi$ cannot be
+represented by the product of powers of _any_ finite collection of primes, which means that it is
+"linearly independent" in the sense of our vector space representation.
+
+This completes our recipe for basis construction.  First, any prime number is automatically a basis
+element.  Next, any time we encounter a magnitude that can't be expressed in terms of the existing
+basis elements, then it is necessarily independent, which means we can simply add it as a _new_
+basis element.  It's true that, for reasons of real analysis, this approach can't rigorously
+represent every positive real number simultaneously.  However, it _does_ provide an approach that
+works in _practice_ for the finite set of magnitudes that we can use in real computer programs.
+
+On the C++ implementation side, we use variadic templates to define our magnitude.  Each element is
+a basis number raised to some rational power (which may be omitted or abbreviated as appropriate).
+
+### Advantages and disadvantages
+
+This representation has tradeoffs relative to other approaches, such as `std::ratio` and other
+related types.
+
+The core advantage is, of course, its ability to satisfy the requirements.  Several real-world
+operations that are impossible for `std::ratio` are effortless with vector space magnitudes.  Here
+are some examples, using Astronomical Units (au), meters (m), degrees (deg), and radians (rad).
+
+<!-- markdownlint-disable MD013 -->
+
+| Unit ratio                                   | `std::ratio` representation   | vector space representation                                                                                             |
+|----------------------------------------------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| $\left(\frac{\text{au}}{\text{m}}\right)$    | `std::ratio<149'597'870'700>` | `magnitude<power_v<2, 2>(), 3, power_v<5, 2>(), 73, 877, 7789>`                                                         |
+| $\left(\frac{\text{au}}{\text{m}}\right)^2$  | Unrepresentable (overflow)    | `magnitude<power_v<2, 4>(), power_v<3, 2>(), power_v<5, 4>(), power_v<73, 2>(), power_v<877, 2>(), power_v<7789, 2>()>` |
+| $\sqrt{\frac{\text{au}}{\text{m}}}$          | Unrepresentable               | `magnitude<2, power_v<3, 1, 2>(), 5, power_v<73, 1, 2>(), power_v<877, 1, 2>(), power_v<7789, 1, 2>()>`                 |
+| $\left(\frac{\text{rad}}{\text{deg}}\right)$ | Unrepresentable               | `magnitude<power_v<2, 2>(), power_v<3, 2>(), power_v<3.14159265358979323851e+0l, -1>(), 5>`                             |
+
+<!-- markdownlint-enable MD013 -->
+
+One disadvantage of the vector space magnitudes is that the type names are more verbose.  As seen in
+the table above, users would have to perform arithmetic to decode which number is being represented.
+We expect that we can mitigate this with the same strategy we used to clean up the unit type names:
+hide them via opaque types with more human-friendly names.
+
+The other disadvantage is that it incurs a dependency on the ability to compute prime factorizations
+at compile time, as we explore in the next section.
+
+### Compile-time factorization
+
+End users don't construct magnitudes directly.  If they want to implement, say, the "astronomical
+unit" referenced above, they would write something like `mag<149'597'870'700>`.  The library would
+automatically expand this to `magnitude<power_v<2, 2>(), 3, power_v<5, 2>(), 73, 877, 7789>`.  To do
+so requires the ability to factor the number `149'597'870'700` at compile time.
+
+This turns out to be challenging in many practical cases.  For example, the proton mass involves
+a factor of $1,672,621,923,695$, which has a large prime factor: $334,524,384,739$.  The usual
+method of factorization, trial division, requires many iterations to discover that this factor is
+prime --- so many, in fact, that every major compiler will assume that it's an infinite loop, and
+will terminate the compilation!
+
+One of us wrote the paper [@P3133R0] to explore a possible solution to this problem: a new standard
+library function, `std::first_factor(uint64_t)`.  This function would be required to return a result
+at compile time for any 64-bit integer --- possibly with the help of compiler built-ins, if it could
+not be done any other way.  The feedback to this paper showed that this wasn't actually
+a hard-blocker: it turns out that every practical case we have could be satisfied by a fast
+primality checker.  Still, we plan to continue investigating this avenue, both because it would make
+the standard units library implementation much easier, and because this function would be widely
+useful in many other domains.
+
 ## Quantity references
 
 _Note: We know that probably the term "reference" will not survive too long in the Committee,
