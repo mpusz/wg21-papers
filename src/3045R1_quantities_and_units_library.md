@@ -31,6 +31,7 @@ toc-depth: 4
 
 - One more dependency added to the table in the [Dependencies on other proposals] chapter.
 - [The affine space] chapter rewritten nearly from scratch.
+- [Magnitudes] chapter added.
 - `qp.quantity_from_zero()` does not work for user's named origins anymore.
 - `qp.quantity_from()` now works with other quantity points as well.
 - `basic_symbol_text` renamed to `symbol_text`.
@@ -5923,6 +5924,7 @@ _radians_.
 
 The usual approach, `std::ratio`, fails to satisfy these requirements in multiple ways.
 
+- Its integral types are too small to represent eight of SI prefixes.
 - It is not closed under rational powers (rather infamously, in the case of 2<sup>1/2</sup>).
 - It cannot represent irrational factors such as $\pi$.
 - It is too vulnerable to overflow when raised to powers.
@@ -5935,10 +5937,10 @@ The quickest way to find this better representation is via a quick detour.
 
 Consider the _dimensions_ of units, such as length, or speed.  All of the above requirements apply
 to dimensions, too --- but in this case, we already have a very good representation.  We start by
-singling out a set of dimensions to act as "base" dimensions: for example, the SI uses length, mass,
-time, electric current, temperature, amount of substance, and luminous intensity.  Other dimensions
-are formed by taking products and rational powers of these.  Our choice of base dimensions must
-satisfy two properties: _spanning_ (i.e., every dimension can be expressed as _some_
+singling out a set of dimensions to act as "base" dimensions: for example, the SI uses _length_,
+_mass_, _time_, _electric current_, _temperature_, _amount of substance_, and _luminous intensity_.
+Other dimensions are formed by taking products and rational powers of these.  Our choice of base
+dimensions must satisfy two properties: _spanning_ (i.e., every dimension can be expressed as _some_
 product-of-powers of base dimensions), and _independence_ (i.e., _no_ dimension can be expressed by
 _multiple_ products-of-powers of base dimensions).
 
@@ -5947,17 +5949,17 @@ a vector space.  Choosing the base dimensions is equivalent to choosing a set of
 Multiplying dimensions is equivalent to _vector addition_.  And raising dimensions to rational
 powers is equivalent to _scalar multiplication_.
 
-| Dimension concept | Corresponding vector space concept |
-|-------------------|------------------------------------|
-| Base dimensions   | Basis vectors                      |
-| Multiplication    | Vector addition                    |
-| Raising to rational power | Scalar multiplication |
-| Null dimension ("dimensionless") | Zero vector |
+| Dimension concept                | Corresponding vector space concept |
+|----------------------------------|------------------------------------|
+| Base dimensions                  | Basis vectors                      |
+| Multiplication                   | Vector addition                    |
+| Raising to rational power        | Scalar multiplication              |
+| Null dimension ("dimensionless") | Zero vector                        |
 
 This viewpoint lets us derive insights from our intuitions about vectors.  For example, just as
 we're free to make a _change of basis_, we could also choose a different set of _base dimensions_:
-an SI-like system could treat charge as fundamental rather than electrical current, and would still
-produce all the same results.
+an SI-like system could treat _charge_ as fundamental rather than _electrical current_, and would
+still produce all the same results.
 
 Returning to our magnitude representation problem, it should be clear that a vector space solution
 would meet all of our requirements --- _if_ we can find a suitable choice of basis.
