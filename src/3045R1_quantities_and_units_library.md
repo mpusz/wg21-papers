@@ -4988,7 +4988,12 @@ library does not have enough information to print it that way by itself.
    proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
    we OK with this?
 8. Are we OK with the usage of '_' for denoting a subscript identifier?
+9. Would it be a good idea to use Unicode characters for unit symbols in the code:
 
+    ```cpp
+    quantity resistance = 60 * kΩ;
+    quantity capacitance = 100 * µF;
+    ```
 
 # Design details and rationale
 
