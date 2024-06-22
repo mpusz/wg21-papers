@@ -29,6 +29,13 @@ toc-depth: 4
 
 ## Changes since [@P3045R1]
 
+- Dimensions, quantity specification, units, and point origins marked `final`
+- `delta` and `absolute` reference specifiers added to improve readability of the affine space
+  entities creation
+- `std::remove_const` was not needed in prefixes definitions
+- Compiler Explorer links updated to reflect the latest API changes
+
+
 ## Changes since [@P3045R0]
 
 - One more dependency added to the table in the [Dependencies on other proposals] chapter.
@@ -451,8 +458,8 @@ Parameters (NTTP). For example, the following code presents how second (a unit o
 and hertz (a unit of frequency in the [@SI]) can be defined:
 
 ```cpp
-inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
-inline constexpr struct hertz : named_unit<"Hz", 1 / second, kind_of<isq::frequency>> {} hertz;
+inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct hertz final : named_unit<"Hz", 1 / second, kind_of<isq::frequency>> {} hertz;
 ```
 
 ## Broad industry value
@@ -1311,7 +1318,7 @@ what we expected here.
 The affine space has two types of entities:
 
 - **_point_** - a position specified with coordinate values (e.g., location, address, etc.)
-- **_displacement vectors_** - the difference between two points (e.g., shift, offset,
+- **_displacement vector_** - the difference between two points (e.g., shift, offset,
   displacement, duration, etc.)
 
 The _displacement vector_ described here is specific to the affine space theory and is not the same
@@ -1370,6 +1377,47 @@ difference between two things:
 As we already know, a `quantity` type provides all operations required for the _displacement vector_
 abstraction in an affine space.
 
+Quantities are constructed from a delta quantity reference. Most of units are considered to be
+delta references by default. The ones that need a special qualification are the units that
+get a point origin in their definition (i.e., units of temperature).
+
+We can create a `quantity` by passing a delta quantity reference to either:
+
+- two-parameter constructor:
+
+    ```cpp
+    quantity q1(42, si::metre);
+    // quantity q2(42, si::kelvin);             // Compile-time error
+    // quantity q3(42, si::degree_Celsius);     // Compile-time error
+    // quantity q4(42, usc::degree_Fahrenheit); // Compile-time error
+    quantity q5(42, delta<si::metre>);
+    quantity q6(42, delta<si::kelvin>);
+    quantity q7(42, delta<si::degree_Celsius>);
+    quantity q8(42, delta<usc::degree_Fahrenheit>);
+    ```
+
+- multiply syntax:
+
+    ```cpp
+    quantity q1 = 42 * m;
+    // quantity q2 = 42 * K;      // Compile-time error
+    // quantity q3 = 42 * deg_C;  // Compile-time error
+    // quantity q4 = 42 * deg_F;  // Compile-time error
+    quantity q5 = 42 * delta<m>;
+    quantity q6 = 42 * delta<K>;
+    quantity q7 = 42 * delta<deg_C>;
+    quantity q8 = 42 * delta<deg_F>;
+    ```
+
+_Note:_ `delta` specifier is used to qualify the entire reference upon `quantity` construction.
+It does not satisfy the `Reference` concept. This means that, for example, the below are ill-formed:
+
+```cpp
+void foo(quantity<delta<si::degree_Celsius>> temp);              // ill-formed
+quantity<N * m / (delta<deg_C> * mol)> specific_heat_capacity;   // ill-formed
+quantity R = 8.314 * N * m / (delta<deg_C> * mol);               // ill-formed
+```
+
 ### _Point_ is modeled by `quantity_point` and `PointOrigin`
 
 In the library, the _point_ abstraction is modeled by:
@@ -1407,6 +1455,19 @@ scale zeroth point using the following rules:
 - otherwise, an instantiation of `zeroth_point_origin<QuantitySpec>` is being used which
   provides a well-established zeroth point for a specific quantity type.
 
+Quantity points with default point origins may be constructed using multiply syntax from an
+absolute quantity reference. None of units are considered to be absolute references by default,
+so they need a special qualification:
+
+```cpp
+// quantity_point qp1 = 42 * m;      // Compile-time error
+// quantity_point qp2 = 42 * K;      // Compile-time error
+// quantity_point qp3 = 42 * deg_C;  // Compile-time error
+quantity_point qp4 = 42 * absolute<m>;
+quantity_point qp5 = 42 * absolute<K>;
+quantity_point qp6 = 42 * absolute<deg_C>;
+```
+
 #### `zeroth_point_origin<QuantitySpec>`
 
 `zeroth_point_origin<QuantitySpec>` is meant to be used in cases where the specific domain has
@@ -1417,8 +1478,8 @@ for this domain.
 <img src="img/affine_space_1.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-quantity_point<isq::distance[si::metre]> qp1{100 * m};
-quantity_point<isq::distance[si::metre]> qp2{120 * m};
+quantity_point<isq::distance[si::metre]> qp1 = 100 * absolute<m>;
+quantity_point<isq::distance[si::metre]> qp2 = 120 * absolute<m>;
 
 assert(qp1.quantity_from_zero() == 100 * m);
 assert(qp2.quantity_from_zero() == 120 * m);
@@ -1464,10 +1525,10 @@ origin.
 <img src="img/affine_space_2.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-inline constexpr struct origin : absolute_point_origin<origin, isq::distance> {} origin;
+inline constexpr struct origin final : absolute_point_origin<isq::distance> {} origin;
 
-// quantity_point<si::metre, origin> qp1{100 * m};  // Compile-time error
-// quantity_point<si::metre, origin> qp2{120 * m};  // Compile-time error
+// quantity_point<si::metre, origin> qp1{100 * m};             // Compile-time error
+// quantity_point<si::metre, origin> qp2 = 120 * absolute<m>;  // Compile-time error
 quantity_point<si::metre, origin> qp1 = origin + 100 * m;
 quantity_point<si::metre, origin> qp2 = 120 * m + origin;
 
@@ -1526,8 +1587,8 @@ type and unit is being used:
 <img src="img/affine_space_3.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-inline constexpr struct origin1 : absolute_point_origin<origin1, isq::distance> {} origin1;
-inline constexpr struct origin2 : absolute_point_origin<origin2, isq::distance> {} origin2;
+inline constexpr struct origin1 final : absolute_point_origin<isq::distance> {} origin1;
+inline constexpr struct origin2 final : absolute_point_origin<isq::distance> {} origin2;
 
 quantity_point qp1 = origin1 + 100 * m;
 quantity_point qp2 = origin2 + 120 * m;
@@ -1560,10 +1621,10 @@ For such cases, relative point origins should be used:
 <img src="img/affine_space_4.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-inline constexpr struct A : absolute_point_origin<A, isq::distance> {} A;
-inline constexpr struct B : relative_point_origin<A + 10 * m> {} B;
-inline constexpr struct C : relative_point_origin<B + 10 * m> {} C;
-inline constexpr struct D : relative_point_origin<A + 30 * m> {} D;
+inline constexpr struct A final : absolute_point_origin<isq::distance> {} A;
+inline constexpr struct B final : relative_point_origin<A + 10 * m> {} B;
+inline constexpr struct C final : relative_point_origin<B + 10 * m> {} C;
+inline constexpr struct D final : relative_point_origin<A + 30 * m> {} D;
 
 quantity_point qp1 = C + 100 * m;
 quantity_point qp2 = D + 120 * m;
@@ -1660,18 +1721,18 @@ The [@SI] definition in the library provides a few predefined point origins for 
 ```cpp
 namespace si {
 
-inline constexpr struct absolute_zero : absolute_point_origin<absolute_zero, isq::thermodynamic_temperature> {} absolute_zero;
-inline constexpr struct zeroth_kelvin : decltype(absolute_zero) {} zeroth_kelvin;
+inline constexpr struct absolute_zero final : absolute_point_origin<isq::thermodynamic_temperature> {} absolute_zero;
+inline constexpr auto zeroth_kelvin = absolute_zero;
 
-inline constexpr struct ice_point : relative_point_origin<quantity_point{273'150 * milli<kelvin>}> {} ice_point;
-inline constexpr struct zeroth_degree_Celsius : decltype(ice_point) {} zeroth_degree_Celsius;
+inline constexpr struct ice_point final : relative_point_origin<273'150 * absolute<milli<kelvin>>> {} ice_point;
+inline constexpr auto zeroth_degree_Celsius = ice_point;
 
 }
 
 namespace usc {
 
-inline constexpr struct zeroth_degree_Fahrenheit :
-  relative_point_origin<quantity_point{-32 * (mag_ratio<5, 9> * si::degree_Celsius)}> {} zeroth_degree_Fahrenheit;
+inline constexpr struct zeroth_degree_Fahrenheit final :
+  relative_point_origin<-32 * absolute<mag_ratio<5, 9> * si::degree_Celsius>> {} zeroth_degree_Fahrenheit;
 
 }
 ```
@@ -1692,16 +1753,16 @@ definitions:
 ```cpp
 namespace si {
 
-inline constexpr struct kelvin :
+inline constexpr struct kelvin final :
     named_unit<"K", kind_of<isq::thermodynamic_temperature>, zeroth_kelvin> {} kelvin;
-inline constexpr struct degree_Celsius :
+inline constexpr struct degree_Celsius final :
     named_unit<{u8"°C", "`C"}, kelvin, zeroth_degree_Celsius> {} degree_Celsius;
 
 }
 
 namespace usc {
 
-inline constexpr struct degree_Fahrenheit :
+inline constexpr struct degree_Fahrenheit final :
     named_unit<{u8"°F", "`F"}, mag_ratio<5, 9> * si::degree_Celsius,
                zeroth_degree_Fahrenheit> {} degree_Fahrenheit;
 
@@ -1718,25 +1779,28 @@ choose from here. Depending on our needs or tastes, we can:
 - be explicit about the unit and origin:
 
     ```cpp
-    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q1 = si::zeroth_degree_Celsius + 20.5 * deg_C;
-    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q2 = {20.5 * deg_C, si::zeroth_degree_Celsius};
-    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q3{20.5 * deg_C};
+    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q1 = si::zeroth_degree_Celsius + 20.5 * delta<deg_C>;
+    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q2 = {20.5 * delta<deg_C>, si::zeroth_degree_Celsius};
+    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q3{20.5 * delta<deg_C>};
+    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q4 = 20.5 * absolute<deg_C>;
     ```
 
 - specify a unit and use its zeroth point origin implicitly:
 
     ```cpp
-    quantity_point<si::degree_Celsius> q4 = si::zeroth_degree_Celsius + 20.5 * deg_C;
-    quantity_point<si::degree_Celsius> q5 = {20.5 * deg_C, si::zeroth_degree_Celsius};
-    quantity_point<si::degree_Celsius> q6{20.5 * deg_C};
+    quantity_point<si::degree_Celsius> q5 = si::zeroth_degree_Celsius + 20.5 * delta<deg_C>;
+    quantity_point<si::degree_Celsius> q6 = {20.5 * delta<deg_C>, si::zeroth_degree_Celsius};
+    quantity_point<si::degree_Celsius> q7{20.5 * delta<deg_C>};
+    quantity_point<si::degree_Celsius> q8 = 20.5 * absolute<deg_C>;
     ```
 
 - benefit from CTAD:
 
     ```cpp
-    quantity_point q7 = si::zeroth_degree_Celsius + 20.5 * deg_C;
-    quantity_point q8 = {20.5 * deg_C, si::zeroth_degree_Celsius};
-    quantity_point q9{20.5 * deg_C};
+    quantity_point q9 = si::zeroth_degree_Celsius + 20.5 * delta<deg_C>;
+    quantity_point q10 = {20.5 * delta<deg_C>, si::zeroth_degree_Celsius};
+    quantity_point q11{20.5 * delta<deg_C>};
+    quantity_point q12 = 20.5 * absolute<deg_C>;
     ```
 
 In all of the above cases, we end up with the `quantity_point` of the same type and value.
@@ -1747,10 +1811,10 @@ the following way:
 <img src="img/affine_space_6.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-constexpr struct room_reference_temp : relative_point_origin<quantity_point{21 * deg_C}> {} room_reference_temp;
+constexpr struct room_reference_temp final : relative_point_origin<21 * absolute<deg_C>> {} room_reference_temp;
 using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
 
-constexpr auto step_delta = isq::Celsius_temperature(0.5 * deg_C);
+constexpr auto step_delta = isq::Celsius_temperature(0.5 * delta<deg_C>);
 constexpr int number_of_steps = 6;
 
 room_temp room_ref{};
@@ -1920,11 +1984,11 @@ using namespace mp_units;
 using namespace mp_units::si::unit_symbols;
 
 // add a custom quantity type of kind isq::length
-inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
+inline constexpr struct horizontal_length final : quantity_spec<isq::length> {} horizontal_length;
 
 // add a custom derived quantity type of kind isq::area
 // with a constrained quantity equation
-inline constexpr struct horizontal_area : quantity_spec<horizontal_length * isq::width> {} horizontal_area;
+inline constexpr struct horizontal_area final : quantity_spec<horizontal_length * isq::width> {} horizontal_area;
 
 inline constexpr auto g = 1 * si::standard_gravity;
 inline constexpr auto air_density = isq::mass_density(1.225 * kg / m3);
@@ -2024,14 +2088,13 @@ float rise rate = 2e-04 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/bE4Ga6cqE).
+Try it in [the Compiler Explorer](https://godbolt.org/z/5M54z45aa).
 
 ## Bridge across the Rhine
 
 The following example codifies the history of a famous issue during the construction of a bridge across
 the Rhine River between the German and Swiss parts of the town Laufenburg [@HOCHRHEINBRÜCKE].
 It also nicely presents how [the Affine Space is being modeled in the library](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/).
-
 
 ```cpp
 import mp_units;
@@ -2040,10 +2103,10 @@ import std;
 using namespace mp_units;
 using namespace mp_units::si::unit_symbols;
 
-constexpr struct amsterdam_sea_level : absolute_point_origin<amsterdam_sea_level, isq::altitude> {
+inline constexpr struct amsterdam_sea_level final : absolute_point_origin<isq::altitude> {
 } amsterdam_sea_level;
 
-constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level - 27 * cm> {
+inline constexpr struct mediterranean_sea_level final : relative_point_origin<amsterdam_sea_level - 27 * cm> {
 } mediterranean_sea_level;
 
 using altitude_DE = quantity_point<isq::altitude[m], amsterdam_sea_level>;
@@ -2135,7 +2198,7 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 - Switzerland: 33000 cm
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/xb1qhjT6a).
+Try it in [the Compiler Explorer](https://godbolt.org/z/zv6eenqq3).
 
 ## User defined quantities and units
 
@@ -2152,40 +2215,40 @@ using namespace mp_units;
 namespace ni {
 
 // quantities
-inline constexpr struct SampleCount : quantity_spec<dimensionless, is_kind> {} SampleCount;
-inline constexpr struct SampleDuration : quantity_spec<isq::time> {} SampleDuration;
-inline constexpr struct SamplingRate : quantity_spec<isq::frequency, SampleCount / isq::time> {} SamplingRate;
+inline constexpr struct SampleCount final : quantity_spec<dimensionless, is_kind> {} SampleCount;
+inline constexpr struct SampleDuration final : quantity_spec<isq::time> {} SampleDuration;
+inline constexpr struct SamplingRate final : quantity_spec<isq::frequency, SampleCount / isq::time> {} SamplingRate;
 
-inline constexpr struct UnitSampleAmount : quantity_spec<dimensionless, is_kind> {} UnitSampleAmount;
+inline constexpr struct UnitSampleAmount final : quantity_spec<dimensionless, is_kind> {} UnitSampleAmount;
 inline constexpr auto Amplitude = UnitSampleAmount;
 inline constexpr auto Level = UnitSampleAmount;
-inline constexpr struct Power : quantity_spec<Level * Level> {} Power;
+inline constexpr struct Power final : quantity_spec<Level * Level> {} Power;
 
-inline constexpr struct MIDIClock : quantity_spec<dimensionless, is_kind> {} MIDIClock;
+inline constexpr struct MIDIClock final : quantity_spec<dimensionless, is_kind> {} MIDIClock;
 
-inline constexpr struct BeatCount : quantity_spec<dimensionless, is_kind> {} BeatCount;
-inline constexpr struct BeatDuration : quantity_spec<isq::time> {} BeatDuration;
-inline constexpr struct Tempo : quantity_spec<isq::frequency, BeatCount / isq::time> {} Tempo;
+inline constexpr struct BeatCount final : quantity_spec<dimensionless, is_kind> {} BeatCount;
+inline constexpr struct BeatDuration final : quantity_spec<isq::time> {} BeatDuration;
+inline constexpr struct Tempo final : quantity_spec<isq::frequency, BeatCount / isq::time> {} Tempo;
 
 // units
-inline constexpr struct Sample : named_unit<"Smpl", one, kind_of<SampleCount>> {} Sample;
-inline constexpr struct SampleValue : named_unit<"PCM", one, kind_of<UnitSampleAmount>> {} SampleValue;
-inline constexpr struct MIDIPulse : named_unit<"p", one, kind_of<MIDIClock>> {} MIDIPulse;
+inline constexpr struct Sample final : named_unit<"Smpl", one, kind_of<SampleCount>> {} Sample;
+inline constexpr struct SampleValue final : named_unit<"PCM", one, kind_of<UnitSampleAmount>> {} SampleValue;
+inline constexpr struct MIDIPulse final : named_unit<"p", one, kind_of<MIDIClock>> {} MIDIPulse;
 
-inline constexpr struct QuarterNote : named_unit<"q", one, kind_of<BeatCount>> {} QuarterNote;
-inline constexpr struct HalfNote : named_unit<"h", mag<2> * QuarterNote> {} HalfNote;
-inline constexpr struct DottedHalfNote : named_unit<"h.", mag<3> * QuarterNote> {} DottedHalfNote;
-inline constexpr struct WholeNote : named_unit<"w", mag<4> * QuarterNote> {} WholeNote;
-inline constexpr struct EightNote : named_unit<"8th", mag_ratio<1, 2> * QuarterNote> {} EightNote;
-inline constexpr struct DottedQuarterNote : named_unit<"q.", mag<3> * EightNote> {} DottedQuarterNote;
-inline constexpr struct QuarterNoteTriplet : named_unit<"qt", mag_ratio<1, 3> * HalfNote> {} QuarterNoteTriplet;
-inline constexpr struct SixteenthNote : named_unit<"16th", mag_ratio<1, 2> * EightNote> {} SixteenthNote;
-inline constexpr struct DottedEightNote : named_unit<"q.", mag<3> * SixteenthNote> {} DottedEightNote;
+inline constexpr struct QuarterNote final : named_unit<"q", one, kind_of<BeatCount>> {} QuarterNote;
+inline constexpr struct HalfNote final : named_unit<"h", mag<2> * QuarterNote> {} HalfNote;
+inline constexpr struct DottedHalfNote final : named_unit<"h.", mag<3> * QuarterNote> {} DottedHalfNote;
+inline constexpr struct WholeNote final : named_unit<"w", mag<4> * QuarterNote> {} WholeNote;
+inline constexpr struct EightNote final : named_unit<"8th", mag_ratio<1, 2> * QuarterNote> {} EightNote;
+inline constexpr struct DottedQuarterNote final : named_unit<"q.", mag<3> * EightNote> {} DottedQuarterNote;
+inline constexpr struct QuarterNoteTriplet final : named_unit<"qt", mag_ratio<1, 3> * HalfNote> {} QuarterNoteTriplet;
+inline constexpr struct SixteenthNote final : named_unit<"16th", mag_ratio<1, 2> * EightNote> {} SixteenthNote;
+inline constexpr struct DottedEightNote final : named_unit<"q.", mag<3> * SixteenthNote> {} DottedEightNote;
 
 inline constexpr auto Beat = QuarterNote;
 
-inline constexpr struct BeatsPerMinute : named_unit<"bpm", Beat / si::minute> {} BeatsPerMinute;
-inline constexpr struct MIDIPulsePerQuarter : named_unit<"ppqn", MIDIPulse / QuarterNote> {} MIDIPulsePerQuarter;
+inline constexpr struct BeatsPerMinute final : named_unit<"bpm", Beat / si::minute> {} BeatsPerMinute;
+inline constexpr struct MIDIPulsePerQuarter final : named_unit<"ppqn", MIDIPulse / QuarterNote> {} MIDIPulsePerQuarter;
 
 namespace unit_symbols {
 
@@ -2312,7 +2375,7 @@ Transport Beats is: 16.495832 q
 Transport Time is: 8.997726 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/hYWE1b1q1).
+Try it in [the Compiler Explorer](https://godbolt.org/z/zfbxx8M7E).
 
 _Note: More about this example can be found in
 ["Exploration of Strongly-typed Units in C++: A Case Study from Digital Audio"](https://www.youtube.com/watch?v=oxnCdIfC4Z4)
@@ -2580,25 +2643,25 @@ are vector quantities).
 The below presents how such a hierarchy tree can be defined in the library:
 
 ```cpp
-inline constexpr struct dim_length : base_dimension<"L"> {} dim_length;
+inline constexpr struct dim_length final : base_dimension<"L"> {} dim_length;
 
-inline constexpr struct length : quantity_spec<dim_length> {} length;
-inline constexpr struct width : quantity_spec<length> {} width;
+inline constexpr struct length final : quantity_spec<dim_length> {} length;
+inline constexpr struct width final : quantity_spec<length> {} width;
 inline constexpr auto breadth = width;
-inline constexpr struct height : quantity_spec<length> {} height;
+inline constexpr struct height final : quantity_spec<length> {} height;
 inline constexpr auto depth = height;
 inline constexpr auto altitude = height;
-inline constexpr struct thickness : quantity_spec<width> {} thickness;
-inline constexpr struct diameter : quantity_spec<width> {} diameter;
-inline constexpr struct radius : quantity_spec<width> {} radius;
-inline constexpr struct radius_of_curvature : quantity_spec<radius> {} radius_of_curvature;
-inline constexpr struct path_length : quantity_spec<length> {} path_length;
+inline constexpr struct thickness final : quantity_spec<width> {} thickness;
+inline constexpr struct diameter final : quantity_spec<width> {} diameter;
+inline constexpr struct radius final : quantity_spec<width> {} radius;
+inline constexpr struct radius_of_curvature final : quantity_spec<radius> {} radius_of_curvature;
+inline constexpr struct path_length final : quantity_spec<length> {} path_length;
 inline constexpr auto arc_length = path_length;
-inline constexpr struct distance : quantity_spec<path_length> {} distance;
-inline constexpr struct radial_distance : quantity_spec<distance> {} radial_distance;
-inline constexpr struct wavelength : quantity_spec<length> {} wavelength;
-inline constexpr struct position_vector : quantity_spec<length, quantity_character::vector> {} position_vector;
-inline constexpr struct displacement : quantity_spec<length, quantity_character::vector> {} displacement;
+inline constexpr struct distance final : quantity_spec<path_length> {} distance;
+inline constexpr struct radial_distance final : quantity_spec<distance> {} radial_distance;
+inline constexpr struct wavelength final : quantity_spec<length> {} wavelength;
+inline constexpr struct position_vector final : quantity_spec<length, quantity_character::vector> {} position_vector;
+inline constexpr struct displacement final : quantity_spec<length, quantity_character::vector> {} displacement;
 ```
 
 In the above code:
@@ -2732,7 +2795,7 @@ Fortunately, the above-mentioned conversion rules make the code safe by construc
 Let's analyze the following example:
 
 ```cpp
-inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
+inline constexpr struct horizontal_length final : quantity_spec<isq::length> {} horizontal_length;
 
 namespace christmas {
 
@@ -2801,8 +2864,8 @@ The same rules propagate to derived quantities. For example, we can define stron
 length and area:
 
 ```cpp
-inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
-inline constexpr struct horizontal_area : quantity_spec<isq::area, horizontal_length * isq::width> {} horizontal_area;
+inline constexpr struct horizontal_length final : quantity_spec<isq::length> {} horizontal_length;
+inline constexpr struct horizontal_area final : quantity_spec<isq::area, horizontal_length * isq::width> {} horizontal_area;
 ```
 
 The first definition says that a `horizontal_length` is a more specialized quantity than
@@ -2937,7 +3000,7 @@ one for each base quantity. In the library, this is expressed by associating a q
 a unit being defined:
 
 ```cpp
-inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} metre;
 ```
 
 The `kind_of<isq::length>` above states explicitly that this unit has an associated quantity
@@ -2953,7 +3016,7 @@ define a system where both _length_ and _time_ will be measured in seconds, and 
 a quantity measured with the unit `one`. In such case, the definition will look as follows:
 
 ```cpp
-inline constexpr struct second : named_unit<"s"> {} second;
+inline constexpr struct second final : named_unit<"s"> {} second;
 ```
 
 ### Units compose
@@ -2984,7 +3047,7 @@ Each such named derived unit is a result of a specific predefined unit equation.
 For example, a unit of power quantity is defined as:
 
 ```cpp
-inline constexpr struct watt : named_unit<"W", joule / second> {} watt;
+inline constexpr struct watt final : named_unit<"W", joule / second> {} watt;
 ```
 
 However, a power quantity can be expressed in other units as well. For example,
@@ -3022,8 +3085,8 @@ This is why it is important for the library to allow constraining such units to 
 a specific quantity kind:
 
 ```cpp
-inline constexpr struct hertz : named_unit<"Hz", one / second, kind_of<isq::frequency>> {} hertz;
-inline constexpr struct becquerel : named_unit<"Bq", one / second, kind_of<isq::activity>> {} becquerel;
+inline constexpr struct hertz final : named_unit<"Hz", one / second, kind_of<isq::frequency>> {} hertz;
+inline constexpr struct becquerel final : named_unit<"Bq", one / second, kind_of<isq::activity>> {} becquerel;
 ```
 
 With the above, `hertz` can only be used for _frequencies_, while `becquerel` should only be used for
@@ -3048,7 +3111,7 @@ Each prefix is implemented as:
 
 ```cpp
 template<PrefixableUnit U> struct quecto_ : prefixed_unit<"q", mag_power<10, -30>, U{}> {};
-template<PrefixableUnit auto U> inline constexpr quecto_<std::remove_const_t<decltype(U)>> quecto;
+template<PrefixableUnit auto U> inline constexpr quecto_<decltype(U)> quecto;
 ```
 
 and then a unit can be prefixed in the following way:
@@ -3063,7 +3126,7 @@ the IT industry can be implemented as:
 
 ```cpp
 template<PrefixableUnit U> struct yobi_ : prefixed_unit<"Yi", mag_power<2, 80>, U{}> {};
-template<PrefixableUnit auto U> inline constexpr yobi_<std::remove_const_t<decltype(U)>> yobi;
+template<PrefixableUnit auto U> inline constexpr yobi_<decltype(U)> yobi;
 ```
 
 _Please note that to improve the readability of generated types that are exposed in compiler errors
@@ -3080,9 +3143,9 @@ are scaled versions of the [@SI] units with ratios that can't be explicitly expr
 predefined SI prefixes. Those include units like minute, hour, or electronvolt:
 
 ```cpp
-inline constexpr struct minute : named_unit<"min", mag<60> * si::second> {} minute;
-inline constexpr struct hour : named_unit<"h", mag<60> * minute> {} hour;
-inline constexpr struct electronvolt : named_unit<"eV",
+inline constexpr struct minute final : named_unit<"min", mag<60> * si::second> {} minute;
+inline constexpr struct hour final : named_unit<"h", mag<60> * minute> {} hour;
+inline constexpr struct electronvolt final : named_unit<"eV",
     mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * si::joule> {} electronvolt;
 ```
 
@@ -3090,13 +3153,13 @@ Also, units of other systems of units are often defined in terms of scaled versi
 (often SI) units. For example, the international yard is defined as:
 
 ```cpp
-inline constexpr struct yard : named_unit<"yd", mag_ratio<9'144, 10'000> * si::metre> {} yard;
+inline constexpr struct yard final : named_unit<"yd", mag_ratio<9'144, 10'000> * si::metre> {} yard;
 ```
 
 and then a `foot` can be defined as:
 
 ```cpp
-inline constexpr struct foot : named_unit<"ft", mag_ratio<1, 3> * yard> {} foot;
+inline constexpr struct foot final : named_unit<"ft", mag_ratio<1, 3> * yard> {} foot;
 ```
 
 For some units, a magnitude might also be irrational. The best example here is a `degree` which
@@ -3107,7 +3170,7 @@ inline constexpr struct mag_pi : magnitude<std::numbers::pi_v<long double>> {} m
 ```
 
 ```cpp
-inline constexpr struct degree : named_unit<{u8"°", "deg"}, mag_pi / mag<180> * si::radian> {} degree;
+inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag_pi / mag<180> * si::radian> {} degree;
 ```
 
 ### Unit symbols
@@ -3366,7 +3429,7 @@ origins can't be created from a standalone value of a `quantity` (contrary to th
 
 ```cpp
 quantity_point qp1 = mean_sea_level + 42 * m;
-quantity_point qp2 = default_ac_temperature + 2 * deg_C;
+quantity_point qp2 = default_ac_temperature + 2 * delta<deg_C>;
 ```
 
 ### Safe quantity numerical value getters
@@ -3920,8 +3983,8 @@ they are intended to work and what are the potential pitfalls or surprises.
 First, let's run the following code:
 
 ```cpp
-quantity q1 = isq::thermodynamic_temperature(30. * K);
-quantity q2 = isq::Celsius_temperature(30. * deg_C);
+quantity q1 = isq::thermodynamic_temperature(30. * delta<K>);
+quantity q2 = isq::Celsius_temperature(30. * delta<deg_C>);
 
 std::println("q1: {}, {}, {}", q1, q1.in(deg_C), q1.in(deg_F));
 std::println("q2: {}, {}, {}", q2.in(K), q2, q2.in(deg_F));
@@ -4009,8 +4072,8 @@ work, let's discuss quantity points. Those describe specific points and are meas
 relative to a provided origin:
 
 ```cpp
-quantity_point qp1 = si::zeroth_kelvin + isq::thermodynamic_temperature(300. * K);
-quantity_point qp2 = si::zeroth_degree_Celsius + isq::Celsius_temperature(30. * deg_C);
+quantity_point qp1 = si::zeroth_kelvin + isq::thermodynamic_temperature(300. * delta<K>);
+quantity_point qp2 = si::zeroth_degree_Celsius + isq::Celsius_temperature(30. * delta<deg_C>);
 ```
 
 The above provides two different temperature points. The first one is measured as a relative
@@ -4022,8 +4085,8 @@ and benefiting from the fact that units of temperature have point origins provid
 definitions we can obtain exactly the same quantity points with the following:
 
 ```cpp
-quantity_point qp3{isq::thermodynamic_temperature(300. * K)};
-quantity_point qp4{isq::Celsius_temperature(30. * deg_C)};
+quantity_point qp3{isq::thermodynamic_temperature(300. * delta<K>)};
+quantity_point qp4{isq::Celsius_temperature(30. * delta<deg_C>)};
 ```
 
 It is essential to understand that the origins of quantity points will not change if
@@ -4101,10 +4164,10 @@ The `quantity` and `quantity_point` class templates are structural types to allo
 as template arguments. For example, we can write the following:
 
 ```cpp
-constexpr struct amsterdam_sea_level : absolute_point_origin<isq::altitude> {
+constexpr struct amsterdam_sea_level final : absolute_point_origin<isq::altitude> {
 } amsterdam_sea_level;
 
-constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level + isq::altitude(-27 * cm)> {
+constexpr struct mediterranean_sea_level final : relative_point_origin<amsterdam_sea_level + isq::altitude(-27 * cm)> {
 } mediterranean_sea_level;
 
 using altitude_DE = quantity_point<isq::altitude[m], amsterdam_sea_level>;
@@ -4146,61 +4209,61 @@ might not be the final version proposed for standardization._
 Dimensions:
 
 ```cpp
-inline constexpr struct dim_length : base_dimension<"L"> {} dim_length;
-inline constexpr struct dim_mass : base_dimension<"M"> {} dim_mass;
-inline constexpr struct dim_time : base_dimension<"T"> {} dim_time;
-inline constexpr struct dim_electric_current : base_dimension<"I"> {} dim_electric_current;
-inline constexpr struct dim_thermodynamic_temperature : base_dimension<{u8"Θ", "O"}> {} dim_thermodynamic_temperature;
-inline constexpr struct dim_amount_of_substance : base_dimension<"N"> {} dim_amount_of_substance;
-inline constexpr struct dim_luminous_intensity : base_dimension<"J"> {} dim_luminous_intensity;
+inline constexpr struct dim_length final : base_dimension<"L"> {} dim_length;
+inline constexpr struct dim_mass final : base_dimension<"M"> {} dim_mass;
+inline constexpr struct dim_time final : base_dimension<"T"> {} dim_time;
+inline constexpr struct dim_electric_current final : base_dimension<"I"> {} dim_electric_current;
+inline constexpr struct dim_thermodynamic_temperature final : base_dimension<{u8"Θ", "O"}> {} dim_thermodynamic_temperature;
+inline constexpr struct dim_amount_of_substance final : base_dimension<"N"> {} dim_amount_of_substance;
+inline constexpr struct dim_luminous_intensity final : base_dimension<"J"> {} dim_luminous_intensity;
 ```
 
 Units:
 
 ```cpp
-inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
-inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
-inline constexpr struct gram : named_unit<"g", kind_of<isq::mass>> {} gram;
-inline constexpr struct kilogram : decltype(kilo<gram>) {} kilogram;
+inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct gram final : named_unit<"g", kind_of<isq::mass>> {} gram;
+inline constexpr auto kilogram = kilo<gram>;
 
-inline constexpr struct newton : named_unit<"N", kilogram * metre / square(second)> {} newton;
-inline constexpr struct joule : named_unit<"J", newton * metre> {} joule;
-inline constexpr struct watt : named_unit<"W", joule / second> {} watt;
-inline constexpr struct coulomb : named_unit<"C", ampere * second> {} coulomb;
-inline constexpr struct volt : named_unit<"V", watt / ampere> {} volt;
-inline constexpr struct farad : named_unit<"F", coulomb / volt> {} farad;
-inline constexpr struct ohm : named_unit<{u8"Ω", "ohm"}, volt / ampere> {} ohm;
+inline constexpr struct newton final : named_unit<"N", kilogram * metre / square(second)> {} newton;
+inline constexpr struct joule final : named_unit<"J", newton * metre> {} joule;
+inline constexpr struct watt final : named_unit<"W", joule / second> {} watt;
+inline constexpr struct coulomb final : named_unit<"C", ampere * second> {} coulomb;
+inline constexpr struct volt final : named_unit<"V", watt / ampere> {} volt;
+inline constexpr struct farad final : named_unit<"F", coulomb / volt> {} farad;
+inline constexpr struct ohm final : named_unit<{u8"Ω", "ohm"}, volt / ampere> {} ohm;
 ```
 
 Prefixes:
 
 ```cpp
-template<PrefixableUnit auto U> struct micro_ : prefixed_unit<{u8"µ", "u"}, mag_power<10, -6>, U> {};
-template<PrefixableUnit auto U> struct milli_ : prefixed_unit<"m", mag_power<10, -3>, U> {};
-template<PrefixableUnit auto U> struct centi_ : prefixed_unit<"c", mag_power<10, -2>, U> {};
-template<PrefixableUnit auto U> struct deci_  : prefixed_unit<"d", mag_power<10, -1>, U> {};
-template<PrefixableUnit auto U> struct deca_  : prefixed_unit<"da", mag_power<10, 1>, U> {};
-template<PrefixableUnit auto U> struct hecto_ : prefixed_unit<"h", mag_power<10, 2>, U> {};
-template<PrefixableUnit auto U> struct kilo_  : prefixed_unit<"k", mag_power<10, 3>, U> {};
-template<PrefixableUnit auto U> struct mega_  : prefixed_unit<"M", mag_power<10, 6>, U> {};
+template<PrefixableUnit U> struct micro_ : prefixed_unit<{u8"µ", "u"}, mag_power<10, -6>, U{}> {};
+template<PrefixableUnit U> struct milli_ : prefixed_unit<"m", mag_power<10, -3>, U{}> {};
+template<PrefixableUnit U> struct centi_ : prefixed_unit<"c", mag_power<10, -2>, U{}> {};
+template<PrefixableUnit U> struct deci_  : prefixed_unit<"d", mag_power<10, -1>, U{}> {};
+template<PrefixableUnit U> struct deca_  : prefixed_unit<"da", mag_power<10, 1>, U{}> {};
+template<PrefixableUnit U> struct hecto_ : prefixed_unit<"h", mag_power<10, 2>, U{}> {};
+template<PrefixableUnit U> struct kilo_  : prefixed_unit<"k", mag_power<10, 3>, U{}> {};
+template<PrefixableUnit U> struct mega_  : prefixed_unit<"M", mag_power<10, 6>, U{}> {};
 ```
 
 Constants:
 
 ```cpp
-inline constexpr struct hyperfine_structure_transition_frequency_of_cs :
+inline constexpr struct hyperfine_structure_transition_frequency_of_cs final :
   named_unit<{u8"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
-inline constexpr struct speed_of_light_in_vacuum :
+inline constexpr struct speed_of_light_in_vacuum final :
   named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
-inline constexpr struct planck_constant :
+inline constexpr struct planck_constant final :
   named_unit<"h", mag_ratio<662'607'015, 100'000'000> * mag_power<10, -34> * joule * second> {} planck_constant;
-inline constexpr struct elementary_charge :
+inline constexpr struct elementary_charge final :
   named_unit<"e", mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * coulomb> {} elementary_charge;
-inline constexpr struct boltzmann_constant :
+inline constexpr struct boltzmann_constant final :
   named_unit<"k", mag_ratio<1'380'649, 1'000'000> * mag_power<10, -23> * joule / kelvin> {} boltzmann_constant;
-inline constexpr struct avogadro_constant :
+inline constexpr struct avogadro_constant final :
   named_unit<"N_A", mag_ratio<602'214'076, 100'000'000> * mag_power<10, 23> / mole> {} avogadro_constant;
-inline constexpr struct luminous_efficacy :
+inline constexpr struct luminous_efficacy final :
   named_unit<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
 ```
 
@@ -5013,8 +5076,8 @@ really successful, and we got great feedback from users so far.
 Here is how we define metre and second [@SI] base units:
 
 ```cpp
-inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
-inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
 ```
 
 Please note that the above reuses the same identifier for a type and its value. The rationale
@@ -5025,6 +5088,10 @@ behind this is that:
 
 To improve compiler errors' readability and make it easier to correlate them with a user's written
 code, a new idiom in the library is to use the same identifier for a type and its instance.
+
+Also, to prevent possible issues in compile-time logic, all of the library's entities must be
+marked `final`. This prevents the users to derive own strong types from them, which would
+prevent expression template simplification of equivalent entities.
 
 ### Strong types instead of aliases
 
@@ -5090,9 +5157,9 @@ extensions to Non-Type Template Parameters, which allow us to directly pass a re
 the value-based unit equation to a class template definition:
 
 ```cpp
-inline constexpr struct newton : named_unit<"N", kilogram * metre / square(second)> {} newton;
-inline constexpr struct pascal : named_unit<"Pa", newton / square(metre)> {} pascal;
-inline constexpr struct joule : named_unit<"J", newton * metre> {} joule;
+inline constexpr struct newton final : named_unit<"N", kilogram * metre / square(second)> {} newton;
+inline constexpr struct pascal final : named_unit<"Pa", newton / square(metre)> {} pascal;
+inline constexpr struct joule final : named_unit<"J", newton * metre> {} joule;
 ```
 
 ## Framework entities
@@ -5401,7 +5468,7 @@ because this quantity type implicitly converts to `isq::thermodynamic_temperatur
 However, if we define `mean_sea_level` in the following way:
 
 ```cpp
-inline constexpr struct mean_sea_level : absolute_point_origin<isq::altitude> {} mean_sea_level;
+inline constexpr struct mean_sea_level final : absolute_point_origin<isq::altitude> {} mean_sea_level;
 ```
 
 then it can't be used as a point origin for _points_ of `isq::length` or `isq::width` as none of
@@ -5489,7 +5556,7 @@ template<typename C>
 struct quantity_point_like_traits<std::chrono::time_point<C, std::chrono::seconds>> {
   using T = std::chrono::time_point<C, std::chrono::seconds>;
   static constexpr auto reference = si::second;
-  static constexpr struct point_origin : absolute_point_origin<isq::time> {} point_origin{};
+  static constexpr struct point_origin final : absolute_point_origin<isq::time> {} point_origin{};
   using rep = std::chrono::seconds::rep;
 
   [[nodiscard]] static constexpr convert_implicitly<quantity<reference, rep>> to_quantity(const T& qp)
@@ -5712,6 +5779,10 @@ the resulting expression template.
     such behavior. For example, the Hubble constant is expressed in `km⋅s⁻¹⋅Mpc⁻¹`, where both
     `km` and `Mpc` are units of _length_.
 
+    Also, to prevent possible issues in compile-time logic, all of the library's entities must be
+    marked `final`. This prevents the users to derive own strong types from them, which would
+    prevent expression template simplification of equivalent entities.
+
 4. **Repacking**
 
     In case an expression uses two results of some other operations, the components of its arguments
@@ -5825,12 +5896,12 @@ namespace si {
 
 namespace si2019 {
 
-inline constexpr struct speed_of_light_in_vacuum :
+inline constexpr struct speed_of_light_in_vacuum final :
   named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
 
 }  // namespace si2019
 
-inline constexpr struct magnetic_constant :
+inline constexpr struct magnetic_constant final :
   named_unit<{u8"μ₀", "u_0"}, mag<4> * mag_pi * mag_power<10, -7> * henry / metre> {} magnetic_constant;
 
 }  // namespace si
@@ -6768,7 +6839,7 @@ that uses a unit that is proportional to the ratio of kilometers per megaparsecs
 units of length:
 
 ```cpp
-inline constexpr struct hubble_constant :
+inline constexpr struct hubble_constant final :
     named_unit<{u8"H₀", "H_0"}, mag_ratio<701, 10> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
 } hubble_constant;
 ```
@@ -6925,9 +6996,9 @@ Besides the unit `one`, there are a few other scaled units predefined in the lib
 with dimensionless quantities:
 
 ```cpp
-inline constexpr struct percent : named_unit<"%", mag_ratio<1, 100> * one> {} percent;
-inline constexpr struct per_mille : named_unit<{u8"‰", "%o"}, mag_ratio<1, 1000> * one> {} per_mille;
-inline constexpr struct parts_per_million : named_unit<"ppm", mag_ratio<1, 1'000'000> * one> {} parts_per_million;
+inline constexpr struct percent final : named_unit<"%", mag_ratio<1, 100> * one> {} percent;
+inline constexpr struct per_mille final : named_unit<{u8"‰", "%o"}, mag_ratio<1, 1000> * one> {} per_mille;
+inline constexpr struct parts_per_million final : named_unit<"ppm", mag_ratio<1, 1'000'000> * one> {} parts_per_million;
 inline constexpr auto ppm = parts_per_million;
 ```
 
@@ -6971,18 +7042,18 @@ To provide such support in the library, we provided an `is_kind` specifier that 
 to the quantity specification:
 
 ```cpp
-inline constexpr struct angular_measure : quantity_spec<dimensionless, arc_length / radius, is_kind> {} angular_measure;
-inline constexpr struct solid_angular_measure : quantity_spec<dimensionless, area / pow<2>(radius), is_kind> {} solid_angular_measure;
-inline constexpr struct storage_capacity : quantity_spec<dimensionless, is_kind> {} storage_capacity;
+inline constexpr struct angular_measure final : quantity_spec<dimensionless, arc_length / radius, is_kind> {} angular_measure;
+inline constexpr struct solid_angular_measure final : quantity_spec<dimensionless, area / pow<2>(radius), is_kind> {} solid_angular_measure;
+inline constexpr struct storage_capacity final : quantity_spec<dimensionless, is_kind> {} storage_capacity;
 ```
 
 With the above, we can constrain `radian`, `steradian`, and `bit` to be allowed for usage with
 specific quantity kinds only:
 
 ```cpp
-inline constexpr struct radian : named_unit<"rad", metre / metre, kind_of<isq::angular_measure>> {} radian;
-inline constexpr struct steradian : named_unit<"sr", square(metre) / square(metre), kind_of<isq::solid_angular_measure>> {} steradian;
-inline constexpr struct bit : named_unit<"bit", one, kind_of<storage_capacity>> {} bit;
+inline constexpr struct radian final : named_unit<"rad", metre / metre, kind_of<isq::angular_measure>> {} radian;
+inline constexpr struct steradian final : named_unit<"sr", square(metre) / square(metre), kind_of<isq::solid_angular_measure>> {} steradian;
+inline constexpr struct bit final : named_unit<"bit", one, kind_of<storage_capacity>> {} bit;
 ```
 
 This still allows the usage of `one` (possibly scaled) for such quantities which is exactly what
@@ -7243,8 +7314,8 @@ It is important to note here that only a `quantity_point` that uses `chrono_poin
 as its origin can be converted to the `std::chrono` abstractions:
 
 ```cpp
-inline constexpr struct ts_origin : relative_point_origin<chrono_point_origin<system_clock> + 1 * h> {} ts_origin;
-inline constexpr struct my_origin : absolute_point_origin<my_origin, isq::time> {} my_origin;
+inline constexpr struct ts_origin final : relative_point_origin<chrono_point_origin<system_clock> + 1 * h> {} ts_origin;
+inline constexpr struct my_origin final : absolute_point_origin<isq::time> {} my_origin;
 
 quantity_point qp1 = sys_seconds{1s};
 auto tp1 = to_chrono_time_point(qp1);  // OK
@@ -7328,7 +7399,7 @@ example like the below could be a great exercise here:
 import mp_units;
 import std;
 
-inline constexpr struct smoot : std::named_unit<"smoot", std::mag<67> * std::usc::inch> {} smoot;
+inline constexpr struct smoot final : std::named_unit<"smoot", std::mag<67> * std::usc::inch> {} smoot;
 
 int main()
 {
