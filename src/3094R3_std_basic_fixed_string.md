@@ -14,6 +14,15 @@ author:
 
 # Revision history
 
+## Changes since [@P3094R2]
+
+- Additional motivation for [Constructor taking the list of characters] added.
+- Capacity related operations fixed to properly use `std::integral_constant`.
+- `<fixed_string>` added to [Table 24: C++ library headers](https://eel.is/c++draft/tab:headers.cpp).
+- Non-member `swap()` and rationale for it added.
+- Ill-formed notes in synopsis replaced with "Mandates".
+- "Constructs an object" replaced with the "Initializes `data_`" in the constructor's wording.
+
 ## Changes since [@P3094R1]
 
 - [Design discussion] chapter extended.
@@ -233,6 +242,9 @@ This constructor enables a few use cases that are hard to implement otherwise:
 3. `std::fixed_string{'W', 'e', 'i', 'r', 'd', '\0', 'b', 'u', 't', ' ', 't', 'r', 'u', 'e'}`
    (credit to Tom Honermann)
 
+This constructor also allows us to deduce the size of the string from the initializer to improve
+CTAD usage. Using `std::initializer_list<charT>` would not support it.
+
 ## Constructor from the range
 
 There are at least two ways of passing a range to a string-like type in the C++ standard library:
@@ -272,6 +284,13 @@ During Tokyo 2024 discussion in LEWGI we took the following poll:
 As a result, the R2 version of this paper introduces this practice from the `simd` type to
 `size`, `length`, `max_size`, and `empty` member functions.
 
+## Non-member `swap`
+
+Typically its implementation will not differ from calling the generic `std::swap`. However,
+in some extreme cases, when we use the type with enormously long text, library implementers
+may choose to swap the data in chunks to save stack space. In such case, generic `std::swap()`
+could provide a different behavior than calling the member `swap()` function.
+
 ## User-defined literals
 
 In Tokyo 2024 we briefly discussed adding UDLs for this type. However, we decided not to do it
@@ -297,20 +316,26 @@ A modern practice is to expose operators as hidden friends and this is what this
 However, this is inconsistent with `string` and `string_view` which provide them as regular
 non-member functions. Should we consider doing the same for consistency?
 
-## Do we need to provide non-member `swap`?
-
-All the containers (including `array`) provide non-member `swap`. However, in this case, it
-seems that the default implementation of `std::swap` would suffice.
-
 # Implementation experience
 
 This particular interface is implemented, tested, and successfully used in the
 [mp-units](https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h)
 project. A complete implementation with tests can also be checked in the
-[Compiler Explorer](https://godbolt.org/z/EaaW36YG7).
+[Compiler Explorer](https://godbolt.org/z/4fh9bxfTh).
 
 
 # Wording
+
+## [Library introduction](https://wg21.link/library) { #library }
+
+### [Library-wide requirements](https://wg21.link/requirements) { #requirements }
+
+#### [Library contents and organization](https://wg21.link/organization) { #organization }
+
+##### [Headers](https://wg21.link/headers) { #headers }
+
+Add `<fixed_string>` to the [Table 24: C++ library headers](https://eel.is/c++draft/tab:headers.cpp).
+
 
 ## [Header `<version>` synopsis](https://wg21.link/version.syn) { #version.syn }
 
@@ -412,6 +437,10 @@ namespace std {
 template<class charT, size_t N, class traits = char_traits<charT>>
 class basic_fixed_string;  // partially freestanding
 
+// @[[fixed.string.special]](#fixed.string.special)@, specialized algorithms
+template<class charT, size_t N, class traits>
+constexpr void swap(basic_fixed_string<charT, N, traits>& x, basic_fixed_string<charT, N, traits>& y) noexcept;
+
 // basic_fixed_string @[typedef-names](https://eel.is/c++draft/dcl.typedef#nt:typedef-name)@
 template<size_t N> using fixed_string    = basic_fixed_string<char, N>;
 template<size_t N> using fixed_u8string  = basic_fixed_string<char8_t, N>;
@@ -476,7 +505,7 @@ public:
   using reference              = value_type&;
   using const_reference        = const value_type&;
   using const_iterator         = @_implementation-defined_@;  // see @[fixed.string.iterators](#fixed.string.iterators)@
-  using iterator               = const_iterator;
+  using iterator               = const_iterator; @[^1]@
   using const_reverse_iterator = reverse_iterator<const_iterator>;
   using reverse_iterator       = const_reverse_iterator;
   using size_type              = size_t;
@@ -510,10 +539,10 @@ public:
   constexpr const_reverse_iterator crend() const noexcept;
 
   // capacity
-  static constexpr integral_constant<size_type, N> size() noexcept;
-  static constexpr integral_constant<size_type, N> length() noexcept;
-  static constexpr integral_constant<size_type, N> max_size() noexcept;
-  static constexpr bool_constant<N == 0> empty() noexcept;
+  static constexpr std::integral_constant<size_type, N> size{};
+  static constexpr std::integral_constant<size_type, N> length{};
+  static constexpr std::integral_constant<size_type, N> max_size{};
+  static constexpr std::bool_constant<N == 0> empty{};
 
   // element access
   constexpr const_reference operator[](size_type pos) const;
@@ -563,11 +592,14 @@ basic_fixed_string(CharT, Rest...) -> basic_fixed_string<CharT, 1 + sizeof...(Re
 template<typename charT, size_t N>
 basic_fixed_string(const charT (&str)[N]) -> basic_fixed_string<charT, N - 1>;
 
-template<@_one_of_@<char, char8_t, char16_t, char32_t, wchar_t> CharT, size_t N>
+template<@_one-of_@<char, char8_t, char16_t, char32_t, wchar_t> CharT, size_t N>
 basic_fixed_string(from_range_t, array<CharT, N>) -> basic_fixed_string<CharT, N>;
 
 }
 ```
+
+_Footnote [^1]_: Because `basic_fixed_string` models a sequence, `iterator` and `const_iterator`
+are the same type.
 
 #### Construction and assignment { #fixed.string.cons }
 
@@ -577,16 +609,16 @@ template<convertible_to<charT>... Chars>
 constexpr explicit basic_fixed_string(Chars... chars) noexcept;
 ```
 
-[1]{.pnum} _Effects_: Constructs an object whose value is that of `chars...` before
-the call followed by the `charT()` (a "null terminator").
+[1]{.pnum} _Effects_: Initializes `data_` with the values of `chars...` before the call followed by
+the `charT()` (a "null terminator").
 
 ```cpp
 consteval basic_fixed_string(const charT (&txt)[N + 1]);
 ```
 
-[2]{.pnum} _Effects_: Constructs an object whose value is a copy of `txt`.
+[2]{.pnum} _Mandates_: `txt[N] == CharT()`.
 
-[3]{.pnum} [_Note 1_: The program is ill-formed if `txt[N] != CharT()`. — _end note_]
+[3]{.pnum} _Effects_: Initializes `data_`  with a copy of `txt`.
 
 ```cpp
 template<input_iterator It, sentinel_for<It> S>
@@ -596,7 +628,7 @@ constexpr basic_fixed_string(It begin, S end);
 
 [4]{.pnum} _Preconditions_: `distance(begin, end) == N`.
 
-[5]{.pnum} _Effects_: Constructs an object from the values in the range `[begin, end)`,
+[5]{.pnum} _Effects_: Initializes `data_` from the values in the range `[begin, end)`,
 as specified in [sequence.reqmts]{.sref}.
 
 
@@ -607,7 +639,7 @@ constexpr basic_fixed_string(from_range_t, R&& r);
 
 [6]{.pnum} _Preconditions_: `ranges::size(r) == N`.
 
-[7]{.pnum} _Effects_: Constructs an object from the values in the range `rg`, as specified
+[7]{.pnum} _Effects_: Initializes `data_` from the values in the range `rg`, as specified
 in [sequence.reqmts]{.sref}.
 
 #### Deduction guides { #fixed.string.deduct }
@@ -616,7 +648,7 @@ in [sequence.reqmts]{.sref}.
 
 ```cpp
 template<typename T, typename... Ts>
-concept one-of = (false || ... || std::same_as<T, Ts>);  // exposition only
+concept @_one-of_@ = (false || ... || std::same_as<T, Ts>);  // exposition only
 ```
 
 #### Modifiers { #fixed.string.modifiers }
@@ -671,10 +703,10 @@ consteval friend basic_fixed_string<charT, N + N2 - 1, traits> operator+(const b
                                                                          const charT (&rhs)[N2]) noexcept;
 ```
 
-[6]{.pnum} _Effects_: Returns a new fixed string object whose value is the joint value of
-`lhs` and `rhs`.
+[6]{.pnum} _Mandates_: `rhs[N2 - 1] == CharT()`.
 
-[7]{.pnum} [_Note 1_: The program is ill-formed if `rhs[N2 - 1] != CharT()`. — _end note_]
+[7]{.pnum} _Effects_: Returns a new fixed string object whose value is the joint value of
+`lhs` and `rhs`.
 
 ```cpp
 template<size_t N1>
@@ -682,10 +714,10 @@ consteval friend basic_fixed_string<charT, N1 + N - 1, traits> operator+(const c
                                                                          const basic_fixed_string& rhs) noexcept;
 ```
 
-[8]{.pnum} _Effects_: Returns a new fixed string object whose value is the joint value of
-a subrange `[lhs[0], lhs[N1 - 1])` and `rhs` followed by the `charT()`.
+[8]{.pnum} _Mandates_: `lhs[N1 - 1] == CharT()`.
 
-[9]{.pnum} [_Note 2_: The program is ill-formed if `lhs[N1 - 1] != CharT()`. — _end note_]
+[9]{.pnum} _Effects_: Returns a new fixed string object whose value is the joint value of
+a subrange `[lhs[0], lhs[N1 - 1])` and `rhs` followed by the `charT()`.
 
 
 #### Non-member comparison functions { #fixed.string.comparison }
@@ -710,13 +742,13 @@ template<size_t N2>
 friend consteval @_see below_@ operator<=>(const basic_fixed_string& lhs, const charT (&rhs)[N2]);
 ```
 
-[2]{.pnum} _Effects_: Let `op` be the operator. Equivalent to:
+[2]{.pnum} _Mandates_: `rhs[N2 - 1] == CharT()`.
+
+[3]{.pnum} _Effects_: Let `op` be the operator. Equivalent to:
 
 ```cpp
 return lhs.view() @_op_@ std::basic_string_view<CharT, Traits>(rhs, rhs + N2 - 1);
 ```
-
-[3]{.pnum} [_Note 1_: The program is ill-formed if `rhs[N2 - 1] != CharT()`. — _end note_]
 
 #### Inserters and extractors { #fixed.string.io }
 
@@ -725,6 +757,17 @@ friend basic_ostream<charT, traits>& operator<<(basic_ostream<charT, traits>& os
 ```
 
 [1]{.pnum} _Effects_: Equivalent to: `return os << str.view();`
+
+#### Hash support { #fixed.string.special }
+
+```cpp
+template<class charT, size_t N, class traits>
+constexpr void swap(basic_fixed_string<charT, N, traits>& x, basic_fixed_string<charT, N, traits>& y) noexcept;
+```
+
+[1]{.pnum} _Effects_: As if by `x.swap(y)`.
+
+[2]{.pnum} _Complexity_: Linear in `N`.
 
 #### Hash support { #fixed.string.hash }
 
