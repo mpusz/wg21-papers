@@ -4,7 +4,6 @@ document: P3094R3
 date: today
 audience:
   - SG16 Unicode
-  - SG18 Library Evolution Working Group Incubator (LEWGI)
   - Library Evolution Working Group
 author:
   - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
