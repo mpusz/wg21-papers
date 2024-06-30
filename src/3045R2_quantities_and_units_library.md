@@ -29,7 +29,7 @@ toc-depth: 4
 
 ## Changes since [@P3045R1]
 
-- Dimensions, quantity specification, units, and point origins marked `final`
+- [Scope of this proposal] chapter added.
 - `delta` and `absolute` reference specifiers added to improve readability of the affine space
   entities creation
 - `std::remove_const` was not needed in prefixes definitions
@@ -91,6 +91,20 @@ based on the current progress and feedback from the upcoming discussions.
 _Note: This paper is incomplete and many chapters are still missing. It is published to gather
 early feedback and possibly get acceptance for the major design decisions of the library.
 More details will arrive in the next revisions of this paper._
+
+
+# Scope of this proposal
+
+This paper describes and defines a generic framework for quantities and units library. Such
+framework should allow modelling various systems of quantities and units customized according
+to specific user's needs. Such systems can be embraced with the affine space abstractions to
+provide type-, unit-, and point origin-safe abstractions for many industries.
+
+Even if mentioned, this paper does not propose standardizing any systems of quantities or units.
+Such definitions will arrive in subsequent proposals.
+
+In the extreme case, we can even discuss just providing a library framework in the first C++
+standard and standardize systems and additional utilities (e.g., math) in the next iterations.
 
 
 # Terms and definitions
