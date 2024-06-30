@@ -21,6 +21,7 @@ author:
 - Non-member `swap()` and rationale for it added.
 - Ill-formed notes in synopsis replaced with "Mandates".
 - "Constructs an object" replaced with the "Initializes `data_`" in the constructor's wording.
+- "Annex C" entry added.
 
 ## Changes since [@P3094R1]
 
@@ -883,6 +884,22 @@ a.at(n)
 
 [123]{.pnum} _Remarks_: Required for `basic_string`, [`basic_fixed_string`,]{.add} `array`, `deque`,
 and `vector`.
+
+## [Annex C (informative)](https://wg21.link/diff) { #diff }
+
+### [C++ and ISO C++ 2023](https://wg21.link/diff.cpp23) { #diff.cpp23 }
+
+#### [[library]: library introduction](https://wg21.link/diff.cpp23.library) { #diff.cpp23.library }
+
+[1]{.pnum} **Affected subclause**: [headers]
+
+**Change:** New headers.
+
+**Rationale:** New functionality.
+
+**Effect on original feature:** The following C++ headers are new: `<debugging>`,
+[`<fixed_string>`,]{.add} `<hazard_pointer>`, `<linalg>`, `<rcu>`, and `<text_encoding>`. Valid C++
+2023 code that #includes headers with these names may be invalid in this revision of C++.
 
 # Acknowledgements
 

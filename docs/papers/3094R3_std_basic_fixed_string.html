@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-06-27" />
+  <meta name="dcterms.date" content="2024-06-30" />
   <title>`std::basic_fixed_string`</title>
   <style>
       code{white-space: pre-wrap;}
@@ -427,7 +427,7 @@ code.sourceCode > span { display: inline; }
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2024-06-27</td>
+    <td>2024-06-30</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -548,6 +548,12 @@ library</span><span></span></a>
 <li><a href="#container.requirements" id="toc-container.requirements"><span class="toc-section-number">9.5.1</span>
 <span>Requirements</span><span></span></a></li>
 </ul></li>
+<li><a href="#diff" id="toc-diff"><span class="toc-section-number">9.6</span> <span>Annex C
+(informative)</span><span></span></a>
+<ul>
+<li><a href="#diff.cpp23" id="toc-diff.cpp23"><span class="toc-section-number">9.6.1</span> <span>C++ and ISO C++
+2023</span><span></span></a></li>
+</ul></li>
 </ul></li>
 <li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">10</span>
 Acknowledgements<span></span></a></li>
@@ -570,6 +576,7 @@ rationale for it added.</li>
 <li>“Constructs an object” replaced with the “Initializes
 <code class="sourceCode cpp">data_</code>” in the constructor’s
 wording.</li>
+<li>“Annex C” entry added.</li>
 </ul>
 <h2 data-number="1.2" id="changes-since-p3094r1"><span class="header-section-number">1.2</span> Changes since <span class="citation" data-cites="P3094R1">[<a href="https://wg21.link/p3094r1" role="doc-biblioref">P3094R1</a>]</span><a href="#changes-since-p3094r1" class="self-link"></a></h2>
 <ul>
@@ -1584,6 +1591,23 @@ containers).</p>
 <code class="sourceCode cpp">array</code>,
 <code class="sourceCode cpp">deque</code>, and
 <code class="sourceCode cpp">vector</code>.</p>
+<h2 data-number="9.6" id="diff"><span class="header-section-number">9.6</span> <a href="https://wg21.link/diff">Annex C (informative)</a><a href="#diff" class="self-link"></a></h2>
+<h3 data-number="9.6.1" id="diff.cpp23"><span class="header-section-number">9.6.1</span> <a href="https://wg21.link/diff.cpp23">C++ and ISO C++ 2023</a><a href="#diff.cpp23" class="self-link"></a></h3>
+<h4 data-number="9.6.1.1" id="diff.cpp23.library"><span class="header-section-number">9.6.1.1</span> <a href="https://wg21.link/diff.cpp23.library">[library]: library
+introduction</a><a href="#diff.cpp23.library" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<strong>Affected subclause</strong>: [headers]</p>
+<p><strong>Change:</strong> New headers.</p>
+<p><strong>Rationale:</strong> New functionality.</p>
+<p><strong>Effect on original feature:</strong> The following C++
+headers are new: <code class="sourceCode cpp"><span class="op">&lt;</span>debugging<span class="op">&gt;</span></code>,
+<span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">&lt;fixed_string&gt;</code></span>,</ins></span>
+<code class="sourceCode cpp"><span class="op">&lt;</span>hazard_pointer<span class="op">&gt;</span></code>,
+<code class="sourceCode cpp"><span class="op">&lt;</span>linalg<span class="op">&gt;</span></code>,
+<code class="sourceCode cpp"><span class="op">&lt;</span>rcu<span class="op">&gt;</span></code>,
+and <code class="sourceCode cpp"><span class="op">&lt;</span>text_encoding<span class="op">&gt;</span></code>.
+Valid C++ 2023 code that #includes headers with these names may be
+invalid in this revision of C++.</p>
 <h1 data-number="10" id="acknowledgements"><span class="header-section-number">10</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
 membership in the ISO C++ Committee and the production of this
