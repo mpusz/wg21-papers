@@ -36,6 +36,8 @@ toc-depth: 4
 - `std::remove_const` was not needed in prefixes definitions.
 - Compiler Explorer links updated to reflect the latest API changes.
 - [Text output] and [Safety] chapters reordered.
+- `inline` dropped from `inline constexpr` variable templates
+  (based on [CWG2387](https://cplusplus.github.io/CWG/issues/2387.html))
 
 
 ## Changes since [@P3045R0]
@@ -1959,7 +1961,7 @@ import std;
 // types instead of requiring the usage of Linear Algebra library for this simple example
 template<class T>
   requires mp_units::is_scalar<T>
-inline constexpr bool mp_units::is_vector<T> = true;
+constexpr bool mp_units::is_vector<T> = true;
 
 namespace {
 
@@ -3094,7 +3096,7 @@ Each prefix is implemented as:
 
 ```cpp
 template<PrefixableUnit U> struct quecto_ : prefixed_unit<"q", mag_power<10, -30>, U{}> {};
-template<PrefixableUnit auto U> inline constexpr quecto_<decltype(U)> quecto;
+template<PrefixableUnit auto U> constexpr quecto_<decltype(U)> quecto;
 ```
 
 and then a unit can be prefixed in the following way:
@@ -3109,7 +3111,7 @@ the IT industry can be implemented as:
 
 ```cpp
 template<PrefixableUnit U> struct yobi_ : prefixed_unit<"Yi", mag_power<2, 80>, U{}> {};
-template<PrefixableUnit auto U> inline constexpr yobi_<decltype(U)> yobi;
+template<PrefixableUnit auto U> constexpr yobi_<decltype(U)> yobi;
 ```
 
 _Please note that to improve the readability of generated types that are exposed in compiler errors
@@ -3623,7 +3625,7 @@ a partial specialization for a specific unit:
 
 ```cpp
 template<>
-inline constexpr bool space_before_unit_symbol<non_si::degree> = false;
+constexpr bool space_before_unit_symbol<non_si::degree> = false;
 ```
 
 The above works only for the default formatting or for the format strings that use `%?` placement
@@ -5398,7 +5400,7 @@ of the vector) the following definition can be provided to enable such a behavio
 ```cpp
 template<class T>
   requires is_scalar<T>
-inline constexpr bool is_vector<T> = true;
+constexpr bool is_vector<T> = true;
 ```
 
 ### `Quantity<T>` concept { #Quantity-concept }
