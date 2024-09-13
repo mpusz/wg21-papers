@@ -43,6 +43,7 @@ toc-depth: 4
 - `quantity_point_like_traits` member functions refactored to not depend on `quantity`-like
   abstractions.
 - `unit_can_be_prefixed` removed from the design.
+- [Radians and degrees support] chapter added.
 
 ## Changes since [@P3045R0]
 
@@ -6984,6 +6985,36 @@ quantity kinds by themselves.
 _Note: Many people claim that angle being a dimensionless quantity is a bad idea. There are
 proposals submitted to make an angle a base quantity and `rad` to become a base unit in both [@SI]
 and [@ISO80000]._
+
+##### Radians and degrees support
+
+Thanks to the usage of magnitudes the library provides efficient strong types for all angular
+types. This means that with the built-in support for magnitudes of $\pi$ we can provide accurate
+conversions between radians and degrees. The library also provides common trigonometric functions
+for angular quantities:
+
+```cpp
+quantity speed = 110 * km / h;
+quantity rate_of_climb = -0.63657 * m / s;
+quantity glide_ratio = speed / -rate_of_climb;
+quantity glide_angle = angular::asin(1 / glide_ratio);
+
+std::println("Glide ratio: {::N[.1f]}\n", value_cast<one>(glide_ratio));
+std::println("Glide angle:");
+std::println(" - {::N[.4f]}\n", glide_angle);
+std::println(" - {::N[.2f]}\n", value_cast<angular::degree>(glide_angle));
+std::println(" - {::N[.2f]}\n", value_cast<angular::gradian>(glide_angle));
+```
+
+The above program prints:
+
+```text
+Glide ratio: 48.0
+Glide angle:
+ - 0.0208 rad
+ - 1.19°
+ - 1.33ᵍ
+```
 
 #### Nested quantity kinds
 
