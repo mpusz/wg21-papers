@@ -46,6 +46,7 @@ toc-depth: 4
 - [Radians and degrees support] chapter added.
 - [`delta` and `absolute` creation helpers] chapter added.
 - [Unit symbols] chapter added.
+- [Superpowers of the unit `one`] chapter added.
 
 
 ## Changes since [@P3045R0]
@@ -1905,12 +1906,12 @@ static_assert(2 * km / (2 * km / h) == 1 * h);
 
 static_assert(2 * m * (3 * m) == 6 * m2);
 
-static_assert(10 * km / (5 * km) == 2 * one);
+static_assert(10 * km / (5 * km) == 2);
 
 static_assert(1000 / (1 * s) == 1 * kHz);
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/8acPeq743).
+Try it in [the Compiler Explorer](https://godbolt.org/z/fT1r4sohs).
 
 ## Hello units
 
@@ -6887,7 +6888,7 @@ However, in some cases, this might look like an overkill. In the [Basic quantity
 one of the lines looks as follows:
 
 ```cpp
-static_assert(10 * km / (5 * km) == 2 * one);
+static_assert(10 * km / (5 * km) == 2);
 ```
 
 Another example could be subtracting a value `1` from the dimensionless quantity that we can
@@ -7019,6 +7020,21 @@ inline constexpr struct percent final : named_unit<"%", mag_ratio<1, 100> * one>
 inline constexpr struct per_mille final : named_unit<{u8"‰", "%o"}, mag_ratio<1, 1000> * one> {} per_mille;
 inline constexpr struct parts_per_million final : named_unit<"ppm", mag_ratio<1, 1'000'000> * one> {} parts_per_million;
 inline constexpr auto ppm = parts_per_million;
+```
+
+##### Superpowers of the unit `one`
+
+Quantities of the unit `one` are the only ones that are implicitly convertible from a raw value
+and explicitly convertible to it. This property also expands to usual arithmetic operators.
+
+Thanks to the above, we can type:
+
+```cpp
+quantity<one> inc(quantity<one> q) { return q + 1; }
+void legacy(double) { /* ... */ }
+
+if (auto q = inc(42); q != 0)
+  legacy(static_cast<int>(q));
 ```
 
 #### Angular quantities
