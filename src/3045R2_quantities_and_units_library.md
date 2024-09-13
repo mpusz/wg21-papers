@@ -40,7 +40,8 @@ toc-depth: 4
   (based on [CWG2387](https://cplusplus.github.io/CWG/issues/2387.html))
 - After consulting with the LEWGI in St. Lois, `q.in<Representation>(unit)` support added
   despite possible `template` disambiguator drawbacks.
-
+- `quantity_point_like_traits` member functions refactored to not depend on `quantity`-like
+  abstractions.
 
 ## Changes since [@P3045R0]
 
@@ -5484,9 +5485,9 @@ struct quantity_like_traits<std::chrono::seconds> {
   static constexpr auto reference = si::second;
   using rep = std::chrono::seconds::rep;
 
-  [[nodiscard]] static constexpr convert_implicitly<rep> to_numerical_value(const std::chrono::seconds& q)
+  [[nodiscard]] static constexpr convert_implicitly<rep> to_numerical_value(const std::chrono::seconds& d)
   {
-    return q.count();
+    return d.count();
   }
 
   [[nodiscard]] static constexpr convert_implicitly<std::chrono::seconds> from_numerical_value(const rep& v)
@@ -5509,13 +5510,11 @@ type that provides:
 - Static data member `point_origin` that matches the [`PointOrigin`](#PointOrigin-concept) concept.
 - `rep` type that matches [`RepresentationOf`](#RepresentationOf-concept) concept with the character
   provided in `reference`.
-- `to_quantity(T)` static member function returning the `quantity` being the offset of the point
-  from the origin packed in either `convert_explicitly` or `convert_implicitly` wrapper that enables
-  implicit conversion in the latter case.
-- `from_quantity(quantity<reference, rep>)` static member function returning `T` packed in either
-  `convert_explicitly` or `convert_implicitly` wrapper that enables implicit conversion in the latter
-  case.
-
+- `to_numerical_value(T)` static member function returning a raw value of the quantity being the offset
+  of the point from the origin packed in either `convert_explicitly` or `convert_implicitly` wrapper that
+  enables implicit conversion in the latter case.
+- `from_numerical_value(rep)` static member function returning `T` packed in either `convert_explicitly`
+  or `convert_implicitly` wrapper that enables implicit conversion in the latter case.
 For eample, this is how support for a `std::chrono::time_point` of `std::chrono::seconds` can be
 provided:
 
@@ -5524,17 +5523,17 @@ template<typename C>
 struct quantity_point_like_traits<std::chrono::time_point<C, std::chrono::seconds>> {
   using T = std::chrono::time_point<C, std::chrono::seconds>;
   static constexpr auto reference = si::second;
-  static constexpr struct point_origin final : absolute_point_origin<isq::time> {} point_origin{};
+  static constexpr struct point_origin_ final : absolute_point_origin<isq::time> {} point_origin{};
   using rep = std::chrono::seconds::rep;
 
-  [[nodiscard]] static constexpr convert_implicitly<quantity<reference, rep>> to_quantity(const T& qp)
+  [[nodiscard]] static constexpr convert_implicitly<rep> to_numerical_value(const T& tp)
   {
-    return quantity{qp.time_since_epoch()};
+    return tp.time_since_epoch().count();
   }
 
-  [[nodiscard]] static constexpr convert_implicitly<T> from_quantity(const quantity<reference, rep>& q)
+  [[nodiscard]] static constexpr convert_implicitly<T> from_numerical_value(const rep& v)
   {
-    return T(q);
+    return T(std::chrono::seconds(v));
   }
 };
 
@@ -7204,10 +7203,11 @@ type trait:
 - static data member `point_origin` that specifies the absolute point, which is the beginning of
   our measurement scale for our points,
 - `rep` type that specifies the underlying storage type,
-- `to_quantity(T)` static member function returning the `quantity` being the offset of the point
-  from the origin packed in either `convert_explicitly` or `convert_implicitly` wrapper,
-- `from_quantity(quantity<reference, rep>)` static member function returning `T` packed in either
-  `convert_explicitly` or `convert_implicitly` wrapper.
+- `to_numerical_value(T)` static member function returning a raw value of the `quantity` being
+  the offset of the point from the origin packed in either `convert_explicitly` or `convert_implicitly`
+  wrapper.
+- `from_numerical_value(rep)` static member function returning `T` packed in either `convert_explicitly`
+  or `convert_implicitly` wrapper.
 
 For example, for our `Timestamp` type, we could provide the following:
 
@@ -7217,16 +7217,8 @@ struct std::quantity_point_like_traits<Timestamp> {
   static constexpr auto reference = si::second;
   static constexpr auto point_origin = default_point_origin(reference);
   using rep = decltype(Timestamp::seconds);
-
-  static constexpr convert_implicitly<quantity<reference, rep>> to_quantity(Timestamp ts)
-  {
-    return ts.seconds * si::second;
-  }
-
-  static constexpr convert_explicitly<Timestamp> from_quantity(quantity<reference, rep> q)
-  {
-    return Timestamp(q.numerical_value_ref_in(si::second));
-  }
+  static constexpr convert_implicitly<rep> to_numerical_value(Timestamp ts) { return ts.seconds; }
+  static constexpr convert_explicitly<Timestamp> from_numerical_value(rep v) { return Timestamp(v); }
 };
 ```
 
