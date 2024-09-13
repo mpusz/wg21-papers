@@ -38,6 +38,8 @@ toc-depth: 4
 - [Text output] and [Safety] chapters reordered.
 - `inline` dropped from `inline constexpr` variable templates
   (based on [CWG2387](https://cplusplus.github.io/CWG/issues/2387.html))
+- After consulting with the LEWGI in St. Lois, `q.in<Representation>(unit)` support added
+  despite possible `template` disambiguator drawbacks.
 
 
 ## Changes since [@P3045R0]
@@ -1092,10 +1094,12 @@ std::cout << "The speed limit in m/s is " << value_cast<m / s>(speed_limit) << "
 We will get a truncated value of `27 m/s` in both cases.
 
 To prevent truncation, we must explicitly change the quantity representation type to a
-value-preserving one with `value_cast<Representation>(Quantity)` overload. For example:
+value-preserving one with `value_cast<Representation>(Quantity)` or `.in<Representation>()`
+overload. For example:
 
 ```cpp
 std::cout << "The speed limit in m/s is " << value_cast<double>(speed_limit).in(m / s) << "\n";
+std::cout << "The speed limit in m/s is " << speed_limit.in<double>(m / s) << "\n";
 ```
 
 This time, we will see the following in the text output:
