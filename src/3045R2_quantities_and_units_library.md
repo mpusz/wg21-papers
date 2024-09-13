@@ -44,6 +44,7 @@ toc-depth: 4
   abstractions.
 - `unit_can_be_prefixed` removed from the design.
 - [Radians and degrees support] chapter added.
+- [`delta` and `absolute` creation helpers] chapter added.
 
 ## Changes since [@P3045R0]
 
@@ -7047,6 +7048,105 @@ inline constexpr struct bit final : named_unit<"bit", one, kind_of<storage_capac
 
 This still allows the usage of `one` (possibly scaled) for such quantities which is exactly what
 we wanted to achieve.
+
+## Quantity Points
+
+### `delta` and `absolute` creation helpers
+
+The features described in this chapter directly solve an issue raised on
+[std-proposals reflector](https://lists.isocpp.org/std-proposals/2024/06/10118.php). As it was
+reported, the code below may look correct, but it provides an invalid result:
+
+```cpp
+quantity Volume = 1.0 * m3;
+quantity Temperature = 28.0 * deg_C;
+quantity n_ = 0.04401 * kg / mol;
+quantity R_boltzman = 8.314 * N * m / (K * mol);
+quantity mass = 40.0 * kg;
+quantity Pressure = R_boltzman * Temperature.in(K) * mass / n_ / Volume;
+std::cout << Pressure << "\n";
+```
+
+The problem is related to the accidental usage of a `quantity` rather than `quantity_point` for
+`Temperature`. This means that after conversion to kelvins, we will get `28 K` instead of
+the expected `301.15 K`, corrupting all further calculations.
+
+A correct code should use a `quantity_point`:
+
+```cpp
+quantity_point Temperature(28.0 * deg_C);
+```
+
+This might be an obvious thing for domain experts, but new users of the library may not be aware
+of the affine space abstractions and how they influence temperature handling.
+
+After a lengthy discussion on handling such scenarios, we decided to:
+
+- make the above code ill-formed,
+- provide an alternative way to create `quantity` and `quantity_point` with the `delta` and `absolute`
+  construction helpers respectively.
+
+Here are the main points of this new design:
+
+1. All references/units that specify point origin in their definition (i.e., `si::kelvin`,
+   `si::degree_Celsius`, and `usc::degree_Fahrenheit`) are excluded from the multiply syntax.
+2. A new `delta` quantity construction helper is introduced:
+
+    - `delta<m>(42)` results with a `quantity<si::metre, int>`,
+    - `delta<deg_C>(5)` results with a `quantity<si::deg_C, int>`.
+
+3. A new `absolute` quantity point construction helper is introduced:
+
+    - `absolute<m>(42)` results with a `quantity_point<si::metre, zeroth_point_origin<kind_of<isq::length>>{}, int>`,
+    - `absolute<deg_C>(5)` results with a `quantity<si::metre, si::ice_point, int>`.
+
+Please note that `si::kelvin` is also excluded from the multiply syntax to prevent the
+following surprising issues:
+
+::: cmptable
+
+#### Before
+
+```cpp
+quantity q(300 * K);
+quantity_point qp(300 * K);
+static_assert(q.in(deg_C) != qp.in(deg_C).quantity_from_zero());
+```
+
+#### Now
+
+```cpp
+quantity q = delta<K>(300);
+quantity_point qp = absolute<K>(300);
+static_assert(q.in(deg_C) != qp.in(deg_C).quantity_from_zero());
+```
+
+:::
+
+We believe that the code enforced with new utilities makes it much easier to understand what
+happens here.
+
+With such changes to the interface design, the offending code will not compile as initially written.
+Users will be forced to think more about what they write. To enable the compilation, the users have
+to explicitly create a:
+
+- `quantity_point` (the intended abstraction in this example) with any of the below syntaxes:
+
+    ```cpp
+    quantity_point Temperature = absolute<deg_C>(28.0);
+    auto Temperature = absolute<deg_C>(28.0);
+    quantity_point Temperature(delta<deg_C>(28.0));
+    ```
+
+- `quantity` (an incorrect abstraction in this example) with:
+
+    ```cpp
+    quantity Temperature = delta<deg_C>(28.0);
+    auto Temperature = delta<deg_C>(28.0);
+    ```
+
+Thanks to the new design, we can immediately see what happens here and why the result might be
+incorrect in the second case.
 
 
 ## Interoperability with other libraries
