@@ -42,6 +42,7 @@ toc-depth: 4
   despite possible `template` disambiguator drawbacks.
 - `quantity_point_like_traits` member functions refactored to not depend on `quantity`-like
   abstractions.
+- `unit_can_be_prefixed` removed from the design.
 
 ## Changes since [@P3045R0]
 
@@ -5330,18 +5331,8 @@ would have a unit of `one`.
 
 #### `PrefixableUnit<T>` concept { #PrefixableUnit-concept }
 
-`PrefixableUnit` concept is satisfied by all units derived from a `named_unit` class template for
-which a customization point `unit_can_be_prefixed<T{}>` was not explicitly set to `false`. Such
-units can be passed as an argument to a `prefixed_unit` class template.
-
-All units in the [@SI] can be prefixed with SI-defined prefixes.
-
-Some off-system units like `non_si::day` can't be prefixed. To enforce that, the following has to
-be provided:
-
-```cpp
-template<> inline constexpr bool unit_can_be_prefixed<non_si::day> = false;
-```
+`PrefixableUnit` concept is satisfied by all units derived from a `named_unit` class template.
+Such units can be passed as an argument to a `prefixed_unit` class template.
 
 #### `UnitOf<T, V>` concept { #UnitOf-concept }
 
