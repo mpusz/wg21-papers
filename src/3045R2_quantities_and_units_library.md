@@ -51,7 +51,7 @@ toc-depth: 4
 - [Why do we need typed quantities?] chapter improved.
 - Code examples in the [Converting between quantities of the same kind] chapter fixed and improved.
 - [Symbols of scaled units] and [Symbols of common units] chapters added.
-
+- [New style of definitions] chapter extended.
 
 ## Changes since [@P3045R0]
 
@@ -5300,10 +5300,24 @@ them already._
 
 ### New style of definitions
 
-The [@MP-UNITS] library decided to use a rather unusual pattern to define entities, but it proved
-really successful, and we got great feedback from users so far.
+Before we dig into details, it is worth reminding that compile-time errors generation is the most
+important feature of the library. If we did not make errors in our code and could handle quantities
+and write all the conversions correctly by hand, such a library would be of little use.
+We are humans and make mistakes.
 
-Here is how we define metre and second [@SI] base units:
+Also, the library is about to be used by many engineers who use C++ as a tool to get their work
+done and are not C++ template metaprogramming experts. This is why the compilation errors generated
+by this library should be as easy to understand as possible. Users should be able to quickly
+identify the cause of the issue and understand how to fix it.
+
+With the above in mind, the [@MP-UNITS] library decided to use a rather unusual pattern to define
+entities, but it proved really successful, and we have received great feedback from users.
+
+To improve the readability of compiler errors and types presented in a debugger, and to make it
+easier to correlate them with a user's written code, a new idiom in the library is to use the same
+identifier for a tag type and its instance.
+
+Here is how we define `metre` and `second` [@SI] base units:
 
 ```cpp
 inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} metre;
@@ -5313,15 +5327,47 @@ inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} se
 Please note that the above reuses the same identifier for a type and its value. The rationale
 behind this is that:
 
-- Users always work with values and never have to spell such a type name.
+- Users always work with values and never have to spell the name of such a type.
 - The types appear in the compilation errors and during debugging.
 
-To improve compiler errors' readability and make it easier to correlate them with a user's written
-code, a new idiom in the library is to use the same identifier for a type and its instance.
+Ordinary users don't care about what is a type and what is a value in the error message. They want
+to be able to easily read and analyze the error message and understand where in the code they
+made the calculation error.
 
-Also, to prevent possible issues in compile-time logic, all of the library's entities must be
-marked `final`. This prevents the users to derive own strong types from them, which would
-prevent expression template simplification of equivalent entities.
+Unfortunately, we can't be consistent here. The C++ language rules do not allow to use the same
+identifier for a template and the object resulting from its instantiation. For such cases, we
+decided to postfix the template identifier with `_`.
+
+Let's compare the readability of the current practices with an alternative and popular usage of
+`_t` postfixes for type identifiers (after removing the project namespace prefix):
+
+Current practice:
+
+| User's code                         | Resulting type                                                                                                                                     |
+|-------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `quantity<si::metre>`               | `quantity<si::metre{}, double>`                                                                                                                    |
+| `quantity<si::metre / si::second>`  | `quantity<derived_unit<si::metre, per<si::second>>{}, double>`                                                                                     |
+| `isq::speed(50 * km / h) / (5 * s)` | `quantity<reference<derived_quantity_spec<isq::speed, per<isq::time>>, derived_unit<si::kilo_<si::metre>, per<non_si::hour, si::second>>>{}, int>` |
+
+With `_t` postfixes:
+
+| User's code                         | Resulting type                                                                                                                                                |
+|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `quantity<si::metre>`               | `quantity<si::metre_t{}, double>`                                                                                                                             |
+| `quantity<si::metre / si::second>`  | `quantity<derived_unit<si::metre_t, per<si::second_t>>{}, double>`                                                                                            |
+| `isq::speed(50 * km / h) / (5 * s)` | `quantity<reference<derived_quantity_spec<isq::speed_t, per<isq::time_t>>, derived_unit<si::kilo_t<si::metre_t>, per<non_si::hour_t, si::second_t>>>{}, int>` |
+
+To improve the types readability we also prefer to use type identifiers for template parameters
+(if possible) rather than NTTPs directly. Without it, the last type would look as follows:
+
+| User's code                         | Resulting type                                                                                                                                                                |
+|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `isq::speed(50 * km / h) / (5 * s)` | `quantity<reference<derived_quantity_spec<isq::speed_t{}, per<isq::time_t{}>>{}, derived_unit<si::kilo_t<si::metre_t{}>{}, per<non_si::hour_t{}, si::second_t{}>>{}>{}, int>` |
+
+Moreover, to prevent possible issues in the library's framework compile-time logic, all of the library's
+entities must be marked `final`. This prevents the users from deriving their own strong types from them,
+which would prevent expression template simplification of equivalent entities. This constraint
+is enforced by the concepts in the library.
 
 ### Strong types instead of aliases
 
