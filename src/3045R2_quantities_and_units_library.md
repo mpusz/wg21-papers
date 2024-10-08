@@ -47,6 +47,7 @@ toc-depth: 4
 - [`delta` and `absolute` creation helpers] chapter added.
 - [Unit symbols] chapter added.
 - [Superpowers of the unit `one`] chapter added.
+- [Hardware voltage measurement readout] chapter with a code example added.
 
 
 ## Changes since [@P3045R0]
@@ -2195,6 +2196,87 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 ```
 
 Try it in [the Compiler Explorer](https://godbolt.org/z/zv6eenqq3).
+
+
+## Hardware voltage measurement readout
+
+Every measurement can (and probably should) be modelled as a `quantity_point` and this is
+a perfect example of such a use case.
+
+This example implements a simplified scenario of measuring voltage read from hardware through
+a mapped 16-bits register. The actual voltage range of [-10 V, 10 V] is mapped to [-32767, 32767]
+on hardware. Translation of the value requires not only scaling of the value but also applying
+of an offset.
+
+```cpp
+import mp_units;
+import std;
+
+using namespace mp_units;
+
+// real voltage range
+inline constexpr int min_voltage = -10;
+inline constexpr int max_voltage = 10;
+inline constexpr int voltage_range = max_voltage - min_voltage;
+
+// hardware encoding of voltage
+using voltage_hw_t = std::uint16_t;
+inline constexpr voltage_hw_t voltage_hw_error = std::numeric_limits<voltage_hw_t>::max();
+inline constexpr voltage_hw_t voltage_hw_min = 0;
+inline constexpr voltage_hw_t voltage_hw_max = voltage_hw_error - 1;
+inline constexpr voltage_hw_t voltage_hw_range = voltage_hw_max - voltage_hw_min;
+inline constexpr voltage_hw_t voltage_hw_zero = voltage_hw_range / 2;
+
+inline constexpr struct hw_voltage_origin final :
+  relative_point_origin<absolute<si::volt>(min_voltage)> {} hw_voltage_origin;
+
+inline constexpr struct hw_voltage_unit final :
+  named_unit<"hwV", mag_ratio<voltage_range, voltage_hw_range> * si::volt, hw_voltage_origin> {} hw_voltage_unit;
+
+using hw_voltage_quantity_point = quantity_point<hw_voltage_unit, hw_voltage_origin, voltage_hw_t>;
+
+// mapped HW register
+volatile voltage_hw_t hw_voltage_value;
+
+std::optional<hw_voltage_quantity_point> read_hw_voltage()
+{
+  voltage_hw_t local_copy = hw_voltage_value;
+  if (local_copy == voltage_hw_error) return std::nullopt;
+  return absolute<hw_voltage_unit>(local_copy);
+}
+
+void print(QuantityPoint auto qp)
+{
+  std::println("{:10} ({:5})", qp.quantity_from_zero(),
+               value_cast<double, si::volt>(qp).quantity_from_zero());
+}
+
+int main()
+{
+  // simulate reading of 3 values from the hardware
+  hw_voltage_value = voltage_hw_min;
+  quantity_point qp1 = read_hw_voltage().value();
+  hw_voltage_value = voltage_hw_zero;
+  quantity_point qp2 = read_hw_voltage().value();
+  hw_voltage_value = voltage_hw_max;
+  quantity_point qp3 = read_hw_voltage().value();
+
+  print(qp1);
+  print(qp2);
+  print(qp3);
+}
+```
+
+The above prints:
+
+```text
+     0 hwV (-10 V)
+ 32767 hwV (  0 V)
+ 65534 hwV ( 10 V)
+```
+
+Try it in [the Compiler Explorer](https://godbolt.org/z/51TbGn6nn).
+
 
 ## User defined quantities and units
 
