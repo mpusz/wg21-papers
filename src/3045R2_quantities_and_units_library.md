@@ -3882,7 +3882,7 @@ The [@SI] says:
 > second for plane angle, `°`, `′` and `″`, respectively, for which no space is left between the
 > numerical value and the unit symbol.
 
-There are more units with such properties. For example, percent (`%`) and per mille(`‰`).
+There are more units with such properties. For example, per mille(`‰`).
 
 To support the above, the library exposes `space_before_unit_symbol` customization point.
 By default, its value is `true` for all the units. This means that a number and a unit will be
