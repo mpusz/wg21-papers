@@ -49,6 +49,7 @@ toc-depth: 4
 - [Superpowers of the unit `one`] chapter added.
 - [Hardware voltage measurement readout] chapter with a code example added.
 - [Why do we need typed quantities?] chapter improved.
+- Code examples in the [Converting between quantities of the same kind] chapter fixed and improved.
 
 
 ## Changes since [@P3045R0]
@@ -2831,12 +2832,12 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
     Implicit conversions are allowed on copy-initialization:
 
     ```cpp
-    void foo(quantity<isq::length<m>> q);
+    void foo(quantity<isq::length[m]> q);
     ```
 
     ```cpp
-    quantity<isq::width<m>> q1 = 42 * m;
-    quantity<isq::length<m>> q2 = q1;  // implicit quantity conversion
+    quantity<isq::width[m]> q1 = 42 * m;
+    quantity<isq::length[m]> q2 = q1;  // implicit quantity conversion
     foo(q1);                           // implicit quantity conversion
     ```
 
@@ -2858,8 +2859,13 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
     type:
 
     ```cpp
-    quantity<isq::length<m>> q1 = 42 * m;
-    quantity<isq::height<m>> q2 = isq::height(q1);  // explicit quantity conversion
+    void foo(quantity<isq::height[m]> q);
+    ```
+
+    ```cpp
+    quantity<isq::length[m]> q1 = 42 * m;
+    quantity<isq::height[m]> q2 = isq::height(q1);  // explicit quantity conversion
+    foo(isq::height(q1));                           // explicit quantity conversion
     ```
 
 3. **Explicit casts**
@@ -2876,8 +2882,13 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
     Explicit casts are forced with a dedicated `quantity_cast` function:
 
     ```cpp
-    quantity<isq::width<m>> q1 = 42 * m;
-    quantity<isq::height<m>> q2 = quantity_cast<isq::height>(q1);  // explicit quantity cast
+    void foo(quantity<isq::height[m]> q);
+    ```
+
+    ```cpp
+    quantity<isq::width[m]> q1 = 42 * m;
+    quantity<isq::height[m]> q2 = quantity_cast<isq::height>(q1);  // explicit quantity cast
+    foo(quantity_cast<isq::height>(q1));                           // explicit quantity cast
     ```
 
 4. **No conversion**
@@ -2897,6 +2908,7 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
     ```
 
     ```cpp
+    quantity<isq::length[m]> q1 = 42 * s;    // Compile-time error
     foo(quantity_cast<isq::length>(42 * s)); // Compile-time error
     ```
 
@@ -2913,14 +2925,9 @@ where the result of `length` is known as a common quantity type. A result of suc
 the first common node in a hierarchy tree of the same kind. For example:
 
 ```cpp
-static_assert(common_quantity_spec(isq::width, isq::height) == isq::length);
-static_assert(common_quantity_spec(isq::thickness, isq::radius) == isq::width);
-static_assert(common_quantity_spec(isq::distance, isq::path_length) == isq::path_length);
-```
-
-```cpp
-quantity q = isq::thickness(1 * m) + isq::radius(1 * m);
-static_assert(q.quantity_spec == isq::width);
+static_assert((isq::width(1 * m) + isq::height(1 * m)).quantity_spec == isq::length);
+static_assert((isq::thickness(1 * m) + isq::radius(1 * m)).quantity_spec == isq::width);
+static_assert((isq::distance(1 * m) + isq::path_length(1 * m)).quantity_spec == isq::path_length);
 ```
 
 One could argue that allowing to add or compare quantities of _height_ and _width_ might be a safety
