@@ -56,6 +56,7 @@ toc-depth: 4
 - [Value conversions] chapter added.
 - [Common units] chapter added.
 - [Text output open questions] chapter added.
+- [Minimal Viable Product (MVP) scope] chapter added.
 
 ## Changes since [@P3045R0]
 
@@ -4357,6 +4358,92 @@ library does not have enough information to print it that way by itself.
     quantity capacitance = 100 * µF;
     ```
 
+
+# Minimal Viable Product (MVP) scope
+
+After a rough introduction of most of the features and abstractions in the library, it might be
+good to discuss the scope for the Minimal Viable Product (MVP).
+
+We have several significant features to consider here:
+
+- **Core library**: `quantity`, expression templates, dimensions, units, references, and concepts
+ for them,
+- **Quantity kinds**: support quantities of the same dimension that should be distinct,
+ e.g., _frequency_, _activity_, and _modulation_rate_, or _energy_ and _moment_of_force_
+- **Various quantities of the same kind**: support quantities of the same kind that should be distinct,
+ e.g., _width_, _height_, _wavelength_ (all of the kind _length_),
+- **The affine space**: `quantity_point`, point origins, and concepts for them,
+- **Text output**: for `quantity`, units, and dimensions,
+
+Please note that the above only lists the features present in this proposal. Additional features,
+like definitions of specific systems of quantities and units, math utilities, and other extensions,
+will be provided in the follow-up papers. We chose not to include those features here because
+they can be separately added later. This also means that we believe that all of the features listed
+above should be provided in the first release of the library.
+
+To prove that, let's try to identify possible problems if a specific feature is excluded from the
+MVP scope:
+
+1. **Core library**
+
+   It just has to be there with all of the components listed. Otherwise, nothing works.
+
+2. **Quantity kinds**
+
+   If we remove this feature, we would not be able to make a distinction between `Hz`, `Bq`, and `Bd`,
+   or `rad`, `sr` and `bit`, or `Gy` and `Sv` as the quantities associated with those units have
+   the same dimensions. It is not only about units. It also means that we will be able to pass
+   a quantity of _solid angular measure_ to a function that takes `angular measure`. Users will also
+   not be able to model their own distinct abstractions like we showed in the case of the audio
+   example (samples, beats, etc.). We also need to note that we need that feature to be able to
+   model the International System of Quantities (ISQ). Skipping it is a serious usability and safety
+   issue that we should prevent.
+
+   Deciding to postpone this feature will block us from providing proper SI definitions, as the
+   units of this system should be properly constrained for specific quantity kinds (possibly of the
+   same dimension).
+
+3. **Various quantities of the same kind**
+
+   This might look like a less important use case. However, we already have feedback from production
+   that it is a groundbreaking feature that prevents many bugs in the production software. Just
+   consider a warehouse robot that will misinterpret the dimensions of the box or a flight computer
+   that will pass _forward velocity_ to a function getting _sink rate_. Being able to pass a
+   _kinetic energy_ to a function that expects a _potential energy_ can also have fatal consequences.
+
+   It is not only about the convertibility of the quantities themselves but also about the construction
+   of derived quantities from their components. Without this feature, we will not be able to say that
+   the _kinetic energy_ should not be implicitly convertible from the `m g h` quantity equation
+   (recipe for the _gravitational potential energy_).
+
+   Also, deciding to skip this feature will prevent us from modeling the International System
+   of Quantities (ISQ) in the future.
+
+   Again, if we decide to postpone this feature, then it will affect how the SI system is modeled.
+   If we provide a collection of the SI units without this feature, then it will never be possible
+   to improve them later.
+
+4. **The affine space**
+
+   This looks like a feature that can be added later, and it is partially true. However, the lack of
+   this feature will prevent us from modeling temperatures correctly, which means that we will have
+   big problems defining SI units as the degree Celsius unit needs an offset to kelvin.
+   If we postpone and release SI first, then we will not be able to improve the degree Celsius
+   definition later on.
+
+   Skipping this feature also means that we will lack very important building block in modeling many
+   problems in engineering. Those abstractions are considered so important that the BSI (British
+   Standards Institution) already voted that they would strongly oppose a library not having this
+   feature.
+
+   Also, without it, we will not be able to provide proper `std::chrono` compatibility.
+
+5. **Text output**
+
+   Again, this looks like a purely additive feature, but if we never decide to standardize it, then
+   all the symbols provided in unit and dimension definitions will be useless. If we do not intend
+   to have text output, we should remove symbol text from the core framework class templates.
+   This is why we should take that decision now.
 
 
 # Safety
