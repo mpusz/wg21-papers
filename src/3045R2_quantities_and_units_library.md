@@ -55,6 +55,7 @@ toc-depth: 4
 - `mag_pi` replaced with `mag<pi>`
 - [Value conversions] chapter added.
 - [Common units] chapter added.
+- [Text output open questions] chapter added.
 
 ## Changes since [@P3045R0]
 
@@ -4335,6 +4336,26 @@ For example, the text output of `42 m` for a quantity point may mean many things
 an offset from the mountain top, sea level, or maybe the center of Mars.
 Printing `42 m AMSL` for altitudes above mean sea level is a much better solution, but the
 library does not have enough information to print it that way by itself.
+
+
+## Text output open questions
+
+1. Should we somehow provide text support for quantity points? What about temperatures?
+2. How to name a non-Unicode accessor member function (e.g., `.ascii()`)? The same name should
+   consistently be used in `text_encoding` and in the formatting grammar.
+3. What about the localization for units? Will we get something like ICU in the C++ standard?
+4. Do we care about ostreams enough to introduce custom manipulators to format dimensions and units?
+5. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
+   proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
+   we OK with this?
+6. Are we OK with the usage of '_' for denoting a subscript identifier? Should we use it everywhere
+   (consistency) or only where there is no dedicated Unicode subscript character?
+7. Are we OK with using Unicode characters for unit symbols in the code:
+
+    ```cpp
+    quantity resistance = 60 * kΩ;
+    quantity capacitance = 100 * µF;
+    ```
 
 
 
