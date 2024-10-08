@@ -53,6 +53,7 @@ toc-depth: 4
 - [Symbols of scaled units] and [Symbols of common units] chapters added.
 - [New style of definitions] chapter extended.
 - `mag_pi` replaced with `mag<pi>`
+- [Value conversions] chapter added.
 
 ## Changes since [@P3045R0]
 
@@ -7368,6 +7369,41 @@ inline constexpr struct bit final : named_unit<"bit", one, kind_of<storage_capac
 
 This still allows the usage of `one` (possibly scaled) for such quantities which is exactly what
 we wanted to achieve.
+
+
+### Value conversions
+
+[Preventing truncation of data] and [Safe unit conversions] chapters describe the motivation,
+usage, and safety benefits of the `value_cast`, `in`, and `force_in` value conversion functions.
+
+#### `template` disambiguation concerns
+
+Initially **mp-units** library allowed changing of the `quantity` representation type only via
+the `value_cast` non-member function. Introducing such a functionality to `in` and `force_in`
+member functions would mandate the usage of the `template` disambiguator in generic contexts
+that we encorage with [Generic interfaces].
+
+After bringing those concerns to LEWGI in St. Louis, the room agreed that we should provide
+this functionality for member functions as well. It is really useful and user-friendly in
+non-generic contexts and for the cases where we deal with a dependent name, we should leave
+`value_cast` even if it is an always conversion-forcing operation.
+
+value_cast, in(), force_in(), template disambiguator discussion https://github.com/mpusz/mp-units/issues/477#issuecomment-1702762483
+
+#### Value conversions summary
+
+The table below provides all the value conversions functions that may be run on `x` being the
+instance of either `quantity` or `quantity_point`:
+
+| Forcing | Representation | Unit | Member function    | Non-member function                            |
+|:-------:|:--------------:|:----:|--------------------|------------------------------------------------|
+|   No    |      Same      | `u`  | `x.in(u)`          |                                                |
+|   No    |      `T`       | Same | `x.in<T>()`        |                                                |
+|   No    |      `T`       | `u`  | `x.in<T>(u)`       |                                                |
+|   Yes   |      Same      | `u`  | `x.force_in(u)`    | `value_cast<u>(x)`                             |
+|   Yes   |      `T`       | Same | `x.force_in<T>()`  | `value_cast<T>(x)`                             |
+|   Yes   |      `T`       | `u`  | `x.force_in<T>(u)` | `value_cast<u, T>(x)` or `value_cast<T, u>(x)` |
+
 
 ## Quantity Points
 
