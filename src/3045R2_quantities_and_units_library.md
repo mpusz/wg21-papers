@@ -48,6 +48,7 @@ toc-depth: 4
 - [Unit symbols] chapter added.
 - [Superpowers of the unit `one`] chapter added.
 - [Hardware voltage measurement readout] chapter with a code example added.
+- [Why do we need typed quantities?] chapter improved.
 
 
 ## Changes since [@P3045R0]
@@ -2495,10 +2496,12 @@ can be easily reordered on the call site. Also, we do not get any information ab
 return type of the function and any safety to ensure that the function logic actually returns
 a quantity of _speed_.
 
-With a units-only library, we have to write the function in the following way:
+To improve safety, with a units-only library, we have to write the function in the following way:
 
 ```cpp
-quantity<si::metre / si::second> avg_speed(quantity<si::metre> distance, quantity<si::second> time)
+template<typename Rep1, typename Rep2>
+quantity<si::metre / si::second, decltype(Rep1{} / Rep2{})> avg_speed(quantity<si::metre, Rep1> distance,
+                                                                      quantity<si::second, Rep2> time)
 {
   return distance / time;
 }
@@ -2506,23 +2509,35 @@ quantity<si::metre / si::second> avg_speed(quantity<si::metre> distance, quantit
 avg_speed(120 * km, 2 * h).in(km / h);
 ```
 
-The above code decreased the performance because we always pay for the conversion at the function's
-input and output. Moreover, we had to force `double` as a representation type to prevent narrowing,
-which can affect not only the performance, but also precision and memory footprint.
+Despite being safer, the above code decreased the performance because we always pay for the
+conversion at the function's input and output.
 
-We could try to provide concepts like `ScaledUnitOf<si::metre>` that will try to constrain
-somehow the arguments, but it leads to even more problems with the unit definitions. For example,
-are Hz and Bq scaled versions of 1 / s? What about radian and steradian or a litre and a cubic meter?
+Moreover, in a good library, the above code should not compile. The reason for this is that
+even though the conversion from `km` to `m` and from `h` to `s` is considered value-preserving,
+it is not true in the opposite direction. When we will try to convert the result stored in an
+integral type from the unit of `m/s` to `km/h` we will inevitably loose some data.
+
+We could try to provide concepts like `ScaledUnitOf<si::metre>` that would take a set of units
+while trying to constrain them somehow, but it leads to even more problems with the unit
+definitions. For example, are `Hz` and `Bq` just scaled versions of `1/s`? If we constrain the
+interface to just prefixed units, then litre and a cubic metre or kilometre and mile will be
+incompatible. What about radian and steradian or a litre per 100 kilometre (popular unit of
+a fuel consumption) and a squared metre? Should those be compatible?
 
 ### Disjoint units of the same quantity type do not work
 
-Sometimes, we need to define several units describing the same quantity but which do not convert
-to each other. A typical example can be a currency use case. A user may want to define EURO and
-USD as units of currency, but do not provide any predefined conversion factor and handle such
-a conversion at runtime with custom logic. In such a case, how we can specify that EURO and
-USD are quantities of the same type/dimension?
+Sometimes, we need to define several units describing the same quantity but which should not
+convert to each other in the library's framework. A typical example here is currency. A user
+may want to define EURO and USD as units of currency, so both of them can be used for such
+quantities. However, it is impossible to predefine one fixed conversion factor for those,
+as a currency exchange rate varies over time, and the library's framework can't provide such
+an information as an input to the built-in conversion function. User's application may have more
+information in this domain and handle such a conversion at runtime with custom logic
+(e.g., using an additional time point function argument). If we would like to model that
+in a unit-only solution, how can we specify that EURO and USD are units of quantities of
+currency, but are not convertible to each other?
 
-## Limitations of dimensions
+## Dimensions to the rescue?
 
 To prevent the above issues, most of the libraries on the market introduce dimension abstraction.
 Thanks to that, we could solve the first issue of the previous chapter with:
@@ -2537,6 +2552,8 @@ QuantityOf<dim_speed> auto avg_speed(QuantityOf<dim_length> auto distance,
 
 and the second one by specifying that both EURO and USD are units of `dim_currency`. This is
 a significant improvement but still has some issues.
+
+### Limitations of dimensions
 
 Let's first look again at the above solution. A domain expert seeing this code will immediately
 say there is no such thing as a speed dimension. The ISQ specifies only 7 dimensions with
@@ -2601,12 +2618,32 @@ Again, we don't want to accidentally mix those.
 
 ### Various quantities of the same dimension and kinds
 
-Even if we somehow address all the above, there are still plenty of use cases that still can't be
-safely implemented with such abstractions.
+Even if we somehow address all the above, there are plenty of use cases that still can't be safely
+implemented with such abstractions.
 
 Let's consider that we want to implement a freight transport application to position cargo in the
-container. In such a scenario, we need to be able to discriminate between _length_, _width_, and
-_height_ of the package. Also, often, we can find a "This side up" arrow on the box.
+container. In majority of the products on the market we will end up with something like:
+
+```cpp
+class Box {
+  length length_;
+  length width_;
+  length height_;
+public:
+  Box(length l, length w, length h): length_(l), width_(w), height_(h) {}
+  area floor() const { return length_ * width_; }
+  // ...
+};
+```
+
+```cpp
+Box my_box(2 * m, 3 * m, 1 * m);
+```
+
+Such interfaces are not much safer than just using plain fundamental types (e.g., `double`). One
+of the main reasons of using a quantities and units library was to introduce strong-type interfaces
+to prevent such issues. In this scenario, we need to be able to discriminate between _length_,
+_width_, and _height_ of the package.
 
 A similar but also really important use case is in aviation. The current _altitude_ is a totally
 different quantity than the _distance_ to the destination. The same is true for _forward speed_
@@ -2616,17 +2653,39 @@ When we deal with _energy_, we should be able to implicitly construct it from a 
 any _mass_, _length_, and _time_. However, when we want to calculate _gravitational potential energy_,
 we may not want it to be implicitly initialized from any expression of matching dimensions.
 Such an implicit construction should be allowed only if we multiply a _mass_ with
-_acceleration of free fall_ and _height_. All other conversions should happen explicitly.
+_acceleration of free fall_ and _height_. All other conversions should have an explicit annotation
+to make it clear that something potentially unsafe is being done in the code. Also, we should not
+be able to assign a _potential energy_ to a quantity of _kinetic energy_. However, both of them
+(possibly accumulated with each other) should be convertible to a _mechanical energy_ quantity.
+
+```cpp
+mass m = 1 * kg;
+length l = 1 * m;
+time t = 1 * s;
+acceleration_of_free_fall g = 9.81 * m / s2;
+height h = 1 * m;
+speed v = 1 * m / s;
+energy e = m * pow<2>(l) / pow<2>(t);                     // OK
+potential_energy ep1 = e;                                 // should not compile
+potential_energy ep2 = static_cast<potential_energy>(e);  // OK
+potential_energy ep3 = m * g * h;                         // OK
+kinetic_energy ek1 = m * pow<2>(v) / 2;                   // OK
+kinetic_energy ek2 = ep3 + ek1;                           // should not compile
+mechanical_energy me = ep3 + ek1;                         // OK
+```
 
 Yet another example comes from the audio industry. In the audio software, we want to treat specific
-counts (e.g., _beats_, _samples_) as separate quantities, but if we divide them, we should obtain a
-quantity convertible to _frequency_. The latter has the dimension of $T^{-1}$, which
-prevents us from assigning dedicated dimensions to such counts.
+counts (e.g., _beats_, _samples_) as separate quantities. We could assign dedicated base dimensions
+to them. However, if we divide them by _duration_, we should obtain a quantity convertible to
+_frequency_ and even be able to express the result in a unit of `Hz`. With the dedicated dimensions
+approach, this wouldn't work as the dimension of frequency is just $T^{-1}$, which would not match
+the results of our dimensional equations. This is why we can't assign dedicated dimensions to such
+counts.
 
-The last example that we want to mention here comes from finance. This time, we need to model _volume_
-as a special quantity of _currency_. _volume_ can be obtained by multiplying _currency_ by the
-dimensionless _market quantity_. Of course, both _currency_ and _volume_ should be expressed in
-the same units (e.g., USD).
+The last example that we want to mention here comes from finance. This time, we need to model
+_currency volume_ as a special quantity of _currency_. _currency volume_ can be obtained by
+multiplying _currency_ by the dimensionless _market quantity_. Of course, both _currency_ and
+_currency volume_ should be expressed in the same units (e.g., USD).
 
 None of the above scenarios can be addressed with just units and dimensions. We need a better
 abstraction to safely implement them.
@@ -2636,9 +2695,10 @@ abstraction to safely implement them.
 
 <!-- 
 flowchart TD
-    system_of_quantities["System of Quantities"] --- system_of_units1[System of Units #1]
-    system_of_quantities["System of Quantities"] --- system_of_units2[System of Units #2]
-    system_of_quantities["System of Quantities"] --- system_of_units3[System of Units #3]
+    system_of_quantities["System of Quantities"]
+    system_of_quantities --- system_of_units1[System of Units #1]
+    system_of_quantities --- system_of_units2[System of Units #2]
+    system_of_quantities --- system_of_units3[System of Units #3]
  -->
 
 <img src="img/systems.svg" style="display: block; margin-left: auto; margin-right: auto; width: 70%;"/>
@@ -2747,7 +2807,7 @@ In the above code:
 - `length` takes the base dimension to indicate that we are creating a base quantity that will serve
   as a root for a tree of quantities of the same kind,
 - `width` and following quantities are branches and leaves of this tree with the parent always
-  provided as the argument to `quantity_spec` class template,
+  provided as the first argument to `quantity_spec` class template,
 - `breadth` is an alias name for the same quantity as `width`.
 
 Please note that some quantities may be specified by [@ISO80000] as vector or tensor quantities
