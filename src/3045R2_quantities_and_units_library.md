@@ -52,6 +52,7 @@ toc-depth: 4
 - Code examples in the [Converting between quantities of the same kind] chapter fixed and improved.
 - [Symbols of scaled units] and [Symbols of common units] chapters added.
 - [New style of definitions] chapter extended.
+- `mag_pi` replaced with `mag<pi>`
 
 ## Changes since [@P3045R0]
 
@@ -3312,11 +3313,11 @@ For some units, a magnitude might also be irrational. The best example here is a
 is defined using a floating-point magnitude having a factor of the number π (Pi):
 
 ```cpp
-inline constexpr struct mag_pi : magnitude<std::numbers::pi_v<long double>> {} mag_pi;
+inline constexpr struct pi final : mag_constant<symbol_text{u8"𝜋", "pi"}, std::numbers::pi_v<long double>> {} pi;
 ```
 
 ```cpp
-inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag_pi / mag<180> * si::radian> {} degree;
+inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag<pi> / mag<180> * si::radian> {} degree;
 ```
 
 ### Unit symbols
@@ -6166,7 +6167,7 @@ inline constexpr struct speed_of_light_in_vacuum final :
 }  // namespace si2019
 
 inline constexpr struct magnetic_constant final :
-  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag_pi * mag_power<10, -7> * henry / metre> {} magnetic_constant;
+  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag<pi> * mag_power<10, -7> * henry / metre> {} magnetic_constant;
 
 }  // namespace si
 ```
@@ -6373,7 +6374,7 @@ are some examples, using Astronomical Units (au), meters (m), degrees (deg), and
 | $\left(\frac{\text{au}}{\text{m}}\right)$    | `std::ratio<149'597'870'700>` | `magnitude<power_v<2, 2>(), 3, power_v<5, 2>(), 73, 877, 7789>`                                                         |
 | $\left(\frac{\text{au}}{\text{m}}\right)^2$  | Unrepresentable (overflow)    | `magnitude<power_v<2, 4>(), power_v<3, 2>(), power_v<5, 4>(), power_v<73, 2>(), power_v<877, 2>(), power_v<7789, 2>()>` |
 | $\sqrt{\frac{\text{au}}{\text{m}}}$          | Unrepresentable               | `magnitude<2, power_v<3, 1, 2>(), 5, power_v<73, 1, 2>(), power_v<877, 1, 2>(), power_v<7789, 1, 2>()>`                 |
-| $\left(\frac{\text{rad}}{\text{deg}}\right)$ | Unrepresentable               | `magnitude<power_v<2, 2>(), power_v<3, 2>(), power_v<3.14159265358979323851e+0l, -1>(), 5>`                             |
+| $\left(\frac{\text{rad}}{\text{deg}}\right)$ | Unrepresentable               | `magnitude<power_v<2, 2>(), power_v<3, 2>(), power_v<pi{}, -1>(), 5>`                                                   |
 
 <!-- markdownlint-enable MD013 -->
 
