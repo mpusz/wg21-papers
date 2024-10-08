@@ -2294,8 +2294,8 @@ namespace ni {
 
 // quantities
 inline constexpr struct SampleCount final : quantity_spec<dimensionless, is_kind> {} SampleCount;
-inline constexpr struct SampleDuration final : quantity_spec<isq::time> {} SampleDuration;
-inline constexpr struct SamplingRate final : quantity_spec<isq::frequency, SampleCount / isq::time> {} SamplingRate;
+inline constexpr struct SampleDuration final : quantity_spec<isq::period_duration> {} SampleDuration;
+inline constexpr struct SamplingRate final : quantity_spec<isq::frequency, SampleCount / SampleDuration> {} SamplingRate;
 
 inline constexpr struct UnitSampleAmount final : quantity_spec<dimensionless, is_kind> {} UnitSampleAmount;
 inline constexpr auto Amplitude = UnitSampleAmount;
@@ -2305,8 +2305,8 @@ inline constexpr struct Power final : quantity_spec<Level * Level> {} Power;
 inline constexpr struct MIDIClock final : quantity_spec<dimensionless, is_kind> {} MIDIClock;
 
 inline constexpr struct BeatCount final : quantity_spec<dimensionless, is_kind> {} BeatCount;
-inline constexpr struct BeatDuration final : quantity_spec<isq::time> {} BeatDuration;
-inline constexpr struct Tempo final : quantity_spec<isq::frequency, BeatCount / isq::time> {} Tempo;
+inline constexpr struct BeatDuration final : quantity_spec<isq::period_duration> {} BeatDuration;
+inline constexpr struct Tempo final : quantity_spec<isq::frequency, BeatCount / BeatDuration> {} Tempo;
 
 // units
 inline constexpr struct Sample final : named_unit<"Smpl", one, kind_of<SampleCount>> {} Sample;
@@ -2359,12 +2359,12 @@ quantity<MIDIPulsePerQuarter, unsigned> GetPPQN()
 
 quantity<MIDIPulse, unsigned> GetTransportPos()
 {
-  return 15836 * MIDIPulse;
+  return 15'836 * MIDIPulse;
 }
 
 quantity<SamplingRate[si::hertz], float> GetSampleRate()
 {
-  return 44100.f * si::hertz;
+  return 44'100.f * si::hertz;
 }
 
 }
@@ -2375,7 +2375,7 @@ int main()
   using namespace mp_units::si::unit_symbols;
 
   const auto sr1 = ni::GetSampleRate();
-  const auto sr2 = 48000.f * Smpl / s;
+  const auto sr2 = 48'000.f * Smpl / s;
 
   const auto samples = 512 * Smpl;
 
@@ -2386,8 +2386,8 @@ int main()
   const auto sampleDuration2 = (1 / sr2).in(ms);
 
   const auto rampTime = 35.f * ms;
-  const auto rampSamples1 = value_cast<int>((rampTime * sr1).in(Smpl));
-  const auto rampSamples2 = value_cast<int>((rampTime * sr2).in(Smpl));
+  const auto rampSamples1 = (rampTime * sr1).force_in<int>(Smpl);
+  const auto rampSamples2 = (rampTime * sr2).force_in<int>(Smpl);
 
   std::println("Sample rate 1 is: {}", sr1);
   std::println("Sample rate 2 is: {}", sr2);
@@ -2453,7 +2453,7 @@ Transport Beats is: 16.495832 q
 Transport Time is: 8.997726 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/zfbxx8M7E).
+Try it in [the Compiler Explorer](https://godbolt.org/z/a7eYa91cM).
 
 _Note: More about this example can be found in
 ["Exploration of Strongly-typed Units in C++: A Case Study from Digital Audio"](https://www.youtube.com/watch?v=oxnCdIfC4Z4)
