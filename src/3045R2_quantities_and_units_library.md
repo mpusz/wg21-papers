@@ -5991,169 +5991,6 @@ quantity_point qp = time_point_cast<std::chrono::seconds>(std::chrono::system_cl
 std::chrono::sys_seconds q = qp + 42 * s;
 ```
 
-## Operations on units, dimensions, quantity types, and references
-
-Modern C++ physical quantities and units library should expose compile-time constants for units,
-dimensions, and quantity types. Each of such constants should be of a different type. Said otherwise,
-every unit, dimension, and quantity type has a unique type and a compile-time instance.
-This allows us to do regular algebra on such identifiers and get proper types as results of such
-operations.
-
-The operations exposed by such a library should include at least:
-
-- multiplication (e.g., `newton * metre`),
-- division (e.g., `metre / second`),
-- power (e.g., `pow<2>(metre)` or `pow<1, 2>(metre * metre)`).
-
-To improve the usability of the library, we also recommend adding:
-
-- square root (e.g., `sqrt(metre * metre)` as equivalent to `pow<1, 2>(metre * metre)`),
-- cubic root (e.g., `cbrt(metre * metre * metre)` as equivalent to `pow<1, 3>(metre * metre * metre)`),
-- inversion (e.g., `inverse(second)` as equivalent to `one / second`).
-
-Additionally, for units only, to improve the readability of the code, it makes sense to expose the following:
-
-- square power (e.g., `square(metre)` is equivalent to `pow<2>(metre)`),
-- cubic power (e.g., `cubic(metre)` is equivalent to `pow<3>(metre)`).
-
-The above two functions could also be considered for dimensions and quantity types. However,
-`cubic(length)` does not seem to make much sense, and probably `pow<3>(length)` should be
-preferred instead.
-
-Please note that we want to keep most of the unit magnitude's interface _implementation-defined_.
-This is why we provide only a minimal mandatory interface for them. For example, we have
-introduced a `mag_power<Basis, Num, Den = 1>` helper to get a power of a magnitude. With that,
-a user should probably never need to reach for an alternative `pow<Num, Den>(mag<Base>)`
-version. However, the latter could be considered more consistent with the same operation done
-on other abstractions. Let's compare how a unit can be defined using both of those syntaxes:
-
-- with `mag_power`:
-
- ```cpp
- inline constexpr struct electronvolt final :
-   named_unit<"eV", mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * si::joule> {} electronvolt;
- ```
-
-- with `pow<>(mag<>)`:
-
- ```cpp
- inline constexpr struct electronvolt final :
-   named_unit<"eV", mag_ratio<1'602'176'634, 1'000'000'000> * pow<-19>(mag<10>) * si::joule> {} electronvolt;
- ```
-
-Even though it might be inconsistent with operations on other abstractions, we've decided to use
-the first one as it seems easier to read and better resembles what we write on paper. However,
-we are not married to it, and we can change it if the LEWG prefers consistency here.
-
-### Equality and equivalence
-
-Units, their magnitudes, dimensions, quantity types, and references can be checked for equality
-with `operator==`. Equality for all the tag types is a simple check if both arguments are of
-the same type. For example, for dimensions, we do the following:
-
-```cpp
-template<Dimension Lhs, Dimension Rhs>
-consteval bool operator==(Lhs lhs, Rhs rhs)
-{
-  return is_same_v<Lhs, Rhs>;
-}
-```
-
-Equality for references is a bit more complex:
-
-```cpp
-template<typename Q1, typename U1, typename Q2, typename U2>
-consteval bool operator==(reference<Q1, U1>, reference<Q2, U2>)
-{
-  return is_same_v<reference<Q1, U1>, reference<Q2, U2>>;
-}
-
-template<typename Q1, typename U1, AssociatedUnit U2>
-consteval bool operator==(reference<Q1, U1>, U2 u2)
-{
-  return Q1{} == get_quantity_spec(u2) && U1{} == u2;
-}
-```
-
-The second overload allows us to mix associated units and specializations of `reference` class
-template (both of them satisfy `Reference` concept). Thanks to this, we can check the following:
-
-```cpp
-static_assert(isq::time[second] != second);
-static_assert(kind_of<isq::time>[second] == second);
-```
-
-Units may have many shades. This is why a quality check is not enough for them. In many cases, we
-want to be able to check for equivalence. Watt (`W`) should be equivalent to `J/s` and `kg m²/s³`.
-Also, a litre (`l`) should be equivalent to a cubic decimetre (`dm³`).
-
-To check for unit equivalence, we convert each unit to its canonical representation (scaled unit
-with magnitude expressed relative to some "blessed" implementation-specific reference unit) and
-then, we compare if the reference units and the magnitudes are the same:
-
-```cpp
-consteval bool equivalent(Unit auto lhs, Unit auto rhs)
-  requires(convertible(lhs, rhs))
-{
-  return get_canonical_unit(lhs).mag == get_canonical_unit(rhs).mag;
-}
-```
-
-### Ordering
-
-Ordering for dimensions and quantity types has no physical sense.
-
-We could entertain adding ordering for units, but this would work only for quantities having the same
-reference unit, which would be inconsistent with how equality works.
-
-Let's see the following example:
-
-```cpp
-constexpr Unit auto my_unit = si::second;
-if constexpr (my_unit == si::metre) {
- // ...
-}
-if constexpr (my_unit > si::metre) {
- // ...
-}
-if constexpr (my_unit > si::nano(si::second)) {
- // ...
-}
-```
-
-In the above code, the first check could be useful for some use cases. However, the second
-one is impossible to implement and should not compile. The third one could be considered useful,
-but the current version of [@MP-UNITS] does not expose such an interface to limit
-potential confusion. Also, it is really hard to mathematically prove that the unit magnitude
-representation that we use in the library (based on primes factorization) is greater or smaller
-than the other one in some cases.
-
-This is why we discourage providing ordering operations for any of those entities.
-
-### Common entities
-
-We could also define arithmetic `operator+` and `operator-` for such entities to resemble the
-operations performed on quantities. For example:
-
-```cpp
-quantity q = isq::radius(1 * m) + isq::distance(1 * cm);
-```
-
-returns a `quantity<get_common_quantity_spec(isq::radius, isq::distance)[get_common_unit(m, cm)], int>`
-aka `quantity<isq::length[cm], int>`.
-For consistency, our `operator+` and `operator-` overloads could return those common entities:
-
-```cpp
-static_assert(m + cm == cm);
-static_assert(km + mi == get_common_unit(km, mi));
-static_assert(isq::radius + isq::distance == isq::length);
-```
-
-However, we've decided that this is not the best idea, and the usage of named functions
-(`common_XXX()`) much better expresses the intent, is less ambiguous, and does not break
-dimensional analysis math rules.
-
-
 ## Expression templates
 
 Modern C++ physical quantities and units libraries use opaque types to improve the user experience while
@@ -6417,142 +6254,169 @@ The above program will produce the following types for _acceleration_ quantities
     ```
 
 
-## Physical constants
+## Operations on units, dimensions, quantity types, and references
 
-In most libraries, physical constants are implemented as constant (possibly `constexpr`)
-quantity values. Such an approach has some disadvantages, often resulting in longer
-compilation times and a loss of precision.
+Modern C++ physical quantities and units library should expose compile-time constants for units,
+dimensions, and quantity types. Each of such constants should be of a different type. Said otherwise,
+every unit, dimension, and quantity type has a unique type and a compile-time instance.
+This allows us to do regular algebra on such identifiers and get proper types as results of such
+operations.
 
-### Simplifying constants in an equation
+The operations exposed by such a library should include at least:
 
-When dealing with equations involving physical constants, they often occur more than once
-in an expression. Such a constant may appear both in a numerator and denominator of a quantity
-equation. As we know from fundamental physics, we can simplify such an expression by simply
-striking a constant out of the equation. Supporting such behavior allows a faster runtime
-performance and often a better precision of the resulting value.
+- multiplication (e.g., `newton * metre`),
+- division (e.g., `metre / second`),
+- power (e.g., `pow<2>(metre)` or `pow<1, 2>(metre * metre)`).
 
-### Physical constants as units
+To improve the usability of the library, we also recommend adding:
 
-The library allows and encourages implementing physical constants as regular units.
-With that, the constant's value is handled at compile-time, and under favorable circumstances,
-it can be simplified in the same way as all other repeated units do. If it is not simplified,
-the value is stored in a type, and the expensive multiplication or division operations can
-be delayed in time until a user selects a specific unit to represent/print the data.
+- square root (e.g., `sqrt(metre * metre)` as equivalent to `pow<1, 2>(metre * metre)`),
+- cubic root (e.g., `cbrt(metre * metre * metre)` as equivalent to `pow<1, 3>(metre * metre * metre)`),
+- inversion (e.g., `inverse(second)` as equivalent to `one / second`).
 
-Such a feature often also allows the use of simpler or faster representation types in the equation.
-For example, instead of always multiplying a small integral value with a big floating-point
-constant number, we can just use the integral type all the way. Only in case a constant will not
-simplify in the equation, and the user will require a specific unit, such a multiplication will
-be lazily invoked, and the representation type will need to be expanded to facilitate that.
-With that, addition, subtractions, multiplications, and divisions will always be the fastest -
-compiled away or done on the fast arithmetic types or in out-of-order execution.
+Additionally, for units only, to improve the readability of the code, it makes sense to expose the following:
 
-To benefit from all of the above, constants (defined by SI or otherwise) are implemented as units
-in the following way:
+- square power (e.g., `square(metre)` is equivalent to `pow<2>(metre)`),
+- cubic power (e.g., `cubic(metre)` is equivalent to `pow<3>(metre)`).
 
-```cpp
-namespace si {
+The above two functions could also be considered for dimensions and quantity types. However,
+`cubic(length)` does not seem to make much sense, and probably `pow<3>(length)` should be
+preferred instead.
 
-namespace si2019 {
+Please note that we want to keep most of the unit magnitude's interface _implementation-defined_.
+This is why we provide only a minimal mandatory interface for them. For example, we have
+introduced a `mag_power<Basis, Num, Den = 1>` helper to get a power of a magnitude. With that,
+a user should probably never need to reach for an alternative `pow<Num, Den>(mag<Base>)`
+version. However, the latter could be considered more consistent with the same operation done
+on other abstractions. Let's compare how a unit can be defined using both of those syntaxes:
 
-inline constexpr struct speed_of_light_in_vacuum final :
-  named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
+- with `mag_power`:
 
-}  // namespace si2019
+ ```cpp
+ inline constexpr struct electronvolt final :
+   named_unit<"eV", mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * si::joule> {} electronvolt;
+ ```
 
-inline constexpr struct magnetic_constant final :
-  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag<pi> * mag_power<10, -7> * henry / metre> {} magnetic_constant;
+- with `pow<>(mag<>)`:
 
-}  // namespace si
-```
+ ```cpp
+ inline constexpr struct electronvolt final :
+   named_unit<"eV", mag_ratio<1'602'176'634, 1'000'000'000> * pow<-19>(mag<10>) * si::joule> {} electronvolt;
+ ```
 
-### Physical constants usage examples
+Even though it might be inconsistent with operations on other abstractions, we've decided to use
+the first one as it seems easier to read and better resembles what we write on paper. However,
+we are not married to it, and we can change it if the LEWG prefers consistency here.
 
-With the above definitions, we can calculate vacuum permittivity as:
+### Equality and equivalence
 
-```cpp
-constexpr auto permeability_of_vacuum = 1. * si::magnetic_constant;
-constexpr auto speed_of_light_in_vacuum = 1 * si::si2019::speed_of_light_in_vacuum;
-
-QuantityOf<isq::permittivity_of_vacuum> auto q = 1 / (permeability_of_vacuum * pow<2>(speed_of_light_in_vacuum));
-
-std::cout << "permittivity of vacuum = " << q << " = " << q.in(F / m) << "\n";
-```
-
-The above first prints the following:
-
-```text
-permittivity of vacuum = 1  μ₀⁻¹ c⁻² = 8.85419e-12 F/m
-```
-
-As we can clearly see, all the calculations above were just about multiplying and dividing
-the number `1` with the rest of the information provided as a compile-time type. Only when
-a user wants a specific SI unit as a result, the unit ratios are lazily resolved.
-
-Another similar example can be an equation for total energy:
+Units, their magnitudes, dimensions, quantity types, and references can be checked for equality
+with `operator==`. Equality for all the tag types is a simple check if both arguments are of
+the same type. For example, for dimensions, we do the following:
 
 ```cpp
-QuantityOf<isq::mechanical_energy> auto total_energy(QuantityOf<isq::momentum> auto p,
-                                                     QuantityOf<isq::mass> auto m,
-                                                     QuantityOf<isq::speed> auto c)
+template<Dimension Lhs, Dimension Rhs>
+consteval bool operator==(Lhs lhs, Rhs rhs)
 {
-  return isq::mechanical_energy(sqrt(pow<2>(p * c) + pow<2>(m * pow<2>(c))));
+  return is_same_v<Lhs, Rhs>;
 }
 ```
 
-<!-- TODO refactor to the vector representation type when the design is done -->
+Equality for references is a bit more complex:
 
 ```cpp
-constexpr Unit auto GeV = si::giga<si::electronvolt>;
-constexpr quantity c = 1. * si::si2019::speed_of_light_in_vacuum;
-constexpr quantity c2 = pow<2>(c);
+template<typename Q1, typename U1, typename Q2, typename U2>
+consteval bool operator==(reference<Q1, U1>, reference<Q2, U2>)
+{
+  return is_same_v<reference<Q1, U1>, reference<Q2, U2>>;
+}
 
-const quantity p1 = isq::momentum(4. * GeV / c);
-const QuantityOf<isq::mass> auto m1 = 3. * GeV / c2;
-const quantity E = total_energy(p1, m1, c);
-
-std::cout << "in `GeV` and `c`:\n"
-          << "p = " << p1 << "\n"
-          << "m = " << m1 << "\n"
-          << "E = " << E << "\n";
-
-const quantity p2 = p1.in(GeV / (m / s));
-const quantity m2 = m1.in(GeV / pow<2>(m / s));
-const quantity E2 = total_energy(p2, m2, c).in(GeV);
-
-std::cout << "\nin `GeV`:\n"
-          << "p = " << p2 << "\n"
-          << "m = " << m2 << "\n"
-          << "E = " << E2 << "\n";
-
-const quantity p3 = p1.in(kg * m / s);
-const quantity m3 = m1.in(kg);
-const quantity E3 = total_energy(p3, m3, c).in(J);
-
-std::cout << "\nin SI base units:\n"
-          << "p = " << p3 << "\n"
-          << "m = " << m3 << "\n"
-          << "E = " << E3 << "\n";
+template<typename Q1, typename U1, AssociatedUnit U2>
+consteval bool operator==(reference<Q1, U1>, U2 u2)
+{
+  return Q1{} == get_quantity_spec(u2) && U1{} == u2;
+}
 ```
 
-The above prints the following:
+The second overload allows us to mix associated units and specializations of `reference` class
+template (both of them satisfy `Reference` concept). Thanks to this, we can check the following:
 
-```text
-in `GeV` and `c`:
-p = 4 GeV/c
-m = 3 GeV/c²
-E = 5 GeV
-
-in `GeV`:
-p = 1.33426e-08 GeV s/m
-m = 3.33795e-17 GeV s²/m²
-E = 5 GeV
-
-in SI base units:
-p = 2.13771e-18 kg m/s
-m = 5.34799e-27 kg
-E = 8.01088e-10 J
+```cpp
+static_assert(isq::time[second] != second);
+static_assert(kind_of<isq::time>[second] == second);
 ```
+
+Units may have many shades. This is why a quality check is not enough for them. In many cases, we
+want to be able to check for equivalence. Watt (`W`) should be equivalent to `J/s` and `kg m²/s³`.
+Also, a litre (`l`) should be equivalent to a cubic decimetre (`dm³`).
+
+To check for unit equivalence, we convert each unit to its canonical representation (scaled unit
+with magnitude expressed relative to some "blessed" implementation-specific reference unit) and
+then, we compare if the reference units and the magnitudes are the same:
+
+```cpp
+consteval bool equivalent(Unit auto lhs, Unit auto rhs)
+  requires(convertible(lhs, rhs))
+{
+  return get_canonical_unit(lhs).mag == get_canonical_unit(rhs).mag;
+}
+```
+
+### Ordering
+
+Ordering for dimensions and quantity types has no physical sense.
+
+We could entertain adding ordering for units, but this would work only for quantities having the same
+reference unit, which would be inconsistent with how equality works.
+
+Let's see the following example:
+
+```cpp
+constexpr Unit auto my_unit = si::second;
+if constexpr (my_unit == si::metre) {
+ // ...
+}
+if constexpr (my_unit > si::metre) {
+ // ...
+}
+if constexpr (my_unit > si::nano(si::second)) {
+ // ...
+}
+```
+
+In the above code, the first check could be useful for some use cases. However, the second
+one is impossible to implement and should not compile. The third one could be considered useful,
+but the current version of [@MP-UNITS] does not expose such an interface to limit
+potential confusion. Also, it is really hard to mathematically prove that the unit magnitude
+representation that we use in the library (based on primes factorization) is greater or smaller
+than the other one in some cases.
+
+This is why we discourage providing ordering operations for any of those entities.
+
+### Obtaininig common entities
+
+We could also define arithmetic `operator+` and `operator-` for such entities to resemble the
+operations performed on quantities. For example:
+
+```cpp
+quantity q = isq::radius(1 * m) + isq::distance(1 * cm);
+```
+
+returns a `quantity<get_common_quantity_spec(isq::radius, isq::distance)[get_common_unit(m, cm)], int>`
+aka `quantity<isq::length[cm], int>`.
+For consistency, our `operator+` and `operator-` overloads could return those common entities:
+
+```cpp
+static_assert(m + cm == cm);
+static_assert(km + mi == get_common_unit(km, mi));
+static_assert(isq::radius + isq::distance == isq::length);
+```
+
+However, we've decided that this is not the best idea, and the usage of named functions
+(`common_XXX()`) much better expresses the intent, is less ambiguous, and does not break
+dimensional analysis math rules.
+
+
 
 ## Magnitudes
 
@@ -6701,6 +6565,147 @@ a hard-blocker: it turns out that every practical case we have could be satisfie
 primality checker.  Still, we plan to continue investigating this avenue, both because it would make
 the standard units library implementation much easier, and because this function would be widely
 useful in many other domains.
+
+
+## Physical constants
+
+In most libraries, physical constants are implemented as constant (possibly `constexpr`)
+quantity values. Such an approach has some disadvantages, often resulting in longer
+compilation times and a loss of precision.
+
+### Simplifying constants in an equation
+
+When dealing with equations involving physical constants, they often occur more than once
+in an expression. Such a constant may appear both in a numerator and denominator of a quantity
+equation. As we know from fundamental physics, we can simplify such an expression by simply
+striking a constant out of the equation. Supporting such behavior allows a faster runtime
+performance and often a better precision of the resulting value.
+
+### Physical constants as units
+
+The library allows and encourages implementing physical constants as regular units.
+With that, the constant's value is handled at compile-time, and under favorable circumstances,
+it can be simplified in the same way as all other repeated units do. If it is not simplified,
+the value is stored in a type, and the expensive multiplication or division operations can
+be delayed in time until a user selects a specific unit to represent/print the data.
+
+Such a feature often also allows the use of simpler or faster representation types in the equation.
+For example, instead of always multiplying a small integral value with a big floating-point
+constant number, we can just use the integral type all the way. Only in case a constant will not
+simplify in the equation, and the user will require a specific unit, such a multiplication will
+be lazily invoked, and the representation type will need to be expanded to facilitate that.
+With that, addition, subtractions, multiplications, and divisions will always be the fastest -
+compiled away or done on the fast arithmetic types or in out-of-order execution.
+
+To benefit from all of the above, constants (defined by SI or otherwise) are implemented as units
+in the following way:
+
+```cpp
+namespace si {
+
+namespace si2019 {
+
+inline constexpr struct speed_of_light_in_vacuum final :
+  named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
+
+}  // namespace si2019
+
+inline constexpr struct magnetic_constant final :
+  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag<pi> * mag_power<10, -7> * henry / metre> {} magnetic_constant;
+
+}  // namespace si
+```
+
+### Physical constants usage examples
+
+With the above definitions, we can calculate vacuum permittivity as:
+
+```cpp
+constexpr auto permeability_of_vacuum = 1. * si::magnetic_constant;
+constexpr auto speed_of_light_in_vacuum = 1 * si::si2019::speed_of_light_in_vacuum;
+
+QuantityOf<isq::permittivity_of_vacuum> auto q = 1 / (permeability_of_vacuum * pow<2>(speed_of_light_in_vacuum));
+
+std::cout << "permittivity of vacuum = " << q << " = " << q.in(F / m) << "\n";
+```
+
+The above first prints the following:
+
+```text
+permittivity of vacuum = 1  μ₀⁻¹ c⁻² = 8.85419e-12 F/m
+```
+
+As we can clearly see, all the calculations above were just about multiplying and dividing
+the number `1` with the rest of the information provided as a compile-time type. Only when
+a user wants a specific SI unit as a result, the unit ratios are lazily resolved.
+
+Another similar example can be an equation for total energy:
+
+```cpp
+QuantityOf<isq::mechanical_energy> auto total_energy(QuantityOf<isq::momentum> auto p,
+                                                     QuantityOf<isq::mass> auto m,
+                                                     QuantityOf<isq::speed> auto c)
+{
+  return isq::mechanical_energy(sqrt(pow<2>(p * c) + pow<2>(m * pow<2>(c))));
+}
+```
+
+<!-- TODO refactor to the vector representation type when the design is done -->
+
+```cpp
+constexpr Unit auto GeV = si::giga<si::electronvolt>;
+constexpr quantity c = 1. * si::si2019::speed_of_light_in_vacuum;
+constexpr quantity c2 = pow<2>(c);
+
+const quantity p1 = isq::momentum(4. * GeV / c);
+const QuantityOf<isq::mass> auto m1 = 3. * GeV / c2;
+const quantity E = total_energy(p1, m1, c);
+
+std::cout << "in `GeV` and `c`:\n"
+          << "p = " << p1 << "\n"
+          << "m = " << m1 << "\n"
+          << "E = " << E << "\n";
+
+const quantity p2 = p1.in(GeV / (m / s));
+const quantity m2 = m1.in(GeV / pow<2>(m / s));
+const quantity E2 = total_energy(p2, m2, c).in(GeV);
+
+std::cout << "\nin `GeV`:\n"
+          << "p = " << p2 << "\n"
+          << "m = " << m2 << "\n"
+          << "E = " << E2 << "\n";
+
+const quantity p3 = p1.in(kg * m / s);
+const quantity m3 = m1.in(kg);
+const quantity E3 = total_energy(p3, m3, c).in(J);
+
+std::cout << "\nin SI base units:\n"
+          << "p = " << p3 << "\n"
+          << "m = " << m3 << "\n"
+          << "E = " << E3 << "\n";
+```
+
+The above prints the following:
+
+```text
+in `GeV` and `c`:
+p = 4 GeV/c
+m = 3 GeV/c²
+E = 5 GeV
+
+in `GeV`:
+p = 1.33426e-08 GeV s/m
+m = 3.33795e-17 GeV s²/m²
+E = 5 GeV
+
+in SI base units:
+p = 2.13771e-18 kg m/s
+m = 5.34799e-27 kg
+E = 8.01088e-10 J
+```
+
+
+## Quantity specifications
 
 ## Quantity references
 
