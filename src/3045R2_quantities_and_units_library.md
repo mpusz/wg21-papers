@@ -3183,11 +3183,18 @@ quantity<si::metre / si::second> q;
 to express a quantity of speed. The resulting quantity type is implicitly inferred from
 the unit equation by repeating exactly the same operations on the associated quantity kinds.
 
-Also, as units are regular values, we can easily provide a helper ad-hoc unit with:
+As units are regular values, we can easily provide a helper ad-hoc unit with:
 
 ```cpp
 constexpr auto mps = si::metre / si::second;
 quantity<mps> q;
+```
+
+The unit composition works not only on the "unit-level". We can multiply or divide a quantity
+to get another type of quantity expressed in a composed unit:
+
+```cpp
+quantity pace = (4. * min + 40. * s) / km;
 ```
 
 ### Many shades of the same unit
