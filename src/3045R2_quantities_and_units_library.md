@@ -3190,13 +3190,6 @@ constexpr auto mps = si::metre / si::second;
 quantity<mps> q;
 ```
 
-The unit composition works not only on the "unit-level". We can multiply or divide a quantity
-to get another type of quantity expressed in a composed unit:
-
-```cpp
-quantity pace = (4. * min + 40. * s) / km;
-```
-
 ### Many shades of the same unit
 
 The [@SI] provides the names for 22 common coherent units of 22 derived quantities.
@@ -5564,6 +5557,13 @@ quantity<metre_per_second> q;
 ```
 
 or choose any shorter identifier of our choice.
+
+The unit composition works not only on the "unit-level". We can multiply or divide a quantity
+to get another type of quantity expressed in a composed unit:
+
+```cpp
+quantity pace = (4. * min + 40. * s) / km;
+```
 
 Coming back to the angular momentum case, thanks to the composability of units, a user can
 create such a quantity in the following way:
