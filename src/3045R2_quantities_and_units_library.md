@@ -58,6 +58,7 @@ toc-depth: 4
 - [Text output open questions] chapter added.
 - [Minimal Viable Product (MVP) scope] chapter added.
 - [Operations on units, dimensions, quantity types, and references] chapter updated.
+- [Units] chapter added.
 
 ## Changes since [@P3045R0]
 
@@ -6418,7 +6419,41 @@ dimensional analysis math rules.
 
 
 
-## Magnitudes
+## Units
+
+ISO specifies a measurement unit as a real scalar quantity, defined and adopted by convention,
+with which any other quantity of the same kind can be compared to express the ratio of the two
+quantities as a number.
+
+In other words, a unit is a specific amount of a quantity. Such a definition is impractical from
+the programming language point of view. Let's see the following hypothetical example
+(the below API is not a part of this proposal):
+
+```cpp
+namespace si {
+
+constexpr auto metre = quantity<length>{1};
+constexpr auto kilometre = 1000 * metre;
+
+}
+
+quantity<si::kilometre> distance = 42 * si::kilometre;
+```
+
+The above code would be consistent with the ISO definition however, it imposes several issues:
+
+- creates a circular dependency for a `quantity` class,
+- embeds a concrete representation type in the unit,
+- loses all the benefits associated with our prime-factorized unit magnitudes (i.e., being able to
+ express any ratio without the overflow of the underlying representation type),
+- `quantity<length>{1}` may mean different things in namespaces of different systems which makes
+ it much harder to provide interoperability between them,
+- does not provide an opportunity to specify the unit symbol.
+
+This is why decided to base unit definitions on tag types.
+
+
+## Unit magnitudes
 
 A very common operation is to multiply an existing unit by a factor, creating a new, scaled unit.
 For example, the unit _foot_ can be multiplied by 3, producing the unit _yard_.
