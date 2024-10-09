@@ -59,6 +59,7 @@ toc-depth: 4
 - [Minimal Viable Product (MVP) scope] chapter added.
 - [Operations on units, dimensions, quantity types, and references] chapter updated.
 - [Units] chapter added.
+- [Common unit magnitude] chapter added.
 
 ## Changes since [@P3045R0]
 
@@ -6609,6 +6610,38 @@ a hard-blocker: it turns out that every practical case we have could be satisfie
 primality checker.  Still, we plan to continue investigating this avenue, both because it would make
 the standard units library implementation much easier, and because this function would be widely
 useful in many other domains.
+
+### Common unit magnitude
+
+In our vector space representation, we can easily compute the magnitude of the common unit by taking
+the smallest exponent, across all participating magnitudes, for each individual basis vector --- as
+long as we remember to use the implicit "0" exponent for any basis vector that is omitted.
+
+The following example may help make this clear. If we use $\text{COM}\left[U_1, \cdots, U_n\right]$
+as notation to represent "the common unit of $U_1, \cdots, U_n$", and we show only the magnitudes
+for simplicity, here are the steps we would follow to find the magnitude of the common unit.
+
+<!-- markdownlint-disable MD013 -->
+
+$$
+\begin{align}
+\text{COM}\left[18, \frac{80}{3}\right] &= \text{COM}\left[(2 \cdot 3^2), (2^4 \cdot 3^{-1} \cdot 5)\right] \\
+&= \text{COM}\left[(2^1 \cdot 3^2 \cdot 5^0), (2^4 \cdot 3^{-1} \cdot 5^1)\right] \\
+&= 2^{\text{min}[1, 4]} \cdot 3^{\text{min}[2, -1]} \cdot 5^{\text{min}[0, 1]} \\
+&= 2^1 \cdot 3^{-1} \cdot 5^0 \\
+&= \frac{2}{3}
+\end{align}
+$$
+
+<!-- markdownlint-enable MD013 -->
+
+This procedure produces the unambiguous correct answer whenever it is well defined. It also
+produces an answer for irrational "ratios", where there is no uniquely defined result. This provides
+the practical benefit of making it easy to compare, say, an angle in degrees to one in radians, as
+long as at least one of them is represented in a floating point type.
+
+
+
 
 
 ## Physical constants
