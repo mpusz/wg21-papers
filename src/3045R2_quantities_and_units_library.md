@@ -3329,10 +3329,10 @@ inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag<pi> / mag
 
 ### Common units
 
-Adding or subtracting two quantities of different units will force the library to find a common
-unit for those. This is to prevent data truncation. For the cases when one of the units is an
-integral multiple of the other, the resulting quantity will use a "smaller" one in its result.
-For example:
+Adding, subtracting, or comparing two quantities of different units will force the library to
+find a common unit for those. This is to prevent data truncation. For the cases when one of the
+units is an integral multiple of the other, the resulting quantity will use a "smaller" one in
+its result. For example:
 
 ```cpp
 static_assert((1 * kg + 1 * g).unit == g);
@@ -3353,8 +3353,8 @@ quantity q2 = 1. * rad + 1. * deg; // quantity<common_unit<si::degree, si::radia
 The above is to not privilege any unit in the library:
 
 - we shouldn't introduce an unmentioned unit into computations
- (e.g., converting a `1 * mi + 1 * nmi` computation to `m` because `m` could be the privileged
- SI base unit),
+  (e.g., converting a `1 * mi + 1 * nmi` computation to `m` because `m` could be the privileged
+  SI base unit),
 - we shouldn't go looking for specific units (e.g., converting a `1 * m + 1 * cm` computation to
   `m` because `m` is the privileged SI base unit).
 
