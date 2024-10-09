@@ -6307,7 +6307,10 @@ on other abstractions. Let's compare how a unit can be defined using both of tho
 
 Even though it might be inconsistent with operations on other abstractions, we've decided to use
 the first one as it seems easier to read and better resembles what we write on paper. However,
-we are not married to it, and we can change it if the LEWG prefers consistency here.
+we are not married to it, and we can change it if the LEWG prefers consistency here. Please note,
+that in such a case, for consistency, we probably should also provide `sqrt()` and `cbrt()`
+operations. However, those are really rare operations for magnitudes (we have not found any use
+cases for those in [@MP-UNITS] so far).
 
 ### Equality and equivalence
 
