@@ -60,6 +60,7 @@ toc-depth: 4
 - [Operations on units, dimensions, quantity types, and references] chapter updated.
 - [Units] chapter added.
 - [Common unit magnitude] chapter added.
+- [Addition and subtraction] chapter extended with the paragraph about irrational magnitudes.
 
 ## Changes since [@P3045R0]
 
@@ -7018,6 +7019,24 @@ static_assert((isq::height(1 * m) += isq::length(1 * m)) == 2 * m); // Compile-t
 the one with a lower resolution is considered narrowing.
 
 `(3)` Conversion from a more generic quantity type to a more specific one is considered unsafe.
+
+Please note that all the above operations either preserved the input representation types or
+returned a common type if those were different for both arguments. This is not the case for
+irrational conversion factors. In such cases, the library will force the user to use at least
+one floating-point representation type to prevent truncation:
+
+```cpp
+template<typename... Ts>
+consteval bool invalid_arithmetic(Ts... ts)
+{
+  return !requires { (... + ts); } && !requires { (... - ts); };
+}
+
+static_assert(invalid_arithmetic(1 * rad, 1 * deg));
+static_assert(is_of_type<1. * rad + 1 * deg, quantity<deg, double>>);
+static_assert(is_of_type<1 * rad + 1. * deg, quantity<deg, double>>);
+static_assert(is_of_type<1. * rad + 1. * deg, quantity<deg, double>>);
+```
 
 #### Multiplication and division
 
