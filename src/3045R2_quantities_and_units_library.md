@@ -6641,9 +6641,6 @@ the practical benefit of making it easy to compare, say, an angle in degrees to 
 long as at least one of them is represented in a floating point type.
 
 
-
-
-
 ## Physical constants
 
 In most libraries, physical constants are implemented as constant (possibly `constexpr`)
@@ -6781,8 +6778,6 @@ m = 5.34799e-27 kg
 E = 8.01088e-10 J
 ```
 
-
-## Quantity specifications
 
 ## Quantity references
 
@@ -7658,6 +7653,11 @@ if (auto q = inc(42); q != 0)
   legacy(static_cast<int>(q));
 ```
 
+Please note that those rules do not apply to all the dimensionless quantities. It would be unsafe
+and misleading to allow such operations on units with a magnitude different than `1`
+(e.g., `percent` or `radian`).
+
+
 #### Angular quantities
 
 Special, often controversial, examples of dimensionless quantities are the _angular measure_
@@ -7719,8 +7719,8 @@ Angular quantities are not the only ones with such a "strange" behavior. A simil
 case is the _storage capacity_ quantity specified in [@ISO80000] (part 13) that again allows
 expressing it in both `one` and `bit` units.
 
-Those cases make dimensionless quantities an exceptional tree in the library. This is the only
-quantity hierarchy that contains more than one quantity kind in its tree:
+Those cases make dimensionless quantities an exceptional tree in the library. This quantity
+hierarchy contains more than one quantity kind and more than one unit in its tree:
 
 ![](img/quantities_of_dimensionless.svg)
 
@@ -7859,9 +7859,9 @@ happens here.
 
 With such changes to the interface design, the offending code will not compile as initially written.
 Users will be forced to think more about what they write. To enable the compilation, the users have
-to explicitly create a:
+to create explicitly:
 
-- `quantity_point` (the intended abstraction in this example) with any of the below syntaxes:
+- a `quantity_point` (the intended abstraction in this example) with any of the below syntaxes:
 
     ```cpp
     quantity_point Temperature = absolute<deg_C>(28.0);
@@ -7869,7 +7869,7 @@ to explicitly create a:
     quantity_point Temperature(delta<deg_C>(28.0));
     ```
 
-- `quantity` (an incorrect abstraction in this example) with:
+- a `quantity` (an incorrect abstraction in this example) with:
 
     ```cpp
     quantity Temperature = delta<deg_C>(28.0);
