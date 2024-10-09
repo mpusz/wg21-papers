@@ -13,6 +13,11 @@ author:
 
 # Revision history
 
+## Changes since [@P3094R3]
+
+- `std::` prefix dropped in [Wording]
+- [Iterator support] and [Element access] chapters added
+
 ## Changes since [@P3094R2]
 
 - Additional motivation for [Constructor taking the list of characters] added.
@@ -528,7 +533,7 @@ public:
   constexpr basic_fixed_string(const basic_fixed_string&) noexcept = default;
   constexpr basic_fixed_string& operator=(const basic_fixed_string&) noexcept = default;
 
-  // iterator support
+  // @[[fixed.string.iterators]](#fixed.string.iterators)@, iterator support
   constexpr const_iterator begin() const noexcept;
   constexpr const_iterator end() const noexcept;
   constexpr const_iterator cbegin() const noexcept;
@@ -539,12 +544,12 @@ public:
   constexpr const_reverse_iterator crend() const noexcept;
 
   // capacity
-  static constexpr std::integral_constant<size_type, N> size{};
-  static constexpr std::integral_constant<size_type, N> length{};
-  static constexpr std::integral_constant<size_type, N> max_size{};
-  static constexpr std::bool_constant<N == 0> empty{};
+  static constexpr integral_constant<size_type, N> size{};
+  static constexpr integral_constant<size_type, N> length{};
+  static constexpr integral_constant<size_type, N> max_size{};
+  static constexpr bool_constant<N == 0> empty{};
 
-  // element access
+  // @[[fixed.string.access]](#fixed.string.access)@, element access
   constexpr const_reference operator[](size_type pos) const;
   constexpr const_reference at(size_type pos) const;  // freestanding-deleted
   constexpr const_reference front() const;
@@ -601,6 +606,7 @@ basic_fixed_string(from_range_t, array<CharT, N>) -> basic_fixed_string<CharT, N
 _Footnote [^1]_: Because `basic_fixed_string` models a sequence, `iterator` and `const_iterator`
 are the same type.
 
+
 #### Construction and assignment { #fixed.string.cons }
 
 ```cpp
@@ -642,14 +648,103 @@ constexpr basic_fixed_string(from_range_t, R&& r);
 [7]{.pnum} _Effects_: Initializes `data_` from the values in the range `rg`, as specified
 in [sequence.reqmts]{.sref}.
 
+
 #### Deduction guides { #fixed.string.deduct }
 
 [1]{.pnum} The following exposition-only concept is used in the definition of deduction guides:
 
 ```cpp
 template<typename T, typename... Ts>
-concept @_one-of_@ = (false || ... || std::same_as<T, Ts>);  // exposition only
+concept @_one-of_@ = (false || ... || same_as<T, Ts>);  // exposition only
 ```
+
+
+#### Iterator support { #fixed.string.iterators }
+
+```cpp
+using const_iterator = @_implementation-defined_@;
+```
+
+[1]{.pnum} A type that meets the requirements of a constant `Cpp17RandomAccessIterator`
+[random.access.iterators]{.sref}, models contiguous_iterator [iterator.concept.contiguous]{.sref},
+and meets the `constexpr` iterator requirements [iterator.requirements.general]{.sref}, whose
+`value_type` is the template parameter `charT`.
+
+[2]{.pnum} All requirements on container iterators [container.requirements]{.sref} apply to
+`fixed_string::​const_iterator` as well.
+
+```cpp
+constexpr const_iterator begin() const noexcept;
+constexpr const_iterator cbegin() const noexcept;
+```
+
+[3]{.pnum} _Returns_: An iterator referring to the first character in the string.
+
+```cpp
+constexpr const_iterator end() const noexcept;
+constexpr const_iterator cend() const noexcept;
+```
+
+[4]{.pnum} _Returns_: An iterator which is the past-the-end value.
+
+```cpp
+constexpr const_reverse_iterator rbegin() const noexcept;
+constexpr const_reverse_iterator crbegin() const noexcept;
+```
+
+[5]{.pnum} _Returns_: `const_reverse_iterator(end())`.
+
+```cpp
+constexpr const_reverse_iterator rend() const noexcept;
+constexpr const_reverse_iterator crend() const noexcept;
+```
+
+[6]{.pnum} _Returns_: `const_reverse_iterator(begin())`.
+
+
+#### Element access { #fixed.string.access }
+
+```cpp
+constexpr const_reference operator[](size_type pos) const;
+```
+
+[1]{.pnum} _Preconditions_: `pos < size()`.
+
+[2]{.pnum} _Returns_: `data_[pos]`.
+
+[3]{.pnum} _Throws_: Nothing.
+
+[4]{.pnum} [_Note 1_: Unlike `basic_string​::​operator[]`, `basic_fixed_string::​operator[](size())`
+has undefined behavior instead of returning `charT()`. — _end note_]
+
+```cpp
+constexpr const_reference at(size_type pos) const;
+```
+
+[5]{.pnum} _Returns_: `data_[pos]`.
+
+[6]{.pnum} _Throws_: `out_of_range` if `pos >= size()`.
+
+```cpp
+constexpr const_reference front() const;
+```
+
+[7]{.pnum} _Preconditions_: `!empty()`.
+
+[8]{.pnum} _Returns_: `data_[0]`.
+
+[9]{.pnum} _Throws_: Nothing.
+
+```cpp
+constexpr const_reference back() const;
+```
+
+[10]{.pnum} _Preconditions_: `!empty()`.
+
+[11]{.pnum} _Returns_: `data_[size() - 1]`.
+
+[12]{.pnum} _Throws_: Nothing.
+
 
 #### Modifiers { #fixed.string.modifiers }
 
@@ -747,7 +842,7 @@ friend consteval @_see below_@ operator<=>(const basic_fixed_string& lhs, const 
 [3]{.pnum} _Effects_: Let `op` be the operator. Equivalent to:
 
 ```cpp
-return lhs.view() @_op_@ std::basic_string_view<CharT, Traits>(rhs, rhs + N2 - 1);
+return lhs.view() @_op_@ basic_string_view<CharT, Traits>(rhs, rhs + N2 - 1);
 ```
 
 #### Inserters and extractors { #fixed.string.io }
