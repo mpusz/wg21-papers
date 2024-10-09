@@ -61,6 +61,7 @@ toc-depth: 4
 - [Units] chapter added.
 - [Common unit magnitude] chapter added.
 - [Addition and subtraction] chapter extended with the paragraph about irrational magnitudes.
+- "Lack of convertibility from fundamental types" chapter refactored to [Convertibility from fundamental types].
 
 ## Changes since [@P3045R0]
 
@@ -7512,82 +7513,24 @@ of things. For example:
 Thanks to assigning strong names to such quantities, they can be used in the quantity equation of
 other quantities. For example, _rotational frequency_ is defined by `rotation / duration`.
 
-#### Lack of convertibility from fundamental types
+#### Convertibility from fundamental types
 
 As stated before, the division of two quantities of the same kind results in a quantity of
 dimension one. Even though it does not have a specific physical dimension it still uses units with
 various ratios such as `one`, `percent`, `radian`, `degree`, etc. It is essential to be explicit
 about which unit we want to use for such a quantity.
 
-However, in some cases, this might look like an overkill. In the [Basic quantity equations] chapter
-one of the lines looks as follows:
+However, in some cases, this might look like an overkill. For example:
 
 ```cpp
-static_assert(10 * km / (5 * km) == 2);
+static_assert(10 * km / (5 * km) == 2 * one);
 ```
 
-Another example could be subtracting a value `1` from the dimensionless quantity that we can
-find in [Storage tank] example:
-
-```cpp
-const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
-```
-
-Some physical quantities and units libraries (e.g. [@BOOST-UNITS]) provide
-[implicit conversions from the values of representation types to such quantities](https://www.boost.org/doc/libs/1_83_0/doc/html/boost_units/Quantities.html#boost_units.Quantities.Quantity_Construction_and_Conversion).
-
-With such support, the above examples would look in the following way:
-
-```cpp
-static_assert(10 * km / (5 * km) == 2);
-```
-
-```cpp
-const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1) * fill_time;
-```
-
-Such simplification might look tempting, and the [@MP-UNITS] initially provided a special support
-that allowed the above to compile. However, in the V2 version of the library, it was removed.
-There are a few reasons for that:
-
-- Such support has sense only for quantities of dimension one with a unit `one`. In the case of all
-  the other units, the specific unit should still be provided.
-
-- If we provide implicit conversions from the representation type to a quantity of dimension one
-  with a unit `one` and we start depending on such a feature, we might end up with compile-time
-  errors after refactoring the unit in a type of such a quantity. For example:
-
-::: cmptable
-
-##### Before
-
-```cpp
-struct my_data {
-  quantity<dimensionless[one]> value;
-};
-
-my_data data1{.value = 42};
-my_data data2{.value = 42 * one};
-```
-
-##### After
-
-```cpp
-struct my_data {
-  quantity<dimensionless[percent]> value;
-};
-
-my_data data1{.value = 42};        // Compile-time error
-my_data data2{.value = 42 * one};  // OK
-```
-
-:::
-
-- Such support is purely additive (it can be added later) and requires a bunch of additional
-  overloads not only for a constructor but for arithmetic operators and comparisons as well.
-
-Please also note that we will still need to use explicit units to create a quantity for some cases.
-For example, in the following code, `asin(-1)` would use the overload from the `<math>` header of
+This is why we've added support for such feature. It was described in
+the [Superpowers of the unit `one`] chapter already. Such support has sense only for quantities
+with a unit `one`. In the case of all the other units, the specific unit should still be provided.
+We also need to use explicit units to create a quantity for some cases. For example,
+in the following code, `asin(-1)` would use the overload from the `<math>` header of
 the C++ standard library rather than the one for quantities provided in `<mp-units/math.h>`
 header file:
 
@@ -7595,10 +7538,7 @@ header file:
 REQUIRE_THAT(asin(-1 * one), AlmostEquals(-90. * deg));
 ```
 
-The authors of this paper are not opposed to providing support for conversions from the raw value
-to the dimensionless quantity of a unit `one`. If WG21 groups decide that is a good direction,
-we will provide additional interfaces to the library to support such a scenario. If we choose
-to go this path, two questions should be answered first:
+We may also want to discuss convertibility rules in the LEWG. Here are the questions to ask:
 
 1. Should such a conversion be explicit or implicit?
 
@@ -7612,8 +7552,8 @@ to go this path, two questions should be answered first:
     It would be strange to support arithmetics against the raw value if the quantity type can't
     be implicitly constructed from it.
 
-2. Should we support converting from the dimensionless quantity with unit `one` to the
-raw value? And if yes, should it be implicit or explicit?
+2. Should we support converting from the dimensionless quantity with unit `one` to the raw value?
+   If yes, should it be implicit or explicit?
 
     It could probably be better to allow implicit conversions to work with legacy interfaces or
     to benefit from regular math-related functions that work on fundamental types.
@@ -7628,6 +7568,9 @@ raw value? And if yes, should it be implicit or explicit?
     ```cpp
     auto res = sin(q.numerical_value_in(one));
     ```
+
+    However, this breaks `std::common_type_t<quantity<one>, double>`. It is why we've decided to
+    stay with an explicit conversion so far.
 
 
 #### Predefined units of the dimensionless quantity
