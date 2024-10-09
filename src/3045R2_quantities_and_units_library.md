@@ -6479,6 +6479,12 @@ _inch_.  Separately and independently, we can assign any magnitude $m_s$ to the 
 an independent dimension --- but once we make that choice, it fixes the magnitude for derived units,
 and we must assign, say, $(5280 m_f) / (3600 m_s)$ to the _mile per hour_.
 
+Even when sometimes magnitudes are observable by the user, we've decided to make most of their
+interfaces _implementation-defined_. We expose only minimal public interfaces for interoperability,
+and we leave freedom to implementers on how they want to solve this problem in their libraries.
+
+Below, we describe how magnitudes were implemented by [@MP-UNITS] and [@AU].
+
 ### Requirements and representation
 
 A magnitude is a positive real number.  The best way to _represent_ it depends on how we will _use_
