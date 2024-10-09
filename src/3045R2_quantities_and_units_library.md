@@ -5226,13 +5226,6 @@ quantity<(isq::length / isq::length)[m / m]> ok7 = q3;
 quantity<(isq::height / isq::length)[m / m]> bad2 = q3;  // Compile-time error
 ```
 
-In [@MP-UNITS] library, we've tried to refine expression templates simplification rules to preserve
-the information of the origin. However, we were not satisfied with the results. The generated types
-were much longer and harder to reason about, which decreased the compile-time errors user experience.
-We've also approached issues with basic library operations (e.g., determining the best common unit).
-More details can be found in [Refining expression templates simplification rules](https://github.com/mpusz/mp-units/discussions/582)
-discussion.
-
 ### Potential surprises while working with temperatures
 
 _Temperature_ support is one the most challenging parts of any physical quantities and units library
@@ -6205,6 +6198,14 @@ the resulting expression template.
     Also, to prevent possible issues in compile-time logic, all of the library's entities must be
     marked `final`. This prevents the users to derive own strong types from them, which would
     prevent expression template simplification of equivalent entities.
+
+    In [@MP-UNITS] library, we've tried to refine expression templates simplification rules to
+    preserve the information of the origin. However, we were not satisfied with the results.
+    The generated types were much longer and harder to reason about, which decreased the
+    compile-time errors user experience. We've also got issues with basic library operations
+    (e.g., determining the best common unit). More details can be found in
+    [Refining expression templates simplification rules](https://github.com/mpusz/mp-units/discussions/582)
+    discussion.
 
 4. **Repacking**
 
