@@ -57,6 +57,7 @@ toc-depth: 4
 - [Common units] chapter added.
 - [Text output open questions] chapter added.
 - [Minimal Viable Product (MVP) scope] chapter added.
+- [Operations on units, dimensions, quantity types, and references] chapter updated.
 
 ## Changes since [@P3045R0]
 
@@ -5990,7 +5991,7 @@ quantity_point qp = time_point_cast<std::chrono::seconds>(std::chrono::system_cl
 std::chrono::sys_seconds q = qp + 42 * s;
 ```
 
-## Operations on units, dimensions, and quantity types
+## Operations on units, dimensions, quantity types, and references
 
 Modern C++ physical quantities and units library should expose compile-time constants for units,
 dimensions, and quantity types. Each of such constants should be of a different type. Said otherwise,
@@ -6000,24 +6001,158 @@ operations.
 
 The operations exposed by such a library should include at least:
 
-- multiplication (e.g. `newton * metre`),
-- division (e.g. `metre / second`),
-- power (e.g. `pow<2>(metre)` or `pow<1, 2>(metre * metre)`).
+- multiplication (e.g., `newton * metre`),
+- division (e.g., `metre / second`),
+- power (e.g., `pow<2>(metre)` or `pow<1, 2>(metre * metre)`).
 
 To improve the usability of the library, we also recommend adding:
 
-- square root (e.g. `sqrt(metre * metre)` as equivalent to `pow<1, 2>(metre * metre)`),
-- cubic root (e.g. `cbrt(metre * metre * metre)` as equivalent to `pow<1, 3>(metre * metre * metre)`),
-- inversion (e.g. `inverse(second)` as equivalent to `one / second`).
+- square root (e.g., `sqrt(metre * metre)` as equivalent to `pow<1, 2>(metre * metre)`),
+- cubic root (e.g., `cbrt(metre * metre * metre)` as equivalent to `pow<1, 3>(metre * metre * metre)`),
+- inversion (e.g., `inverse(second)` as equivalent to `one / second`).
 
 Additionally, for units only, to improve the readability of the code, it makes sense to expose the following:
 
-- square power (e.g. `square(metre)` is equivalent to `pow<2>(metre)`),
-- cubic power (e.g. `cubic(metre)` is equivalent to `pow<3>(metre)`).
+- square power (e.g., `square(metre)` is equivalent to `pow<2>(metre)`),
+- cubic power (e.g., `cubic(metre)` is equivalent to `pow<3>(metre)`).
 
 The above two functions could also be considered for dimensions and quantity types. However,
 `cubic(length)` does not seem to make much sense, and probably `pow<3>(length)` should be
 preferred instead.
+
+Please note that we want to keep most of the unit magnitude's interface _implementation-defined_.
+This is why we provide only a minimal mandatory interface for them. For example, we have
+introduced a `mag_power<Basis, Num, Den = 1>` helper to get a power of a magnitude. With that,
+a user should probably never need to reach for an alternative `pow<Num, Den>(mag<Base>)`
+version. However, the latter could be considered more consistent with the same operation done
+on other abstractions. Let's compare how a unit can be defined using both of those syntaxes:
+
+- with `mag_power`:
+
+ ```cpp
+ inline constexpr struct electronvolt final :
+   named_unit<"eV", mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * si::joule> {} electronvolt;
+ ```
+
+- with `pow<>(mag<>)`:
+
+ ```cpp
+ inline constexpr struct electronvolt final :
+   named_unit<"eV", mag_ratio<1'602'176'634, 1'000'000'000> * pow<-19>(mag<10>) * si::joule> {} electronvolt;
+ ```
+
+Even though it might be inconsistent with operations on other abstractions, we've decided to use
+the first one as it seems easier to read and better resembles what we write on paper. However,
+we are not married to it, and we can change it if the LEWG prefers consistency here.
+
+### Equality and equivalence
+
+Units, their magnitudes, dimensions, quantity types, and references can be checked for equality
+with `operator==`. Equality for all the tag types is a simple check if both arguments are of
+the same type. For example, for dimensions, we do the following:
+
+```cpp
+template<Dimension Lhs, Dimension Rhs>
+consteval bool operator==(Lhs lhs, Rhs rhs)
+{
+  return is_same_v<Lhs, Rhs>;
+}
+```
+
+Equality for references is a bit more complex:
+
+```cpp
+template<typename Q1, typename U1, typename Q2, typename U2>
+consteval bool operator==(reference<Q1, U1>, reference<Q2, U2>)
+{
+  return is_same_v<reference<Q1, U1>, reference<Q2, U2>>;
+}
+
+template<typename Q1, typename U1, AssociatedUnit U2>
+consteval bool operator==(reference<Q1, U1>, U2 u2)
+{
+  return Q1{} == get_quantity_spec(u2) && U1{} == u2;
+}
+```
+
+The second overload allows us to mix associated units and specializations of `reference` class
+template (both of them satisfy `Reference` concept). Thanks to this, we can check the following:
+
+```cpp
+static_assert(isq::time[second] != second);
+static_assert(kind_of<isq::time>[second] == second);
+```
+
+Units may have many shades. This is why a quality check is not enough for them. In many cases, we
+want to be able to check for equivalence. Watt (`W`) should be equivalent to `J/s` and `kg m²/s³`.
+Also, a litre (`l`) should be equivalent to a cubic decimetre (`dm³`).
+
+To check for unit equivalence, we convert each unit to its canonical representation (scaled unit
+with magnitude expressed relative to some "blessed" implementation-specific reference unit) and
+then, we compare if the reference units and the magnitudes are the same:
+
+```cpp
+consteval bool equivalent(Unit auto lhs, Unit auto rhs)
+  requires(convertible(lhs, rhs))
+{
+  return get_canonical_unit(lhs).mag == get_canonical_unit(rhs).mag;
+}
+```
+
+### Ordering
+
+Ordering for dimensions and quantity types has no physical sense.
+
+We could entertain adding ordering for units, but this would work only for quantities having the same
+reference unit, which would be inconsistent with how equality works.
+
+Let's see the following example:
+
+```cpp
+constexpr Unit auto my_unit = si::second;
+if constexpr (my_unit == si::metre) {
+ // ...
+}
+if constexpr (my_unit > si::metre) {
+ // ...
+}
+if constexpr (my_unit > si::nano(si::second)) {
+ // ...
+}
+```
+
+In the above code, the first check could be useful for some use cases. However, the second
+one is impossible to implement and should not compile. The third one could be considered useful,
+but the current version of [@MP-UNITS] does not expose such an interface to limit
+potential confusion. Also, it is really hard to mathematically prove that the unit magnitude
+representation that we use in the library (based on primes factorization) is greater or smaller
+than the other one in some cases.
+
+This is why we discourage providing ordering operations for any of those entities.
+
+### Common entities
+
+We could also define arithmetic `operator+` and `operator-` for such entities to resemble the
+operations performed on quantities. For example:
+
+```cpp
+quantity q = isq::radius(1 * m) + isq::distance(1 * cm);
+```
+
+returns a `quantity<get_common_quantity_spec(isq::radius, isq::distance)[get_common_unit(m, cm)], int>`
+aka `quantity<isq::length[cm], int>`.
+For consistency, our `operator+` and `operator-` overloads could return those common entities:
+
+```cpp
+static_assert(m + cm == cm);
+static_assert(km + mi == get_common_unit(km, mi));
+static_assert(isq::radius + isq::distance == isq::length);
+```
+
+However, we've decided that this is not the best idea, and the usage of named functions
+(`common_XXX()`) much better expresses the intent, is less ambiguous, and does not break
+dimensional analysis math rules.
+
 
 ## Expression templates
 
