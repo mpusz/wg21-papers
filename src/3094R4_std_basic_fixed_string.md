@@ -15,8 +15,9 @@ author:
 
 ## Changes since [@P3094R3]
 
-- `std::` prefix dropped in [Wording]
-- [Iterator support] and [Element access] chapters added
+- `std::` prefix dropped in [Wording].
+- [Iterator support] and [Element access] chapters added.
+- `one-of` exposition-only concept removed.
 
 ## Changes since [@P3094R2]
 
@@ -326,7 +327,7 @@ non-member functions. Should we consider doing the same for consistency?
 This particular interface is implemented, tested, and successfully used in the
 [mp-units](https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h)
 project. A complete implementation with tests can also be checked in the
-[Compiler Explorer](https://godbolt.org/z/4fh9bxfTh).
+[Compiler Explorer](https://godbolt.org/z/94PsKhxEP).
 
 
 # Wording
@@ -591,13 +592,13 @@ public:
 };
 
 // @[[fixed.string.deduct]](#fixed.string.deduct)@, deduction guides
-template<@_one-of_@<char, char8_t, char16_t, char32_t, wchar_t> CharT, convertible_to<CharT>... Rest>
+template<typename CharT, convertible_to<CharT>... Rest>
 basic_fixed_string(CharT, Rest...) -> basic_fixed_string<CharT, 1 + sizeof...(Rest)>;
 
 template<typename charT, size_t N>
 basic_fixed_string(const charT (&str)[N]) -> basic_fixed_string<charT, N - 1>;
 
-template<@_one-of_@<char, char8_t, char16_t, char32_t, wchar_t> CharT, size_t N>
+template<typename CharT, size_t N>
 basic_fixed_string(from_range_t, array<CharT, N>) -> basic_fixed_string<CharT, N>;
 
 }
@@ -647,16 +648,6 @@ constexpr basic_fixed_string(from_range_t, R&& r);
 
 [7]{.pnum} _Effects_: Initializes `data_` from the values in the range `rg`, as specified
 in [sequence.reqmts]{.sref}.
-
-
-#### Deduction guides { #fixed.string.deduct }
-
-[1]{.pnum} The following exposition-only concept is used in the definition of deduction guides:
-
-```cpp
-template<typename T, typename... Ts>
-concept @_one-of_@ = (false || ... || same_as<T, Ts>);  // exposition only
-```
 
 
 #### Iterator support { #fixed.string.iterators }
