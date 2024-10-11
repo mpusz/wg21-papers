@@ -30,6 +30,7 @@ toc-depth: 4
 ## Changes since [@P3045R2]
 
 - `ascii` renamed to `portable` and `unicode` renamed to `utf8`
+- [`space_before_unit_symbol` alternatives] chapter added
 
 ## Changes since [@P3045R1]
 
@@ -6461,6 +6462,27 @@ The above code would be consistent with the ISO definition however, it imposes s
 - does not provide an opportunity to specify the unit symbol.
 
 This is why decided to base unit definitions on tag types.
+
+
+### `space_before_unit_symbol` alternatives
+
+As described in the [`space_before_unit_symbol` customization point] chapter, some units should not
+be prepended with a space. We proposed the following customization point:
+
+```cpp
+template<Unit auto U>
+constexpr bool space_before_unit_symbol = true;
+```
+
+It is important to note that the need for some customization is only for a small fraction of all
+units. It works but it has some disadvantages. First, it might be harder to reason about the units
+definitions because the spacialization of this variable template may be in a different location
+in the source code than the unit definition. Also, it breaks our assumption that we can define all
+the properties of the entity with a single line of a C++ code.
+
+Maybe we should add an additional parameter (defaulted to `true`) to the `named_unit` class template
+to handle this?
+
 
 
 ## Unit magnitudes
