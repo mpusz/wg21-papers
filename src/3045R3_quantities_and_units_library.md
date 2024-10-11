@@ -32,6 +32,7 @@ toc-depth: 4
 - `ascii` renamed to `portable` and `unicode` renamed to `utf8`.
 - [`space_before_unit_symbol` alternatives] chapter added.
 - [Prefixing units with prefixes] chapter added.
+- [Bikesheding `force_in(U)`] chapter added.
 
 ## Changes since [@P3045R1]
 
@@ -7794,6 +7795,28 @@ instance of either `quantity` or `quantity_point`:
 |   Yes   |      Same      | `u`  | `x.force_in(u)`    | `value_cast<u>(x)`                             |
 |   Yes   |      `T`       | Same | `x.force_in<T>()`  | `value_cast<T>(x)`                             |
 |   Yes   |      `T`       | `u`  | `x.force_in<T>(u)` | `value_cast<u, T>(x)` or `value_cast<T, u>(x)` |
+
+#### Bikesheding `force_in(U)`
+
+`force_in` is a bit ambiguous name for the conversion function in a quantities and units library.
+Writing `x.force_in(s)` may be misleading for a quantity of _time_ rather than _force_. However,
+we do not have good alternatives here.
+
+Before we provide some alternatives it is good to mention that we also heve
+a `x.force_numerical_value_in(u)` to force a truncation while obtaining a numerical value of the
+quantity.
+
+[@AU] library uses `x.coerse_in(u)` for this operation. We could also consider different names.
+Here are a few possbile alternatives:
+
+- `x.force_in(u)`, `x.force_numerical_value_in(u)`,
+- `x.forced_into(u)`, `x.forced_numerical_value_into(u)`,
+- `x.coerse_in(u)`, `x.coerse_numerical_value_in(u)`,
+- `x.unsafe_in(u)`, `x.unsafe_numerical_value_in(u)`,
+- `x.cast_in(u)`, `x.cast_numerical_value_in(u)`,
+- `x.cast_to(u)`, `x.cast_numerical_value_to(u)`.
+
+In case we select `x.cast_to(u)` we probably should also rename `q.in(u)` to `q.to(u)`.
 
 
 ## Quantity Points
