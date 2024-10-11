@@ -18,6 +18,7 @@ author:
 - `std::` prefix dropped in [Wording].
 - [Iterator support] and [Element access] chapters added.
 - `one-of` exposition-only concept removed.
+- Extraneous `const` removed from `operator+`.
 
 ## Changes since [@P3094R2]
 
@@ -777,7 +778,7 @@ template<size_t N2>
 constexpr friend basic_fixed_string<charT, N + N2, traits> operator+(const basic_fixed_string& lhs,
                                                                      const basic_fixed_string<charT, N2, traits>& rhs) noexcept;
 constexpr friend basic_fixed_string<charT, N + 1, traits> operator+(const basic_fixed_string& lhs, charT rhs) noexcept;
-constexpr friend basic_fixed_string<charT, 1 + N, traits> operator+(const charT lhs, const basic_fixed_string& rhs) noexcept;
+constexpr friend basic_fixed_string<charT, 1 + N, traits> operator+(charT lhs, const basic_fixed_string& rhs) noexcept;
 ```
 
 [5]{.pnum} _Effects_: Returns a new fixed string object whose value is the joint value of `lhs` and
