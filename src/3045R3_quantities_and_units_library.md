@@ -32,7 +32,8 @@ toc-depth: 4
 - `ascii` renamed to `portable` and `unicode` renamed to `utf8`.
 - [`space_before_unit_symbol` alternatives] chapter added.
 - [Prefixing units with prefixes] chapter added.
-- [Bikesheding `force_in(U)`] chapter added.
+- [Bikeshedding `force_in(U)`] chapter added.
+- [Bikeshedding `quantity::rep`] chapter added.
 
 ## Changes since [@P3045R1]
 
@@ -7817,6 +7818,19 @@ Here are a few possbile alternatives:
 - `x.cast_to(u)`, `x.cast_numerical_value_to(u)`.
 
 In case we select `x.cast_to(u)` we probably should also rename `q.in(u)` to `q.to(u)`.
+
+#### Bikeshedding `quantity::rep`
+
+[@MP-UNITS] initially tried to be compatible with `std::chrono::duration`. This is why we chose
+`rep` as the name for a public member type exposed from `quantity` to denote its representation
+type. This is consistent but may not be the best name.
+
+First, we use `q.numerical_value_in()` to get the underlying value which is already inconsistent
+with `std::chrono::duration::count()`. Also, as we mentioned already,
+[`quantity` is a numeric wrapper]. To provide compatibility between different numeric types
+maybe we should set a policy that those should expose `value_type` or `element_type`? Both
+seem to be valid choices here as well.
+
 
 
 ## Quantity Points
