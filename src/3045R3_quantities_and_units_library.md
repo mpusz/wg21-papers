@@ -29,8 +29,9 @@ toc-depth: 4
 
 ## Changes since [@P3045R2]
 
-- `ascii` renamed to `portable` and `unicode` renamed to `utf8`
-- [`space_before_unit_symbol` alternatives] chapter added
+- `ascii` renamed to `portable` and `unicode` renamed to `utf8`.
+- [`space_before_unit_symbol` alternatives] chapter added.
+- [Prefixing units with prefixes] chapter added.
 
 ## Changes since [@P3045R1]
 
@@ -6483,6 +6484,33 @@ the properties of the entity with a single line of a C++ code.
 Maybe we should add an additional parameter (defaulted to `true`) to the `named_unit` class template
 to handle this?
 
+### Prefixing units with prefixes
+
+Initially [@MP-UNITS] library had one additional customization point for units:
+
+```cpp
+template<PrefixableUnit auto U>
+constexpr bool unit_can_be_prefixed = true;
+```
+
+The above was used to disallow prefixes for some units, such as hours or degrees Celsius.
+However, after some time, we got [the issue on GitHub](https://github.com/mpusz/mp-units/issues/604)
+asking to allow prefixes for the latter.
+
+It turns out that the certification organizations are not consistent here. ISO 80000-5 says:
+
+> Prefixes are not allowed in combination with the unit °C.
+
+However, [NIST states](https://www.nist.gov/pml/owm/writing-si-metric-system-units):
+
+> Prefix symbols may be used with the unit symbol ºC, and prefix names may be used with the unit
+> name “degree Celsius.” For example, 12 mºC (12 millidegrees Celsius) is acceptable. However,
+> to avoid confusion, prefix symbols (and prefix names) are not used with the time-related unit
+> symbols (names) min (minute), h (hour), d (day); nor with the angle-related symbols (names)
+> º (degree), ' (minute), and " (second).
+
+As a result of this issue and associated discussion, we decided to remove `unit_can_be_prefixed`
+support from the library, and we do not propose it here either.
 
 
 ## Unit magnitudes
