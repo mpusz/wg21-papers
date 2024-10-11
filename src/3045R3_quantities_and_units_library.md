@@ -27,6 +27,10 @@ toc-depth: 4
 
 # Revision history
 
+## Changes since [@P3045R2]
+
+- `ascii` renamed to `portable` and `unicode` renamed to `utf8`
+
 ## Changes since [@P3045R1]
 
 - [Scope of this proposal] chapter added.
@@ -3415,7 +3419,7 @@ on the keyboard. This is why we provide both versions of identifiers for such un
 
 ::: cmptable
 
-#### "ASCII" only
+#### Portable only
 
 ```cpp
 quantity resistance = 60 * kohm;
@@ -3679,8 +3683,8 @@ objects:
 template<std::size_t N, std::size_t M>
 class symbol_text {
 public:
-  fixed_u8string<N> unicode_;  // exposition only
-  fixed_string<M> ascii_;      // exposition only
+  fixed_u8string<N> utf8_;  // exposition only
+  fixed_string<M> portable;      // exposition only
 
   constexpr explicit(false) symbol_text(char ch);
   consteval explicit(false) symbol_text(const char (&txt)[N + 1]);
@@ -3688,8 +3692,8 @@ public:
   consteval symbol_text(const char8_t (&u)[N + 1], const char (&a)[M + 1]);
   constexpr symbol_text(const fixed_u8string<N>& u, const fixed_string<M>& a);
 
-  constexpr const auto& unicode() const;
-  constexpr const auto& ascii() const;
+  constexpr const auto& utf8() const;
+  constexpr const auto& portable() const;
 
   constexpr bool empty() const;
 
@@ -3724,17 +3728,17 @@ symbol_text(const fixed_u8string<N>&, const fixed_string<M>&) -> symbol_text<N, 
 
 ISQ and [@SI] standards always specify symbols using Unicode encoding. This is why it is a default
 and primary target for text output. However, in some applications or environments, a standard
-ASCII-like text output using only the characters from the
+portable text output using only the characters from the
 [basic literal character set](https://en.cppreference.com/w/cpp/language/charset) can be preferred
 by users.
 
-This is why the library provides an option to change the default encoding to the ASCII one with:
+This is why the library provides an option to change the default encoding to the portable one with:
 
 ```cpp
 enum class text_encoding : std::int8_t {
-  unicode,  // µs; m³;  L²MT⁻³
-  ascii,    // us; m^3; L^2MT^-3
-  default_encoding = unicode
+  utf8,        // µs; m³;  L²MT⁻³
+  portable,    // us; m^3; L^2MT^-3
+  default_encoding = utf8
 };
 ```
 
@@ -3765,7 +3769,7 @@ _Note: It could be refactored to `dimension_symbol(D, fmt)` when [@P1045R1] is a
 For example:
 
 ```cpp
-static_assert(dimension_symbol<{.encoding = text_encoding::ascii}>(isq::power.dimension) == "L^2MT^-3");
+static_assert(dimension_symbol<{.encoding = text_encoding::portable}>(isq::power.dimension) == "L^2MT^-3");
 ```
 
 ##### `dimension_symbol_to()`
@@ -3781,7 +3785,7 @@ For example:
 
 ```cpp
 std::string txt;
-dimension_symbol_to(std::back_inserter(txt), isq::power.dimension, {.encoding = text_encoding::ascii});
+dimension_symbol_to(std::back_inserter(txt), isq::power.dimension, {.encoding = text_encoding::portable});
 std::cout << txt << "\n";
 ```
 
@@ -4017,7 +4021,7 @@ as text and, thus, are aligned to the left by default.
 ```ebnf
 dimension-format-spec = [fill-and-align], [width], [dimension-spec];
 dimension-spec        = [text-encoding];
-text-encoding         = 'U' | 'A';
+text-encoding         = 'U' | 'P';
 ```
 
 In the above grammar:
@@ -4025,8 +4029,8 @@ In the above grammar:
 - `fill-and-align` and `width` tokens are defined in the [format.string.std]{.sref}
   chapter of the C++ standard specification,
 - `text-encoding` token specifies the symbol text encoding:
-    - `U` (default) uses the **Unicode** symbols defined by [@ISO80000] (e.g., `LT⁻²`),
-    - `A` forces non-standard **ASCII**-only output (e.g., `LT^-2`).
+    - `U` (default) uses the **UTF-8** symbols defined by [@ISO80000] (e.g., `LT⁻²`),
+    - `P` forces non-standard **portable** output (e.g., `LT^-2`).
 
 Dimension symbols of some quantities are specified to use Unicode signs by the ISQ (e.g., `Θ`
 symbol for the _thermodynamic temperature_ dimension). The library follows this by default.
@@ -4037,9 +4041,9 @@ using such characters thanks to `text-encoding` token:
 
 ```cpp
 std::println("{}", isq::dim_thermodynamic_temperature);   // Θ
-std::println("{:A}", isq::dim_thermodynamic_temperature); // O
+std::println("{:P}", isq::dim_thermodynamic_temperature); // O
 std::println("{}", isq::power.dimension);                 // L²MT⁻³
-std::println("{:A}", isq::power.dimension);               // L^2MT^-3
+std::println("{:P}", isq::power.dimension);               // L^2MT^-3
 ```
 
 
@@ -4069,7 +4073,7 @@ In the above grammar:
       (e.g., `m s⁻¹`, `kg m⁻¹ s⁻¹`)
 - `unit-symbol-separator` token specifies how multiplied unit symbols should be separated:
     - 's' (default) uses **space** as a separator (e.g., `kg m²/s²`)
-    - 'd' uses half-high **dot** (`⋅`) as a separator (e.g., `kg⋅m²/s²`) (requires the Unicode encoding)
+    - 'd' uses half-high **dot** (`⋅`) as a separator (e.g., `kg⋅m²/s²`) (requires the UTF-8 encoding)
 - 'L' is reserved for possible future localization use in case C++ standard library gets access to
   the ICU-like database.
 
@@ -4085,11 +4089,11 @@ the unit symbol can be forced to be printed using such characters thanks to `tex
 
 ```cpp
 std::println("{}", si::ohm);      // Ω
-std::println("{:A}", si::ohm);    // ohm
+std::println("{:P}", si::ohm);    // ohm
 std::println("{}", us);           // µs
-std::println("{:A}", us);         // us
+std::println("{:P}", us);         // us
 std::println("{}", m / s2);       // m/s²
-std::println("{:A}", m / s2);     // m/s^2
+std::println("{:P}", m / s2);     // m/s^2
 ```
 
 Additionally, both [@ISO80000] and [@SI] leave some freedom on how to print unit symbols.
@@ -4128,7 +4132,7 @@ std::println("{}", kg * m2 / s2);    // kg m²/s²
 std::println("{:d}", kg * m2 / s2);  // kg⋅m²/s²
 ```
 
-_Note: 'd' requires the Unicode encoding to be set._
+_Note: 'd' requires the UTF-8 encoding to be set._
 
 
 ### Quantity formatting
@@ -4347,7 +4351,7 @@ library does not have enough information to print it that way by itself.
 ## Text output open questions
 
 1. Should we somehow provide text support for quantity points? What about temperatures?
-2. How to name a non-Unicode accessor member function (e.g., `.ascii()`)? The same name should
+2. How to name a non-Unicode accessor member function (e.g., `.portable()`)? The same name should
    consistently be used in `text_encoding` and in the formatting grammar.
 3. What about the localization for units? Will we get something like ICU in the C++ standard?
 4. Do we care about ostreams enough to introduce custom manipulators to format dimensions and units?
