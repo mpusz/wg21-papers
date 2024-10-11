@@ -7781,8 +7781,6 @@ this functionality for member functions as well. It is really useful and user-fr
 non-generic contexts and for the cases where we deal with a dependent name, we should leave
 `value_cast` even if it is an always conversion-forcing operation.
 
-value_cast, in(), force_in(), template disambiguator discussion https://github.com/mpusz/mp-units/issues/477#issuecomment-1702762483
-
 #### Value conversions summary
 
 The table below provides all the value conversions functions that may be run on `x` being the
