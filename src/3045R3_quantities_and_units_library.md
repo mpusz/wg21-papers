@@ -36,6 +36,9 @@ toc-depth: 4
 - [Bikeshedding `quantity::rep`] chapter added.
 - [Minimal Viable Product (MVP) scope] chapter extended.
 - [Binary operators] chapter added.
+- [Interoperability with the `std::chrono` abstractions] chapter extended.
+- [`default_point_origin<Reference>`, `quantity_from_zero()`, and `zeroth_point_origin<QuantitySpec>`]
+  chapter added.
 
 ## Changes since [@P3045R1]
 
@@ -8035,6 +8038,56 @@ Thanks to the new design, we can immediately see what happens here and why the r
 incorrect in the second case.
 
 
+### `default_point_origin<Reference>`, `quantity_from_zero()`, and `zeroth_point_origin<QuantitySpec>`
+
+`default_point_origin<Reference>`, `quantity_from_zero()`, and `zeroth_point_origin<QuantitySpec>`
+are introduced to simplify the usage of:
+
+- temperature (and quantities with similar units) points where each unit has its own origin,
+- quantity points for domains with one unquestionable "zero" origin and for which we do not have
+  other predefined origins known at compile time.
+
+In theory, those abstractions are not needed, and in this chapter, we will describe how the API and
+use cases would look like without it.
+
+Let's try to reimplement parts of our room AC temperature controller from the [Temperature support] chapter:
+
+```cpp
+constexpr struct room_reference_temp final : relative_point_origin<si::zeroth_degree_Celsius + delta<deg_C>(21)> {} room_reference_temp;
+using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
+
+room_temp room_ref{};
+
+std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
+             room_ref.in(deg_C).quantity_from(si::zeroth_degree_Celsius),
+             room_ref.in(deg_F).quantity_from(usc::zeroth_degree_Fahrenheit),
+             room_ref.in(K).quantity_from(si::zeroth_kelvin));
+```
+
+Now let's compare it to the implementation using a currently proposed design:
+
+```cpp
+constexpr struct room_reference_temp final : relative_point_origin<absolute<deg_C>(21)> {} room_reference_temp;
+using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
+
+room_temp room_ref{};
+
+std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
+             room_ref.quantity_from_zero(),
+             room_ref.in(deg_F).quantity_from_zero(),
+             room_ref.in(K).quantity_from_zero());
+```
+
+First, removing those features also renders `absolute<deg_C>(21)` impossible to implement. Second,
+mandating an explicit point origin when we convert to `quantity` makes the code harder to maintain
+as we have to track a current unit of a quantity carefully. If someone changes a unit,
+a point origin also has to be changed to get meaningful results. This is why, to ensure that we are
+origin-safe, we also need to provide `.in(deg_C).` in the first print argument.
+
+In the proposed design, the above problems are eliminated with the `quantity_from_zero()` usage
+that always returns a proper value for a current unit.
+
+
 ## Interoperability with other libraries
 
 It is easy to cooperate with similar entities of other libraries. No matter if we want to provide
@@ -8333,6 +8386,12 @@ The above may print the following output:
 Takeoff: 2023-11-18 13:20:54 UTC
 Landing: 2023-11-18 15:07:01 MST
 ```
+
+As mentioned above, conversions between entities in this and `std::chrono` libraries are
+implicit in both directions. This simplifies many scenarios. However, with such rules,
+`common_type_t<chrono::seconds, quantity<si::second, int>>;` and the ternary operator on such
+arguments will not work. If this concerns LEWG, we may consider implicit conversion in only
+one direction. However, it is not easy to decide which one to choose.
 
 
 # Teachability
