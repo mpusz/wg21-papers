@@ -35,6 +35,7 @@ toc-depth: 4
 - [Bikeshedding `force_in(U)`] chapter added.
 - [Bikeshedding `quantity::rep`] chapter added.
 - [Minimal Viable Product (MVP) scope] chapter extended.
+- [Binary operators] chapter added.
 
 ## Changes since [@P3045R1]
 
@@ -7862,6 +7863,76 @@ with `std::chrono::duration::count()`. Also, as we mentioned already,
 maybe we should set a policy that those should expose `value_type` or `element_type`? Both
 seem to be valid choices here as well.
 
+### Binary operators
+
+Binary operators for quantities (and quantity points) should take both arguments as template
+parameters. Implementing them in terms of implicit convertibility leads to invalid resulting
+types. Let's see the following example:
+
+```cpp
+static_assert(std::convertible_to<quantity<isq::speed[m/s], int>, 
+ quantity<(isq::length / isq::time)[m/s], double>>);
+static_assert(!std::convertible_to<quantity<(isq::length / isq::time)[m/s], double>,
+ quantity<isq::speed[m/s], int>>);
+```
+
+As we see above, `quantity<isq::speed[m/s], int>` converts to
+`quantity<(isq::length / isq::time)[m/s], double>`, but this is not the case in the other direction.
+This is caused by the fact that conversion from `double` to `int` is considered truncating. If we
+would implement the operators in terms of the implicit conversion then we would end up with the
+quantity of `isq::length / isq::time` as a result, which is suboptimal. We prefer `isq::speed` in
+this case:
+
+```cpp
+quantity q1 = isq::speed(1 * m/s);
+quantity q2 = isq::length(1. * m) / isq::time(1. * s);
+static_assert(is_of_type<q1 + q2, quantity<isq::speed[m/s], double>>);
+```
+
+In the following example, we consistently use floating-point representation types and both quantities
+are interconvertible:
+
+```cpp
+static_assert(std::convertible_to<quantity<(isq::mass * pow<2>(isq::length / isq::time))[J], double>,
+ quantity<isq::energy[kg*m2/s2], double>>);
+static_assert(std::convertible_to<quantity<isq::energy[kg*m2/s2], double>,
+ quantity<(isq::mass * pow<2>(isq::length / isq::time))[J], double>>);
+```
+
+We could think that the problem is gone, and we can use implicit conversions. However,
+depending on how we implement it, this might lead to an ambiguous overload resolution or lack of
+substitutability of addition. Even if we somehow solve those issues, none of the types would be
+perfect as a return type. While forming a resulting type `isq::energy` should have a priority over
+`isq::mass * pow<2>(isq::length / isq::time)` and `J` should have a priority over `kg*m2/s2`:
+
+```cpp
+quantity q1 = (isq::mass(1 * kg) * pow<2>(isq::length(1 * m) / isq::time(1 * s))).in(J);
+quantity q2 = isq::energy(1 * kg*m2/s2);
+static_assert(is_of_type<q1 + q2, quantity<isq::energy[J], int>>);
+```
+
+It is also worth noting that this approach is compatible with
+[binary operators for `std::chrono::duration`](https://eel.is/c++draft/time.duration.nonmember).
+As we can read in the [Interoperability with the `std::chrono` abstractions] chapter,
+`std::chrono::duration` is interconvertible with the quantity. Nevertheless, with the above,
+we always need to explicitly convert the argument to a proper entity before doing any arithmetic:
+
+```cpp
+static_assert(1 * s + 1s == 2 * s); // does not compile
+static_assert(1 * s + quantity{1s} == 2 * s); // OK
+```
+
+This prevents ambiguity with `std::chrono::duration` operators and works the same for any
+user-defined `QuantityLike` type or any other type that is convertible to a `quantity`.
+
+Please note that the above rules are not true for the compound assignment operators:
+
+```cpp
+static_assert((1 * s += 1s) == 2 * s);
+```
+
+In the code above, we don't need to cast `1s` to `quantity`. We believe this is OK and makes the code
+simpler while not risking ambiguity.
 
 
 ## Quantity Points
