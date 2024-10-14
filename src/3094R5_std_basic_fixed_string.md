@@ -16,6 +16,7 @@ author:
 ## Changes since [@P3094R4]
 
 - Footnote modified to express immutability.
+- `char_traits` support removed and [`char_traits`] chapter added.
 
 ## Changes since [@P3094R3]
 
@@ -318,6 +319,24 @@ This is why in the wording a public exposition-only data member is provided. How
 hope that the structural type requirements will be relaxed in the future and this data member
 will be possible to implement as a private data member in the future versions of the standard.
 
+## `char_traits`
+
+Support for `char_traits` was added on LEWGI request in [@P3094R1]. However, this was considered
+a bad decision by SG16. During the meeting on October 9, 2024 the following poll was taken:
+
+> POLL: P3094R4: Amend the proposal to remove the `traits` template parameter and dependence
+> on `std::char_traits`.
+>
+> | SF | WF | N | WA | SA |
+> |:--:|:--:|:-:|:--:|:--:|
+> | 4  | 5  | 1 | 0  | 0  |
+>
+> - Attendees: 12 (2 abstentions)
+> - Author's position: N
+> - Strong consensus
+
+As a result of this poll, `char_traits` were removed again from the paper in R5.
+
 
 # Open questions
 
@@ -373,11 +392,11 @@ template<> struct formatter<charT*, charT>;
 template<> struct formatter<const charT*, charT>;
 template<size_t N> struct formatter<charT[N], charT>;
 template<class traits, class Allocator>
-  struct formatter<basic_string<charT, traits, Allocator>, charT>;
+  struct formatter<basic_string<charT, Allocator>, charT>;
 template<class traits>
-  struct formatter<basic_string_view<charT, traits>, charT>;
-@[`template<size_t N, class traits>`]{.add}@
-  @[`struct formatter<basic_fixed_string<charT, N, traits>, charT>;`]{.add}@
+  struct formatter<basic_string_view<charT>, charT>;
+@[`template<size_t N>`]{.add}@
+  @[`struct formatter<basic_fixed_string<charT, N>, charT>;`]{.add}@
 ```
 
 ## [Strings library](https://wg21.link/strings) { #strings }
@@ -394,22 +413,6 @@ Modify [Table 78: Strings library summary](https://eel.is/c++draft/tab:strings.s
 | [[[fixed.string]](#fixed.string)]{.add} | [Fixed size string classes]{.add}  | [`<fixed_string>`]{.add}                                                  |
 | [c.strings]{.sref}                      | Null-terminated sequence utilities | `<cctype>`, `<cstdlib>`, `<cstring>`, `<cuchar>`, `<cwchar>`, `<cwctype>` |
 
-
-### [Character traits](https://wg21.link/char.traits) { #char.traits }
-
-#### [General](https://wg21.link/char.traits.general) { #char.traits.general }
-
-[2]{.pnum} Most classes specified in [string.classes]{.sref}, [string.view]{.sref},
-[[[fixed.string]](#fixed.string)]{.add}, and [input.output]{.sref} need a set of related types and
-functions to complete the definition of their semantics. These types and functions are provided as
-a set of member typedef-names and functions in the template parameter traits used by each such
-template. Subclause [char.traits]{.sref} defines the semantics of these members.
-
-[3]{.pnum} To specialize those templates to generate a string, string view, [fixed string]{.add}, or
-iostream class to handle a particular character container type ([defns.character.container]{.sref})
-`C`, that and its related character traits class `X` are passed as a pair of parameters to the string,
-string view, [fixed string]{.add}, or iostream template as parameters `charT` and `traits`.
-If `X​::​char_type` is not the same type as `C`, the program is ill-formed.
 
 ### [String view classes](https://wg21.link/string.view) { #string.view }
 
@@ -445,12 +448,12 @@ respectively.
 namespace std {
 
 // @[[fixed.string.template]](#fixed.string.template)@, class template @`basic_fixed_string`@
-template<class charT, size_t N, class traits = char_traits<charT>>
+template<class charT, size_t N>
 class basic_fixed_string;  // partially freestanding
 
 // @[[fixed.string.special]](#fixed.string.special)@, specialized algorithms
-template<class charT, size_t N, class traits>
-constexpr void swap(basic_fixed_string<charT, N, traits>& x, basic_fixed_string<charT, N, traits>& y) noexcept;
+template<class charT, size_t N>
+constexpr void swap(basic_fixed_string<charT, N>& x, basic_fixed_string<charT, N>& y) noexcept;
 
 // basic_fixed_string @[typedef-names](https://eel.is/c++draft/dcl.typedef#nt:typedef-name)@
 template<size_t N> using fixed_string    = basic_fixed_string<char, N>;
@@ -475,7 +478,7 @@ template<size_t N> struct hash<fixed_wstring<N>>   : hash<wstring_view> {};
 #### Class template `basic_fixed_string` { #fixed.string.template }
 
 [1]{.pnum} A specialization of `basic_fixed_string` is a [contiguous container](https://eel.is/c++draft/container.reqmts#def:container,contiguous)
-storing a fixed-size sequence of characters. An instance of `basic_fixed_string<charT, N, traits>`
+storing a fixed-size sequence of characters. An instance of `basic_fixed_string<charT, N>`
 stores `N` elements of type `charT`, so that `size() == N` is an invariant.
 
 [2]{.pnum} A `fixed_string` meets all of the requirements of a container ([container.reqmts]{.sref})
@@ -485,17 +488,12 @@ default constructed. A `fixed_string` meets some of the requirements of a sequen
 that are not described in one of these tables and for operations where there is additional semantic
 information.
 
-[3]{.pnum} In every specialization `basic_fixed_string<charT, N, traits>`, the type `traits` shall
-meet the character traits requirements ([char.traits]{.sref}).
-
-[_Note 1_: The program is ill-formed if `traits​::​char_type` is not the same type as `charT`. — _end note_]
-
-[4]{.pnum} `basic_fixed_string<charT, N, traits>` is a structural type ([temp.param]{.sref}) if
-`charT` and `traits` are structural types. Two values `fs1` and `fs2` of type
-`basic_fixed_string<charT, N, traits>` are template-argument-equivalent if and only if each pair
+[3]{.pnum} `basic_fixed_string<charT, N>` is a structural type ([temp.param]{.sref}) if
+`charT` is structural types. Two values `fs1` and `fs2` of type
+`basic_fixed_string<charT, N>` are template-argument-equivalent if and only if each pair
 of corresponding elements in `fs1` and `fs2` are template-argument-equivalent.
 
-[5]{.pnum} In all cases, `[data(), data() + size()]` is a valid range and `data() + size()` points
+[4]{.pnum} In all cases, `[data(), data() + size()]` is a valid range and `data() + size()` points
 at an object with value `charT()` (a "null terminator").
 
 ##### General
@@ -503,13 +501,12 @@ at an object with value `charT()` (a "null terminator").
 ```cpp
 namespace std {
 
-template<class charT, size_t N, class traits = char_traits<charT>>
+template<class charT, size_t N>
 class basic_fixed_string {
 public:
   charT data_[N + 1] = {};   // exposition only
 
   // types
-  using traits_type            = traits;
   using value_type             = charT;
   using pointer                = value_type*;
   using const_pointer          = const value_type*;
@@ -567,33 +564,33 @@ public:
   // @[[fixed.string.ops]](#fixed.string.ops)@, string operations
   constexpr const_pointer c_str() const noexcept;
   constexpr const_pointer data() const noexcept;
-  constexpr basic_string_view<charT, traits> view() const noexcept;
-  constexpr operator basic_string_view<charT, traits>() const noexcept;
+  constexpr basic_string_view<charT> view() const noexcept;
+  constexpr operator basic_string_view<charT>() const noexcept;
   template<size_t N2>
-  constexpr friend basic_fixed_string<charT, N + N2, traits> operator+(const basic_fixed_string& lhs,
-                                                                       const basic_fixed_string<charT, N2, traits>& rhs) noexcept;
-  constexpr friend basic_fixed_string<charT, N + 1, traits> operator+(const basic_fixed_string& lhs, charT rhs) noexcept;
-  constexpr friend basic_fixed_string<charT, 1 + N, traits> operator+(const charT lhs, const basic_fixed_string& rhs) noexcept;
+  constexpr friend basic_fixed_string<charT, N + N2> operator+(const basic_fixed_string& lhs,
+                                                               const basic_fixed_string<charT, N2>& rhs) noexcept;
+  constexpr friend basic_fixed_string<charT, N + 1> operator+(const basic_fixed_string& lhs, charT rhs) noexcept;
+  constexpr friend basic_fixed_string<charT, 1 + N> operator+(const charT lhs, const basic_fixed_string& rhs) noexcept;
   template<size_t N2>
-  consteval friend basic_fixed_string<charT, N + N2 - 1, traits> operator+(const basic_fixed_string& lhs,
-                                                                           const charT (&rhs)[N2]) noexcept;
+  consteval friend basic_fixed_string<charT, N + N2 - 1> operator+(const basic_fixed_string& lhs,
+                                                                   const charT (&rhs)[N2]) noexcept;
   template<size_t N1>
-  consteval friend basic_fixed_string<charT, N1 + N - 1, traits> operator+(const charT (&lhs)[N1],
-                                                                           const basic_fixed_string& rhs) noexcept;
+  consteval friend basic_fixed_string<charT, N1 + N - 1> operator+(const charT (&lhs)[N1],
+                                                                   const basic_fixed_string& rhs) noexcept;
 
   // @[[fixed.string.comparison]](#fixed.string.comparison)@, non-member comparison functions
   template<size_t N2>
-  friend constexpr bool operator==(const basic_fixed_string& lhs, const basic_fixed_string<charT, N2, traits>& rhs);
+  friend constexpr bool operator==(const basic_fixed_string& lhs, const basic_fixed_string<charT, N2>& rhs);
   template<size_t N2>
   friend consteval bool operator==(const basic_fixed_string& lhs, const charT (&rhs)[N2]);
  
   template<size_t N2>
-  friend constexpr @_see below_@ operator<=>(const basic_fixed_string& lhs, const basic_fixed_string<charT, N2, traits>& rhs);
+  friend constexpr @_see below_@ operator<=>(const basic_fixed_string& lhs, const basic_fixed_string<charT, N2>& rhs);
   template<size_t N2>
   friend consteval @_see below_@ operator<=>(const basic_fixed_string& lhs, const charT (&rhs)[N2]);
 
   // @[[fixed.string.io]](#fixed.string.io)@, inserters and extractors
-  friend basic_ostream<charT, traits>& operator<<(basic_ostream<charT, traits>& os, const basic_fixed_string& str);  // hosted
+  friend basic_ostream<charT>& operator<<(basic_ostream<charT>& os, const basic_fixed_string& str);  // hosted
 };
 
 // @[[fixed.string.deduct]](#fixed.string.deduct)@, deduction guides
@@ -770,19 +767,19 @@ constexpr const_pointer data() const noexcept;
 otherwise, the behavior is undefined.
 
 ```cpp
-constexpr basic_string_view<charT, traits> view() const noexcept;
-constexpr operator basic_string_view<charT, traits>() const noexcept;
+constexpr basic_string_view<charT> view() const noexcept;
+constexpr operator basic_string_view<charT>() const noexcept;
 ```
 
-[4]{.pnum} _Effects_: Equivalent to: `return basic_string_view<charT, traits>(data(), size());`
+[4]{.pnum} _Effects_: Equivalent to: `return basic_string_view<charT>(data(), size());`
 
 
 ```cpp
 template<size_t N2>
-constexpr friend basic_fixed_string<charT, N + N2, traits> operator+(const basic_fixed_string& lhs,
-                                                                     const basic_fixed_string<charT, N2, traits>& rhs) noexcept;
-constexpr friend basic_fixed_string<charT, N + 1, traits> operator+(const basic_fixed_string& lhs, charT rhs) noexcept;
-constexpr friend basic_fixed_string<charT, 1 + N, traits> operator+(charT lhs, const basic_fixed_string& rhs) noexcept;
+constexpr friend basic_fixed_string<charT, N + N2> operator+(const basic_fixed_string& lhs,
+                                                             const basic_fixed_string<charT, N2>& rhs) noexcept;
+constexpr friend basic_fixed_string<charT, N + 1> operator+(const basic_fixed_string& lhs, charT rhs) noexcept;
+constexpr friend basic_fixed_string<charT, 1 + N> operator+(charT lhs, const basic_fixed_string& rhs) noexcept;
 ```
 
 [5]{.pnum} _Effects_: Returns a new fixed string object whose value is the joint value of `lhs` and
@@ -790,8 +787,8 @@ constexpr friend basic_fixed_string<charT, 1 + N, traits> operator+(charT lhs, c
 
 ```cpp
 template<size_t N2>
-consteval friend basic_fixed_string<charT, N + N2 - 1, traits> operator+(const basic_fixed_string& lhs,
-                                                                         const charT (&rhs)[N2]) noexcept;
+consteval friend basic_fixed_string<charT, N + N2 - 1> operator+(const basic_fixed_string& lhs,
+                                                                 const charT (&rhs)[N2]) noexcept;
 ```
 
 [6]{.pnum} _Mandates_: `rhs[N2 - 1] == CharT()`.
@@ -801,8 +798,8 @@ consteval friend basic_fixed_string<charT, N + N2 - 1, traits> operator+(const b
 
 ```cpp
 template<size_t N1>
-consteval friend basic_fixed_string<charT, N1 + N - 1, traits> operator+(const charT (&lhs)[N1],
-                                                                         const basic_fixed_string& rhs) noexcept;
+consteval friend basic_fixed_string<charT, N1 + N - 1> operator+(const charT (&lhs)[N1],
+                                                                 const basic_fixed_string& rhs) noexcept;
 ```
 
 [8]{.pnum} _Mandates_: `lhs[N1 - 1] == CharT()`.
@@ -815,9 +812,9 @@ a subrange `[lhs[0], lhs[N1 - 1])` and `rhs` followed by the `charT()`.
 
 ```cpp
 template<size_t N2>
-friend constexpr bool operator==(const basic_fixed_string& lhs, const basic_fixed_string<charT, N2, traits>& rhs);
+friend constexpr bool operator==(const basic_fixed_string& lhs, const basic_fixed_string<charT, N2>& rhs);
 template<size_t N2>
-friend constexpr @_see below_@ operator<=>(const basic_fixed_string& lhs, const basic_fixed_string<charT, N2, traits>& rhs);
+friend constexpr @_see below_@ operator<=>(const basic_fixed_string& lhs, const basic_fixed_string<charT, N2>& rhs);
 ```
 
 [1]{.pnum} _Effects_: Let `op` be the operator. Equivalent to:
@@ -838,13 +835,13 @@ friend consteval @_see below_@ operator<=>(const basic_fixed_string& lhs, const 
 [3]{.pnum} _Effects_: Let `op` be the operator. Equivalent to:
 
 ```cpp
-return lhs.view() @_op_@ basic_string_view<CharT, Traits>(rhs, rhs + N2 - 1);
+return lhs.view() @_op_@ basic_string_view<CharT>(rhs, rhs + N2 - 1);
 ```
 
 #### Inserters and extractors { #fixed.string.io }
 
 ```cpp
-friend basic_ostream<charT, traits>& operator<<(basic_ostream<charT, traits>& os, const basic_fixed_string& str);
+friend basic_ostream<charT>& operator<<(basic_ostream<charT>& os, const basic_fixed_string& str);
 ```
 
 [1]{.pnum} _Effects_: Equivalent to: `return os << str.view();`
@@ -853,7 +850,7 @@ friend basic_ostream<charT, traits>& operator<<(basic_ostream<charT, traits>& os
 
 ```cpp
 template<class charT, size_t N, class traits>
-constexpr void swap(basic_fixed_string<charT, N, traits>& x, basic_fixed_string<charT, N, traits>& y) noexcept;
+constexpr void swap(basic_fixed_string<charT, N>& x, basic_fixed_string<charT, N>& y) noexcept;
 ```
 
 [1]{.pnum} _Effects_: As if by `x.swap(y)`.
