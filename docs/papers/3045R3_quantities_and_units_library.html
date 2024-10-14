@@ -981,80 +981,90 @@ units<span></span></a></li>
 <li><a href="#physical-constants-usage-examples" id="toc-physical-constants-usage-examples"><span class="toc-section-number">18.8.3</span> Physical constants usage
 examples<span></span></a></li>
 </ul></li>
-<li><a href="#quantity-references" id="toc-quantity-references"><span class="toc-section-number">18.9</span> Quantity
-references<span></span></a></li>
-<li><a href="#quantities" id="toc-quantities"><span class="toc-section-number">18.10</span> Quantities<span></span></a>
+<li><a href="#quantity-specifications" id="toc-quantity-specifications"><span class="toc-section-number">18.9</span> Quantity
+specifications<span></span></a>
 <ul>
-<li><a href="#multiply-syntax-commutativity" id="toc-multiply-syntax-commutativity"><span class="toc-section-number">18.10.1</span> Multiply syntax
+<li><a href="#bikeshedding-quantity_spec" id="toc-bikeshedding-quantity_spec"><span class="toc-section-number">18.9.1</span> Bikeshedding
+<code class="sourceCode cpp">quantity_spec</code><span></span></a></li>
+</ul></li>
+<li><a href="#quantity-references" id="toc-quantity-references"><span class="toc-section-number">18.10</span> Quantity
+references<span></span></a>
+<ul>
+<li><a href="#bikeshedding-reference" id="toc-bikeshedding-reference"><span class="toc-section-number">18.10.1</span> Bikeshedding
+<code class="sourceCode cpp">reference</code><span></span></a></li>
+</ul></li>
+<li><a href="#quantities" id="toc-quantities"><span class="toc-section-number">18.11</span> Quantities<span></span></a>
+<ul>
+<li><a href="#multiply-syntax-commutativity" id="toc-multiply-syntax-commutativity"><span class="toc-section-number">18.11.1</span> Multiply syntax
 commutativity<span></span></a></li>
-<li><a href="#why-dont-we-use-udls-to-create-quantities" id="toc-why-dont-we-use-udls-to-create-quantities"><span class="toc-section-number">18.10.2</span> Why don’t we use UDLs to
+<li><a href="#why-dont-we-use-udls-to-create-quantities" id="toc-why-dont-we-use-udls-to-create-quantities"><span class="toc-section-number">18.11.2</span> Why don’t we use UDLs to
 create quantities?<span></span></a></li>
-<li><a href="#quantity-arithmetics" id="toc-quantity-arithmetics"><span class="toc-section-number">18.10.3</span> Quantity
+<li><a href="#quantity-arithmetics" id="toc-quantity-arithmetics"><span class="toc-section-number">18.11.3</span> Quantity
 arithmetics<span></span></a>
 <ul>
-<li><a href="#quantity-is-a-numeric-wrapper" id="toc-quantity-is-a-numeric-wrapper"><span class="toc-section-number">18.10.3.1</span>
+<li><a href="#quantity-is-a-numeric-wrapper" id="toc-quantity-is-a-numeric-wrapper"><span class="toc-section-number">18.11.3.1</span>
 <code class="sourceCode cpp">quantity</code> is a numeric
 wrapper<span></span></a></li>
-<li><a href="#addition-and-subtraction" id="toc-addition-and-subtraction"><span class="toc-section-number">18.10.3.2</span> Addition and
+<li><a href="#addition-and-subtraction" id="toc-addition-and-subtraction"><span class="toc-section-number">18.11.3.2</span> Addition and
 subtraction<span></span></a></li>
-<li><a href="#multiplication-and-division" id="toc-multiplication-and-division"><span class="toc-section-number">18.10.3.3</span> Multiplication and
+<li><a href="#multiplication-and-division" id="toc-multiplication-and-division"><span class="toc-section-number">18.11.3.3</span> Multiplication and
 division<span></span></a></li>
-<li><a href="#modulo" id="toc-modulo"><span class="toc-section-number">18.10.3.4</span> Modulo<span></span></a></li>
-<li><a href="#comparison-against-zero" id="toc-comparison-against-zero"><span class="toc-section-number">18.10.3.5</span> Comparison against
+<li><a href="#modulo" id="toc-modulo"><span class="toc-section-number">18.11.3.4</span> Modulo<span></span></a></li>
+<li><a href="#comparison-against-zero" id="toc-comparison-against-zero"><span class="toc-section-number">18.11.3.5</span> Comparison against
 zero<span></span></a></li>
-<li><a href="#other-maths" id="toc-other-maths"><span class="toc-section-number">18.10.3.6</span> Other
+<li><a href="#other-maths" id="toc-other-maths"><span class="toc-section-number">18.11.3.6</span> Other
 maths<span></span></a></li>
 </ul></li>
-<li><a href="#dimensionless-quantities" id="toc-dimensionless-quantities"><span class="toc-section-number">18.10.4</span> Dimensionless
+<li><a href="#dimensionless-quantities" id="toc-dimensionless-quantities"><span class="toc-section-number">18.11.4</span> Dimensionless
 quantities<span></span></a>
 <ul>
-<li><a href="#dividing-two-quantities-of-the-same-kind" id="toc-dividing-two-quantities-of-the-same-kind"><span class="toc-section-number">18.10.4.1</span> Dividing two quantities of
+<li><a href="#dividing-two-quantities-of-the-same-kind" id="toc-dividing-two-quantities-of-the-same-kind"><span class="toc-section-number">18.11.4.1</span> Dividing two quantities of
 the same kind<span></span></a></li>
-<li><a href="#counts-of-things" id="toc-counts-of-things"><span class="toc-section-number">18.10.4.2</span> Counts of
+<li><a href="#counts-of-things" id="toc-counts-of-things"><span class="toc-section-number">18.11.4.2</span> Counts of
 things<span></span></a></li>
-<li><a href="#convertibility-from-fundamental-types" id="toc-convertibility-from-fundamental-types"><span class="toc-section-number">18.10.4.3</span> Convertibility from
+<li><a href="#convertibility-from-fundamental-types" id="toc-convertibility-from-fundamental-types"><span class="toc-section-number">18.11.4.3</span> Convertibility from
 fundamental types<span></span></a></li>
-<li><a href="#predefined-units-of-the-dimensionless-quantity" id="toc-predefined-units-of-the-dimensionless-quantity"><span class="toc-section-number">18.10.4.4</span> Predefined units of the
+<li><a href="#predefined-units-of-the-dimensionless-quantity" id="toc-predefined-units-of-the-dimensionless-quantity"><span class="toc-section-number">18.11.4.4</span> Predefined units of the
 dimensionless quantity<span></span></a></li>
-<li><a href="#angular-quantities" id="toc-angular-quantities"><span class="toc-section-number">18.10.4.5</span> Angular
+<li><a href="#angular-quantities" id="toc-angular-quantities"><span class="toc-section-number">18.11.4.5</span> Angular
 quantities<span></span></a></li>
-<li><a href="#nested-quantity-kinds" id="toc-nested-quantity-kinds"><span class="toc-section-number">18.10.4.6</span> Nested quantity
+<li><a href="#nested-quantity-kinds" id="toc-nested-quantity-kinds"><span class="toc-section-number">18.11.4.6</span> Nested quantity
 kinds<span></span></a></li>
 </ul></li>
-<li><a href="#value-conversions" id="toc-value-conversions"><span class="toc-section-number">18.10.5</span> Value
+<li><a href="#value-conversions" id="toc-value-conversions"><span class="toc-section-number">18.11.5</span> Value
 conversions<span></span></a>
 <ul>
-<li><a href="#template-disambiguation-concerns" id="toc-template-disambiguation-concerns"><span class="toc-section-number">18.10.5.1</span>
+<li><a href="#template-disambiguation-concerns" id="toc-template-disambiguation-concerns"><span class="toc-section-number">18.11.5.1</span>
 <code class="sourceCode cpp"><span class="kw">template</span></code>
 disambiguation concerns<span></span></a></li>
-<li><a href="#value-conversions-summary" id="toc-value-conversions-summary"><span class="toc-section-number">18.10.5.2</span> Value conversions
+<li><a href="#value-conversions-summary" id="toc-value-conversions-summary"><span class="toc-section-number">18.11.5.2</span> Value conversions
 summary<span></span></a></li>
-<li><a href="#bikesheding-force_inu" id="toc-bikesheding-force_inu"><span class="toc-section-number">18.10.5.3</span> Bikesheding <code class="sourceCode cpp">force_in<span class="op">(</span>U<span class="op">)</span></code><span></span></a></li>
-<li><a href="#bikeshedding-quantityrep" id="toc-bikeshedding-quantityrep"><span class="toc-section-number">18.10.5.4</span> Bikeshedding <code class="sourceCode cpp">quantity<span class="op">::</span>rep</code><span></span></a></li>
+<li><a href="#bikeshedding-force_inu" id="toc-bikeshedding-force_inu"><span class="toc-section-number">18.11.5.3</span> Bikeshedding <code class="sourceCode cpp">force_in<span class="op">(</span>U<span class="op">)</span></code><span></span></a></li>
+<li><a href="#bikeshedding-quantityrep" id="toc-bikeshedding-quantityrep"><span class="toc-section-number">18.11.5.4</span> Bikeshedding <code class="sourceCode cpp">quantity<span class="op">::</span>rep</code><span></span></a></li>
 </ul></li>
-<li><a href="#binary-operators" id="toc-binary-operators"><span class="toc-section-number">18.10.6</span> Binary
+<li><a href="#binary-operators" id="toc-binary-operators"><span class="toc-section-number">18.11.6</span> Binary
 operators<span></span></a></li>
 </ul></li>
-<li><a href="#quantity-points" id="toc-quantity-points"><span class="toc-section-number">18.11</span> Quantity Points<span></span></a>
+<li><a href="#quantity-points" id="toc-quantity-points"><span class="toc-section-number">18.12</span> Quantity Points<span></span></a>
 <ul>
-<li><a href="#delta-and-absolute-creation-helpers" id="toc-delta-and-absolute-creation-helpers"><span class="toc-section-number">18.11.1</span>
+<li><a href="#delta-and-absolute-creation-helpers" id="toc-delta-and-absolute-creation-helpers"><span class="toc-section-number">18.12.1</span>
 <code class="sourceCode cpp">delta</code> and
 <code class="sourceCode cpp">absolute</code> creation
 helpers<span></span></a></li>
-<li><a href="#default_point_originreference-quantity_from_zero-and-zeroth_point_originquantityspec" id="toc-default_point_originreference-quantity_from_zero-and-zeroth_point_originquantityspec"><span class="toc-section-number">18.11.2</span> <code class="sourceCode cpp">default_point_origin<span class="op">&lt;</span>Reference<span class="op">&gt;</span></code>,
+<li><a href="#default_point_originreference-quantity_from_zero-and-zeroth_point_originquantityspec" id="toc-default_point_originreference-quantity_from_zero-and-zeroth_point_originquantityspec"><span class="toc-section-number">18.12.2</span> <code class="sourceCode cpp">default_point_origin<span class="op">&lt;</span>Reference<span class="op">&gt;</span></code>,
 <code class="sourceCode cpp">quantity_from_zero<span class="op">()</span></code>,
 and <code class="sourceCode cpp">zeroth_point_origin<span class="op">&lt;</span>QuantitySpec<span class="op">&gt;</span></code><span></span></a></li>
 </ul></li>
-<li><a href="#interoperability-with-other-libraries" id="toc-interoperability-with-other-libraries"><span class="toc-section-number">18.12</span> Interoperability with other
+<li><a href="#interoperability-with-other-libraries" id="toc-interoperability-with-other-libraries"><span class="toc-section-number">18.13</span> Interoperability with other
 libraries<span></span></a>
 <ul>
-<li><a href="#specifying-a-conversion-kind" id="toc-specifying-a-conversion-kind"><span class="toc-section-number">18.12.1</span> Specifying a conversion
+<li><a href="#specifying-a-conversion-kind" id="toc-specifying-a-conversion-kind"><span class="toc-section-number">18.13.1</span> Specifying a conversion
 kind<span></span></a></li>
-<li><a href="#quantities-conversions" id="toc-quantities-conversions"><span class="toc-section-number">18.12.2</span> Quantities
+<li><a href="#quantities-conversions" id="toc-quantities-conversions"><span class="toc-section-number">18.13.2</span> Quantities
 conversions<span></span></a></li>
-<li><a href="#quantity-points-conversions" id="toc-quantity-points-conversions"><span class="toc-section-number">18.12.3</span> Quantity points
+<li><a href="#quantity-points-conversions" id="toc-quantity-points-conversions"><span class="toc-section-number">18.13.3</span> Quantity points
 conversions<span></span></a></li>
-<li><a href="#interoperability-with-the-stdchrono-abstractions" id="toc-interoperability-with-the-stdchrono-abstractions"><span class="toc-section-number">18.12.4</span> Interoperability with the
+<li><a href="#interoperability-with-the-stdchrono-abstractions" id="toc-interoperability-with-the-stdchrono-abstractions"><span class="toc-section-number">18.13.4</span> Interoperability with the
 <code class="sourceCode cpp">std<span class="op">::</span>chrono</code>
 abstractions<span></span></a></li>
 </ul></li>
@@ -1076,7 +1086,7 @@ Acknowledgements<span></span></a></li>
 alternatives</a> chapter added.</li>
 <li><a href="#prefixing-units-with-prefixes">Prefixing units with
 prefixes</a> chapter added.</li>
-<li>[Bikeshedding <code class="sourceCode cpp">force_in<span class="op">(</span>U<span class="op">)</span></code>]
+<li><a href="#bikeshedding-force_inu">Bikeshedding <code class="sourceCode cpp">force_in<span class="op">(</span>U<span class="op">)</span></code></a>
 chapter added.</li>
 <li><a href="#bikeshedding-quantityrep">Bikeshedding <code class="sourceCode cpp">quantity<span class="op">::</span>rep</code></a>
 chapter added.</li>
@@ -1093,6 +1103,14 @@ and <code class="sourceCode cpp">zeroth_point_origin<span class="op">&lt;</span>
 chapter added.</li>
 <li><a href="#multiply-syntax-commutativity">Multiply syntax
 commutativity</a> chapter added.</li>
+<li><a href="#quantity-specifications">Quantity specifications</a> and
+<a href="#bikeshedding-quantity_spec">Bikeshedding
+<code class="sourceCode cpp">quantity_spec</code></a> chapters
+added.</li>
+<li><a href="#bikeshedding-reference">Bikeshedding
+<code class="sourceCode cpp">reference</code></a> chapter added.</li>
+<li><code class="sourceCode cpp">𝜋</code> added as an alias for
+<code class="sourceCode cpp">pi</code></li>
 </ul>
 <h2 data-number="1.2" id="changes-since-p3045r1"><span class="header-section-number">1.2</span> Changes since <span class="citation" data-cites="P3045R1">[<a href="https://wg21.link/p3045r1" role="doc-biblioref">P3045R1</a>]</span><a href="#changes-since-p3045r1" class="self-link"></a></h2>
 <ul>
@@ -4313,8 +4331,9 @@ as:</p>
 example here is a <code class="sourceCode cpp">degree</code> which is
 defined using a floating-point magnitude having a factor of the number π
 (Pi):</p>
-<div class="sourceCode" id="cb105"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> pi <span class="kw">final</span> <span class="op">:</span> mag_constant<span class="op">&lt;</span>symbol_text<span class="op">{</span><span class="st">u8&quot;𝜋&quot;</span>, <span class="st">&quot;pi&quot;</span><span class="op">}</span>, std<span class="op">::</span>numbers<span class="op">::</span>pi_v<span class="op">&lt;</span><span class="dt">long</span> <span class="dt">double</span><span class="op">&gt;&gt;</span> <span class="op">{}</span> pi;</span></code></pre></div>
-<div class="sourceCode" id="cb106"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb106-1"><a href="#cb106-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> degree <span class="kw">final</span> <span class="op">:</span> named_unit<span class="op">&lt;{</span><span class="st">u8&quot;°&quot;</span>, <span class="st">&quot;deg&quot;</span><span class="op">}</span>, mag<span class="op">&lt;</span>pi<span class="op">&gt;</span> <span class="op">/</span> mag<span class="op">&lt;</span><span class="dv">180</span><span class="op">&gt;</span> <span class="op">*</span> si<span class="op">::</span>radian<span class="op">&gt;</span> <span class="op">{}</span> degree;</span></code></pre></div>
+<div class="sourceCode" id="cb105"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> pi <span class="kw">final</span> <span class="op">:</span> mag_constant<span class="op">&lt;</span>symbol_text<span class="op">{</span><span class="st">u8&quot;𝜋&quot;</span>, <span class="st">&quot;pi&quot;</span><span class="op">}</span>, std<span class="op">::</span>numbers<span class="op">::</span>pi_v<span class="op">&lt;</span><span class="dt">long</span> <span class="dt">double</span><span class="op">&gt;&gt;</span> <span class="op">{}</span> pi;</span>
+<span id="cb105-2"><a href="#cb105-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> 𝜋 <span class="op">=</span> pi;</span></code></pre></div>
+<div class="sourceCode" id="cb106"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb106-1"><a href="#cb106-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> degree <span class="kw">final</span> <span class="op">:</span> named_unit<span class="op">&lt;{</span><span class="st">u8&quot;°&quot;</span>, <span class="st">&quot;deg&quot;</span><span class="op">}</span>, mag<span class="op">&lt;</span>𝜋<span class="op">&gt;</span> <span class="op">/</span> mag<span class="op">&lt;</span><span class="dv">180</span><span class="op">&gt;</span> <span class="op">*</span> si<span class="op">::</span>radian<span class="op">&gt;</span> <span class="op">{}</span> degree;</span></code></pre></div>
 <h3 data-number="14.2.7" id="common-units"><span class="header-section-number">14.2.7</span> Common units<a href="#common-units" class="self-link"></a></h3>
 <p>Adding, subtracting, or comparing two quantities of different units
 will force the library to find a common unit for those. This is to
@@ -8026,7 +8045,7 @@ otherwise) are implemented as units in the following way:</p>
 <span id="cb237-8"><a href="#cb237-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>  <span class="co">// namespace si2019</span></span>
 <span id="cb237-9"><a href="#cb237-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb237-10"><a href="#cb237-10" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> magnetic_constant <span class="kw">final</span> <span class="op">:</span></span>
-<span id="cb237-11"><a href="#cb237-11" aria-hidden="true" tabindex="-1"></a>  named_unit<span class="op">&lt;{</span><span class="st">u8&quot;μ₀&quot;</span>, <span class="st">&quot;u_0&quot;</span><span class="op">}</span>, mag<span class="op">&lt;</span><span class="dv">4</span><span class="op">&gt;</span> <span class="op">*</span> mag<span class="op">&lt;</span>pi<span class="op">&gt;</span> <span class="op">*</span> mag_power<span class="op">&lt;</span><span class="dv">10</span>, <span class="op">-</span><span class="dv">7</span><span class="op">&gt;</span> <span class="op">*</span> henry <span class="op">/</span> metre<span class="op">&gt;</span> <span class="op">{}</span> magnetic_constant;</span>
+<span id="cb237-11"><a href="#cb237-11" aria-hidden="true" tabindex="-1"></a>  named_unit<span class="op">&lt;{</span><span class="st">u8&quot;μ₀&quot;</span>, <span class="st">&quot;u_0&quot;</span><span class="op">}</span>, mag<span class="op">&lt;</span><span class="dv">4</span><span class="op">&gt;</span> <span class="op">*</span> mag<span class="op">&lt;</span>𝜋<span class="op">&gt;</span> <span class="op">*</span> mag_power<span class="op">&lt;</span><span class="dv">10</span>, <span class="op">-</span><span class="dv">7</span><span class="op">&gt;</span> <span class="op">*</span> henry <span class="op">/</span> metre<span class="op">&gt;</span> <span class="op">{}</span> magnetic_constant;</span>
 <span id="cb237-12"><a href="#cb237-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb237-13"><a href="#cb237-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>  <span class="co">// namespace si</span></span></code></pre></div>
 <h3 data-number="18.8.3" id="physical-constants-usage-examples"><span class="header-section-number">18.8.3</span> Physical constants usage
@@ -8100,7 +8119,24 @@ in SI base units:
 p = 2.13771e-18 kg m/s
 m = 5.34799e-27 kg
 E = 8.01088e-10 J</code></pre>
-<h2 data-number="18.9" id="quantity-references"><span class="header-section-number">18.9</span> Quantity references<a href="#quantity-references" class="self-link"></a></h2>
+<h2 data-number="18.9" id="quantity-specifications"><span class="header-section-number">18.9</span> Quantity specifications<a href="#quantity-specifications" class="self-link"></a></h2>
+<p>Quantity specification provides all the data about the quantity type
+(i.e., kind, character, recipe, relation to other quantities in the
+hierarchy). It does not specify a unit, though.</p>
+<h3 data-number="18.9.1" id="bikeshedding-quantity_spec"><span class="header-section-number">18.9.1</span> Bikeshedding
+<code class="sourceCode cpp">quantity_spec</code><a href="#bikeshedding-quantity_spec" class="self-link"></a></h3>
+<p>The “quantity specification” term is not provided in ISO or BIPM
+metrology dictonaries and was invented for the need of this library.
+This means that we should probably consider some other names for this
+abstraction:</p>
+<ul>
+<li><code class="sourceCode cpp">quantity_specification</code>,</li>
+<li><code class="sourceCode cpp">q_spec</code>,</li>
+<li><code class="sourceCode cpp">q_specification</code>,</li>
+<li><code class="sourceCode cpp">quantity_definition</code>,</li>
+<li><code class="sourceCode cpp">quantity_def</code>.</li>
+</ul>
+<h2 data-number="18.10" id="quantity-references"><span class="header-section-number">18.10</span> Quantity references<a href="#quantity-references" class="self-link"></a></h2>
 <p><em>Note: We know that probably the term “reference” will not survive
 too long in the Committee, but we couldn’t find a better name for it in
 the <span class="citation" data-cites="MP-UNITS">[<a href="https://mpusz.github.io/mp-units" role="doc-biblioref">mp-units</a>]</span> library (<a href="https://github.com/mpusz/mp-units/issues/486" class="uri">https://github.com/mpusz/mp-units/issues/486</a>).</em></p>
@@ -8137,7 +8173,23 @@ type.</p>
 <p>Similarly to the <a href="#AssociatedUnit-concept"><code class="sourceCode cpp">AssociatedUnit</code></a>,
 such a reference can be used to construct a quantity:</p>
 <div class="sourceCode" id="cb243"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb243-1"><a href="#cb243-1" aria-hidden="true" tabindex="-1"></a>QuantityOf<span class="op">&lt;</span>isq<span class="op">::</span>speed<span class="op">&gt;</span> <span class="kw">auto</span> s <span class="op">=</span> <span class="dv">60</span> <span class="op">*</span> speed;</span></code></pre></div>
-<h2 data-number="18.10" id="quantities"><span class="header-section-number">18.10</span> Quantities<a href="#quantities" class="self-link"></a></h2>
+<h3 data-number="18.10.1" id="bikeshedding-reference"><span class="header-section-number">18.10.1</span> Bikeshedding
+<code class="sourceCode cpp">reference</code><a href="#bikeshedding-reference" class="self-link"></a></h3>
+<p>The term <code class="sourceCode cpp">reference</code> is highly
+overloaded in the C++ domain. This is why we should probably rename the
+type that was successfully used in <span class="citation" data-cites="MP-UNITS">[<a href="https://mpusz.github.io/mp-units" role="doc-biblioref">mp-units</a>]</span>. Here are a few proposals:</p>
+<ul>
+<li><code class="sourceCode cpp">quantity_reference</code></li>
+<li><code class="sourceCode cpp">quantity_ref</code></li>
+<li><code class="sourceCode cpp">q_reference</code></li>
+<li><code class="sourceCode cpp">q_ref</code></li>
+</ul>
+<p>Please note that the longer the identifier we choose, the longer and
+harder it will be to grasp compiler error messages. A user never types
+this type identifier in the code (although a user might type an
+associated concept <code class="sourceCode cpp">Reference</code> or
+<code class="sourceCode cpp">ReferenceOf</code>).</p>
+<h2 data-number="18.11" id="quantities"><span class="header-section-number">18.11</span> Quantities<a href="#quantities" class="self-link"></a></h2>
 <p>The <code class="sourceCode cpp">quantity</code> class template is a
 workhorse of the library. It can be considered a generalization of <code class="sourceCode cpp">std<span class="op">::</span>chrono<span class="op">::</span>duration</code>,
 but is not directly compatible with it.</p>
@@ -8152,7 +8204,7 @@ member has to be publicly exposed to satisfy the C++ language
 requirements for <a href="https://eel.is/c++draft/temp.param#def:type,structural">structural
 types</a>. Hopefully, the language rules for structural types will
 improve with time before this library gets standardized.</p>
-<h3 data-number="18.10.1" id="multiply-syntax-commutativity"><span class="header-section-number">18.10.1</span> Multiply syntax
+<h3 data-number="18.11.1" id="multiply-syntax-commutativity"><span class="header-section-number">18.11.1</span> Multiply syntax
 commutativity<a href="#multiply-syntax-commutativity" class="self-link"></a></h3>
 <p>As of today, the multiply syntax that creates quantities is not
 commutative:</p>
@@ -8179,7 +8231,7 @@ following use case</a>:</p>
 <p>Today, this does not compile. Should we extend the multiply syntax to
 support such use cases and with this have entire commutative
 property?</p>
-<h3 data-number="18.10.2" id="why-dont-we-use-udls-to-create-quantities"><span class="header-section-number">18.10.2</span> Why don’t we use UDLs to
+<h3 data-number="18.11.2" id="why-dont-we-use-udls-to-create-quantities"><span class="header-section-number">18.11.2</span> Why don’t we use UDLs to
 create quantities?<a href="#why-dont-we-use-udls-to-create-quantities" class="self-link"></a></h3>
 <p><a href="#constructing-a-quantity">Constructing a quantity</a>
 chapter describes and explains why we introduced the multiply syntax as
@@ -8254,8 +8306,8 @@ angular momentum was defined as:</p>
 </ol>
 <p>The multiply syntax that we chose for this library does not have any
 of those issues.</p>
-<h3 data-number="18.10.3" id="quantity-arithmetics"><span class="header-section-number">18.10.3</span> Quantity arithmetics<a href="#quantity-arithmetics" class="self-link"></a></h3>
-<h4 data-number="18.10.3.1" id="quantity-is-a-numeric-wrapper"><span class="header-section-number">18.10.3.1</span>
+<h3 data-number="18.11.3" id="quantity-arithmetics"><span class="header-section-number">18.11.3</span> Quantity arithmetics<a href="#quantity-arithmetics" class="self-link"></a></h3>
+<h4 data-number="18.11.3.1" id="quantity-is-a-numeric-wrapper"><span class="header-section-number">18.11.3.1</span>
 <code class="sourceCode cpp">quantity</code> is a numeric wrapper<a href="#quantity-is-a-numeric-wrapper" class="self-link"></a></h4>
 <p>If we think about it, the
 <code class="sourceCode cpp">quantity</code> class template is just a
@@ -8330,7 +8382,7 @@ type,</li>
 of a <code class="sourceCode cpp">quantity</code> type. As most of them
 are obvious, in the following chapters, we will discuss only the most
 important or non-trivial aspects of quantity arithmetics.</p>
-<h4 data-number="18.10.3.2" id="addition-and-subtraction"><span class="header-section-number">18.10.3.2</span> Addition and
+<h4 data-number="18.11.3.2" id="addition-and-subtraction"><span class="header-section-number">18.11.3.2</span> Addition and
 subtraction<a href="#addition-and-subtraction" class="self-link"></a></h4>
 <p>Quantities can easily be added or subtracted from each other:</p>
 <div class="sourceCode" id="cb251"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb251-1"><a href="#cb251-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> m <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> m <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> m<span class="op">)</span>;</span>
@@ -8380,7 +8432,7 @@ one floating-point representation type to prevent truncation:</p>
 <span id="cb255-8"><a href="#cb255-8" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_of_type<span class="op">&lt;</span><span class="fl">1.</span> <span class="op">*</span> rad <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> deg, quantity<span class="op">&lt;</span>deg, <span class="dt">double</span><span class="op">&gt;&gt;)</span>;</span>
 <span id="cb255-9"><a href="#cb255-9" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_of_type<span class="op">&lt;</span><span class="dv">1</span> <span class="op">*</span> rad <span class="op">+</span> <span class="fl">1.</span> <span class="op">*</span> deg, quantity<span class="op">&lt;</span>deg, <span class="dt">double</span><span class="op">&gt;&gt;)</span>;</span>
 <span id="cb255-10"><a href="#cb255-10" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_of_type<span class="op">&lt;</span><span class="fl">1.</span> <span class="op">*</span> rad <span class="op">+</span> <span class="fl">1.</span> <span class="op">*</span> deg, quantity<span class="op">&lt;</span>deg, <span class="dt">double</span><span class="op">&gt;&gt;)</span>;</span></code></pre></div>
-<h4 data-number="18.10.3.3" id="multiplication-and-division"><span class="header-section-number">18.10.3.3</span> Multiplication and
+<h4 data-number="18.11.3.3" id="multiplication-and-division"><span class="header-section-number">18.11.3.3</span> Multiplication and
 division<a href="#multiplication-and-division" class="self-link"></a></h4>
 <p>Multiplying or dividing a quantity by a number does not change its
 quantity type or unit. However, its representation type may change. For
@@ -8417,7 +8469,7 @@ which is a quantity of the dimensionless kind.</p>
 The resulting quantity of the LHS is <code class="sourceCode cpp"><span class="dv">0</span> <span class="op">*</span> dimensionless<span class="op">[</span>h <span class="op">/</span> min<span class="op">]</span></code>.
 To be consistent with the division of different quantity types, we do
 not convert quantity values to a common unit before the division.</p>
-<h5 data-number="18.10.3.3.1" id="beware-of-integral-division"><span class="header-section-number">18.10.3.3.1</span> Beware of integral
+<h5 data-number="18.11.3.3.1" id="beware-of-integral-division"><span class="header-section-number">18.11.3.3.1</span> Beware of integral
 division<a href="#beware-of-integral-division" class="self-link"></a></h5>
 <p>The physical units library can’t do any runtime branching logic for
 the division operator. All logic has to be done at compile-time when the
@@ -8432,7 +8484,7 @@ types based on the values of provided function arguments.</p>
 <p>This is why we often prefer floating-point representation types when
 dealing with units. Some popular physical units libraries even <a href="https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden">forbid
 integer division at all</a>.</p>
-<h4 data-number="18.10.3.4" id="modulo"><span class="header-section-number">18.10.3.4</span> Modulo<a href="#modulo" class="self-link"></a></h4>
+<h4 data-number="18.11.3.4" id="modulo"><span class="header-section-number">18.11.3.4</span> Modulo<a href="#modulo" class="self-link"></a></h4>
 <p>Now that we know how addition, subtraction, multiplication, and
 division work, it is time to talk about modulo. What would we expect to
 be returned from the following quantity equation?</p>
@@ -8548,7 +8600,7 @@ uses a common unit to do the calculation and provide its result:</p>
 <span id="cb263-2"><a href="#cb263-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h <span class="op">%</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">==</span> <span class="dv">60</span> <span class="op">*</span> min<span class="op">)</span>;</span>
 <span id="cb263-3"><a href="#cb263-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">61</span> <span class="op">*</span> min <span class="op">%</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> min<span class="op">)</span>;</span>
 <span id="cb263-4"><a href="#cb263-4" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h <span class="op">%</span> <span class="op">(</span><span class="dv">59</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> min<span class="op">)</span>;</span></code></pre></div>
-<h4 data-number="18.10.3.5" id="comparison-against-zero"><span class="header-section-number">18.10.3.5</span> Comparison against zero<a href="#comparison-against-zero" class="self-link"></a></h4>
+<h4 data-number="18.11.3.5" id="comparison-against-zero"><span class="header-section-number">18.11.3.5</span> Comparison against zero<a href="#comparison-against-zero" class="self-link"></a></h4>
 <p>Zero is special. It is the only number that unambiguously defines the
 value of any kind of quantity, regardless of its units: zero inches and
 zero meters and zero miles are all identical. For this reason, it’s very
@@ -8573,7 +8625,7 @@ extra conversion, by writing:</p>
 <span id="cb265-2"><a href="#cb265-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span></code></pre></div>
 <p>But that is a bit inconvenient, and inexperienced users could be
 unaware of this technique and its rationale.</p>
-<h5 data-number="18.10.3.5.1" id="named-comparison-functions"><span class="header-section-number">18.10.3.5.1</span> Named comparison
+<h5 data-number="18.11.3.5.1" id="named-comparison-functions"><span class="header-section-number">18.11.3.5.1</span> Named comparison
 functions<a href="#named-comparison-functions" class="self-link"></a></h5>
 <p>For the above reasons, the <span class="citation" data-cites="MP-UNITS">[<a href="https://mpusz.github.io/mp-units" role="doc-biblioref">mp-units</a>]</span> library provides dedicated
 interfaces to compare against zero that follow the naming convention of
@@ -8611,7 +8663,7 @@ harder to review, because we’re replacing a pattern that uses an
 operator (say, <code class="sourceCode cpp">a <span class="op">&gt;</span> <span class="dv">0</span></code>)
 with a named function call (say, <code class="sourceCode cpp">is_gt_zero<span class="op">(</span>a<span class="op">)</span></code>).</p>
 <p>These pitfalls motivate us to consider other approaches as well.</p>
-<h5 data-number="18.10.3.5.2" id="zero-type"><span class="header-section-number">18.10.3.5.2</span>
+<h5 data-number="18.11.3.5.2" id="zero-type"><span class="header-section-number">18.11.3.5.2</span>
 <code class="sourceCode cpp">Zero</code> type<a href="#zero-type" class="self-link"></a></h5>
 <p>The <span class="citation" data-cites="AU">[<a href="https://aurora-opensource.github.io/au" role="doc-biblioref">Au</a>]</span> library takes a different approach
 to this problem. It provides an empty type,
@@ -8697,7 +8749,7 @@ feature is that novices might be tempted to replace every numeric value
 instance <code class="sourceCode cpp">ZERO</code>, becoming confused
 when it doesn’t work. We could address this with easy-to-read
 documentation that clarifies its use cases and mental models.</p>
-<h5 data-number="18.10.3.5.3" id="summary-comparison-against-zero"><span class="header-section-number">18.10.3.5.3</span> Summary (comparison
+<h5 data-number="18.11.3.5.3" id="summary-comparison-against-zero"><span class="header-section-number">18.11.3.5.3</span> Summary (comparison
 against zero)<a href="#summary-comparison-against-zero" class="self-link"></a></h5>
 <p>Overall, these two approaches — special functions, and a
 <code class="sourceCode cpp">Zero</code> type — represent two local
@@ -8705,7 +8757,7 @@ optima in design space. Each has its strengths and weaknesses; each
 makes different tradeoffs. It’s currently an open question as to which
 approach would be best suited for a quantity type in the standard
 library.</p>
-<h4 data-number="18.10.3.6" id="other-maths"><span class="header-section-number">18.10.3.6</span> Other maths<a href="#other-maths" class="self-link"></a></h4>
+<h4 data-number="18.11.3.6" id="other-maths"><span class="header-section-number">18.11.3.6</span> Other maths<a href="#other-maths" class="self-link"></a></h4>
 <p>This chapter scoped only on the
 <code class="sourceCode cpp">quantity</code> type’s operators. However,
 there are many named math functions provided in the <span class="citation" data-cites="MP-UNITS">[<a href="https://mpusz.github.io/mp-units" role="doc-biblioref">mp-units</a>]</span> library. Among others, we can
@@ -8735,7 +8787,7 @@ find there the following:</p>
 <p>In the library, we can also find the <code class="sourceCode cpp"><span class="op">&lt;</span>mp<span class="op">-</span>units<span class="op">/</span>random<span class="op">.</span>h<span class="op">&gt;</span></code>
 header file with all the pseudo-random number generators.</p>
 <p>We plan to provide a separate paper on those in the future.</p>
-<h3 data-number="18.10.4" id="dimensionless-quantities"><span class="header-section-number">18.10.4</span> Dimensionless quantities<a href="#dimensionless-quantities" class="self-link"></a></h3>
+<h3 data-number="18.11.4" id="dimensionless-quantities"><span class="header-section-number">18.11.4</span> Dimensionless quantities<a href="#dimensionless-quantities" class="self-link"></a></h3>
 <p>The quantities we discussed so far always had some specific type and
 physical dimension. However, this is not always the case. While
 performing various computations, we sometimes end up with so-called
@@ -8752,7 +8804,7 @@ quantities of the same kind.</li>
 <li>Numbers of entities are quantities of dimension one.</li>
 </ul>
 </blockquote>
-<h4 data-number="18.10.4.1" id="dividing-two-quantities-of-the-same-kind"><span class="header-section-number">18.10.4.1</span> Dividing two quantities
+<h4 data-number="18.11.4.1" id="dividing-two-quantities-of-the-same-kind"><span class="header-section-number">18.11.4.1</span> Dividing two quantities
 of the same kind<a href="#dividing-two-quantities-of-the-same-kind" class="self-link"></a></h4>
 <p>Dividing two quantities of the same kind always results in a quantity
 of dimension one. However, depending on what type of quantities we
@@ -8795,7 +8847,7 @@ end up with a really small or a huge floating-point value, which may
 result in losing lots of precision. Returning a dimensionless quantity
 from such cases allows us to benefit from all the properties of scaled
 units and is consistent with the rest of the library.</p>
-<h5 data-number="18.10.4.1.1" id="dividing-quantities-of-the-same-type"><span class="header-section-number">18.10.4.1.1</span> Dividing quantities of
+<h5 data-number="18.11.4.1.1" id="dividing-quantities-of-the-same-type"><span class="header-section-number">18.11.4.1.1</span> Dividing quantities of
 the same type<a href="#dividing-quantities-of-the-same-type" class="self-link"></a></h5>
 <p>First, let’s analyze what happens if we divide two quantities of the
 same type:</p>
@@ -8808,7 +8860,7 @@ following properties:</p>
 <p>In case we would like to print its value, we would see a raw value of
 <code class="sourceCode cpp"><span class="dv">4</span></code> in the
 output with no unit being printed.</p>
-<h5 data-number="18.10.4.1.2" id="dividing-quantities-of-different-types"><span class="header-section-number">18.10.4.1.2</span> Dividing quantities of
+<h5 data-number="18.11.4.1.2" id="dividing-quantities-of-different-types"><span class="header-section-number">18.11.4.1.2</span> Dividing quantities of
 different types<a href="#dividing-quantities-of-different-types" class="self-link"></a></h5>
 <p>We can divide quantities of the same dimension and unit but of
 different quantity types:</p>
@@ -8829,7 +8881,7 @@ is of a kind <code class="sourceCode cpp">dimensionless</code>, so it is
 implicitly convertible to
 <code class="sourceCode cpp">dimensionless</code> and satisfies the <a href="#QuantityOf-concept"><code class="sourceCode cpp">QuantityOf<span class="op">&lt;</span>dimensionless<span class="op">&gt;</span></code></a>
 concept.</p>
-<h5 data-number="18.10.4.1.3" id="dividing-quantities-of-different-units"><span class="header-section-number">18.10.4.1.3</span> Dividing quantities of
+<h5 data-number="18.11.4.1.3" id="dividing-quantities-of-different-units"><span class="header-section-number">18.11.4.1.3</span> Dividing quantities of
 different units<a href="#dividing-quantities-of-different-units" class="self-link"></a></h5>
 <p>Now, let’s see what happens when we divide two quantities of the same
 type but different units:</p>
@@ -8860,7 +8912,7 @@ kilometers per megaparsecs, which are both units of length:</p>
 <div class="sourceCode" id="cb281"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb281-1"><a href="#cb281-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> hubble_constant <span class="kw">final</span> <span class="op">:</span></span>
 <span id="cb281-2"><a href="#cb281-2" aria-hidden="true" tabindex="-1"></a>    named_unit<span class="op">&lt;{</span><span class="st">u8&quot;H₀&quot;</span>, <span class="st">&quot;H_0&quot;</span><span class="op">}</span>, mag_ratio<span class="op">&lt;</span><span class="dv">701</span>, <span class="dv">10</span><span class="op">&gt;</span> <span class="op">*</span> si<span class="op">::</span>kilo<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span> <span class="op">/</span> si<span class="op">::</span>second <span class="op">/</span> si<span class="op">::</span>mega<span class="op">&lt;</span>parsec<span class="op">&gt;&gt;</span> <span class="op">{</span></span>
 <span id="cb281-3"><a href="#cb281-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> hubble_constant;</span></code></pre></div>
-<h4 data-number="18.10.4.2" id="counts-of-things"><span class="header-section-number">18.10.4.2</span> Counts of things<a href="#counts-of-things" class="self-link"></a></h4>
+<h4 data-number="18.11.4.2" id="counts-of-things"><span class="header-section-number">18.11.4.2</span> Counts of things<a href="#counts-of-things" class="self-link"></a></h4>
 <p>Another important use case for dimensionless quantities is to provide
 strong types for counts of things. For example:</p>
 <ul>
@@ -8876,7 +8928,7 @@ length are different.</li>
 <p>Thanks to assigning strong names to such quantities, they can be used
 in the quantity equation of other quantities. For example,
 <em>rotational frequency</em> is defined by <code class="sourceCode cpp">rotation <span class="op">/</span> duration</code>.</p>
-<h4 data-number="18.10.4.3" id="convertibility-from-fundamental-types"><span class="header-section-number">18.10.4.3</span> Convertibility from
+<h4 data-number="18.11.4.3" id="convertibility-from-fundamental-types"><span class="header-section-number">18.11.4.3</span> Convertibility from
 fundamental types<a href="#convertibility-from-fundamental-types" class="self-link"></a></h4>
 <p>As stated before, the division of two quantities of the same kind
 results in a quantity of dimension one. Even though it does not have a
@@ -8926,7 +8978,7 @@ something like this in our code:</p>
 It is why we’ve decided to stay with an explicit conversion so
 far.</p></li>
 </ol>
-<h4 data-number="18.10.4.4" id="predefined-units-of-the-dimensionless-quantity"><span class="header-section-number">18.10.4.4</span> Predefined units of the
+<h4 data-number="18.11.4.4" id="predefined-units-of-the-dimensionless-quantity"><span class="header-section-number">18.11.4.4</span> Predefined units of the
 dimensionless quantity<a href="#predefined-units-of-the-dimensionless-quantity" class="self-link"></a></h4>
 <p>As we observed above, the most common unit for dimensionless
 quantities is <code class="sourceCode cpp">one</code>. It has the ratio
@@ -8950,7 +9002,7 @@ dimensionless quantities:</p>
 <span id="cb288-2"><a href="#cb288-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> per_mille <span class="kw">final</span> <span class="op">:</span> named_unit<span class="op">&lt;{</span><span class="st">u8&quot;‰&quot;</span>, <span class="st">&quot;</span><span class="sc">%o</span><span class="st">&quot;</span><span class="op">}</span>, mag_ratio<span class="op">&lt;</span><span class="dv">1</span>, <span class="dv">1000</span><span class="op">&gt;</span> <span class="op">*</span> one<span class="op">&gt;</span> <span class="op">{}</span> per_mille;</span>
 <span id="cb288-3"><a href="#cb288-3" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> parts_per_million <span class="kw">final</span> <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;ppm&quot;</span>, mag_ratio<span class="op">&lt;</span><span class="dv">1</span>, <span class="dv">1&#39;000&#39;000</span><span class="op">&gt;</span> <span class="op">*</span> one<span class="op">&gt;</span> <span class="op">{}</span> parts_per_million;</span>
 <span id="cb288-4"><a href="#cb288-4" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">auto</span> ppm <span class="op">=</span> parts_per_million;</span></code></pre></div>
-<h5 data-number="18.10.4.4.1" id="superpowers-of-the-unit-one"><span class="header-section-number">18.10.4.4.1</span> Superpowers of the unit
+<h5 data-number="18.11.4.4.1" id="superpowers-of-the-unit-one"><span class="header-section-number">18.11.4.4.1</span> Superpowers of the unit
 <code class="sourceCode cpp">one</code><a href="#superpowers-of-the-unit-one" class="self-link"></a></h5>
 <p>Quantities of the unit <code class="sourceCode cpp">one</code> are
 the only ones that are implicitly convertible from a raw value and
@@ -8968,7 +9020,7 @@ on units with a magnitude different than
 <code class="sourceCode cpp"><span class="dv">1</span></code> (e.g.,
 <code class="sourceCode cpp">percent</code> or
 <code class="sourceCode cpp">radian</code>).</p>
-<h4 data-number="18.10.4.5" id="angular-quantities"><span class="header-section-number">18.10.4.5</span> Angular quantities<a href="#angular-quantities" class="self-link"></a></h4>
+<h4 data-number="18.11.4.5" id="angular-quantities"><span class="header-section-number">18.11.4.5</span> Angular quantities<a href="#angular-quantities" class="self-link"></a></h4>
 <p>Special, often controversial, examples of dimensionless quantities
 are the <em>angular measure</em> and <em>solid angular measure</em>
 quantities that are defined in <span class="citation" data-cites="ISO80000">[<a href="https://www.iso.org/standard/76921.html" role="doc-biblioref">ISO/IEC 80000</a>]</span> (part 3) to be the result
@@ -8998,7 +9050,7 @@ should also be quantity kinds by themselves.</p>
 is a bad idea. There are proposals submitted to make an angle a base
 quantity and <code class="sourceCode cpp">rad</code> to become a base
 unit in both <span class="citation" data-cites="SI">[<a href="https://www.bipm.org/en/publications/si-brochure" role="doc-biblioref">SI</a>]</span> and <span class="citation" data-cites="ISO80000">[<a href="https://www.iso.org/standard/76921.html" role="doc-biblioref">ISO/IEC 80000</a>]</span>.</em></p>
-<h5 data-number="18.10.4.5.1" id="radians-and-degrees-support"><span class="header-section-number">18.10.4.5.1</span> Radians and degrees
+<h5 data-number="18.11.4.5.1" id="radians-and-degrees-support"><span class="header-section-number">18.11.4.5.1</span> Radians and degrees
 support<a href="#radians-and-degrees-support" class="self-link"></a></h5>
 <p>Thanks to the usage of magnitudes the library provides efficient
 strong types for all angular types. This means that with the built-in
@@ -9022,7 +9074,7 @@ Glide angle:
  - 0.0208 rad
  - 1.19°
  - 1.33ᵍ</code></pre>
-<h4 data-number="18.10.4.6" id="nested-quantity-kinds"><span class="header-section-number">18.10.4.6</span> Nested quantity kinds<a href="#nested-quantity-kinds" class="self-link"></a></h4>
+<h4 data-number="18.11.4.6" id="nested-quantity-kinds"><span class="header-section-number">18.11.4.6</span> Nested quantity kinds<a href="#nested-quantity-kinds" class="self-link"></a></h4>
 <p>Angular quantities are not the only ones with such a “strange”
 behavior. A similar case is the <em>storage capacity</em> quantity
 specified in <span class="citation" data-cites="ISO80000">[<a href="https://www.iso.org/standard/76921.html" role="doc-biblioref">ISO/IEC 80000</a>]</span> (part 13) that again
@@ -9049,7 +9101,7 @@ specific quantity kinds only:</p>
 <p>This still allows the usage of
 <code class="sourceCode cpp">one</code> (possibly scaled) for such
 quantities which is exactly what we wanted to achieve.</p>
-<h3 data-number="18.10.5" id="value-conversions"><span class="header-section-number">18.10.5</span> Value conversions<a href="#value-conversions" class="self-link"></a></h3>
+<h3 data-number="18.11.5" id="value-conversions"><span class="header-section-number">18.11.5</span> Value conversions<a href="#value-conversions" class="self-link"></a></h3>
 <p><a href="#preventing-truncation-of-data">Preventing truncation of
 data</a> and <a href="#safe-unit-conversions">Safe unit conversions</a>
 chapters describe the motivation, usage, and safety benefits of the
@@ -9057,7 +9109,7 @@ chapters describe the motivation, usage, and safety benefits of the
 <code class="sourceCode cpp">in</code>, and
 <code class="sourceCode cpp">force_in</code> value conversion
 functions.</p>
-<h4 data-number="18.10.5.1" id="template-disambiguation-concerns"><span class="header-section-number">18.10.5.1</span>
+<h4 data-number="18.11.5.1" id="template-disambiguation-concerns"><span class="header-section-number">18.11.5.1</span>
 <code class="sourceCode cpp"><span class="kw">template</span></code>
 disambiguation concerns<a href="#template-disambiguation-concerns" class="self-link"></a></h4>
 <p>Initially <strong>mp-units</strong> library allowed changing of the
@@ -9075,7 +9127,7 @@ It is really useful and user-friendly in non-generic contexts and for
 the cases where we deal with a dependent name, we should leave
 <code class="sourceCode cpp">value_cast</code> even if it is an always
 conversion-forcing operation.</p>
-<h4 data-number="18.10.5.2" id="value-conversions-summary"><span class="header-section-number">18.10.5.2</span> Value conversions
+<h4 data-number="18.11.5.2" id="value-conversions-summary"><span class="header-section-number">18.11.5.2</span> Value conversions
 summary<a href="#value-conversions-summary" class="self-link"></a></h4>
 <p>The table below provides all the value conversions functions that may
 be run on <code class="sourceCode cpp">x</code> being the instance of
@@ -9154,7 +9206,7 @@ or <code class="sourceCode cpp">value_cast<span class="op">&lt;</span>T, u<span 
 </tr>
 </tbody>
 </table>
-<h4 data-number="18.10.5.3" id="bikesheding-force_inu"><span class="header-section-number">18.10.5.3</span> Bikesheding <code class="sourceCode cpp">force_in<span class="op">(</span>U<span class="op">)</span></code><a href="#bikesheding-force_inu" class="self-link"></a></h4>
+<h4 data-number="18.11.5.3" id="bikeshedding-force_inu"><span class="header-section-number">18.11.5.3</span> Bikeshedding <code class="sourceCode cpp">force_in<span class="op">(</span>U<span class="op">)</span></code><a href="#bikeshedding-force_inu" class="self-link"></a></h4>
 <p><code class="sourceCode cpp">force_in</code> is a bit ambiguous name
 for the conversion function in a quantities and units library. Writing
 <code class="sourceCode cpp">x<span class="op">.</span>force_in<span class="op">(</span>s<span class="op">)</span></code>
@@ -9184,7 +9236,7 @@ few possbile alternatives:</p>
 <p>In case we select <code class="sourceCode cpp">x<span class="op">.</span>cast_to<span class="op">(</span>u<span class="op">)</span></code>
 we probably should also rename <code class="sourceCode cpp">q<span class="op">.</span>in<span class="op">(</span>u<span class="op">)</span></code>
 to <code class="sourceCode cpp">q<span class="op">.</span>to<span class="op">(</span>u<span class="op">)</span></code>.</p>
-<h4 data-number="18.10.5.4" id="bikeshedding-quantityrep"><span class="header-section-number">18.10.5.4</span> Bikeshedding <code class="sourceCode cpp">quantity<span class="op">::</span>rep</code><a href="#bikeshedding-quantityrep" class="self-link"></a></h4>
+<h4 data-number="18.11.5.4" id="bikeshedding-quantityrep"><span class="header-section-number">18.11.5.4</span> Bikeshedding <code class="sourceCode cpp">quantity<span class="op">::</span>rep</code><a href="#bikeshedding-quantityrep" class="self-link"></a></h4>
 <p><span class="citation" data-cites="MP-UNITS">[<a href="https://mpusz.github.io/mp-units" role="doc-biblioref">mp-units</a>]</span> initially tried to be
 compatible with <code class="sourceCode cpp">std<span class="op">::</span>chrono<span class="op">::</span>duration</code>.
 This is why we chose <code class="sourceCode cpp">rep</code> as the name
@@ -9200,7 +9252,7 @@ numeric types maybe we should set a policy that those should expose
 <code class="sourceCode cpp">value_type</code> or
 <code class="sourceCode cpp">element_type</code>? Both seem to be valid
 choices here as well.</p>
-<h3 data-number="18.10.6" id="binary-operators"><span class="header-section-number">18.10.6</span> Binary operators<a href="#binary-operators" class="self-link"></a></h3>
+<h3 data-number="18.11.6" id="binary-operators"><span class="header-section-number">18.11.6</span> Binary operators<a href="#binary-operators" class="self-link"></a></h3>
 <p>Binary operators for quantities (and quantity points) should take
 both arguments as template parameters. Implementing them in terms of
 implicit convertibility leads to invalid resulting types. Let’s see the
@@ -9263,8 +9315,8 @@ assignment operators:</p>
 <p>In the code above, we don’t need to cast <code class="sourceCode cpp"><span class="dv">1</span><span class="bu">s</span></code>
 to <code class="sourceCode cpp">quantity</code>. We believe this is OK
 and makes the code simpler while not risking ambiguity.</p>
-<h2 data-number="18.11" id="quantity-points"><span class="header-section-number">18.11</span> Quantity Points<a href="#quantity-points" class="self-link"></a></h2>
-<h3 data-number="18.11.1" id="delta-and-absolute-creation-helpers"><span class="header-section-number">18.11.1</span>
+<h2 data-number="18.12" id="quantity-points"><span class="header-section-number">18.12</span> Quantity Points<a href="#quantity-points" class="self-link"></a></h2>
+<h3 data-number="18.12.1" id="delta-and-absolute-creation-helpers"><span class="header-section-number">18.12.1</span>
 <code class="sourceCode cpp">delta</code> and
 <code class="sourceCode cpp">absolute</code> creation helpers<a href="#delta-and-absolute-creation-helpers" class="self-link"></a></h3>
 <p>The features described in this chapter directly solve an issue raised
@@ -9383,7 +9435,7 @@ abstraction in this example) with:</p>
 </ul>
 <p>Thanks to the new design, we can immediately see what happens here
 and why the result might be incorrect in the second case.</p>
-<h3 data-number="18.11.2" id="default_point_originreference-quantity_from_zero-and-zeroth_point_originquantityspec"><span class="header-section-number">18.11.2</span> <code class="sourceCode cpp">default_point_origin<span class="op">&lt;</span>Reference<span class="op">&gt;</span></code>,
+<h3 data-number="18.12.2" id="default_point_originreference-quantity_from_zero-and-zeroth_point_originquantityspec"><span class="header-section-number">18.12.2</span> <code class="sourceCode cpp">default_point_origin<span class="op">&lt;</span>Reference<span class="op">&gt;</span></code>,
 <code class="sourceCode cpp">quantity_from_zero<span class="op">()</span></code>,
 and <code class="sourceCode cpp">zeroth_point_origin<span class="op">&lt;</span>QuantitySpec<span class="op">&gt;</span></code><a href="#default_point_originreference-quantity_from_zero-and-zeroth_point_originquantityspec" class="self-link"></a></h3>
 <p><code class="sourceCode cpp">default_point_origin<span class="op">&lt;</span>Reference<span class="op">&gt;</span></code>,
@@ -9433,7 +9485,7 @@ in the first print argument.</p>
 <p>In the proposed design, the above problems are eliminated with the
 <code class="sourceCode cpp">quantity_from_zero<span class="op">()</span></code>
 usage that always returns a proper value for a current unit.</p>
-<h2 data-number="18.12" id="interoperability-with-other-libraries"><span class="header-section-number">18.12</span> Interoperability with other
+<h2 data-number="18.13" id="interoperability-with-other-libraries"><span class="header-section-number">18.13</span> Interoperability with other
 libraries<a href="#interoperability-with-other-libraries" class="self-link"></a></h2>
 <p>It is easy to cooperate with similar entities of other libraries. No
 matter if we want to provide interoperability with a simple home-grown
@@ -9448,7 +9500,7 @@ external <code class="sourceCode cpp">quantity</code>-like type,</li>
 external <code class="sourceCode cpp">quantity_point</code>-like
 type.</li>
 </ul>
-<h3 data-number="18.12.1" id="specifying-a-conversion-kind"><span class="header-section-number">18.12.1</span> Specifying a conversion
+<h3 data-number="18.13.1" id="specifying-a-conversion-kind"><span class="header-section-number">18.13.1</span> Specifying a conversion
 kind<a href="#specifying-a-conversion-kind" class="self-link"></a></h3>
 <p>Before we delve into the template specialization details, let’s first
 decide if we want the conversions to happen implicitly or if explicit
@@ -9480,7 +9532,7 @@ conversion, the return type of the conversion function should be wrapped
 in <code class="sourceCode cpp">convert_explicitly<span class="op">&lt;</span>T<span class="op">&gt;</span></code>.
 Otherwise, <code class="sourceCode cpp">convert_implicitly<span class="op">&lt;</span>T<span class="op">&gt;</span></code>
 should be used.</p>
-<h3 data-number="18.12.2" id="quantities-conversions"><span class="header-section-number">18.12.2</span> Quantities conversions<a href="#quantities-conversions" class="self-link"></a></h3>
+<h3 data-number="18.13.2" id="quantities-conversions"><span class="header-section-number">18.13.2</span> Quantities conversions<a href="#quantities-conversions" class="self-link"></a></h3>
 <p>For example, let’s assume that some company has its own
 <code class="sourceCode cpp">Meter</code> strong-type wrapper:</p>
 <div class="sourceCode" id="cb307"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb307-1"><a href="#cb307-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Meter <span class="op">{</span></span>
@@ -9605,7 +9657,7 @@ Conversion of
 value-preserving.</p>
 <p><code class="sourceCode cpp"><span class="op">(</span><span class="dv">3</span><span class="op">)</span></code>
 Truncation of value while converting from millimeters to meters.</p>
-<h3 data-number="18.12.3" id="quantity-points-conversions"><span class="header-section-number">18.12.3</span> Quantity points
+<h3 data-number="18.13.3" id="quantity-points-conversions"><span class="header-section-number">18.13.3</span> Quantity points
 conversions<a href="#quantity-points-conversions" class="self-link"></a></h3>
 <p>To play with quantity point conversions, let’s assume that we have a
 <code class="sourceCode cpp">Timestamp</code> strong type in our
@@ -9672,7 +9724,7 @@ concept is satisfied:</p>
 <span id="cb316-15"><a href="#cb316-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">// explicit conversion</span></span>
 <span id="cb316-16"><a href="#cb316-16" aria-hidden="true" tabindex="-1"></a>  print<span class="op">(</span>Timestamp<span class="op">(</span>qp<span class="op">))</span>;</span>
 <span id="cb316-17"><a href="#cb316-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 data-number="18.12.4" id="interoperability-with-the-stdchrono-abstractions"><span class="header-section-number">18.12.4</span> Interoperability with the
+<h3 data-number="18.13.4" id="interoperability-with-the-stdchrono-abstractions"><span class="header-section-number">18.13.4</span> Interoperability with the
 <code class="sourceCode cpp">std<span class="op">::</span>chrono</code>
 abstractions<a href="#interoperability-with-the-stdchrono-abstractions" class="self-link"></a></h3>
 <p>In the C++ standard library, we have two types that handle quantities
