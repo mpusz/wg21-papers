@@ -41,6 +41,7 @@ toc-depth: 4
   chapter added.
 - [Multiply syntax commutativity] chapter added.
 - [Quantity specifications] and [Bikeshedding `quantity_spec`] chapters added.
+- [Bikeshedding `reference`] chapter added.
 - `𝜋` added as an alias for `pi`
 
 ## Changes since [@P3045R1]
@@ -6943,6 +6944,20 @@ construct a quantity:
 ```cpp
 QuantityOf<isq::speed> auto s = 60 * speed;
 ```
+
+### Bikeshedding `reference`
+
+The term `reference` is highly overloaded in the C++ domain. This is why we should probably rename the
+type that was successfully used in [@MP-UNITS]. Here are a few proposals:
+
+- `quantity_reference`
+- `quantity_ref`
+- `q_reference`
+- `q_ref`
+
+Please note that the longer the identifier we choose, the longer and harder it will be to grasp
+compiler error messages. A user never types this type identifier in the code (although a user
+might type an associated concept `Reference` or `ReferenceOf`).
 
 
 ## Quantities
