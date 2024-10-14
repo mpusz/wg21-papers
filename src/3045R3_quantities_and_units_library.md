@@ -41,6 +41,7 @@ toc-depth: 4
   chapter added.
 - [Multiply syntax commutativity] chapter added.
 - [Quantity specifications] and [Bikeshedding `quantity_spec`] chapters added.
+- `𝜋` added as an alias for `pi`
 
 ## Changes since [@P3045R1]
 
@@ -3338,10 +3339,11 @@ is defined using a floating-point magnitude having a factor of the number π (Pi
 
 ```cpp
 inline constexpr struct pi final : mag_constant<symbol_text{u8"𝜋", "pi"}, std::numbers::pi_v<long double>> {} pi;
+inline constexpr auto 𝜋 = pi;
 ```
 
 ```cpp
-inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag<pi> / mag<180> * si::radian> {} degree;
+inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag<𝜋> / mag<180> * si::radian> {} degree;
 ```
 
 ### Common units
@@ -6782,7 +6784,7 @@ inline constexpr struct speed_of_light_in_vacuum final :
 }  // namespace si2019
 
 inline constexpr struct magnetic_constant final :
-  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag<pi> * mag_power<10, -7> * henry / metre> {} magnetic_constant;
+  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag<𝜋> * mag_power<10, -7> * henry / metre> {} magnetic_constant;
 
 }  // namespace si
 ```
