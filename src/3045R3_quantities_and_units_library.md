@@ -40,6 +40,7 @@ toc-depth: 4
 - [`default_point_origin<Reference>`, `quantity_from_zero()`, and `zeroth_point_origin<QuantitySpec>`]
   chapter added.
 - [Multiply syntax commutativity] chapter added.
+- [Quantity specifications] and [Bikeshedding `quantity_spec`] chapters added.
 
 ## Changes since [@P3045R1]
 
@@ -6873,6 +6874,25 @@ p = 2.13771e-18 kg m/s
 m = 5.34799e-27 kg
 E = 8.01088e-10 J
 ```
+
+
+## Quantity specifications
+
+Quantity specification provides all the data about the quantity type (i.e., kind, character,
+recipe, relation to other quantities in the hierarchy). It does not specify a unit, though.
+
+### Bikeshedding `quantity_spec`
+
+The "quantity specification" term is not provided in ISO or BIPM metrology dictonaries and was
+invented for the need of this library. This means that we should probably consider some other
+names for this abstraction:
+
+- `quantity_specification`,
+- `q_spec`,
+- `q_specification`,
+- `quantity_definition`,
+- `quantity_def`.
+
 
 
 ## Quantity references
