@@ -39,6 +39,7 @@ toc-depth: 4
 - [Interoperability with the `std::chrono` abstractions] chapter extended.
 - [`default_point_origin<Reference>`, `quantity_from_zero()`, and `zeroth_point_origin<QuantitySpec>`]
   chapter added.
+- [Multiply syntax commutativity] chapter added.
 
 ## Changes since [@P3045R1]
 
@@ -6939,6 +6940,43 @@ It stores only one data member of `Rep` type. Unfortunately, this data member ha
 exposed to satisfy the C++ language requirements for
 [structural types](https://eel.is/c++draft/temp.param#def:type,structural). Hopefully, the language
 rules for structural types will improve with time before this library gets standardized.
+
+
+### Multiply syntax commutativity
+
+As of today, the multiply syntax that creates quantities is not commutative:
+
+```cpp
+quantity q1 = 1 * m;  // OK
+quantity q2 = m * 1;  // Compile-time error
+```
+
+We decided to go this way to increase the readability of the code and limit possible confusion
+with this syntax. After a while, we extended it to support also the following:
+
+```cpp
+quantity q3 = 1 * m / s;    // OK
+quantity q4 = 1 * m * m;    // OK
+quantity q5 = 1 / s * m;    // OK
+quantity q6 = s / 2;        // Compile-time error
+quantity q7 = m * (1 / s);  // Compile-time error
+quantity q8 = m * (1 * m);  // Compile-time error
+```
+
+However, [@MP-UNITS] users [requested the following use case](https://github.com/mpusz/mp-units/issues/621):
+
+```cpp
+if(num < Unit / 1'000'000'000'000) {
+  quantity<si::femto<Unit>, double> n{num};
+  out << n;
+} else if(num < Unit / 1'000'000'000) {
+  quantity<si::pico<Unit>, double> n{num};
+  out << n;
+} else // ...
+```
+
+Today, this does not compile. Should we extend the multiply syntax to support such use cases and
+with this have entire commutative property?
 
 
 ### Why don't we use UDLs to create quantities?
