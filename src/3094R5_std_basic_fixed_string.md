@@ -13,6 +13,10 @@ author:
 
 # Revision history
 
+## Changes since [@P3094R4]
+
+- Footnote modified to express immutability.
+
 ## Changes since [@P3094R3]
 
 - `std::` prefix dropped in [Wording].
@@ -605,7 +609,7 @@ basic_fixed_string(from_range_t, array<CharT, N>) -> basic_fixed_string<CharT, N
 }
 ```
 
-_Footnote [^1]_: Because `basic_fixed_string` models a sequence, `iterator` and `const_iterator`
+_Footnote [^1]_: Because `basic_fixed_string` is immutable, `iterator` and `const_iterator`
 are the same type.
 
 
