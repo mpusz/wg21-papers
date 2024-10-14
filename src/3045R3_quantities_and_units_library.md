@@ -7907,7 +7907,7 @@ instance of either `quantity` or `quantity_point`:
 |   Yes   |      `T`       | Same | `x.force_in<T>()`  | `value_cast<T>(x)`                             |
 |   Yes   |      `T`       | `u`  | `x.force_in<T>(u)` | `value_cast<u, T>(x)` or `value_cast<T, u>(x)` |
 
-#### Bikesheding `force_in(U)`
+#### Bikeshedding `force_in(U)`
 
 `force_in` is a bit ambiguous name for the conversion function in a quantities and units library.
 Writing `x.force_in(s)` may be misleading for a quantity of _time_ rather than _force_. However,
