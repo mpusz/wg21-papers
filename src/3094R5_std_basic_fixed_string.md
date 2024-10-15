@@ -364,7 +364,7 @@ non-member functions. Should we consider doing the same for consistency?
 This particular interface is implemented, tested, and successfully used in the
 [mp-units](https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h)
 project. A complete implementation with tests can also be checked in the
-[Compiler Explorer](https://godbolt.org/z/94PsKhxEP).
+[Compiler Explorer](https://godbolt.org/z/MvhY996W6).
 
 
 # Wording
