@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-10-14" />
+  <meta name="dcterms.date" content="2024-10-15" />
   <title>`std::basic_fixed_string`</title>
   <style>
       code{white-space: pre-wrap;}
@@ -427,7 +427,7 @@ code.sourceCode > span { display: inline; }
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2024-10-14</td>
+    <td>2024-10-15</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -975,9 +975,24 @@ future versions of the standard.</p>
 <h2 data-number="6.10" id="char_traits"><span class="header-section-number">6.10</span>
 <code class="sourceCode cpp">char_traits</code><a href="#char_traits" class="self-link"></a></h2>
 <p>Support for <code class="sourceCode cpp">char_traits</code> was added
-on LEWGI request in <span class="citation" data-cites="P3094R1">[<a href="https://wg21.link/p3094r1" role="doc-biblioref">P3094R1</a>]</span>. However, this was considered a
-bad decision by SG16. During the meeting on October 9, 2024 the
-following poll was taken:</p>
+upon the LEWGI request in <span class="citation" data-cites="P3094R1">[<a href="https://wg21.link/p3094r1" role="doc-biblioref">P3094R1</a>]</span>. However, this was considered a
+bad decision by SG16.</p>
+<p><code class="sourceCode cpp">char_traits</code> promises
+configurability for operations where no user-level configuration makes
+sense.</p>
+<p>The <code class="sourceCode cpp">charT</code> template parameter
+needs to be a char-like type (<span>23.1
+<a href="https://wg21.link/strings.general">[strings.general]</a></span>),
+which means it’s trivial, and the implementation thus doesn’t need
+<code class="sourceCode cpp">char_traits</code> to enable
+<code class="sourceCode cpp">memcpy</code>-style optimizations.</p>
+<p>For the comparisons, having
+<code class="sourceCode cpp">char_traits</code> that implement
+case-insensitive comparisons is oversimplifying because
+case-insensitivity is locale-dependent. Also, encoding such comparison
+semantics into a data type seems like a bad design.</p>
+<p>During the SG16 meeting on October 9, 2024, the following poll was
+taken:</p>
 <blockquote>
 <p>POLL: P3094R4: Amend the proposal to remove the
 <code class="sourceCode cpp">traits</code> template parameter and

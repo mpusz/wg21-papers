@@ -321,8 +321,21 @@ will be possible to implement as a private data member in the future versions of
 
 ## `char_traits`
 
-Support for `char_traits` was added on LEWGI request in [@P3094R1]. However, this was considered
-a bad decision by SG16. During the meeting on October 9, 2024 the following poll was taken:
+Support for `char_traits` was added upon the LEWGI request in [@P3094R1]. However, this was
+considered a bad decision by SG16.
+
+`char_traits` promises configurability for operations where no user-level configuration makes
+sense.
+
+The `charT` template parameter needs to be a char-like type ([strings.general]{.sref}), which
+means it's trivial, and the implementation thus doesn't need `char_traits` to enable
+`memcpy`-style optimizations.
+
+For the comparisons, having `char_traits` that implement case-insensitive comparisons is
+oversimplifying because case-insensitivity is locale-dependent. Also, encoding such comparison
+semantics into a data type seems like a bad design.
+
+During the SG16 meeting on October 9, 2024, the following poll was taken:
 
 > POLL: P3094R4: Amend the proposal to remove the `traits` template parameter and dependence
 > on `std::char_traits`.
