@@ -43,6 +43,7 @@ toc-depth: 4
 - [Quantity specifications] and [Bikeshedding `quantity_spec`] chapters added.
 - [Bikeshedding `reference`] chapter added.
 - `𝜋` added as an alias for `pi`
+- [Library namespace] chapter added.
 
 ## Changes since [@P3045R1]
 
@@ -5737,19 +5738,38 @@ adding/subtracting the quantity with a point origin.
 
 _Note: More information on this subject can be found in [The affine space] chapter._
 
+## Library namespace
+
+The number of types we propose with this library is not that large. They provide long-awaited
+strong types support not only to model physical quantities and units but also to improve safety
+of everything that can be counted or resembles mathematical numbers in some ways (e.g., longitude
+and latitude, pixel coordinates, prices, etc.). This library also provides the affine space
+abstraction that has a broad usage by itself.
+
+This is why we propose to put all the framework entities directly in the namespace `std`. This
+also makes error messages terser, thus easier to read and understand, which is the primary goal of
+this library.
+
+Of course, some entities would have to be renamed (e.g., `reference`) not to be ambiguous with
+other domains and already existing identifiers.
+
+Besides the framework entities, we also have systems definitions. Provided quantity types and units
+would land in their own subnamespace in the namespace `std`.
+
+For example, a user could write the following code:
+
+```cpp
+using namespace std::si::unit_symbols;
+
+std::quantity<std::si::metre> q = 42 * m;
+```
+
 
 ## Concepts
 
 This chapter enumerates all the user-facing concepts in the library.
 
-<!-- TODO Remove this note in the future -->
-
-_Note 1: We understand that at this stage of the paper, without a detailed synopsis, it might be too
-early to review exact definitions of concepts. We list them here so the reader can familiarize
-with the count and granularity of them, so to have a better idea about the scope and look and feel
-of the library._
-
-_Note 2: Initially, C++20 was meant to use `CamelCase` for all the concept identifiers.
+_Note: Initially, C++20 was meant to use `CamelCase` for all the concept identifiers.
 Frustratingly, `CamelCase` concepts got dropped from the C++ standard at the last moment before
 releasing C++20. Now, we are facing the predictable consequences of running out of names.
 As long as some concepts in the library could be easily named with a `standard_case` there are
