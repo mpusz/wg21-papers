@@ -55,6 +55,7 @@ to this activity.
 - [P3094R2: `std::basic_fixed_string`](papers/3094R2_std_basic_fixed_string.html)
 - [P3094R3: `std::basic_fixed_string`](papers/3094R3_std_basic_fixed_string.html)
 - [P3094R4: `std::basic_fixed_string`](papers/3094R4_std_basic_fixed_string.html)
+- [P3094R5: `std::basic_fixed_string`](papers/3094R5_std_basic_fixed_string.html)
 
 ### Under Development
 
