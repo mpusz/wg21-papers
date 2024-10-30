@@ -35,6 +35,7 @@ toc-depth: 4
   refactored to use `explicit_import` and `explicit_export` flags instead of wrapping tag types.
 - [Unicode characters and their portable replacements] chapter added.
 - [Framework-only class templates] chapter added.
+- [Special values of a quantity] chapter added.
 
 ## Changes since [@P3045R2]
 
@@ -7270,6 +7271,36 @@ It turns out that many reasons make UDLs a poor choice for a physical units libr
     ```
 
 The multiply syntax that we chose for this library does not have any of those issues.
+
+
+### Special values of a quantity
+
+`quantity` class template, similarly to `std::chrono::duration`, exposes some special values as
+`static` member functions:
+
+- `min()`,
+- `max()`,
+- `zero()`,
+- `one()`.
+
+Also, similarly to `std::chrono::duration` those functions are implemented in terms of a type
+trait:
+
+```cpp
+template<typename Rep>
+struct quantity_values : std::chrono::duration_values<Rep> {
+  static constexpr Rep one() noexcept
+    requires std::constructible_from<Rep, int>
+ {
+    return Rep(1);
+ }
+};
+```
+
+This is good for consistency but does not comply with the approach proposed in [@P1841R3].
+Should we be consistent with `std::chrono::duration` here?
+
+Please also note that in C++26, `std::chrono::duration` is not a part of the freestanding library.
 
 
 ### Quantity arithmetics
