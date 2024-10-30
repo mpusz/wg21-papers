@@ -34,6 +34,7 @@ toc-depth: 4
 - `quantity_like_traits`, `quantity_point_like_traits`, `QuantityLike`, and `QuantityPointLike`
   refactored to use `explicit_import` and `explicit_export` flags instead of wrapping tag types.
 - [Unicode characters and their portable replacements] chapter added.
+- [Framework-only class templates] chapter added.
 
 ## Changes since [@P3045R2]
 
@@ -5715,6 +5716,97 @@ inline constexpr struct newton final : named_unit<"N", kilogram * metre / square
 inline constexpr struct pascal final : named_unit<"Pa", newton / square(metre)> {} pascal;
 inline constexpr struct joule final : named_unit<"J", newton * metre> {} joule;
 ```
+
+### Framework-only class templates
+
+Several proposed class templates like:
+
+- `derived_unit`, `derived_dimension`, `derived_quantity_spec`,
+- `per`, `power`,
+- `kilo_` and other prefixes,
+- `magnitude`,
+
+should not be explicitly instantiated by the user.
+
+Those types are the results of running operators on objects and have strict requirements on how
+the template arguments are provided. The library instantiates such class templates in a particular
+way (i.e., the arguments must be provided in the correct order). This logic might be partially
+implementation-defined (e.g., the order of elements in a numerator or denominator is sorted by
+type-id (whatever it means)). The important part here is to keep the ordering rules consistent
+within a specific implementation. Otherwise, the library cannot do its job properly
+(e.g., units simplification will not work).
+
+Here are some examples:
+
+```cpp
+constexpr auto u1 = kg * m / s2;
+constexpr auto u2 = kg * (m / s2);
+constexpr auto u3 = kg / s2 * m;
+```
+
+All of the above yield the same instantiation of the
+`derived_unit<si::kilo_<si::gram>, si::metre, per<power<si::second, 2>>>`.
+
+The user never needs to instantiate the class templates explicitly. Allowing this can cause
+problems, as the user can make ordering errors. Of course, we can constrain the class
+template to require arguments in a particular order, but it will only slow down the compile
+times for every instantiation by the library's engine.
+
+Please note that a user in this library always works with values of tag types (e.g., unit),
+but the `derived_unit` class template takes those tag types as type parameters. This yields
+more readable types and prevents users from instantiating the template by themselves.
+
+Here is how units are defined:
+
+```cpp
+inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct gram final : named_unit<"g", kind_of<isq::mass>> {} gram;
+
+inline constexpr auto m = metre;
+inline constexpr auto s = second;
+inline constexpr auto g = gram;
+inline constexpr auto s2 = square(second);
+```
+
+Because of the above, to explicitly instantiate a class template, a user would need to type
+the following:
+
+```cpp
+derived_unit<si::kilo_<struct si::gram>, per<power<struct si::second, 2>>> u4;
+```
+
+The usage of the explicit `struct` keyword might be surprising to many users.
+
+Also, when dealing with quantities, a user does need to spell a unit's type:
+
+```cpp
+void foo(quantity<si::kilo<si::gram> * si::metre / square(si::second)>) {}
+
+foo(42. * kg * m / s2);
+```
+
+The above instantiates a `quantity<derived_unit<si::kilo_<si::gram>, si::metre, per<power<si::second, 2>>>{}, double>`
+behind the scenes.
+
+Please note that in the above examples, all the class templates `derived_unit`, `per`, `power`,
+and `kilo_` have the same property. They are well-defined identifiers that users expect to see in
+types presented in the debugger or compilation errors. This is why they should not be
+exposition-only and be regular members of the `std` namespace. Every implementation has to spell
+and use them in the same way.
+
+[@MP-UNITS] library decided to define those class templates in the `mp_units` namespace, but not
+export them from the `mp_units.core` module. With this, users will have no way to
+instantiate those templates by themselves, which is the exact intent of this library. Initially,
+we wanted to propose something similar for the Standard Library, but
+[the LWG did not like the idea](https://lists.isocpp.org/lib/2024/10/29544.php).
+
+An alternative might be to state that it is IFNDR or UB to instantiate those by the user. It does
+not technically prevent users from doing so, but if they do it, they are on their own.
+
+Last but not least, we can allow such instantiations and add restrictive constraints to verify
+template arguments.
+
 
 ## Framework entities
 
