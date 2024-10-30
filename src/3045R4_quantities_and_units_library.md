@@ -3896,7 +3896,7 @@ The above prints:
 kg⋅m⋅s⁻²
 ```
 
-## Symbols of scaled units
+### Symbols of scaled units
 
 In most cases scaled units are hidden behind named units. However, there are a few real-life where
 a user directly faces a scaled unit. For example:
@@ -3919,7 +3919,7 @@ prints:
 6.7 L/[100 km]
 ```
 
-## Symbols of common units
+### Symbols of common units
 
 Some common units expressed with a specialization of the `common_unit` class template need special
 printing rules for their symbols. As they represent a minimum set of equivalent common units
