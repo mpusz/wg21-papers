@@ -33,6 +33,7 @@ toc-depth: 4
 - `𝜋` changed to `π` after SG16 feedback.
 - `quantity_like_traits`, `quantity_point_like_traits`, `QuantityLike`, and `QuantityPointLike`
   refactored to use `explicit_import` and `explicit_export` flags instead of wrapping tag types.
+- [Unicode characters and their portable replacements] chapter added.
 
 ## Changes since [@P3045R2]
 
@@ -3943,6 +3944,67 @@ prints:
 
 Thanks to the above, it might be easier for the user to reason about the magnitude of the resulting
 unit and its impact on the value stored in the quantity.
+
+### Unicode characters and their portable replacements
+
+Library's framework requires some Unicode characters for text output. The below table lists all
+of them together with the recommended portable replacements:
+
+| Name                  | Symbol |  C++ code  | Portable alternative |
+|-----------------------|:------:|:----------:|:--------------------:|
+| SUPERSCRIPT ZERO      |   ⁰    | u8"\u2070" |         "0"          |
+| SUPERSCRIPT ONE       |   ¹    | u8"\u00b9" |         "1"          |
+| SUPERSCRIPT TWO       |   ²    | u8"\u00b2" |         "2"          |
+| SUPERSCRIPT THREE     |   ³    | u8"\u00b3" |         "3"          |
+| SUPERSCRIPT FOUR      |   ⁴    | u8"\u2074" |         "4"          |
+| SUPERSCRIPT FIVE      |   ⁵    | u8"\u2075" |         "5"          |
+| SUPERSCRIPT SIX       |   ⁶    | u8"\u2076" |         "6"          |
+| SUPERSCRIPT SEVEN     |   ⁷    | u8"\u2077" |         "7"          |
+| SUPERSCRIPT EIGHT     |   ⁸    | u8"\u2078" |         "8"          |
+| SUPERSCRIPT NINE      |   ⁹    | u8"\u2079" |         "9"          |
+| SUPERSCRIPT MINUS     |   ⁻    | u8"\u207b" |         "-"          |
+| MULTIPLICATION SIGN   |   ×    | u8"\u00d7" |         "x"          |
+| GREEK SMALL LETTER PI |   π    | u8"\u03c0" |         "pi"         |
+| DOT OPERATOR          |   ⋅    | u8"\u22C5" |      `<none>`*       |
+
+(*) Users should not select `unit_symbol_separator::half_high_dot` and `text_encoding::portable`
+at the same time. This symbol is valid only for UTF-8 encoding. Otherwise, we propose to throw
+an exception during the unit symbol string processing.
+
+Here is an example of how the above are being used in a code:
+
+```cpp
+static_assert(unit_symbol(kilogram * metre / square(second)) == "kg m/s²");
+static_assert(unit_symbol<usf{.separator = half_high_dot}>(kilogram * metre / square(second)) == "kg⋅m/s²");
+static_assert(unit_symbol<usf{.encoding = portable}>(kilogram * metre / square(second)) == "kg m/s^2");
+static_assert(unit_symbol<usf{.solidus = never}>(kilogram * metre / square(second)) == "kg m s⁻²");
+static_assert(unit_symbol<usf{.encoding = portable, .solidus = never}>(kilogram * metre / square(second)) == "kg m s^-2");
+
+static_assert(unit_symbol(mag_ratio<1, 18000> * metre / second) == "[1/18 × 10⁻³ m]/s");
+static_assert(unit_symbol<usf{.encoding = portable}>(mag_ratio<1, 18000> * metre / second) == "[1/18 x 10^-3 m]/s");
+
+static_assert(unit_symbol(mag<1> / (mag<2> * mag<π>)*metre) == "[2⁻¹ π⁻¹ m]");
+static_assert(unit_symbol<usf{.solidus = always}>(mag<1> / (mag<2> * mag<π>)*metre) == "[1/(2 π) m]");
+static_assert(unit_symbol<usf{.encoding = portable, .solidus = always}>(mag<1> / (mag<2> * mag<π>)*metre) == "[1/(2 pi) m]");
+```
+
+Additionally, if we decide to provide `per_mille` unit together with the framework (next to `one`,
+`percent`, and `parts_per_million`) we will need a symbol for it as well:
+
+| Name           | Symbol |  C++ code  | Portable alternative |
+|----------------|:------:|:----------:|:--------------------:|
+| PER MILLE SIGN |   ‰    | u8"\u2030" |         ???          |
+
+There is no good choice for a portable replacement here. We may try to be brief and use "%o"
+([Wikipedia uses this symbol as a redirect for per mille](https://en.wikipedia.org/wiki/Per_mille))
+or provide a longer textual string. The problem is that there is more than one option to chose from
+here ([names mentioned in Wikipedia](https://en.wikipedia.org/wiki/Per_mille)):
+
+- "per mille" (even though it is consistent with the official name it is not a good option here
+  as it looks like multiplication of two symbols),
+- "per mil" and "per mill" (same as above),
+- "permil", "permill", and "permille" (how to spell it correctly?).
+
 
 ## `space_before_unit_symbol` customization point
 
