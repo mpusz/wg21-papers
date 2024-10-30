@@ -29,6 +29,10 @@ toc-depth: 4
 
 ## Changes since [@P3045R3]
 
+- [Quantity arithmetics] chapter updated with improved quantity compound assignment.
+- `𝜋` changed to `π` after SG16 feedback.
+- `quantity_like_traits`, `quantity_point_like_traits`, `QuantityLike`, and `QuantityPointLike`
+  refactored to use `explicit_import` and `explicit_export` flags instead of wrapping tag types.
 
 ## Changes since [@P3045R2]
 
@@ -3343,12 +3347,13 @@ For some units, a magnitude might also be irrational. The best example here is a
 is defined using a floating-point magnitude having a factor of the number π (Pi):
 
 ```cpp
-inline constexpr struct pi final : mag_constant<symbol_text{u8"𝜋", "pi"}, std::numbers::pi_v<long double>> {} pi;
-inline constexpr auto 𝜋 = pi;
+inline constexpr struct pi final :
+  mag_constant<symbol_text{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, std::numbers::pi_v<long double>> {} pi;
+inline constexpr auto π /* U+03C0 GREEK SMALL LETTER PI */ = pi;
 ```
 
 ```cpp
-inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag<𝜋> / mag<180> * si::radian> {} degree;
+inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag<π> / mag<180> * si::radian> {} degree;
 ```
 
 ### Common units
@@ -3933,7 +3938,7 @@ prints:
 40771 EQUIV{[1/25146 mi], [1/15625 km]}
 108167 EQUIV{[1/50292 mi], [1/57875 nmi]}
 23 EQUIV{[1/5 km/h], [1/18 m/s]}
-183.142 EQUIV{[1/𝜋°], [1/180 rad]}
+183.142 EQUIV{[1/π°], [1/180 rad]}
 ```
 
 Thanks to the above, it might be easier for the user to reason about the magnitude of the resulting
@@ -5913,7 +5918,6 @@ satisfies [`QuantitySpecOf<V>`](#QuantitySpecOf-concept) concept.          |
 
 `Representation` concept constraints a type of a number that stores the value of a quantity.
 
-
 #### `RepresentationOf<T, Ch>` concept { #RepresentationOf-concept }
 
 `RepresentationOf` concept is satisfied by all [`Representation`](#Representation-concept) types
@@ -5994,32 +5998,37 @@ value `V`:
 `QuantityLike` concept provides interoperability with other libraries and is satisfied by a type `T`
 for which an instantiation of `quantity_like_traits` type trait yields a valid type that provides:
 
-- Static data member `reference` that matches the [`Reference`](#Reference-concept) concept,
+- `reference` static data member that matches the [`Reference`](#Reference-concept) concept,
 - `rep` type that matches [`RepresentationOf`](#RepresentationOf-concept) concept with the
   character provided in `reference`.
-- `to_numerical_value(T)` static member function returning a raw value of the quantity packed in
-  either `convert_explicitly` or `convert_implicitly` wrapper that enables implicit conversion in
-  the latter case.
-- `from_numerical_value(rep)` static member function returning `T` packed in either `convert_explicitly`
-  or `convert_implicitly` wrapper that enables implicit conversion in the latter case.
-
+- `explicit_import` static data member convertible to `bool` that specifies that the conversion
+  from `T` to a `quantity` type should happen explicitly (if `true`),
+- `explicit_export` static data member convertible to `bool` that specifies that the conversion
+  from a `quantity` type to `T` should happen explicitly (if `true`),
+- `to_numerical_value(T)` static member function returning a raw value of the quantity,
+- `from_numerical_value(rep)` static member function returning `T`.
 
 For example, this is how support for `std::chrono::seconds` can be provided:
 
 ```cpp
 template<>
 struct quantity_like_traits<std::chrono::seconds> {
-  static constexpr auto reference = si::second;
-  using rep = std::chrono::seconds::rep;
+  static constexpr auto reference = detail::time_unit_from_chrono_period<Period>();
+  static constexpr bool explicit_import = false;
+  static constexpr bool explicit_export = false;
+  using rep = Rep;
+  using T = std::chrono::duration<Rep, Period>;
 
-  [[nodiscard]] static constexpr convert_implicitly<rep> to_numerical_value(const std::chrono::seconds& d)
+  [[nodiscard]] static constexpr rep to_numerical_value(const T& q) noexcept(
+    std::is_nothrow_copy_constructible_v<rep>)
   {
-    return d.count();
+    return q.count();
   }
 
-  [[nodiscard]] static constexpr convert_implicitly<std::chrono::seconds> from_numerical_value(const rep& v)
+  [[nodiscard]] static constexpr T from_numerical_value(const rep& v) noexcept(
+    std::is_nothrow_copy_constructible_v<rep>)
   {
-    return std::chrono::seconds(v);
+    return T(v);
   }
 };
 
@@ -6033,34 +6042,40 @@ std::chrono::seconds dur = 42 * s;
 a type `T` for which an instantiation of `quantity_point_like_traits` type trait yields a valid
 type that provides:
 
-- Static data member `reference` that matches the [`Reference`](#Reference-concept) concept.
-- Static data member `point_origin` that matches the [`PointOrigin`](#PointOrigin-concept) concept.
+- `reference` static data member that matches the [`Reference`](#Reference-concept) concept.
+- `point_origin` static data member that matches the [`PointOrigin`](#PointOrigin-concept) concept.
 - `rep` type that matches [`RepresentationOf`](#RepresentationOf-concept) concept with the character
   provided in `reference`.
+- `explicit_import` static data member convertible to `bool` that specifies that the conversion
+  from `T` to a `quantity_point` type should happen explicitly (if `true`),
+- `explicit_export` static data member convertible to `bool` that specifies that the conversion
+  from a `quantity_point` type to `T` should happen explicitly (if `true`),
 - `to_numerical_value(T)` static member function returning a raw value of the quantity being the offset
-  of the point from the origin packed in either `convert_explicitly` or `convert_implicitly` wrapper that
-  enables implicit conversion in the latter case.
-- `from_numerical_value(rep)` static member function returning `T` packed in either `convert_explicitly`
-  or `convert_implicitly` wrapper that enables implicit conversion in the latter case.
-For eample, this is how support for a `std::chrono::time_point` of `std::chrono::seconds` can be
+  of the point from the origin,
+- `from_numerical_value(rep)` static member function returning `T`.
+
+For example, this is how support for a `std::chrono::time_point` of `std::chrono::seconds` can be
 provided:
 
 ```cpp
 template<typename C>
 struct quantity_point_like_traits<std::chrono::time_point<C, std::chrono::seconds>> {
-  using T = std::chrono::time_point<C, std::chrono::seconds>;
-  static constexpr auto reference = si::second;
-  static constexpr struct point_origin_ final : absolute_point_origin<isq::time> {} point_origin{};
-  using rep = std::chrono::seconds::rep;
+  static constexpr auto reference = detail::time_unit_from_chrono_period<Period>();
+  static constexpr auto point_origin = chrono_point_origin<C>;
+  static constexpr bool explicit_import = false;
+  static constexpr bool explicit_export = false;
+  using rep = Rep;
+  using T = std::chrono::time_point<C, std::chrono::duration<Rep, Period>>;
 
-  [[nodiscard]] static constexpr convert_implicitly<rep> to_numerical_value(const T& tp)
+  [[nodiscard]] static constexpr rep to_numerical_value(const T& tp) noexcept(std::is_nothrow_copy_constructible_v<rep>)
   {
     return tp.time_since_epoch().count();
   }
 
-  [[nodiscard]] static constexpr convert_implicitly<T> from_numerical_value(const rep& v)
+  [[nodiscard]] static constexpr T from_numerical_value(const rep& v) noexcept(
+    std::is_nothrow_copy_constructible_v<rep>)
   {
-    return T(std::chrono::seconds(v));
+    return T(std::chrono::duration<Rep, Period>(v));
   }
 };
 
@@ -6808,7 +6823,7 @@ inline constexpr struct speed_of_light_in_vacuum final :
 }  // namespace si2019
 
 inline constexpr struct magnetic_constant final :
-  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag<𝜋> * mag_power<10, -7> * henry / metre> {} magnetic_constant;
+  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag<π> * mag_power<10, -7> * henry / metre> {} magnetic_constant;
 
 }  // namespace si
 ```
@@ -7188,24 +7203,24 @@ static_assert(isq::height(2 * m) - isq::distance(0.5 * m) == 1.5 * m);
 static_assert(isq::radius(1 * m) - 0.5 * m == isq::radius(0.5 * m));
 ```
 
-Please note that for the compound assignment operators, both arguments have to either be of
-the same type or the RHS has to be implicitly convertible to the LHS, as the type of
-LHS is always the result of such an operation:
+Please note that for the compound assignment operators, we always need to end up with the
+left-hand-side argument type:
 
 ```cpp
 static_assert((1 * m += 1 * km) == 1001 * m);
+static_assert((isq::length(1 * m) += isq::height(1 * m)) == isq::length(1 * m));
 static_assert((isq::height(1.5 * m) -= 1 * m) == isq::height(0.5 * m));
 ```
 
 If we break those rules, the code will not compile:
 
 ```cpp
-static_assert((1 * m -= 0.5 * m) == 0.5 * m);                       // Compile-time error (1)
-static_assert((1 * km += 1 * m) == 1001 * m);                       // Compile-time error (2)
-static_assert((isq::height(1 * m) += isq::length(1 * m)) == 2 * m); // Compile-time error (3)
+quantity q1 = 1 * m -= 0.5 * m;                         // Compile-time error (1)
+quantity q2 = 1 * km += 1 * m;                          // Compile-time error (2)
+quantity q3 = isq::height(1 * m) += isq::length(1 * m); // Compile-time error (3)
 ```
 
-`(1)` Floating-point to integral representation type is considered narrowing.
+`(1)` Convertions of the floating-point to integral representation type is considered narrowing.
 
 `(2)` Conversion of quantity with integral representation type from a unit of a higher resolution to
 the one with a lower resolution is considered narrowing.
@@ -7239,13 +7254,13 @@ its representation type may change. For example:
 static_assert(isq::height(3 * m) * 0.5 == isq::height(1.5 * m));
 ```
 
-Unless we use a compound assignment operator, in which case truncating operations are again not allowed:
+Unless we use a compound assignment operator, in which case we always have to result with
+the type of the left-hand-side argument. This, together with the fact that this library
+tries to prevent truncation of a quantity value means, that the following does not compile:
 
 ```cpp
-static_assert((isq::height(3 * m) *= 0.5) == isq::height(1.5 * m)); // Compile-time error (1)
+quantity q = isq::height(3 * m) *= 0.5; // Compile-time error
 ```
-
-`(1)` Floating-point to integral representation type is considered narrowing.
 
 However, suppose we multiply or divide quantities of the same or different types, or we divide a raw
 number by a quantity. In that case, we most probably will end up in a quantity of yet another type:
@@ -8026,15 +8041,6 @@ static_assert(1 * s + quantity{1s} == 2 * s); // OK
 This prevents ambiguity with `std::chrono::duration` operators and works the same for any
 user-defined `QuantityLike` type or any other type that is convertible to a `quantity`.
 
-Please note that the above rules are not true for the compound assignment operators:
-
-```cpp
-static_assert((1 * s += 1s) == 2 * s);
-```
-
-In the code above, we don't need to cast `1s` to `quantity`. We believe this is OK and makes the code
-simpler while not risking ambiguity.
-
 
 ## Quantity Points
 
@@ -8218,9 +8224,15 @@ Typically, in the C++ language, the implicit conversions are allowed in cases wh
 In all other scenarios, we should probably enforce explicit conversions.
 
 The kinds of inter-library conversions can be easily configured in partial specializations
-of conversion traits. To require an explicit conversion, the return type of the conversion
-function should be wrapped in `convert_explicitly<T>`. Otherwise, `convert_implicitly<T>`
-should be used.
+of conversion traits in the **mp-units** library. Conversion traits should provide
+a static data member convertible to `bool`. If the value is `true`, then the conversion is
+`explicit`. Otherwise, if the value is `false`, implicit conversions will be allowed.
+The names of the flags are as follows:
+
+- `explicit_import` to describe conversion from the external entity to the one in this
+  library (import case),
+- `explicit_export` to describe conversion from the entity in this library to the external one
+  (export case).
 
 ### Quantities conversions
 
@@ -8242,22 +8254,26 @@ prefer to see the opposite conversions stated explicitly in our code.
 To enable such interoperability, we must define a partial specialization of
 the `quantity_like_traits<T>` type trait. Such specialization should provide:
 
-- static data member `reference` that provides the quantity reference (e.g., unit),
+- `reference` static data member that provides the quantity reference (e.g., unit),
 - `rep` type that specifies the underlying storage type,
-- `to_numerical_value(T)` static member function returning a quantity's raw value of `rep` type
-  packed in either `convert_explicitly` or `convert_implicitly` wrapper.
-- `from_numerical_value(rep)` static member function returning `T` packed in either `convert_explicitly`
-  or `convert_implicitly` wrapper.
+- `explicit_import` static data member convertible to `bool` that specifies that the conversion
+  from `T` to a `quantity` type should happen explicitly (if `true`),
+- `explicit_export` static data member convertible to `bool` that specifies that the conversion
+  from a `quantity` type to `T` should happen explicitly (if `true`),
+- `to_numerical_value(T)` static member function returning a quantity's raw value of `rep` type,
+- `from_numerical_value(rep)` static member function returning `T`.
 
 For example, for our `Meter` type, we could provide the following:
 
 ```cpp
 template<>
-struct std::quantity_like_traits<Meter> {
+struct mp_units::quantity_like_traits<Meter> {
   static constexpr auto reference = si::metre;
+  static constexpr bool explicit_import = false;
+  static constexpr bool explicit_export = false;
   using rep = decltype(Meter::value);
-  static constexpr convert_implicitly<rep> to_numerical_value(Meter m) { return m.value; }
-  static constexpr convert_explicitly<Meter> from_numerical_value(rep v) { return Meter{v}; }
+  static constexpr rep to_numerical_value(Meter m) { return m.value; }
+  static constexpr Meter from_numerical_value(rep v) { return Meter{v}; }
 };
 ```
 
@@ -8358,26 +8374,30 @@ To allow the conversion between our custom `Timestamp` type and the `quantity_po
 we need to provide the following in the partial specialization of the `quantity_point_like_traits<T>`
 type trait:
 
-- static data member `reference` that provides the quantity point reference (e.g., unit),
-- static data member `point_origin` that specifies the absolute point, which is the beginning of
+- `reference` static data member that provides the quantity point reference (e.g., unit),
+- `point_origin` static data member that specifies the absolute point, which is the beginning of
   our measurement scale for our points,
 - `rep` type that specifies the underlying storage type,
+- `explicit_import` static data member convertible to `bool` that specifies that the conversion
+  from `T` to a `quantity` type should happen explicitly (if `true`),
+- `explicit_export` static data member convertible to `bool` that specifies that the conversion
+  from a `quantity` type to `T` should happen explicitly (if `true`),
 - `to_numerical_value(T)` static member function returning a raw value of the `quantity` being
-  the offset of the point from the origin packed in either `convert_explicitly` or `convert_implicitly`
-  wrapper.
-- `from_numerical_value(rep)` static member function returning `T` packed in either `convert_explicitly`
-  or `convert_implicitly` wrapper.
+  the offset of the point from the origin,
+- `from_numerical_value(rep)` static member function returning `T`.
 
 For example, for our `Timestamp` type, we could provide the following:
 
 ```cpp
 template<>
-struct std::quantity_point_like_traits<Timestamp> {
+struct mp_units::quantity_point_like_traits<Timestamp> {
   static constexpr auto reference = si::second;
   static constexpr auto point_origin = default_point_origin(reference);
+  static constexpr bool explicit_import = false;
+  static constexpr bool explicit_export = false;
   using rep = decltype(Timestamp::seconds);
-  static constexpr convert_implicitly<rep> to_numerical_value(Timestamp ts) { return ts.seconds; }
-  static constexpr convert_explicitly<Timestamp> from_numerical_value(rep v) { return Timestamp(v); }
+  static constexpr rep to_numerical_value(Timestamp ts) { return ts.seconds; }
+  static constexpr Timestamp from_numerical_value(rep v) { return Timestamp(v); }
 };
 ```
 
