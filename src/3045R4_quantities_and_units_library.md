@@ -4549,7 +4549,7 @@ of the MVP as of today:
 - ISQ: Mechanics
 - ISQ: Thermodynamics
 - ISQ: Electromagnetism
-- ISQ: Light
+- ISQ: Light and radiation
 - ISQ: Acoustics
 - ISQ: Physical chemistry and molecular physics
 - ISQ: Atomic and nuclear physics
