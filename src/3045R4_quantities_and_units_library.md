@@ -148,7 +148,7 @@ More details will arrive in the next revisions of this paper._
 # Scope of this proposal
 
 This paper describes and defines a generic framework for quantities and units library. Such
-framework should allow modelling various systems of quantities and units customized according
+framework should allow modeling various systems of quantities and units customized according
 to specific user's needs. Such systems can be embraced with the affine space abstractions to
 provide type-, unit-, and point origin-safe abstractions for many industries.
 
