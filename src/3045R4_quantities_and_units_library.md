@@ -7639,10 +7639,14 @@ Those functions will work with any type `T` that exposes a `zero()` member funct
 something comparable to `T`. Thanks to that, we can use them not only with quantities but also
 with `std::chrono::duration` or any other type that exposes such an interface.
 
-This approach has a downside, though: it produces a set of new APIs which users must learn.  Nor are these six
-the only such functions that will need to exist: for example, `max` and `min` are perfectly reasonable to use
-with `0` regardless of the units, but supporting them under this strategy would require adding a new utility
-function for each --- and coming up with a name for those functions.
+_Note:_ If we do not feel that we have a need for such generic functions in the `std` namespace,
+we can make them hidden friends of the `quantity` which will limit their scope to just this library.
+
+This approach has a downside, though: it produces a set of new APIs which users must learn.
+Nor are these six the only such functions that will need to exist: for example, `max` and `min` are
+perfectly reasonable to use with `0` regardless of the units, but supporting them under this
+strategy would require adding a new utility function for each --- and coming up with a name for
+those functions.
 
 It also introduces small opportunities for error and diffs that are harder to review, because we're replacing
 a pattern that uses an operator (say, `a > 0`) with a named function call (say, `is_gt_zero(a)`).
