@@ -59,6 +59,9 @@ to this activity.
 
 ### Under Development
 
+- [P3045R4: Quantities and units library](papers/3045R4_quantities_and_units_library.html)
+- [P3094R6: `std::basic_fixed_string`](papers/3094R6_std_basic_fixed_string.html)
+
 ## More Papers
 
 All official ISO C++ Committee papers are available from [the C++ mailings](http://open-std.org/jtc1/sc22/wg21/docs/papers).
