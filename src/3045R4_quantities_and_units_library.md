@@ -36,6 +36,7 @@ toc-depth: 4
 - [Unicode characters and their portable replacements] chapter added.
 - [Framework-only class templates] chapter added.
 - [Special values of a quantity] chapter added.
+- `RepresentationOf` concept refactored.
 
 ## Changes since [@P3045R2]
 
@@ -991,7 +992,7 @@ a representation type as parameters:
 
 ```cpp
 template<Reference auto R,
-         RepresentationOf<get_quantity_spec(R).character> Rep = double>
+         RepresentationOf<get_quantity_spec(R)> Rep = double>
 class quantity;
 ```
 
@@ -1472,7 +1473,7 @@ origin:
 ```cpp
 template<Reference auto R,
          PointOriginFor<get_quantity_spec(R)> auto PO = default_point_origin(R),
-         RepresentationOf<get_quantity_spec(R).character> Rep = double>
+         RepresentationOf<get_quantity_spec(R)> Rep = double>
 class quantity_point;
 ```
 
@@ -6075,15 +6076,27 @@ satisfies [`QuantitySpecOf<V>`](#QuantitySpecOf-concept) concept.          |
 
 #### `RepresentationOf<T, Ch>` concept { #RepresentationOf-concept }
 
-`RepresentationOf` concept is satisfied by all [`Representation`](#Representation-concept) types
-that are of a specified quantity character `Ch`.
+`RepresentationOf` concept is satisfied:
+
+- if the type of `V` satisfies [`QuantitySpec`](#QuantitySpec-concept):
+
+    - by all [`Representation`](#Representation-concept) types when `V` describes
+      a quantity kind,
+    - otherwise, by [`Representation`](#Representation-concept) types that are of
+      a quantity character associated with a provided quantity specification `V`.
+
+- if `V` is of `quantity_character` type:
+
+    - by [`Representation`](#Representation-concept) types that are of a provided
+      quantity character.
 
 A user can declare a custom representation type to be of a specific character by providing
 the specialization with `true` for one or more of the following variable templates:
 
-- `is_scalar<T>`
-- `is_vector<T>`
-- `is_tensor<T>`
+- `is_scalar<T>`,
+- `is_complex<T>`,
+- `is_vector<T>`,
+- `is_tensor<T>`.
 
 If we want to use scalar types to also express vector quantities (e.g., ignoring the "direction"
 of the vector) the following definition can be provided to enable such a behavior:
@@ -7162,7 +7175,7 @@ Based on the ISO definition provided in the [Quantity references] chapter, the `
 template has the following signature:
 
 ```cpp
-template<Reference auto R, RepresentationOf<get_quantity_spec(R).character> Rep = double>
+template<Reference auto R, RepresentationOf<get_quantity_spec(R)> Rep = double>
 class quantity;
 ```
 
