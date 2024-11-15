@@ -37,6 +37,7 @@ toc-depth: 4
 - [Framework-only class templates] chapter added.
 - [Special values of a quantity] chapter added.
 - `RepresentationOf` concept refactored.
+- _position vector_ moved under _displacement_ in the hierarchy of kind _length_.
 
 ## Changes since [@P3045R2]
 
@@ -2839,8 +2840,8 @@ inline constexpr auto arc_length = path_length;
 inline constexpr struct distance final : quantity_spec<path_length> {} distance;
 inline constexpr struct radial_distance final : quantity_spec<distance> {} radial_distance;
 inline constexpr struct wavelength final : quantity_spec<length> {} wavelength;
-inline constexpr struct position_vector final : quantity_spec<length, quantity_character::vector> {} position_vector;
 inline constexpr struct displacement final : quantity_spec<length, quantity_character::vector> {} displacement;
+inline constexpr struct position_vector final : quantity_spec<displacement> {} position_vector;
 ```
 
 In the above code:
