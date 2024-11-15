@@ -1106,6 +1106,8 @@ templates</a> chapter added.</li>
 quantity</a> chapter added.</li>
 <li><code class="sourceCode cpp">RepresentationOf</code> concept
 refactored.</li>
+<li><em>position vector</em> moved under <em>displacement</em> in the
+hierarchy of kind <em>length</em>.</li>
 </ul>
 <h2 data-number="1.2" id="changes-since-p3045r2"><span class="header-section-number">1.2</span> Changes since <span class="citation" data-cites="P3045R2">[<a href="https://wg21.link/p3045r2" role="doc-biblioref">P3045R2</a>]</span><a href="#changes-since-p3045r2" class="self-link"></a></h2>
 <ul>
@@ -3945,8 +3947,8 @@ library:</p>
 <span id="cb65-15"><a href="#cb65-15" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> distance <span class="kw">final</span> <span class="op">:</span> quantity_spec<span class="op">&lt;</span>path_length<span class="op">&gt;</span> <span class="op">{}</span> distance;</span>
 <span id="cb65-16"><a href="#cb65-16" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> radial_distance <span class="kw">final</span> <span class="op">:</span> quantity_spec<span class="op">&lt;</span>distance<span class="op">&gt;</span> <span class="op">{}</span> radial_distance;</span>
 <span id="cb65-17"><a href="#cb65-17" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> wavelength <span class="kw">final</span> <span class="op">:</span> quantity_spec<span class="op">&lt;</span>length<span class="op">&gt;</span> <span class="op">{}</span> wavelength;</span>
-<span id="cb65-18"><a href="#cb65-18" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> position_vector <span class="kw">final</span> <span class="op">:</span> quantity_spec<span class="op">&lt;</span>length, quantity_character<span class="op">::</span>vector<span class="op">&gt;</span> <span class="op">{}</span> position_vector;</span>
-<span id="cb65-19"><a href="#cb65-19" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> displacement <span class="kw">final</span> <span class="op">:</span> quantity_spec<span class="op">&lt;</span>length, quantity_character<span class="op">::</span>vector<span class="op">&gt;</span> <span class="op">{}</span> displacement;</span></code></pre></div>
+<span id="cb65-18"><a href="#cb65-18" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> displacement <span class="kw">final</span> <span class="op">:</span> quantity_spec<span class="op">&lt;</span>length, quantity_character<span class="op">::</span>vector<span class="op">&gt;</span> <span class="op">{}</span> displacement;</span>
+<span id="cb65-19"><a href="#cb65-19" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> position_vector <span class="kw">final</span> <span class="op">:</span> quantity_spec<span class="op">&lt;</span>displacement<span class="op">&gt;</span> <span class="op">{}</span> position_vector;</span></code></pre></div>
 <p>In the above code:</p>
 <ul>
 <li><code class="sourceCode cpp">length</code> takes the base dimension
