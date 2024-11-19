@@ -29,6 +29,11 @@ toc-depth: 4
 
 ## Changes since [@P3045R4]
 
+- [Hardware voltage measurement readout] example description fixed.
+- [WG21 wants it] chapter added.
+- `text_encoding` renamed to `character_set`.
+- `mp_units` namespace usage replaced with `std`.
+
 ## Changes since [@P3045R3]
 
 - [Quantity arithmetics] chapter updated with improved quantity compound assignment.
@@ -594,6 +599,31 @@ list, making it the most popular project in the C++ industry.
 The authors joined forces and are working together to propose the best quantities and units library
 we can get with the latest version of the C++ language. They spend their private time and efforts
 hoping that the ISO C++ Committee will be willing to include such a feature in the C++ standard library.
+
+## WG21 wants it
+
+In Belfast 2019 the following polls were taken for [@P1935R0] in LEWG:
+
+> POLL: We should promise more committee time to pursuing adding common units (such as SI,
+>       customary, etc) to the standard library, knowing that our time is scarce and this will
+>       leave less time for other work.
+>
+> | SF | WF | N | WA | SA |
+> |:--:|:--:|:-:|:--:|:--:|
+> | 11 | 7  | 4 | 2  | 0  |
+
+> POLL: We should promise more committee time to pursuing a standard library framework for user
+>       defined units and unit systems, knowing that our time is scarce and this will leave less
+>       time for other work.
+>
+> | SF | WF | N | WA | SA |
+> |:--:|:--:|:-:|:--:|:--:|
+> | 10 | 8  | 4 | 1  | 1  |
+
+As a result of the above polls, Mateusz approached authors of all other popular actively maintained
+libraries. We formed a working group of experts and worked on a common unified proposal for a few
+years. This paper and the current implementation of the [@MP-UNITS] library is the result of those
+actions.
 
 
 # Common smells when there is no library for quantities and units
@@ -1933,10 +1963,9 @@ Let's start with a really simple example presenting basic operations that every 
 and units library should provide:
 
 ```cpp
-import mp_units;
+import std;
 
-using namespace mp_units;
-using namespace mp_units::si::unit_symbols;
+using namespace std::si::unit_symbols;
 
 // simple numeric operations
 static_assert(10 * km / 2 == 5 * km);
@@ -1964,29 +1993,26 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/fT1r4sohs).
 The next example serves as a showcase of various features available in the [@MP-UNITS] library.
 
 ```cpp
-import mp_units;
 import std;
 
-using namespace mp_units;
-
-constexpr QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto d,
-                                                QuantityOf<isq::time> auto t)
+constexpr std::QuantityOf<std::isq::speed> auto avg_speed(std::QuantityOf<std::isq::length> auto d,
+                                                          std::QuantityOf<std::isq::time> auto t)
 {
   return d / t;
 }
 
 int main()
 {
-  using namespace mp_units::si::unit_symbols;
-  using namespace mp_units::international::unit_symbols;
+  using namespace std::si::unit_symbols;
+  using namespace std::international::unit_symbols;
 
-  constexpr quantity v1 = 110 * km / h;
-  constexpr quantity v2 = 70 * mph;
-  constexpr quantity v3 = avg_speed(220. * isq::distance[km], 2 * h);
-  constexpr quantity v4 = avg_speed(isq::distance(140. * mi), 2 * h);
-  constexpr quantity v5 = v3.in(m / s);
-  constexpr quantity v6 = value_cast<m / s>(v4);
-  constexpr quantity v7 = value_cast<int>(v6);
+  constexpr std::quantity v1 = 110 * km / h;
+  constexpr std::quantity v2 = 70 * mph;
+  constexpr std::quantity v3 = avg_speed(220. * std::isq::distance[km], 2 * h);
+  constexpr std::quantity v4 = avg_speed(std::isq::distance(140. * mi), 2 * h);
+  constexpr std::quantity v5 = v3.in(m / s);
+  constexpr std::quantity v6 = value_cast<m / s>(v4);
+  constexpr std::quantity v7 = value_cast<int>(v6);
 
   std::cout << v1 << '\n';                                        // 110 km/h
   std::cout << std::setw(10) << std::setfill('*') << v2 << '\n';  // ***70 mi/h
@@ -2011,59 +2037,57 @@ when needed, and
 - [interoperability with `std::chrono::duration`](https://mpusz.github.io/mp-units/2.1/users_guide/framework_basics/concepts/#QuantityLike).
 
 ```cpp
-import mp_units;
 import std;
 
 // allows standard gravity (acceleration) and weight (force) to be expressed with scalar representation
 // types instead of requiring the usage of Linear Algebra library for this simple example
 template<class T>
-  requires mp_units::is_scalar<T>
-constexpr bool mp_units::is_vector<T> = true;
+  requires std::is_scalar<T>
+constexpr bool std::is_vector<T> = true;
 
 namespace {
 
-using namespace mp_units;
-using namespace mp_units::si::unit_symbols;
+using namespace std::si::unit_symbols;
 
 // add a custom quantity type of kind isq::length
-inline constexpr struct horizontal_length final : quantity_spec<isq::length> {} horizontal_length;
+inline constexpr struct horizontal_length final : std::quantity_spec<std::isq::length> {} horizontal_length;
 
 // add a custom derived quantity type of kind isq::area
 // with a constrained quantity equation
-inline constexpr struct horizontal_area final : quantity_spec<horizontal_length * isq::width> {} horizontal_area;
+inline constexpr struct horizontal_area final : std::quantity_spec<horizontal_length * std::isq::width> {} horizontal_area;
 
-inline constexpr auto g = 1 * si::standard_gravity;
-inline constexpr auto air_density = isq::mass_density(1.225 * kg / m3);
+inline constexpr auto g = 1 * std::si::standard_gravity;
+inline constexpr auto air_density = std::isq::mass_density(1.225 * kg / m3);
 
 class StorageTank {
-  quantity<horizontal_area[m2]> base_;
-  quantity<isq::height[m]> height_;
-  quantity<isq::mass_density[kg / m3]> density_ = air_density;
+  std::quantity<horizontal_area[m2]> base_;
+  std::quantity<std::isq::height[m]> height_;
+  std::quantity<std::isq::mass_density[kg / m3]> density_ = air_density;
 public:
-  constexpr StorageTank(const quantity<horizontal_area[m2]>& base, const quantity<isq::height[m]>& height) :
+  constexpr StorageTank(const std::quantity<horizontal_area[m2]>& base, const std::quantity<isq::height[m]>& height) :
       base_(base), height_(height)
   {
   }
 
-  constexpr void set_contents_density(const quantity<isq::mass_density[kg / m3]>& density)
+  constexpr void set_contents_density(const std::quantity<std::isq::mass_density[kg / m3]>& density)
   {
     assert(density > air_density);
     density_ = density;
   }
 
-  [[nodiscard]] constexpr QuantityOf<isq::weight> auto filled_weight() const
+  [[nodiscard]] constexpr std::QuantityOf<isq::weight> auto filled_weight() const
   {
-    const auto volume = isq::volume(base_ * height_);
-    const QuantityOf<isq::mass> auto mass = density_ * volume;
-    return isq::weight(mass * g);
+    std::quantity volume = std::isq::volume(base_ * height_);
+    const std::QuantityOf<std::isq::mass> auto mass = density_ * volume;
+    return std::isq::weight(mass * g);
   }
 
-  [[nodiscard]] constexpr quantity<isq::height[m]> fill_level(const quantity<isq::mass[kg]>& measured_mass) const
+  [[nodiscard]] constexpr std::quantity<std::isq::height[m]> fill_level(const std::quantity<std::isq::mass[kg]>& measured_mass) const
   {
     return height_ * measured_mass * g / filled_weight();
   }
 
-  [[nodiscard]] constexpr quantity<isq::volume[m3]> spare_capacity(const quantity<isq::mass[kg]>& measured_mass) const
+  [[nodiscard]] constexpr std::quantity<std::isq::volume[m3]> spare_capacity(const std::quantity<std::isq::mass[kg]>& measured_mass) const
   {
     return (height_ - fill_level(measured_mass)) * base_;
   }
@@ -2072,16 +2096,16 @@ public:
 
 class CylindricalStorageTank : public StorageTank {
 public:
-  constexpr CylindricalStorageTank(const quantity<isq::radius[m]>& radius, const quantity<isq::height[m]>& height) :
-      StorageTank(quantity_cast<horizontal_area>(std::numbers::pi * pow<2>(radius)), height)
+  constexpr CylindricalStorageTank(const std::quantity<std::isq::radius[m]>& radius, const std::quantity<std::isq::height[m]>& height) :
+      StorageTank(std::quantity_cast<horizontal_area>(std::numbers::pi * pow<2>(radius)), height)
   {
   }
 };
 
 class RectangularStorageTank : public StorageTank {
 public:
-  constexpr RectangularStorageTank(const quantity<horizontal_length[m]>& length, const quantity<isq::width[m]>& width,
-                                   const quantity<isq::height[m]>& height) :
+  constexpr RectangularStorageTank(const std::quantity<horizontal_length[m]>& length, const std::quantity<isq::width[m]>& width,
+                                   const std::quantity<isq::height[m]>& height) :
       StorageTank(length * width, height)
   {
   }
@@ -2092,23 +2116,23 @@ public:
 
 int main()
 {
-  const quantity height = isq::height(200 * mm);
-  auto tank = RectangularStorageTank(horizontal_length(1'000 * mm), isq::width(500 * mm), height);
+  const std::quantity height = std::isq::height(200 * mm);
+  auto tank = RectangularStorageTank(horizontal_length(1'000 * mm), std::isq::width(500 * mm), height);
   tank.set_contents_density(1'000 * kg / m3);
 
   const auto duration = std::chrono::seconds{200};
-  const quantity fill_time = value_cast<int>(quantity{duration});  // time since starting fill
-  const quantity measured_mass = 20. * kg;                         // measured mass at fill_time
+  const std::quantity fill_time = std::value_cast<int>(std::quantity{duration});  // time since starting fill
+  const std::quantity measured_mass = 20. * kg;                                   // measured mass at fill_time
 
-  const quantity fill_level = tank.fill_level(measured_mass);
-  const quantity spare_capacity = tank.spare_capacity(measured_mass);
-  const quantity filled_weight = tank.filled_weight();
+  const std::quantity fill_level = tank.fill_level(measured_mass);
+  const std::quantity spare_capacity = tank.spare_capacity(measured_mass);
+  const std::quantity filled_weight = tank.filled_weight();
 
-  const QuantityOf<isq::mass_change_rate> auto input_flow_rate = measured_mass / fill_time;
-  const QuantityOf<isq::speed> auto float_rise_rate = fill_level / fill_time;
-  const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
+  const std::QuantityOf<std::isq::mass_change_rate> auto input_flow_rate = measured_mass / fill_time;
+  const std::QuantityOf<std::isq::speed> auto float_rise_rate = fill_level / fill_time;
+  const std::QuantityOf<std::isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
 
-  const quantity fill_ratio = fill_level / height;
+  const std::quantity fill_ratio = fill_level / height;
 
   std::println("fill height at {} = {} ({} full)", fill_time, fill_level, fill_ratio.in(percent));
   std::println("fill weight at {} = {} ({})", fill_time, filled_weight, filled_weight.in(N));
@@ -2139,49 +2163,47 @@ the Rhine River between the German and Swiss parts of the town Laufenburg [@HOCH
 It also nicely presents how [the Affine Space is being modeled in the library](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/).
 
 ```cpp
-import mp_units;
 import std;
 
-using namespace mp_units;
-using namespace mp_units::si::unit_symbols;
+using namespace std::si::unit_symbols;
 
-inline constexpr struct amsterdam_sea_level final : absolute_point_origin<isq::altitude> {
+inline constexpr struct amsterdam_sea_level final : std::absolute_point_origin<isq::altitude> {
 } amsterdam_sea_level;
 
-inline constexpr struct mediterranean_sea_level final : relative_point_origin<amsterdam_sea_level - 27 * cm> {
+inline constexpr struct mediterranean_sea_level final : std::relative_point_origin<amsterdam_sea_level - 27 * cm> {
 } mediterranean_sea_level;
 
-using altitude_DE = quantity_point<isq::altitude[m], amsterdam_sea_level>;
-using altitude_CH = quantity_point<isq::altitude[m], mediterranean_sea_level>;
+using altitude_DE = std::quantity_point<std::isq::altitude[m], amsterdam_sea_level>;
+using altitude_CH = std::quantity_point<std::isq::altitude[m], mediterranean_sea_level>;
 
 template<auto R, typename Rep>
-std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_DE::point_origin, Rep> alt)
+std::ostream& operator<<(std::ostream& os, std::quantity_point<R, altitude_DE::point_origin, Rep> alt)
 {
   return os << alt.quantity_ref_from(altitude_DE::point_origin) << " AMSL(DE)";
 }
 
 template<auto R, typename Rep>
-std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_CH::point_origin, Rep> alt)
+std::ostream& operator<<(std::ostream& os, std::quantity_point<R, altitude_CH::point_origin, Rep> alt)
 {
   return os << alt.quantity_ref_from(altitude_CH::point_origin) << " AMSL(CH)";
 }
 
 template<auto R, typename Rep>
-struct std::formatter<quantity_point<R, altitude_DE::point_origin, Rep>> : formatter<quantity<R, Rep>> {
+struct std::formatter<std::quantity_point<R, altitude_DE::point_origin, Rep>> : std::formatter<std::quantity<R, Rep>> {
   template<typename FormatContext>
-  auto format(const quantity_point<R, altitude_DE::point_origin, Rep>& alt, FormatContext& ctx) const
+  auto format(const std::quantity_point<R, altitude_DE::point_origin, Rep>& alt, FormatContext& ctx) const
   {
-    formatter<quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_DE::point_origin), ctx);
+    std::formatter<std::quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_DE::point_origin), ctx);
     return std::format_to(ctx.out(), " AMSL(DE)");
   }
 };
 
 template<auto R, typename Rep>
-struct std::formatter<quantity_point<R, altitude_CH::point_origin, Rep>> : formatter<quantity<R, Rep>> {
+struct std::formatter<std::quantity_point<R, altitude_CH::point_origin, Rep>> : std::formatter<std::quantity<R, Rep>> {
   template<typename FormatContext>
-  auto format(const quantity_point<R, altitude_CH::point_origin, Rep>& alt, FormatContext& ctx) const
+  auto format(const std::quantity_point<R, altitude_CH::point_origin, Rep>& alt, FormatContext& ctx) const
   {
-    formatter<quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_CH::point_origin), ctx);
+    std::formatter<std::quantity<R, Rep>>::format(alt.quantity_ref_from(altitude_CH::point_origin), ctx);
     return std::format_to(ctx.out(), " AMSL(CH)");
   }
 };
@@ -2189,7 +2211,7 @@ struct std::formatter<quantity_point<R, altitude_CH::point_origin, Rep>> : forma
 int main()
 {
   // expected bridge altitude in a specific reference system
-  quantity_point expected_bridge_alt = amsterdam_sea_level + 330 * m;
+  std::quantity_point expected_bridge_alt = amsterdam_sea_level + 330 * m;
 
   // some nearest landmark altitudes on both sides of the river
   // equal but not equal ;-)
@@ -2197,24 +2219,24 @@ int main()
   altitude_CH landmark_alt_CH = altitude_CH::point_origin + 300 * m;
 
   // artifical deltas from landmarks of the bridge base on both sides of the river
-  quantity delta_DE = isq::height(3 * m);
-  quantity delta_CH = isq::height(-2 * m);
+  std::quantity delta_DE = std::isq::height(3 * m);
+  std::quantity delta_CH = std::isq::height(-2 * m);
 
   // artificial altitude of the bridge base on both sides of the river
-  quantity_point bridge_base_alt_DE = landmark_alt_DE + delta_DE;
-  quantity_point bridge_base_alt_CH = landmark_alt_CH + delta_CH;
+  std::quantity_point bridge_base_alt_DE = landmark_alt_DE + delta_DE;
+  std::quantity_point bridge_base_alt_CH = landmark_alt_CH + delta_CH;
 
   // artificial height of the required bridge pilar height on both sides of the river
-  quantity bridge_pilar_height_DE = expected_bridge_alt - bridge_base_alt_DE;
-  quantity bridge_pilar_height_CH = expected_bridge_alt - bridge_base_alt_CH;
+  std::quantity bridge_pilar_height_DE = expected_bridge_alt - bridge_base_alt_DE;
+  std::quantity bridge_pilar_height_CH = expected_bridge_alt - bridge_base_alt_CH;
 
   std::println("Bridge pillars height:");
   std::println("- Germany:     {}", bridge_pilar_height_DE);
   std::println("- Switzerland: {}", bridge_pilar_height_CH);
 
   // artificial bridge altitude on both sides of the river in both systems
-  quantity_point bridge_road_alt_DE = bridge_base_alt_DE + bridge_pilar_height_DE;
-  quantity_point bridge_road_alt_CH = bridge_base_alt_CH + bridge_pilar_height_CH;
+  std::quantity_point bridge_road_alt_DE = bridge_base_alt_DE + bridge_pilar_height_DE;
+  std::quantity_point bridge_road_alt_CH = bridge_base_alt_CH + bridge_pilar_height_CH;
 
   std::println("Bridge road altitude:");
   std::println("- Germany:     {}", bridge_road_alt_DE);
@@ -2249,15 +2271,12 @@ Every measurement can (and probably should) be modelled as a `quantity_point` an
 a perfect example of such a use case.
 
 This example implements a simplified scenario of measuring voltage read from hardware through
-a mapped 16-bits register. The actual voltage range of [-10 V, 10 V] is mapped to [-32767, 32767]
-on hardware. Translation of the value requires not only scaling of the value but also applying
-of an offset.
+a mapped 16-bits register. The actual voltage range of [-10 V, 10 V] is mapped to [0, 65534]
+on hardware and the value 65535 is used for error reporting. Translation of the value requires
+not only scaling of the value but also applying of an offset.
 
 ```cpp
-import mp_units;
 import std;
-
-using namespace mp_units;
 
 // real voltage range
 inline constexpr int min_voltage = -10;
@@ -2273,12 +2292,12 @@ inline constexpr voltage_hw_t voltage_hw_range = voltage_hw_max - voltage_hw_min
 inline constexpr voltage_hw_t voltage_hw_zero = voltage_hw_range / 2;
 
 inline constexpr struct hw_voltage_origin final :
-  relative_point_origin<absolute<si::volt>(min_voltage)> {} hw_voltage_origin;
+  std::relative_point_origin<std::absolute<std::si::volt>(min_voltage)> {} hw_voltage_origin;
 
 inline constexpr struct hw_voltage_unit final :
-  named_unit<"hwV", mag_ratio<voltage_range, voltage_hw_range> * si::volt, hw_voltage_origin> {} hw_voltage_unit;
+  std::named_unit<"hwV", std::mag_ratio<voltage_range, voltage_hw_range> * std::si::volt, hw_voltage_origin> {} hw_voltage_unit;
 
-using hw_voltage_quantity_point = quantity_point<hw_voltage_unit, hw_voltage_origin, voltage_hw_t>;
+using hw_voltage_quantity_point = std::quantity_point<hw_voltage_unit, hw_voltage_origin, voltage_hw_t>;
 
 // mapped HW register
 volatile voltage_hw_t hw_voltage_value;
@@ -2287,24 +2306,24 @@ std::optional<hw_voltage_quantity_point> read_hw_voltage()
 {
   voltage_hw_t local_copy = hw_voltage_value;
   if (local_copy == voltage_hw_error) return std::nullopt;
-  return absolute<hw_voltage_unit>(local_copy);
+  return std::absolute<hw_voltage_unit>(local_copy);
 }
 
-void print(QuantityPoint auto qp)
+void print(std::QuantityPoint auto qp)
 {
   std::println("{:10} ({:5})", qp.quantity_from_zero(),
-               value_cast<double, si::volt>(qp).quantity_from_zero());
+               std::value_cast<double, si::volt>(qp).quantity_from_zero());
 }
 
 int main()
 {
   // simulate reading of 3 values from the hardware
   hw_voltage_value = voltage_hw_min;
-  quantity_point qp1 = read_hw_voltage().value();
+  std::quantity_point qp1 = read_hw_voltage().value();
   hw_voltage_value = voltage_hw_zero;
-  quantity_point qp2 = read_hw_voltage().value();
+  std::quantity_point qp2 = read_hw_voltage().value();
   hw_voltage_value = voltage_hw_max;
-  quantity_point qp3 = read_hw_voltage().value();
+  std::quantity_point qp3 = read_hw_voltage().value();
 
   print(qp1);
   print(qp2);
@@ -2330,48 +2349,45 @@ digital signal processing domain will show how to define custom strongly typed d
 quantities, units for them, and how they can be converted to time measured in milliseconds:
 
 ```cpp
-import mp_units;
 import std;
-
-using namespace mp_units;
 
 namespace ni {
 
 // quantities
-inline constexpr struct SampleCount final : quantity_spec<dimensionless, is_kind> {} SampleCount;
-inline constexpr struct SampleDuration final : quantity_spec<isq::period_duration> {} SampleDuration;
-inline constexpr struct SamplingRate final : quantity_spec<isq::frequency, SampleCount / SampleDuration> {} SamplingRate;
+inline constexpr struct SampleCount final : std::quantity_spec<std::dimensionless, std::is_kind> {} SampleCount;
+inline constexpr struct SampleDuration final : std::quantity_spec<std::isq::period_duration> {} SampleDuration;
+inline constexpr struct SamplingRate final : std::quantity_spec<std::isq::frequency, SampleCount / SampleDuration> {} SamplingRate;
 
-inline constexpr struct UnitSampleAmount final : quantity_spec<dimensionless, is_kind> {} UnitSampleAmount;
+inline constexpr struct UnitSampleAmount final : std::quantity_spec<std::dimensionless, std::is_kind> {} UnitSampleAmount;
 inline constexpr auto Amplitude = UnitSampleAmount;
 inline constexpr auto Level = UnitSampleAmount;
-inline constexpr struct Power final : quantity_spec<Level * Level> {} Power;
+inline constexpr struct Power final : std::quantity_spec<Level * Level> {} Power;
 
-inline constexpr struct MIDIClock final : quantity_spec<dimensionless, is_kind> {} MIDIClock;
+inline constexpr struct MIDIClock final : std::quantity_spec<std::dimensionless, std::is_kind> {} MIDIClock;
 
-inline constexpr struct BeatCount final : quantity_spec<dimensionless, is_kind> {} BeatCount;
-inline constexpr struct BeatDuration final : quantity_spec<isq::period_duration> {} BeatDuration;
-inline constexpr struct Tempo final : quantity_spec<isq::frequency, BeatCount / BeatDuration> {} Tempo;
+inline constexpr struct BeatCount final : std::quantity_spec<std::dimensionless, std::is_kind> {} BeatCount;
+inline constexpr struct BeatDuration final : std::quantity_spec<std::isq::period_duration> {} BeatDuration;
+inline constexpr struct Tempo final : std::quantity_spec<std::isq::frequency, BeatCount / BeatDuration> {} Tempo;
 
 // units
-inline constexpr struct Sample final : named_unit<"Smpl", one, kind_of<SampleCount>> {} Sample;
-inline constexpr struct SampleValue final : named_unit<"PCM", one, kind_of<UnitSampleAmount>> {} SampleValue;
-inline constexpr struct MIDIPulse final : named_unit<"p", one, kind_of<MIDIClock>> {} MIDIPulse;
+inline constexpr struct Sample final : std::named_unit<"Smpl", std::one, std::kind_of<SampleCount>> {} Sample;
+inline constexpr struct SampleValue final : std::named_unit<"PCM", std::one, std::kind_of<UnitSampleAmount>> {} SampleValue;
+inline constexpr struct MIDIPulse final : std::named_unit<"p", std::one, std::kind_of<MIDIClock>> {} MIDIPulse;
 
-inline constexpr struct QuarterNote final : named_unit<"q", one, kind_of<BeatCount>> {} QuarterNote;
-inline constexpr struct HalfNote final : named_unit<"h", mag<2> * QuarterNote> {} HalfNote;
-inline constexpr struct DottedHalfNote final : named_unit<"h.", mag<3> * QuarterNote> {} DottedHalfNote;
-inline constexpr struct WholeNote final : named_unit<"w", mag<4> * QuarterNote> {} WholeNote;
-inline constexpr struct EightNote final : named_unit<"8th", mag_ratio<1, 2> * QuarterNote> {} EightNote;
-inline constexpr struct DottedQuarterNote final : named_unit<"q.", mag<3> * EightNote> {} DottedQuarterNote;
-inline constexpr struct QuarterNoteTriplet final : named_unit<"qt", mag_ratio<1, 3> * HalfNote> {} QuarterNoteTriplet;
-inline constexpr struct SixteenthNote final : named_unit<"16th", mag_ratio<1, 2> * EightNote> {} SixteenthNote;
-inline constexpr struct DottedEightNote final : named_unit<"q.", mag<3> * SixteenthNote> {} DottedEightNote;
+inline constexpr struct QuarterNote final : std::named_unit<"q", std::one, std::kind_of<BeatCount>> {} QuarterNote;
+inline constexpr struct HalfNote final : std::named_unit<"h", std::mag<2> * QuarterNote> {} HalfNote;
+inline constexpr struct DottedHalfNote final : std::named_unit<"h.", std::mag<3> * QuarterNote> {} DottedHalfNote;
+inline constexpr struct WholeNote final : std::named_unit<"w", std::mag<4> * QuarterNote> {} WholeNote;
+inline constexpr struct EightNote final : std::named_unit<"8th", std::mag_ratio<1, 2> * QuarterNote> {} EightNote;
+inline constexpr struct DottedQuarterNote final : std::named_unit<"q.", std::mag<3> * EightNote> {} DottedQuarterNote;
+inline constexpr struct QuarterNoteTriplet final : std::named_unit<"qt", std::mag_ratio<1, 3> * HalfNote> {} QuarterNoteTriplet;
+inline constexpr struct SixteenthNote final : std::named_unit<"16th", std::mag_ratio<1, 2> * EightNote> {} SixteenthNote;
+inline constexpr struct DottedEightNote final : std::named_unit<"q.", std::mag<3> * SixteenthNote> {} DottedEightNote;
 
 inline constexpr auto Beat = QuarterNote;
 
-inline constexpr struct BeatsPerMinute final : named_unit<"bpm", Beat / si::minute> {} BeatsPerMinute;
-inline constexpr struct MIDIPulsePerQuarter final : named_unit<"ppqn", MIDIPulse / QuarterNote> {} MIDIPulsePerQuarter;
+inline constexpr struct BeatsPerMinute final : std::named_unit<"bpm", Beat / std::si::minute> {} BeatsPerMinute;
+inline constexpr struct MIDIPulsePerQuarter final : std::named_unit<"ppqn", MIDIPulse / QuarterNote> {} MIDIPulsePerQuarter;
 
 namespace unit_symbols {
 
@@ -2392,24 +2408,24 @@ inline constexpr auto n_16th = SixteenthNote;
 
 }
 
-quantity<BeatsPerMinute, float> GetTempo()
+std::quantity<BeatsPerMinute, float> GetTempo()
 {
   return 110 * BeatsPerMinute;
 }
 
-quantity<MIDIPulsePerQuarter, unsigned> GetPPQN()
+std::quantity<MIDIPulsePerQuarter, unsigned> GetPPQN()
 {
   return 960 * MIDIPulse / QuarterNote;
 }
 
-quantity<MIDIPulse, unsigned> GetTransportPos()
+std::quantity<MIDIPulse, unsigned> GetTransportPos()
 {
   return 15'836 * MIDIPulse;
 }
 
-quantity<SamplingRate[si::hertz], float> GetSampleRate()
+std::quantity<SamplingRate[std::si::hertz], float> GetSampleRate()
 {
-  return 44'100.f * si::hertz;
+  return 44'100.f * std::si::hertz;
 }
 
 }
@@ -2417,22 +2433,22 @@ quantity<SamplingRate[si::hertz], float> GetSampleRate()
 int main()
 {
   using namespace ni::unit_symbols;
-  using namespace mp_units::si::unit_symbols;
+  using namespace std::si::unit_symbols;
 
-  const auto sr1 = ni::GetSampleRate();
-  const auto sr2 = 48'000.f * Smpl / s;
+  const std::quantity sr1 = ni::GetSampleRate();
+  const std::quantity sr2 = 48'000.f * Smpl / s;
 
-  const auto samples = 512 * Smpl;
+  const std::quantity samples = 512 * Smpl;
 
-  const auto sampleTime1 = (samples / sr1).in(s);
-  const auto sampleTime2 = (samples / sr2).in(ms);
+  const std::quantity sampleTime1 = (samples / sr1).in(s);
+  const std::quantity sampleTime2 = (samples / sr2).in(ms);
 
-  const auto sampleDuration1 = (1 / sr1).in(ms);
-  const auto sampleDuration2 = (1 / sr2).in(ms);
+  const std::quantity sampleDuration1 = (1 / sr1).in(ms);
+  const std::quantity sampleDuration2 = (1 / sr2).in(ms);
 
-  const auto rampTime = 35.f * ms;
-  const auto rampSamples1 = (rampTime * sr1).force_in<int>(Smpl);
-  const auto rampSamples2 = (rampTime * sr2).force_in<int>(Smpl);
+  const std::quantity rampTime = 35.f * ms;
+  const std::quantity rampSamples1 = (rampTime * sr1).force_in<int>(Smpl);
+  const std::quantity rampSamples2 = (rampTime * sr2).force_in<int>(Smpl);
 
   std::println("Sample rate 1 is: {}", sr1);
   std::println("Sample rate 2 is: {}", sr2);
@@ -2446,18 +2462,18 @@ int main()
   std::println("{} is {} @ {}", rampTime, rampSamples1, sr1);
   std::println("{} is {} @ {}", rampTime, rampSamples2, sr2);
 
-  auto sampleValue = -0.4f * pcm;
-  auto power1 = sampleValue * sampleValue;
-  auto power2 = -0.2 * pow<2>(pcm);
+  const std::quantity sampleValue = -0.4f * pcm;
+  const std::quantity power1 = sampleValue * sampleValue;
+  const std::quantity power2 = -0.2 * pow<2>(pcm);
 
-  auto tempo = ni::GetTempo();
-  auto reverbBeats = 1 * n_qd;
-  auto reverbTime = reverbBeats / tempo;
+  const std::quantity tempo = ni::GetTempo();
+  const std::quantity reverbBeats = 1 * n_qd;
+  const std::quantity reverbTime = reverbBeats / tempo;
 
-  auto pulsePerQuarter = value_cast<float>(ni::GetPPQN());
-  auto transportPosition = ni::GetTransportPos();
-  auto transportBeats = (transportPosition / pulsePerQuarter).in(n_q);
-  auto transportTime = (transportBeats / tempo).in(s);
+  const std::quantity pulsePerQuarter = std::value_cast<float>(ni::GetPPQN());
+  const std::quantity transportPosition = ni::GetTransportPos();
+  const std::quantity transportBeats = (transportPosition / pulsePerQuarter).in(n_q);
+  const std::quantity transportTime = (transportBeats / tempo).in(s);
 
   std::println("SampleValue is: {}", sampleValue);
   std::println("Power 1 is: {}", power1);
@@ -2995,8 +3011,8 @@ struct gift {
 
 std::array<quantity<isq::length[m]>, 2> gift_wrapping_paper_size(const gift& g)
 {
-  const auto dim1 = 2 * g.width + 2 * g.height + 0.5 * g.width;
-  const auto dim2 = g.length + 2 * 0.75 * g.height;
+  quantity dim1 = 2 * g.width + 2 * g.height + 0.5 * g.width;
+  quantity dim2 = g.length + 2 * 0.75 * g.height;
   return { dim1, dim2 };
 }
 
@@ -3754,7 +3770,7 @@ symbol_text(const fixed_u8string<N>&, const fixed_string<M>&) -> symbol_text<N, 
 
 ### Symbols for derived entities
 
-#### `text_encoding`
+#### `character_set`
 
 ISQ and [@SI] standards always specify symbols using Unicode encoding. This is why it is a default
 and primary target for text output. However, in some applications or environments, a standard
@@ -3765,7 +3781,7 @@ by users.
 This is why the library provides an option to change the default encoding to the portable one with:
 
 ```cpp
-enum class text_encoding : std::int8_t {
+enum class character_set : std::int8_t {
   utf8,        // µs; m³;  L²MT⁻³
   portable,    // us; m^3; L^2MT^-3
   default_encoding = utf8
@@ -3781,7 +3797,7 @@ algorithm.
 
 ```cpp
 struct dimension_symbol_formatting {
-  text_encoding encoding = text_encoding::default_encoding;
+  character_set encoding = character_set::default_encoding;
 };
 ```
 
@@ -3799,7 +3815,7 @@ _Note: It could be refactored to `dimension_symbol(D, fmt)` when [@P1045R1] is a
 For example:
 
 ```cpp
-static_assert(dimension_symbol<{.encoding = text_encoding::portable}>(isq::power.dimension) == "L^2MT^-3");
+static_assert(dimension_symbol<{.char_set = character_set::portable}>(isq::power.dimension) == "L^2MT^-3");
 ```
 
 ##### `dimension_symbol_to()`
@@ -3815,7 +3831,7 @@ For example:
 
 ```cpp
 std::string txt;
-dimension_symbol_to(std::back_inserter(txt), isq::power.dimension, {.encoding = text_encoding::portable});
+dimension_symbol_to(std::back_inserter(txt), isq::power.dimension, {.char_set = character_set::portable});
 std::cout << txt << "\n";
 ```
 
@@ -3847,7 +3863,7 @@ enum class unit_symbol_separator : std::int8_t {
 };
 
 struct unit_symbol_formatting {
-  text_encoding encoding = text_encoding::default_encoding;
+  character_set encoding = character_set::default_encoding;
   unit_symbol_solidus solidus = unit_symbol_solidus::default_denominator;
   unit_symbol_separator separator = unit_symbol_separator::default_separator;
 };
@@ -3936,7 +3952,7 @@ version of the source unit. For example, the following:
 std::cout << 1 * km + 1 * mi << "\n";
 std::cout << 1 * nmi + 1 * mi << "\n";
 std::cout << 1 * km / h + 1 * m / s << "\n";
-std::cout << 1 * rad + 1 * deg << "\n";
+std::cout << 1. * rad + 1. * deg << "\n";
 ```
 
 prints:
@@ -3973,7 +3989,7 @@ of them together with the recommended portable replacements:
 | GREEK SMALL LETTER PI |   π    | u8"\u03c0" |         "pi"         |
 | DOT OPERATOR          |   ⋅    | u8"\u22C5" |      `<none>`*       |
 
-(*) Users should not select `unit_symbol_separator::half_high_dot` and `text_encoding::portable`
+(*) Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
 at the same time. This symbol is valid only for UTF-8 encoding. Otherwise, we propose to throw
 an exception during the unit symbol string processing.
 
@@ -3982,16 +3998,16 @@ Here is an example of how the above are being used in a code:
 ```cpp
 static_assert(unit_symbol(kilogram * metre / square(second)) == "kg m/s²");
 static_assert(unit_symbol<usf{.separator = half_high_dot}>(kilogram * metre / square(second)) == "kg⋅m/s²");
-static_assert(unit_symbol<usf{.encoding = portable}>(kilogram * metre / square(second)) == "kg m/s^2");
+static_assert(unit_symbol<usf{.char_set = portable}>(kilogram * metre / square(second)) == "kg m/s^2");
 static_assert(unit_symbol<usf{.solidus = never}>(kilogram * metre / square(second)) == "kg m s⁻²");
-static_assert(unit_symbol<usf{.encoding = portable, .solidus = never}>(kilogram * metre / square(second)) == "kg m s^-2");
+static_assert(unit_symbol<usf{.char_set = portable, .solidus = never}>(kilogram * metre / square(second)) == "kg m s^-2");
 
 static_assert(unit_symbol(mag_ratio<1, 18000> * metre / second) == "[1/18 × 10⁻³ m]/s");
-static_assert(unit_symbol<usf{.encoding = portable}>(mag_ratio<1, 18000> * metre / second) == "[1/18 x 10^-3 m]/s");
+static_assert(unit_symbol<usf{.char_set = portable}>(mag_ratio<1, 18000> * metre / second) == "[1/18 x 10^-3 m]/s");
 
 static_assert(unit_symbol(mag<1> / (mag<2> * mag<π>)*metre) == "[2⁻¹ π⁻¹ m]");
 static_assert(unit_symbol<usf{.solidus = always}>(mag<1> / (mag<2> * mag<π>)*metre) == "[1/(2 π) m]");
-static_assert(unit_symbol<usf{.encoding = portable, .solidus = always}>(mag<1> / (mag<2> * mag<π>)*metre) == "[1/(2 pi) m]");
+static_assert(unit_symbol<usf{.char_set = portable, .solidus = always}>(mag<1> / (mag<2> * mag<π>)*metre) == "[1/(2 pi) m]");
 ```
 
 Additionally, if we decide to provide `per_mille` unit together with the framework (next to `one`,
@@ -4111,15 +4127,15 @@ as text and, thus, are aligned to the left by default.
 
 ```ebnf
 dimension-format-spec = [fill-and-align], [width], [dimension-spec];
-dimension-spec        = [text-encoding];
-text-encoding         = 'U' | 'P';
+dimension-spec        = [character-set];
+character-set         = 'U' | 'P';
 ```
 
 In the above grammar:
 
 - `fill-and-align` and `width` tokens are defined in the [format.string.std]{.sref}
   chapter of the C++ standard specification,
-- `text-encoding` token specifies the symbol text encoding:
+- `character-set` token specifies the symbol text encoding:
     - `U` (default) uses the **UTF-8** symbols defined by [@ISO80000] (e.g., `LT⁻²`),
     - `P` forces non-standard **portable** output (e.g., `LT^-2`).
 
@@ -4128,7 +4144,7 @@ symbol for the _thermodynamic temperature_ dimension). The library follows this 
 From the engineering point of view, sometimes Unicode text might not be the best solution
 as terminals of many (especially embedded) devices can output only letters from the basic
 literal character set only. In such a case, the dimension symbol can be forced to be printed
-using such characters thanks to `text-encoding` token:
+using such characters thanks to `character-set` token:
 
 ```cpp
 std::println("{}", isq::dim_thermodynamic_temperature);   // Θ
@@ -4142,12 +4158,12 @@ std::println("{:P}", isq::power.dimension);               // L^2MT^-3
 
 ```ebnf
 unit-format-spec      = [fill-and-align], [width], [unit-spec];
-unit-spec             = [text-encoding], [unit-symbol-solidus], [unit-symbol-separator], [L]
-                      | [text-encoding], [unit-symbol-separator], [unit-symbol-solidus], [L]
-                      | [unit-symbol-solidus], [text-encoding], [unit-symbol-separator], [L]
-                      | [unit-symbol-solidus], [unit-symbol-separator], [text-encoding], [L]
-                      | [unit-symbol-separator], [text-encoding], [unit-symbol-solidus], [L]
-                      | [unit-symbol-separator], [unit-symbol-solidus], [text-encoding], [L];
+unit-spec             = [character-set], [unit-symbol-solidus], [unit-symbol-separator], [L]
+                      | [character-set], [unit-symbol-separator], [unit-symbol-solidus], [L]
+                      | [unit-symbol-solidus], [character-set], [unit-symbol-separator], [L]
+                      | [unit-symbol-solidus], [unit-symbol-separator], [character-set], [L]
+                      | [unit-symbol-separator], [character-set], [unit-symbol-solidus], [L]
+                      | [unit-symbol-separator], [unit-symbol-solidus], [character-set], [L];
 unit-symbol-solidus   = '1' | 'a' | 'n';
 unit-symbol-separator = 's' | 'd';
 ```
@@ -4176,7 +4192,7 @@ Unit symbols of some quantities are specified to use Unicode signs by the [@SI] 
 for the _resistance_ quantity). The library follows this by default. From the engineering point of
 view, sometimes Unicode text might not be the best solution as terminals of many (especially
 embedded) devices can output only letters from the basic literal character set only. In such a case,
-the unit symbol can be forced to be printed using such characters thanks to `text-encoding` token:
+the unit symbol can be forced to be printed using such characters thanks to `character-set` token:
 
 ```cpp
 std::println("{}", si::ohm);      // Ω
@@ -4326,7 +4342,7 @@ Thanks to the grammar provided above, the user can easily decide to either:
 the second case above would require the following:
 
 ```cpp
-const auto q = 120 * km / h;
+const quantity q = 120 * km / h;
 std::println("Speed:\n- number: {}\n- unit: {}\n- dimension: {}",
              q.numerical_value_ref_in(q.unit), q.unit, q.dimension);
 ```
@@ -4443,7 +4459,7 @@ library does not have enough information to print it that way by itself.
 
 1. Should we somehow provide text support for quantity points? What about temperatures?
 2. How to name a non-Unicode accessor member function (e.g., `.portable()`)? The same name should
-   consistently be used in `text_encoding` and in the formatting grammar.
+   consistently be used in `character_set` and in the formatting grammar.
 3. What about the localization for units? Will we get something like ICU in the C++ standard?
 4. Do we care about ostreams enough to introduce custom manipulators to format dimensions and units?
 5. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
@@ -5694,7 +5710,7 @@ Coming back to the angular momentum case, thanks to the composability of units, 
 create such a quantity in the following way:
 
 ```cpp
-using namespace mp_units::si::unit_symbols;
+using namespace si::unit_symbols;
 auto q = la_vector{1, 2, 3} * isq::angular_momentum[kg * m2 / s];
 ```
 
@@ -6484,7 +6500,7 @@ ordering to be based on type identifiers.
 Thanks to all of the steps described above, a user may write the code like this one:
 
 ```cpp
-using namespace mp_units::si::unit_symbols;
+using namespace si::unit_symbols;
 quantity speed = isq::speed(60. * km / h);
 quantity duration = 8 * s;
 quantity acceleration1 = speed / duration;
@@ -8451,7 +8467,7 @@ struct Meter {
 
 As every usage of `Meter` is at least as good and safe as the usage of `quantity<si::metre, int>`,
 and as there is no significant runtime performance penalty, we would like to allow the conversion
-to `mp_units::quantity` to happen implicitly.
+to `std::quantity` to happen implicitly.
 
 On the other hand, the `quantity` type is much safer than the `Meter`, and that is why we would
 prefer to see the opposite conversions stated explicitly in our code.
@@ -8472,7 +8488,7 @@ For example, for our `Meter` type, we could provide the following:
 
 ```cpp
 template<>
-struct mp_units::quantity_like_traits<Meter> {
+struct std::quantity_like_traits<Meter> {
   static constexpr auto reference = si::metre;
   static constexpr bool explicit_import = false;
   static constexpr bool explicit_export = false;
@@ -8595,7 +8611,7 @@ For example, for our `Timestamp` type, we could provide the following:
 
 ```cpp
 template<>
-struct mp_units::quantity_point_like_traits<Timestamp> {
+struct std::quantity_point_like_traits<Timestamp> {
   static constexpr auto reference = si::second;
   static constexpr auto point_origin = default_point_origin(reference);
   static constexpr bool explicit_import = false;
@@ -8610,7 +8626,7 @@ After that, we can check that the [`QuantityPointLike`](#QuantityPointLike-conce
 satisfied:
 
 ```cpp
-static_assert(mp_units::QuantityPointLike<Timestamp>);
+static_assert(std::QuantityPointLike<Timestamp>);
 ```
 
 and we can write the following:
@@ -8621,13 +8637,10 @@ void print(Timestamp ts) { std::cout << ts.seconds << " s\n"; }
 
 int main()
 {
-  using namespace mp_units;
-  using namespace mp_units::si::unit_symbols;
-
   Timestamp ts{42};
 
   // implicit conversion
-  quantity_point qp = ts;
+  std::quantity_point qp = ts;
 
   std::cout << qp.quantity_from_zero() << "\n";
 
@@ -8746,7 +8759,6 @@ Next, we could show how easy extending the library with custom units is. A simpl
 example like the below could be a great exercise here:
 
 ```cpp
-import mp_units;
 import std;
 
 inline constexpr struct smoot final : std::named_unit<"smoot", std::mag<67> * std::usc::inch> {} smoot;
@@ -8755,7 +8767,7 @@ int main()
 {
   constexpr std::quantity dist = 364.4 * smoot;
   std::println("Harvard Bridge length = {::N[.5]} ({::N[.5]}, {::N[.5]}) ± 1 εar",
-               dist, dist.in(usc::foot), dist.in(si::metre));
+               dist, dist.in(std::usc::foot), dist.in(std::si::metre));
 }
 ```
 
