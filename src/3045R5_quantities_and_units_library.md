@@ -33,6 +33,7 @@ toc-depth: 4
 - [WG21 wants it] chapter added.
 - `text_encoding` renamed to `character_set`.
 - `mp_units` namespace usage replaced with `std`.
+- `absolute` creation helper renamed to `point`.
 
 ## Changes since [@P3045R3]
 
@@ -1488,7 +1489,7 @@ abstraction in the affine space. It can be constructed with:
 - two-parameter constructor taking a number and a quantity reference/unit.
 
 A rationale for `delta` and disabling the multiply syntax for some units can be found in the
-[`delta` and `absolute` creation helpers] chapter.
+[`delta` and `point` creation helpers] chapter.
 
 
 ### _Point_ is modeled by `quantity_point` and `PointOrigin`
@@ -1528,7 +1529,7 @@ scale zeroth point using the following rules:
 - otherwise, an instantiation of `zeroth_point_origin<QuantitySpec>` is being used which
   provides a well-established zeroth point for a specific quantity type.
 
-Quantity points with default point origins may be constructed with the `absolute` construction
+Quantity points with default point origins may be constructed with the `point` construction
 helper or forcing an explicit conversion from the `quantity`:
 
 ```cpp
@@ -1538,9 +1539,9 @@ helper or forcing an explicit conversion from the `quantity`:
 quantity_point qp4(42 * m);
 quantity_point qp5(42 * K);
 quantity_point qp6(delta<deg_C>(42));
-quantity_point qp7 = absolute<m>(42);
-quantity_point qp8 = absolute<K>(42);
-quantity_point qp9 = absolute<deg_C>(42);
+quantity_point qp7 = point<m>(42);
+quantity_point qp8 = point<K>(42);
+quantity_point qp9 = point<deg_C>(42);
 ```
 
 #### `zeroth_point_origin<QuantitySpec>`
@@ -1554,7 +1555,7 @@ for this domain.
 
 ```cpp
 quantity_point<isq::distance[si::metre]> qp1(100 * m);
-quantity_point<isq::distance[si::metre]> qp2 = absolute<m>(120);
+quantity_point<isq::distance[si::metre]> qp2 = point<m>(120);
 
 assert(qp1.quantity_from_zero() == 100 * m);
 assert(qp2.quantity_from_zero() == 120 * m);
@@ -1583,7 +1584,7 @@ compatible:
 
 ```cpp
 quantity_point<si::metre> qp1{isq::distance(100 * m)};
-quantity_point<si::metre> qp2 = absolute<isq::height[m]>(120);
+quantity_point<si::metre> qp2 = point<isq::height[m]>(120);
 
 assert(qp2.quantity_from(qp1) == 20 * m);
 assert(qp1.quantity_from(qp2) == -20 * m);
@@ -1799,7 +1800,7 @@ namespace si {
 inline constexpr struct absolute_zero final : absolute_point_origin<isq::thermodynamic_temperature> {} absolute_zero;
 inline constexpr auto zeroth_kelvin = absolute_zero;
 
-inline constexpr struct ice_point final : relative_point_origin<absolute<milli<kelvin>>(273'150)> {} ice_point;
+inline constexpr struct ice_point final : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
 inline constexpr auto zeroth_degree_Celsius = ice_point;
 
 }
@@ -1807,7 +1808,7 @@ inline constexpr auto zeroth_degree_Celsius = ice_point;
 namespace usc {
 
 inline constexpr struct zeroth_degree_Fahrenheit final :
-  relative_point_origin<absolute<mag_ratio<5, 9> * si::degree_Celsius>(-32)> {} zeroth_degree_Fahrenheit;
+  relative_point_origin<point<mag_ratio<5, 9> * si::degree_Celsius>(-32)> {} zeroth_degree_Fahrenheit;
 
 }
 ```
@@ -1854,7 +1855,7 @@ choose from here. Depending on our needs or tastes, we can:
     quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q1 = si::zeroth_degree_Celsius + delta<deg_C>(20.5);
     quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q2{delta<deg_C>(20.5), si::zeroth_degree_Celsius};
     quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q3{delta<deg_C>(20.5)};
-    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q4 = absolute<deg_C>(20.5);
+    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q4 = point<deg_C>(20.5);
     ```
 
 - specify a unit and use its zeroth point origin implicitly:
@@ -1863,7 +1864,7 @@ choose from here. Depending on our needs or tastes, we can:
     quantity_point<si::degree_Celsius> q5 = si::zeroth_degree_Celsius + delta<deg_C>(20.5);
     quantity_point<si::degree_Celsius> q6{delta<deg_C>(20.5), si::zeroth_degree_Celsius};
     quantity_point<si::degree_Celsius> q7{delta<deg_C>(20.5)};
-    quantity_point<si::degree_Celsius> q8 = absolute<deg_C>(20.5);
+    quantity_point<si::degree_Celsius> q8 = point<deg_C>(20.5);
     ```
 
 - benefit from CTAD:
@@ -1872,7 +1873,7 @@ choose from here. Depending on our needs or tastes, we can:
     quantity_point q9 = si::zeroth_degree_Celsius + delta<deg_C>(20.5);
     quantity_point q10{delta<deg_C>(20.5), si::zeroth_degree_Celsius};
     quantity_point q11{delta<deg_C>(20.5)};
-    quantity_point q12 = absolute<deg_C>(20.5);
+    quantity_point q12 = point<deg_C>(20.5);
     ```
 
 In all of the above cases, we end up with the `quantity_point` of the same type and value.
@@ -1883,7 +1884,7 @@ the following way:
 <img src="img/affine_space_6.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-constexpr struct room_reference_temp final : relative_point_origin<absolute<deg_C>(21)> {} room_reference_temp;
+constexpr struct room_reference_temp final : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
 using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
 
 constexpr auto step_delta = delta<isq::Celsius_temperature<deg_C>>(0.5);
@@ -2292,7 +2293,7 @@ inline constexpr voltage_hw_t voltage_hw_range = voltage_hw_max - voltage_hw_min
 inline constexpr voltage_hw_t voltage_hw_zero = voltage_hw_range / 2;
 
 inline constexpr struct hw_voltage_origin final :
-  std::relative_point_origin<std::absolute<std::si::volt>(min_voltage)> {} hw_voltage_origin;
+  std::relative_point_origin<std::point<std::si::volt>(min_voltage)> {} hw_voltage_origin;
 
 inline constexpr struct hw_voltage_unit final :
   std::named_unit<"hwV", std::mag_ratio<voltage_range, voltage_hw_range> * std::si::volt, hw_voltage_origin> {} hw_voltage_unit;
@@ -2306,7 +2307,7 @@ std::optional<hw_voltage_quantity_point> read_hw_voltage()
 {
   voltage_hw_t local_copy = hw_voltage_value;
   if (local_copy == voltage_hw_error) return std::nullopt;
-  return std::absolute<hw_voltage_unit>(local_copy);
+  return std::point<hw_voltage_unit>(local_copy);
 }
 
 void print(std::QuantityPoint auto qp)
@@ -5485,8 +5486,8 @@ and benefiting from the fact that units of temperature have point origins provid
 definitions, we can obtain exactly the same quantity points with the following:
 
 ```cpp
-quantity_point qp3 = absolute<isq::thermodynamic_temperature[K]>(300.);
-quantity_point qp4 = absolute<isq::Celsius_temperature[deg_C]>(30.);
+quantity_point qp3 = point<isq::thermodynamic_temperature[K]>(300.);
+quantity_point qp4 = point<isq::Celsius_temperature[deg_C]>(30.);
 ```
 
 It is essential to understand that the origins of quantity points will not change if
@@ -8265,7 +8266,7 @@ user-defined `QuantityLike` type or any other type that is convertible to a `qua
 
 ## Quantity Points
 
-### `delta` and `absolute` creation helpers
+### `delta` and `point` creation helpers
 
 The features described in this chapter directly solve an issue raised on
 [std-proposals reflector](https://lists.isocpp.org/std-proposals/2024/06/10118.php). As it was
@@ -8297,7 +8298,7 @@ of the affine space abstractions and how they influence temperature handling.
 After a lengthy discussion on handling such scenarios, we decided to:
 
 - make the above code ill-formed,
-- provide an alternative way to create `quantity` and `quantity_point` with the `delta` and `absolute`
+- provide an alternative way to create `quantity` and `quantity_point` with the `delta` and `point`
   construction helpers respectively.
 
 Here are the main points of this new design:
@@ -8309,10 +8310,10 @@ Here are the main points of this new design:
     - `delta<m>(42)` results with a `quantity<si::metre, int>`,
     - `delta<deg_C>(5)` results with a `quantity<si::deg_C, int>`.
 
-3. A new `absolute` quantity point construction helper is introduced:
+3. A new `point` quantity point construction helper is introduced:
 
-    - `absolute<m>(42)` results with a `quantity_point<si::metre, zeroth_point_origin<kind_of<isq::length>>{}, int>`,
-    - `absolute<deg_C>(5)` results with a `quantity<si::metre, si::ice_point, int>`.
+    - `point<m>(42)` results with a `quantity_point<si::metre, zeroth_point_origin<kind_of<isq::length>>{}, int>`,
+    - `point<deg_C>(5)` results with a `quantity<si::metre, si::ice_point, int>`.
 
 Please note that `si::kelvin` is also excluded from the multiply syntax to prevent the
 following surprising issues:
@@ -8331,7 +8332,7 @@ static_assert(q.in(deg_C) != qp.in(deg_C).quantity_from_zero());
 
 ```cpp
 quantity q = delta<K>(300);
-quantity_point qp = absolute<K>(300);
+quantity_point qp = point<K>(300);
 static_assert(q.in(deg_C) != qp.in(deg_C).quantity_from_zero());
 ```
 
@@ -8347,8 +8348,8 @@ to create explicitly:
 - a `quantity_point` (the intended abstraction in this example) with any of the below syntaxes:
 
     ```cpp
-    quantity_point Temperature = absolute<deg_C>(28.0);
-    auto Temperature = absolute<deg_C>(28.0);
+    quantity_point Temperature = point<deg_C>(28.0);
+    auto Temperature = point<deg_C>(28.0);
     quantity_point Temperature(delta<deg_C>(28.0));
     ```
 
@@ -8392,7 +8393,7 @@ std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
 Now let's compare it to the implementation using a currently proposed design:
 
 ```cpp
-constexpr struct room_reference_temp final : relative_point_origin<absolute<deg_C>(21)> {} room_reference_temp;
+constexpr struct room_reference_temp final : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
 using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
 
 room_temp room_ref{};
@@ -8403,7 +8404,7 @@ std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
              room_ref.in(K).quantity_from_zero());
 ```
 
-First, removing those features also renders `absolute<deg_C>(21)` impossible to implement. Second,
+First, removing those features also renders `point<deg_C>(21)` impossible to implement. Second,
 mandating an explicit point origin when we convert to `quantity` makes the code harder to maintain
 as we have to track a current unit of a quantity carefully. If someone changes a unit,
 a point origin also has to be changed to get meaningful results. This is why, to ensure that we are
