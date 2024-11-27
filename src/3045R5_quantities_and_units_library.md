@@ -34,6 +34,7 @@ toc-depth: 4
 - `text_encoding` renamed to `character_set`.
 - `mp_units` namespace usage replaced with `std`.
 - `absolute` creation helper renamed to `point`.
+- Expression templates renamed to symbolic expressions.
 
 ## Changes since [@P3045R3]
 
@@ -4483,7 +4484,7 @@ good to discuss the scope for the Minimal Viable Product (MVP).
 
 We have several significant features to consider here:
 
-- **Core library**: `quantity`, expression templates, dimensions, units, references, and concepts
+- **Core library**: `quantity`, symbolic expressions, dimensions, units, references, and concepts
  for them,
 - **Quantity kinds**: support quantities of the same dimension that should be distinct,
  e.g., _frequency_, _activity_, and _modulation_rate_, or _energy_ and _moment_of_force_
@@ -5660,7 +5661,7 @@ To improve the types readability we also prefer to use type identifiers for temp
 
 Moreover, to prevent possible issues in the library's framework compile-time logic, all of the library's
 entities must be marked `final`. This prevents the users from deriving their own strong types from them,
-which would prevent expression template simplification of equivalent entities. This constraint
+which would prevent symbolic expressions simplification of equivalent entities. This constraint
 is enforced by the concepts in the library.
 
 ### Strong types instead of aliases
@@ -6271,7 +6272,7 @@ quantity_point qp = time_point_cast<std::chrono::seconds>(std::chrono::system_cl
 std::chrono::sys_seconds q = qp + 42 * s;
 ```
 
-## Expression templates
+## Symbolic expressions
 
 Modern C++ physical quantities and units libraries use opaque types to improve the user experience while
 analyzing compile-time errors or inspecting types in a debugger. This is a huge usability improvement
@@ -6281,10 +6282,10 @@ over the older libraries that use aliases to refer to long instantiations of cla
 
 Having such strong types for entities is not enough. While doing arithmetics on them, we get derived
 entities, and they also should be easy to understand and correlate with the code written by the user.
-This is where expression templates come into play.
+This is where symbolic expressions come into play.
 
 The library should use the same unified approach to represent the results of arithmetics on all
-kinds of entities. It is worth mentioning that a generic purpose expression templates library
+kinds of entities. It is worth mentioning that a generic purpose symbolic expressions library
 is not a good solution for a physical quantities and units library.
 
 Let's assume that we want to represent the results of the following two unit equations:
@@ -6302,7 +6303,7 @@ Comparing such types for equivalence would not only be very expensive at compile
 be really confusing to the users observing them in the compilation logs. This is why we need
 a dedicated solution here.
 
-In a physical quantities and units library, we need expression templates to express the results of
+In a physical quantities and units library, we need symbolic expressions to express the results of
 
 - dimension equations,
 - quantity type equations,
@@ -6334,13 +6335,13 @@ we recommend to use syntax that is as similar to the correct English language as
 It consistently uses the `derived_` prefix for types representing derived units,
 dimensions, and quantity specifications. Those are instantiated first with the contents of
 the numerator followed by the entities of the denominator (if present) enclosed in the
-`per<...>` expression template.
+`per<...>` symbolic expression.
 
 ### Identities
 
 The arithmetics on units, dimensions, and quantity types require a special identity value. Such value
 can be returned as a result of the division of the same entities, or using it should not modify the
-expression template on multiplication.
+symbolic expression on multiplication.
 
 We chose the following names here:
 
@@ -6381,10 +6382,10 @@ templates being their results:
 |          `sqrt(A)` or `pow<1, 2>(A)`          |            `power<A, 1, 2>`             |
 | `sqrt({identity})` or `pow<1, 2>({identity})` |              `{identity}`               |
 
-### Simplifying the resulting expression templates
+### Simplifying the resulting symbolic expressions
 
 To limit the length and improve the readability of generated types, there are many rules to simplify
-the resulting expression template.
+the resulting symbolic expression.
 
 1. **Ordering**
 
@@ -6449,14 +6450,14 @@ the resulting expression template.
 
     Also, to prevent possible issues in compile-time logic, all of the library's entities must be
     marked `final`. This prevents the users to derive own strong types from them, which would
-    prevent expression template simplification of equivalent entities.
+    prevent symbolic expression simplification of equivalent entities.
 
-    In [@MP-UNITS] library, we've tried to refine expression templates simplification rules to
+    In [@MP-UNITS] library, we've tried to refine symbolic expressions simplification rules to
     preserve the information of the origin. However, we were not satisfied with the results.
     The generated types were much longer and harder to reason about, which decreased the
     compile-time errors user experience. We've also got issues with basic library operations
     (e.g., determining the best common unit). More details can be found in
-    [Refining expression templates simplification rules](https://github.com/mpusz/mp-units/discussions/582)
+    [Refining symbolic expressions simplification rules](https://github.com/mpusz/mp-units/discussions/582)
     discussion.
 
 4. **Repacking**
@@ -6496,7 +6497,7 @@ in `s m s`, or `newton * metre` would result in `m N`, which is not how we typic
 unit. However, for the sake of consistency, we may also consider changing the algorithm used for
 ordering to be based on type identifiers.
 
-### Expression templates in action
+### Symbolic expressions in action
 
 Thanks to all of the steps described above, a user may write the code like this one:
 
@@ -8007,7 +8008,7 @@ As we observed above, the most common unit for dimensionless quantities is `one`
 ratio of `1` and does not output any textual symbol.
 
 A unit `one` is special in the entire type system of units as it is considered to be an identity
-operand in the unit expression templates. This means that, for example:
+operand in the unit symbolic expressions. This means that, for example:
 
 ```cpp
 static_assert(one * one == one);
