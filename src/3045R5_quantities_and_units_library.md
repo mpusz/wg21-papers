@@ -3991,9 +3991,9 @@ of them together with the recommended portable replacements:
 | GREEK SMALL LETTER PI |   π    | u8"\u03c0" |         "pi"         |
 | DOT OPERATOR          |   ⋅    | u8"\u22C5" |      `<none>`*       |
 
-(*) Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
+_NOTE: Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
 at the same time. This symbol is valid only for UTF-8 encoding. Otherwise, we propose to throw
-an exception during the unit symbol string processing.
+an exception during the unit symbol string processing._
 
 Here is an example of how the above are being used in a code:
 
@@ -4467,7 +4467,7 @@ library does not have enough information to print it that way by itself.
 5. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
    proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
    we OK with this?
-6. Are we OK with the usage of '_' for denoting a subscript identifier? Should we use it everywhere
+6. Are we OK with the usage of `_` for denoting a subscript identifier? Should we use it everywhere
    (consistency) or only where there is no dedicated Unicode subscript character?
 7. Are we OK with using Unicode characters for unit symbols in the code:
 
@@ -4475,7 +4475,6 @@ library does not have enough information to print it that way by itself.
     quantity resistance = 60 * kΩ;
     quantity capacitance = 100 * µF;
     ```
-
 
 # Minimal Viable Product (MVP) scope
 
