@@ -5166,7 +5166,7 @@ As such, users should instead use safer representation types.
 
 ### Integer overflow
 
-To convert a quantity in a program to different units, we need to multiply or divide by a conversion
+To convert a quantity to different units, we must multiply or divide its numerical value by a conversion
 factor.  Sometimes, the result is too big to fit in the type: a problem known as _overflow_.  While
 any numerical type can overflow, we focus on integral types here, because they carry the most risk.
 Even the smallest floating point type in common use, `float`, has a range of $10^{38}$, while the
