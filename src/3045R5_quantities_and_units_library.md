@@ -3989,9 +3989,9 @@ of them together with the recommended portable replacements:
 | SUPERSCRIPT MINUS     |   ⁻    | u8"\u207b" |         "-"          |
 | MULTIPLICATION SIGN   |   ×    | u8"\u00d7" |         "x"          |
 | GREEK SMALL LETTER PI |   π    | u8"\u03c0" |         "pi"         |
-| DOT OPERATOR          |   ⋅    | u8"\u22C5" |      `<none>`*       |
+| DOT OPERATOR          |   ⋅    | u8"\u22C5" |      `<none>`[^1]    |
 
-_NOTE: Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
+[^1]: Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
 at the same time. This symbol is valid only for UTF-8 encoding. Otherwise, we propose to throw
 an exception during the unit symbol string processing._
 
@@ -5170,9 +5170,9 @@ To convert a quantity to different units, we must multiply or divide its numeric
 factor.  Sometimes, the result is too big to fit in the type: a problem known as _overflow_.  While
 any numerical type can overflow, we focus on integral types here, because they carry the most risk.
 Even the smallest floating point type in common use, `float`, has a range of $10^{38}$, while the
-diameter of the observable universe measured in atomic diameters is "only" about $10^{37}$![^333]
+diameter of the observable universe measured in atomic diameters is "only" about $10^{37}$![^2]
 
-[^333]: Here, we take the radius of the observable universe as 46.6 billion light years, and the
+[^2]: Here, we take the radius of the observable universe as 46.6 billion light years, and the
       diameter of a hydrogen atom as 0.1 nanometers.
 
 Units libraries generate conversion factors automatically when the program is built, and apply them
@@ -5243,12 +5243,12 @@ doing so.
 
 Fundamentally, there are two contributions to the level of overflow risk:
 
-1. The _size of the conversion factor_: **bigger factors** mean **more risk**.[^2]
+1. The _size of the conversion factor_: **bigger factors** mean **more risk**.[^3]
 
 2. The _largest representable value in the destination type_: **larger max values** mean **less
    risk**.
 
-[^2]: Note that we're implicitly assuming that the conversion factor is simply an integer.  This is
+[^3]: Note that we're implicitly assuming that the conversion factor is simply an integer.  This is
 always true for the cases discussed in this section, because we're talking about converting quantity
 types with integral rep.  If the conversion factor were _not_ an integer, then we would already
 forbid this conversion due to _truncation_, so we wouldn't need to bother considering overflow.
