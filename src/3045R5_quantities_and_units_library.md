@@ -3586,7 +3586,7 @@ The second one must provide an alternative spelling and only use characters from
 
 Unicode provides only a minimal set of characters available as subscripts, which are often used to
 differentiate various constants and quantities of the same kind. To workaround this issue,
-[@MP-UNITS] uses '_' character to specify that the following characters should be considered
+[@MP-UNITS] uses `'_'` character to specify that the following characters should be considered
 a subscript of the symbol.
 
 ### Symbols for quantity types
@@ -3640,7 +3640,7 @@ For example, it is impossible to encode the symbols of the following quantities:
 - _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
 
 It is important to state that the same issues are related to constant definitions. For them,
-in the [Symbol definition examples] chapter, we proposed to use the '_' character instead, as
+in the [Symbol definition examples] chapter, we proposed to use the `'_'` character instead, as
 stated in [Lack of Unicode subscript characters]. We could use the same practice here.
 
 Another challenge here might be related to the fact that [@ISO80000] often provides more than
@@ -4467,8 +4467,8 @@ library does not have enough information to print it that way by itself.
 5. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
    proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
    we OK with this?
-6. Are we OK with the usage of `_` for denoting a subscript identifier? Should we use it everywhere
-   (consistency) or only where there is no dedicated Unicode subscript character?
+6. Are we OK with the usage of `'_'` for denoting a subscript identifier? Should we use it
+   everywhere (consistency) or only where there is no dedicated Unicode subscript character?
 7. Are we OK with using Unicode characters for unit symbols in the code:
 
     ```cpp
@@ -5796,7 +5796,7 @@ made the calculation error.
 
 Unfortunately, we can't be consistent here. The C++ language rules do not allow to use the same
 identifier for a template and the object resulting from its instantiation. For such cases, we
-decided to postfix the template identifier with `_`.
+decided to postfix the template identifier with `'_'`.
 
 Let's compare the readability of the current practices with an alternative and popular usage of
 `_t` postfixes for type identifiers (after removing the project namespace prefix):
@@ -7438,7 +7438,7 @@ It turns out that many reasons make UDLs a poor choice for a physical units libr
 
 3. While increasing the coverage for the [@MP-UNITS] library, we learned that many unit symbols
    conflict with built-in types or numeric extensions. A few of those are: `F` (farad), `J` (joule),
-   `W` (watt), `K` (kelvin), `d` (day), `l` or `L` (litre), `erg`, `ergps`. Using the `_` prefix
+   `W` (watt), `K` (kelvin), `d` (day), `l` or `L` (litre), `erg`, `ergps`. Using the `'_'` prefix
    would make it work for [@MP-UNITS], but if the library is standardized, those naming
    collisions would be a big issue. This is why we came up with the `_q_` prefix that would become
    `q_` after standardization (e.g., `42q_s`), which is not that nice anymore.
