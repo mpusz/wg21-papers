@@ -4643,9 +4643,10 @@ character set</a>.</em></p>
 characters<a href="#lack-of-unicode-subscript-characters" class="self-link"></a></h3>
 <p>Unicode provides only a minimal set of characters available as
 subscripts, which are often used to differentiate various constants and
-quantities of the same kind. To workaround this issue, <span class="citation" data-cites="MP-UNITS">[<a href="https://mpusz.github.io/mp-units" role="doc-biblioref">mp-units</a>]</span> uses ’_’ character to specify
-that the following characters should be considered a subscript of the
-symbol.</p>
+quantities of the same kind. To workaround this issue, <span class="citation" data-cites="MP-UNITS">[<a href="https://mpusz.github.io/mp-units" role="doc-biblioref">mp-units</a>]</span> uses
+<code class="sourceCode cpp"><span class="ch">&#39;_&#39;</span></code>
+character to specify that the following characters should be considered
+a subscript of the symbol.</p>
 <h3 data-number="15.1.3" id="symbols-for-quantity-types"><span class="header-section-number">15.1.3</span> Symbols for quantity types<a href="#symbols-for-quantity-types" class="self-link"></a></h3>
 <p>Although the ISQ defined in <span class="citation" data-cites="ISO80000">[<a href="https://www.iso.org/standard/76921.html" role="doc-biblioref">ISO/IEC 80000</a>]</span> provides symbols for each
 quantity type, there is little use for them in the C++ code. In the
@@ -4707,7 +4708,9 @@ cross section</em>,</li>
 </ul>
 <p>It is important to state that the same issues are related to constant
 definitions. For them, in the <a href="#symbol-definition-examples">Symbol definition examples</a>
-chapter, we proposed to use the ’_’ character instead, as stated in <a href="#lack-of-unicode-subscript-characters">Lack of Unicode subscript
+chapter, we proposed to use the
+<code class="sourceCode cpp"><span class="ch">&#39;_&#39;</span></code>
+character instead, as stated in <a href="#lack-of-unicode-subscript-characters">Lack of Unicode subscript
 characters</a>. We could use the same practice here.</p>
 <p>Another challenge here might be related to the fact that <span class="citation" data-cites="ISO80000">[<a href="https://www.iso.org/standard/76921.html" role="doc-biblioref">ISO/IEC 80000</a>]</span> often provides more than
 one symbol for the same quantity. For example:</p>
@@ -5608,7 +5611,8 @@ to format dimensions and units?</p></li>
 uses ‘Q’ and ‘q’ for a number and a unit. In the grammar above, we
 proposed using ‘N’ and ‘U’ for them, respectively. We also introduced
 ‘D’ for dimensions. Are we OK with this?</p></li>
-<li><p>Are we OK with the usage of <code class="sourceCode cpp">_</code>
+<li><p>Are we OK with the usage of
+<code class="sourceCode cpp"><span class="ch">&#39;_&#39;</span></code>
 for denoting a subscript identifier? Should we use it everywhere
 (consistency) or only where there is no dedicated Unicode subscript
 character?</p></li>
@@ -6320,8 +6324,8 @@ Having different operators for safe floating-point operations and unsafe
 integer operations would hurt generic programming. As such, users should
 instead use safer representation types.</p>
 <h3 data-number="17.2.2" id="integer-overflow"><span class="header-section-number">17.2.2</span> Integer overflow<a href="#integer-overflow" class="self-link"></a></h3>
-<p>To convert a quantity in a program to different units, we need to
-multiply or divide by a conversion factor. Sometimes, the result is too
+<p>To convert a quantity to different units, we must multiply or divide
+its numerical value by a conversion factor. Sometimes, the result is too
 big to fit in the type: a problem known as <em>overflow</em>. While any
 numerical type can overflow, we focus on integral types here, because
 they carry the most risk. Even the smallest floating point type in
@@ -6883,7 +6887,8 @@ error.</p>
 <p>Unfortunately, we can’t be consistent here. The C++ language rules do
 not allow to use the same identifier for a template and the object
 resulting from its instantiation. For such cases, we decided to postfix
-the template identifier with <code class="sourceCode cpp">_</code>.</p>
+the template identifier with
+<code class="sourceCode cpp"><span class="ch">&#39;_&#39;</span></code>.</p>
 <p>Let’s compare the readability of the current practices with an
 alternative and popular usage of <code class="sourceCode cpp">_t</code>
 postfixes for type identifiers (after removing the project namespace
@@ -8896,8 +8901,8 @@ of those are: <code class="sourceCode cpp">F</code> (farad),
 <code class="sourceCode cpp">L</code> (litre),
 <code class="sourceCode cpp">erg</code>,
 <code class="sourceCode cpp">ergps</code>. Using the
-<code class="sourceCode cpp">_</code> prefix would make it work for
-<span class="citation" data-cites="MP-UNITS">[<a href="https://mpusz.github.io/mp-units" role="doc-biblioref">mp-units</a>]</span>, but if the library is
+<code class="sourceCode cpp"><span class="ch">&#39;_&#39;</span></code>
+prefix would make it work for <span class="citation" data-cites="MP-UNITS">[<a href="https://mpusz.github.io/mp-units" role="doc-biblioref">mp-units</a>]</span>, but if the library is
 standardized, those naming collisions would be a big issue. This is why
 we came up with the <code class="sourceCode cpp">_q_</code> prefix that
 would become <code class="sourceCode cpp">q_</code> after
