@@ -3993,7 +3993,7 @@ of them together with the recommended portable replacements:
 
 [^1]: Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
 at the same time. This symbol is valid only for UTF-8 encoding. Otherwise, we propose to throw
-an exception during the unit symbol string processing._
+an exception during the unit symbol string processing.
 
 Here is an example of how the above are being used in a code:
 
