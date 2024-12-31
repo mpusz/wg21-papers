@@ -3586,7 +3586,7 @@ The second one must provide an alternative spelling and only use characters from
 
 Unicode provides only a minimal set of characters available as subscripts, which are often used to
 differentiate various constants and quantities of the same kind. To workaround this issue,
-[@MP-UNITS] uses '_' character to specify that the following characters should be considered
+[@MP-UNITS] uses `'_'` character to specify that the following characters should be considered
 a subscript of the symbol.
 
 ### Symbols for quantity types
@@ -3640,7 +3640,7 @@ For example, it is impossible to encode the symbols of the following quantities:
 - _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
 
 It is important to state that the same issues are related to constant definitions. For them,
-in the [Symbol definition examples] chapter, we proposed to use the '_' character instead, as
+in the [Symbol definition examples] chapter, we proposed to use the `'_'` character instead, as
 stated in [Lack of Unicode subscript characters]. We could use the same practice here.
 
 Another challenge here might be related to the fact that [@ISO80000] often provides more than
@@ -3989,9 +3989,9 @@ of them together with the recommended portable replacements:
 | SUPERSCRIPT MINUS     |   ⁻    | u8"\u207b" |         "-"          |
 | MULTIPLICATION SIGN   |   ×    | u8"\u00d7" |         "x"          |
 | GREEK SMALL LETTER PI |   π    | u8"\u03c0" |         "pi"         |
-| DOT OPERATOR          |   ⋅    | u8"\u22C5" |      `<none>`*       |
+| DOT OPERATOR          |   ⋅    | u8"\u22C5" |      `<none>`[^1]    |
 
-(*) Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
+[^1]: Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
 at the same time. This symbol is valid only for UTF-8 encoding. Otherwise, we propose to throw
 an exception during the unit symbol string processing.
 
@@ -4467,15 +4467,14 @@ library does not have enough information to print it that way by itself.
 5. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
    proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
    we OK with this?
-6. Are we OK with the usage of '_' for denoting a subscript identifier? Should we use it everywhere
-   (consistency) or only where there is no dedicated Unicode subscript character?
+6. Are we OK with the usage of `'_'` for denoting a subscript identifier? Should we use it
+   everywhere (consistency) or only where there is no dedicated Unicode subscript character?
 7. Are we OK with using Unicode characters for unit symbols in the code:
 
     ```cpp
     quantity resistance = 60 * kΩ;
     quantity capacitance = 100 * µF;
     ```
-
 
 # Minimal Viable Product (MVP) scope
 
@@ -5165,6 +5164,172 @@ Having different operators for safe floating-point operations and unsafe integer
 hurt generic programming.
 As such, users should instead use safer representation types.
 
+### Integer overflow
+
+To convert a quantity to different units, we must multiply or divide its numerical value by a conversion
+factor.  Sometimes, the result is too big to fit in the type: a problem known as _overflow_.  While
+any numerical type can overflow, we focus on integral types here, because they carry the most risk.
+Even the smallest floating point type in common use, `float`, has a range of $10^{38}$, while the
+diameter of the observable universe measured in atomic diameters is "only" about $10^{37}$![^2]
+
+[^2]: Here, we take the radius of the observable universe as 46.6 billion light years, and the
+      diameter of a hydrogen atom as 0.1 nanometers.
+
+Units libraries generate conversion factors automatically when the program is built, and apply them
+invisibly.  This amazing convenience comes with a risk: since users don't see the conversion
+factors, it's easy to overlook the multiplication that's taking place under the hood.  This is even
+more true in certain "hidden" conversions, where most users don't even realize that a conversion is
+taking place!  Consider this comparison:
+
+```cpp
+constexpr bool result = (11 * si::metre > 12 * international::yard);
+```
+
+Even though the quantities have different units, this code compiles and produces a correct result.
+It turns out that `11 * si::metre` is roughly 0.2% larger than `12 * international::yard`, so
+`result` is `true`.
+
+The goal is to obtain this answer without leaving the domain of exact integer arithmetic.  To do so,
+we must find another unit that can accommodate _both_ inputs as integer values --- essentially,
+a kind of "greatest common factor" of these two units, which we call their "common unit".  This
+particular common unit has no special name, but it turns out to be equal to 800 micrometers.  The
+metre is larger by a factor of 1250, and the yard by a factor of 1143.  Therefore, what takes place
+under the hood is that we multiply `11 * 1250`, and compare it to `12 * 1143`: since the former is
+indeed larger, the result of `>` will be `true`.
+
+Now that we have a fuller understanding of what's going on under the hood, let's take another look
+at the code.  When we see something like `11 * si::metre > 12 * international::yard`, it's certainly
+not obvious at a glance that this will multiply each underlying value by a factor of over 1,000!
+Whatever approach we take to mitigating overflow risk, it will need to handle these kinds of
+"hidden" cases as well.
+
+Over the decades that people have been writing units libraries, several approaches have emerged for
+dealing with overflow risk.  That said, there isn't a consensus about the best approach to take ---
+in fact, at the time of writing, new strategies are still being developed and tested.  Here are the
+main strategies we have seen.
+
+#### Do nothing
+
+This is the simplest approach, and probably also the most popular: make the users responsible for
+avoiding overflow.  The documentation may simply warn them to check their values ahead of time, as
+in this [example from the bernedom/SI
+library](https://github.com/bernedom/SI/blob/main/doc/implementation-details.md#implicit-ratio-conversion--possible-loss-of-precision).
+
+While this approach is perfectly valid, it does put a lot of responsibility onto the end users, many
+of whom may not realize that they have incurred it.  Even for those who do, we've seen above that
+many unit conversions are hard to spot.  It's reasonable to assume that this approach leads to the
+highest incidence of overflow bugs.
+
+#### Curate user-facing types
+
+The [`std::chrono`](https://en.cppreference.com/w/cpp/chrono/duration) library, a time-only units
+library, takes a different approach.  It uses intimate knowledge of the domain to craft its
+user-facing types such that they all cover the same (very generous) range of values. Specifically,
+every named `std::chrono::duration` type shorter than a day --- everything from
+`std::chrono::hours`, all the way down to `std::chrono::nanoseconds` --- is guaranteed to be able to
+represent _at least_ ±292 years.
+
+As long as users' durations are within this range --- _and_, as long as they _stick to these primary
+user-facing types_ --- they can be confident that their values won't overflow.
+
+This approach works very well in practice for the (great many) users who can meet both of these
+conditions.  However, it doesn't translate well to a _multi-dimensional_ units library: since there
+are many dimensions, and new ones can be created on the fly, it's infeasible to try to define
+a "practical range" for _all_ of them.  Besides, users can still form arbitrary
+`std::chrono::duration` types, and they are unlikely to notice the danger they have incurred in
+doing so.
+
+#### Adapt to risk
+
+Fundamentally, there are two contributions to the level of overflow risk:
+
+1. The _size of the conversion factor_: **bigger factors** mean **more risk**.[^3]
+
+2. The _largest representable value in the destination type_: **larger max values** mean **less
+   risk**.
+
+[^3]: Note that we're implicitly assuming that the conversion factor is simply an integer.  This is
+always true for the cases discussed in this section, because we're talking about converting quantity
+types with integral rep.  If the conversion factor were _not_ an integer, then we would already
+forbid this conversion due to _truncation_, so we wouldn't need to bother considering overflow.
+
+Therefore, we should be able to create an _adaptive policy_ that takes these factors into account.
+The key concept is the "smallest overflowing value".  For every combination of "conversion factor"
+and "type," there is some smallest starting-value that will overflow.  The simplest adaptive policy
+is to forbid conversions when that smallest value is "small enough to be scary".
+
+How small should we consider "scary"?  Here are some considerations.
+
+- Users tend to choose units that fit their problem domain, and produce "manageable" values.  For
+  example, the most common SI prefixes cover 3 orders of magnitude.  In practice, this means that
+  values less than $1,000$ are common, but higher values much less so (because, for example, lengths
+  of over $1,000\,\text{m}$ can be more concisely expressed in $\text{km}$.)  This means that if
+  a value as small as 1,000 would overflow --- so small that we haven't even _reached_ the next unit
+  --- we should _definitely_ forbid the conversion.
+
+- On the other hand, we've found it useful to initialize, say, `quantity<si::hertz, int32_t>`
+  variables with something like `500 * si::mega<si::hertz>`.  Thus, we'd like this operation to
+  succeed (although it should probably be near the border of what's allowed).
+
+Putting it all together, the Au library settled on a value threshold of `2'147`.  If this value can
+convert without overflow, then they permit the operation; otherwise, they don't. They picked this
+value because it satisfies the above criteria nicely.  It will prevent the scariest operations that
+can't even handle a value of 1,000, but it still permits free use of $\text{MHz}$ when storing
+$\text{Hz}$ quantities in `int32_t`.  Several years' practical experience in production has shown
+that this threshold provides a good default level of protection, while still permitting most
+operations that users would tend to judge as "safe".  This policy also lends itself well to
+visualization: the [Au
+docs](https://aurora-opensource.github.io/au/0.4.1/discussion/concepts/overflow/#plot-the-overflow-safety-surface)
+show the boundary between forbidden and permitted conversions.
+
+#### Check every conversion at runtime
+
+While the overflow safety surface is a leap forward in safety and flexibility, it's still only
+a heuristic.  There will always be valid conversions which it forbids, and invalid ones which it
+permits.
+
+One way to _guarantee_ doing better is to check every conversion at runtime.  While we generally
+prefer to avoid runtime costs in units libraries, this particular case is worth the cost.  Unit
+conversions very rarely appear in the "hot loops" of a well designed program, so paying a few cycles
+to get perfect conversion safety tends to be a net win.
+
+The hardest problem in this approach is not the performance cost, but the error handling.  There are
+a variety of methods --- exceptions, C++17's `optional`, C++23's `expected`, etc. --- and no single
+strategy is best in all cases.  One promising strategy is therefore to separate error _detection_
+and _response_.  The units library can provide boolean checkers for every conversion to indicate
+whether a _specific_ input will overflow, or will truncate, or will be lossy in either of these
+ways.  Then each project can write conversion functions that use these helpers to detect problematic
+inputs, and respond with whatever error handling mechanism they prefer.
+
+#### Delegate to rep
+
+Perhaps the most appealing approach to overflow in units libraries is to delegate the problem to
+another library entirely.  Quantity types can work with any underlying numeric type (called the
+"rep", as in the `chrono` library) that satisfies certain concepts related to basic arithmetic.  If
+that rep comes from a library that is dedicated to providing overflow-safe numeric types, then the
+problem is solved without any additional effort on the units library side.
+
+This approach currently suffers from at least two significant downsides.  First, it is less
+thoroughly tested in production usage, so we don't know what the practical pitfalls are.  Second,
+raw numeric types are likely to be overwhelmingly common in practice, and using this approach alone
+would leave this group of users unprotected --- a group where less-experienced users are likely to
+be over-represented.  Therefore, this can't be the _only_ solution to overflow.
+
+#### Summary
+
+Overflow for integer reps is a serious problem for quantities and units libraries, made worse by the
+fact that many instances are hard even for experts to spot.  We can easily rule out several common
+strategies for a standard units library.  First, with a "do nothing" approach, the library would not
+be acceptably safe to use with integer types.  Second, the "curated types" approach from the
+`chrono` library can't scale to the multi-dimensional use case.
+
+We recommend combining the remaining three strategies, which can work together to handle
+complementary use cases.  A simple adaptive policy provides a good baseline level of safety, without
+unduly restricting use cases: this is indispensable for "hidden conversions" such as mixed-unit
+comparisons.  Runtime conversion checkers make it easy to check individual input values for specific
+kinds of loss.  Finally --- and, orthogonally to this library --- more advanced users can use
+overflow-safe numeric types from whatever library they choose, as the rep.
+
 ### Lack of safe numeric types
 
 Integers can overflow on arithmetics. This has already caused some expensive failures in engineering
@@ -5631,7 +5796,7 @@ made the calculation error.
 
 Unfortunately, we can't be consistent here. The C++ language rules do not allow to use the same
 identifier for a template and the object resulting from its instantiation. For such cases, we
-decided to postfix the template identifier with `_`.
+decided to postfix the template identifier with `'_'`.
 
 Let's compare the readability of the current practices with an alternative and popular usage of
 `_t` postfixes for type identifiers (after removing the project namespace prefix):
@@ -7273,7 +7438,7 @@ It turns out that many reasons make UDLs a poor choice for a physical units libr
 
 3. While increasing the coverage for the [@MP-UNITS] library, we learned that many unit symbols
    conflict with built-in types or numeric extensions. A few of those are: `F` (farad), `J` (joule),
-   `W` (watt), `K` (kelvin), `d` (day), `l` or `L` (litre), `erg`, `ergps`. Using the `_` prefix
+   `W` (watt), `K` (kelvin), `d` (day), `l` or `L` (litre), `erg`, `ergps`. Using the `'_'` prefix
    would make it work for [@MP-UNITS], but if the library is standardized, those naming
    collisions would be a big issue. This is why we came up with the `_q_` prefix that would become
    `q_` after standardization (e.g., `42q_s`), which is not that nice anymore.
