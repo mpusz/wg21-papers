@@ -19,6 +19,7 @@ author:
 - [Related proposals] chapter added.
 - [`std::string_literal`] chapter added.
 - [Constructor from the string literal] extended with [@P3491R0].
+- Compiler Explorer link updated.
 
 ## Changes since [@P3094R4]
 
@@ -393,7 +394,7 @@ storage.
 This particular interface is implemented, tested, and successfully used in the
 [mp-units](https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h)
 project. A complete implementation with tests can also be checked in the
-[Compiler Explorer](https://godbolt.org/z/MvhY996W6).
+[Compiler Explorer](https://godbolt.org/z/dM1PPnG9f).
 
 
 # Wording
