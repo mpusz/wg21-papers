@@ -573,7 +573,7 @@ public:
   constexpr basic_fixed_string(It begin, S end);
 
   template<ranges::input_range R>
-    requires same_as<ranges::range_reference_t<R>, charT>
+    requires same_as<ranges::range_value_t<R>, charT>
   constexpr basic_fixed_string(from_range_t, R&& r);
 
   constexpr basic_fixed_string(const basic_fixed_string&) noexcept = default;
@@ -686,7 +686,7 @@ as specified in [sequence.reqmts]{.sref}.
 
 ```cpp
 template<ranges::input_range R>
-  requires same_as<ranges::range_reference_t<R>, charT>
+  requires same_as<ranges::range_value_t<R>, charT>
 constexpr basic_fixed_string(from_range_t, R&& r);
 ```
 
