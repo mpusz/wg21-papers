@@ -17,6 +17,7 @@ author:
 - `convertible_to<charT>` replaced with `same_as<charT>`.
 - [@P2484R0] replaced with [@P3380R1] for structural types.
 - [Related proposals] chapter added.
+- [`std::string_literal`] chapter added.
 
 ## Changes since [@P3094R4]
 
@@ -376,6 +377,12 @@ There are two papers that could affect the shape of this proposal:
 A modern practice is to expose operators as hidden friends and this is what this type does.
 However, this is inconsistent with `string` and `string_view` which provide them as regular
 non-member functions. Should we consider doing the same for consistency?
+
+## `std::string_literal`
+
+During the last meeting in Wrocław, Barry Revzin proposed to rename this type to `string_literal`.
+It might be a good solution, considering that this type does not allow mutation of the underlying
+storage.
 
 # Implementation experience
 
