@@ -18,6 +18,7 @@ author:
 - [@P2484R0] replaced with [@P3380R1] for structural types.
 - [Related proposals] chapter added.
 - [`std::string_literal`] chapter added.
+- [Constructor from the string literal] extended with [@P3491R0].
 
 ## Changes since [@P3094R4]
 
@@ -251,6 +252,9 @@ of `charT` as parameters to improve consistency and correctness.
 
 As calling such an immediate function does not impose any runtime overhead, the construction
 of this type also satisfies point 2. above.
+
+Additionally, in case [@P3491R0] gets accepted, we could constrain this constructor with
+`is_string_literal(ptr)`.
 
 ## Constructor taking the list of characters
 
