@@ -56,12 +56,12 @@ to this activity.
 - [P3094R3: `std::basic_fixed_string`](papers/3094R3_std_basic_fixed_string.html)
 - [P3094R4: `std::basic_fixed_string`](papers/3094R4_std_basic_fixed_string.html)
 - [P3094R5: `std::basic_fixed_string`](papers/3094R5_std_basic_fixed_string.html)
+- [P3094R6: `std::basic_fixed_string`](papers/3094R6_std_basic_fixed_string.html)
 
 ### Under Development
 
 - [P3045R4: Quantities and units library](papers/3045R4_quantities_and_units_library.html)
 - [P3045R5: Quantities and units library](papers/3045R5_quantities_and_units_library.html)
-- [P3094R6: `std::basic_fixed_string`](papers/3094R6_std_basic_fixed_string.html)
 
 ## More Papers
 
