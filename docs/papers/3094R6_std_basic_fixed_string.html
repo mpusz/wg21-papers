@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2025-01-10" />
+  <title>`std::basic_fixed_string`</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+      div.csl-block{margin-left: 1.5em;}
+      ul.task-list{list-style: none;}
+      pre > code.sourceCode { white-space: pre; position: relative; }
+      pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+      pre > code.sourceCode > span:empty { height: 1.2em; }
+      .sourceCode { overflow: visible; }
+      code.sourceCode > span { color: inherit; text-decoration: inherit; }
+      div.sourceCode { margin: 1em 0; }
+      pre.sourceCode { margin: 0; }
+      @media screen {
+      div.sourceCode { overflow: auto; }
+      }
+      @media print {
+      pre > code.sourceCode { white-space: pre-wrap; }
+      pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+      }
+      pre.numberSource code
+        { counter-reset: source-line 0; }
+      pre.numberSource code > span
+        { position: relative; left: -4em; counter-increment: source-line; }
+      pre.numberSource code > span > a:first-child::before
+        { content: counter(source-line);
+          position: relative; left: -1em; text-align: right; vertical-align: baseline;
+          border: none; display: inline-block;
+          -webkit-touch-callout: none; -webkit-user-select: none;
+          -khtml-user-select: none; -moz-user-select: none;
+          -ms-user-select: none; user-select: none;
+          padding: 0 4px; width: 4em;
+          color: #aaaaaa;
+        }
+      pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+      div.sourceCode
+        {  background-color: #f6f8fa; }
+      @media screen {
+      pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+      }
+      code span { } /* Normal */
+      code span.al { color: #ff0000; } /* Alert */
+      code span.an { } /* Annotation */
+      code span.at { } /* Attribute */
+      code span.bn { color: #9f6807; } /* BaseN */
+      code span.bu { color: #9f6807; } /* BuiltIn */
+      code span.cf { color: #00607c; } /* ControlFlow */
+      code span.ch { color: #9f6807; } /* Char */
+      code span.cn { } /* Constant */
+      code span.co { color: #008000; font-style: italic; } /* Comment */
+      code span.cv { color: #008000; font-style: italic; } /* CommentVar */
+      code span.do { color: #008000; } /* Documentation */
+      code span.dt { color: #00607c; } /* DataType */
+      code span.dv { color: #9f6807; } /* DecVal */
+      code span.er { color: #ff0000; font-weight: bold; } /* Error */
+      code span.ex { } /* Extension */
+      code span.fl { color: #9f6807; } /* Float */
+      code span.fu { } /* Function */
+      code span.im { } /* Import */
+      code span.in { color: #008000; } /* Information */
+      code span.kw { color: #00607c; } /* Keyword */
+      code span.op { color: #af1915; } /* Operator */
+      code span.ot { } /* Other */
+      code span.pp { color: #6f4e37; } /* Preprocessor */
+      code span.re { } /* RegionMarker */
+      code span.sc { color: #9f6807; } /* SpecialChar */
+      code span.ss { color: #9f6807; } /* SpecialString */
+      code span.st { color: #9f6807; } /* String */
+      code span.va { } /* Variable */
+      code span.vs { color: #9f6807; } /* VerbatimString */
+      code span.wa { color: #008000; font-weight: bold; } /* Warning */
+      code.diff {color: #898887}
+      code.diff span.va {color: #006e28}
+      code.diff span.st {color: #bf0303}
+  </style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+text-align: justify;
+}
+@media screen and (max-width: 30em) {
+body {
+margin: 1.5em;
+}
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+</style>
+  <link href="data:image/x-icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center"><code class="sourceCode cpp">std<span class="op">::</span>basic_fixed_string</code></h1>
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #:</td>
+    <td>P3094R6</td>
+  </tr>
+  <tr>
+    <td>Date:</td>
+    <td>2025-01-10</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project:</td>
+    <td>Programming Language C++</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Audience:</td>
+    <td>
+      Library Evolution Working Group<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to:</td>
+    <td>
+      Mateusz Pusz (<a href="http://www.epam.com">Epam
+Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateusz.pusz@gmail.com</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision history<span></span></a>
+<ul>
+<li><a href="#changes-since-p3094r5" id="toc-changes-since-p3094r5"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P3094R5">[<span>P3094R5</span>]</span><span></span></a></li>
+<li><a href="#changes-since-p3094r4" id="toc-changes-since-p3094r4"><span class="toc-section-number">1.2</span> Changes since <span class="citation" data-cites="P3094R4">[<span>P3094R4</span>]</span><span></span></a></li>
+<li><a href="#changes-since-p3094r3" id="toc-changes-since-p3094r3"><span class="toc-section-number">1.3</span> Changes since <span class="citation" data-cites="P3094R3">[<span>P3094R3</span>]</span><span></span></a></li>
+<li><a href="#changes-since-p3094r2" id="toc-changes-since-p3094r2"><span class="toc-section-number">1.4</span> Changes since <span class="citation" data-cites="P3094R2">[<span>P3094R2</span>]</span><span></span></a></li>
+<li><a href="#changes-since-p3094r1" id="toc-changes-since-p3094r1"><span class="toc-section-number">1.5</span> Changes since <span class="citation" data-cites="P3094R1">[<span>P3094R1</span>]</span><span></span></a></li>
+<li><a href="#changes-since-p3094r0" id="toc-changes-since-p3094r0"><span class="toc-section-number">1.6</span> Changes since <span class="citation" data-cites="P3094R0">[<span>P3094R0</span>]</span><span></span></a></li>
+</ul></li>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">2</span> Introduction<span></span></a></li>
+<li><a href="#fixed_string-is-an-established-practice" id="toc-fixed_string-is-an-established-practice"><span class="toc-section-number">3</span>
+<code class="sourceCode cpp">fixed_string</code> is an established
+practice<span></span></a></li>
+<li><a href="#minimal-interface-requirements" id="toc-minimal-interface-requirements"><span class="toc-section-number">4</span> Minimal interface
+requirements<span></span></a></li>
+<li><a href="#fixed_string-design-alternatives" id="toc-fixed_string-design-alternatives"><span class="toc-section-number">5</span>
+<code class="sourceCode cpp">fixed_string</code> design
+alternatives<span></span></a>
+<ul>
+<li><a href="#full-string_view-like-interface" id="toc-full-string_view-like-interface"><span class="toc-section-number">5.1</span> Full
+<code class="sourceCode cpp">string_view</code>-like
+interface<span></span></a></li>
+<li><a href="#mutation-interface" id="toc-mutation-interface"><span class="toc-section-number">5.2</span> Mutation
+interface<span></span></a></li>
+<li><a href="#inplace_string" id="toc-inplace_string"><span class="toc-section-number">5.3</span>
+<code class="sourceCode cpp">inplace_string</code><span></span></a></li>
+<li><a href="#stdstring-with-a-static-storage-allocator" id="toc-stdstring-with-a-static-storage-allocator"><span class="toc-section-number">5.4</span>
+<code class="sourceCode cpp">std<span class="op">::</span>string</code>
+with a static storage allocator<span></span></a></li>
+<li><a href="#using-stdarray-for-storage" id="toc-using-stdarray-for-storage"><span class="toc-section-number">5.5</span> Using
+<code class="sourceCode cpp">std<span class="op">::</span>array</code>
+for storage<span></span></a></li>
+<li><a href="#just-wait-for-the-c-language-to-solve-it" id="toc-just-wait-for-the-c-language-to-solve-it"><span class="toc-section-number">5.6</span> Just wait for the C++ language to
+solve it<span></span></a></li>
+</ul></li>
+<li><a href="#design-discussion" id="toc-design-discussion"><span class="toc-section-number">6</span> Design discussion<span></span></a>
+<ul>
+<li><a href="#no-default-constructor" id="toc-no-default-constructor"><span class="toc-section-number">6.1</span> No default
+constructor<span></span></a></li>
+<li><a href="#constructor-from-the-string-literal" id="toc-constructor-from-the-string-literal"><span class="toc-section-number">6.2</span> Constructor from the string
+literal<span></span></a></li>
+<li><a href="#constructor-taking-the-list-of-characters" id="toc-constructor-taking-the-list-of-characters"><span class="toc-section-number">6.3</span> Constructor taking the list of
+characters<span></span></a></li>
+<li><a href="#constructor-from-the-range" id="toc-constructor-from-the-range"><span class="toc-section-number">6.4</span> Constructor from the
+range<span></span></a></li>
+<li><a href="#assignment-and-swap" id="toc-assignment-and-swap"><span class="toc-section-number">6.5</span> Assignment and
+<code class="sourceCode cpp">swap</code><span></span></a></li>
+<li><a href="#simd-like-size" id="toc-simd-like-size"><span class="toc-section-number">6.6</span>
+<code class="sourceCode cpp">simd</code>-like
+<code class="sourceCode cpp">size</code><span></span></a></li>
+<li><a href="#non-member-swap" id="toc-non-member-swap"><span class="toc-section-number">6.7</span> Non-member
+<code class="sourceCode cpp">swap</code><span></span></a></li>
+<li><a href="#user-defined-literals" id="toc-user-defined-literals"><span class="toc-section-number">6.8</span> User-defined
+literals<span></span></a></li>
+<li><a href="#structural-type-requirements" id="toc-structural-type-requirements"><span class="toc-section-number">6.9</span> Structural type
+requirements<span></span></a></li>
+<li><a href="#char_traits" id="toc-char_traits"><span class="toc-section-number">6.10</span>
+<code class="sourceCode cpp">char_traits</code><span></span></a></li>
+</ul></li>
+<li><a href="#related-proposals" id="toc-related-proposals"><span class="toc-section-number">7</span> Related
+proposals<span></span></a></li>
+<li><a href="#open-questions" id="toc-open-questions"><span class="toc-section-number">8</span> Open questions<span></span></a>
+<ul>
+<li><a href="#should-we-unhide-our-friends" id="toc-should-we-unhide-our-friends"><span class="toc-section-number">8.1</span> Should we unhide our
+friends?<span></span></a></li>
+<li><a href="#stdstring_literal" id="toc-stdstring_literal"><span class="toc-section-number">8.2</span> <code class="sourceCode cpp">std<span class="op">::</span>string_literal</code><span></span></a></li>
+</ul></li>
+<li><a href="#implementation-experience" id="toc-implementation-experience"><span class="toc-section-number">9</span> Implementation
+experience<span></span></a></li>
+<li><a href="#wording" id="toc-wording"><span class="toc-section-number">10</span> Wording<span></span></a>
+<ul>
+<li><a href="#library" id="toc-library"><span class="toc-section-number">10.1</span> <span>Library
+introduction</span><span></span></a>
+<ul>
+<li><a href="#requirements" id="toc-requirements"><span class="toc-section-number">10.1.1</span> <span>Library-wide
+requirements</span><span></span></a></li>
+</ul></li>
+<li><a href="#version.syn" id="toc-version.syn"><span class="toc-section-number">10.2</span> <span>Header <code class="sourceCode cpp"><span class="op">&lt;</span>version<span class="op">&gt;</span></code>
+synopsis</span><span></span></a></li>
+<li><a href="#utilities" id="toc-utilities"><span class="toc-section-number">10.3</span> <span>General utilities
+library</span><span></span></a>
+<ul>
+<li><a href="#format" id="toc-format"><span class="toc-section-number">10.3.1</span>
+<span>Formatting</span><span></span></a></li>
+</ul></li>
+<li><a href="#strings" id="toc-strings"><span class="toc-section-number">10.4</span> <span>Strings
+library</span><span></span></a>
+<ul>
+<li><a href="#strings.general" id="toc-strings.general"><span class="toc-section-number">10.4.1</span>
+<span>General</span><span></span></a></li>
+<li><a href="#string.view" id="toc-string.view"><span class="toc-section-number">10.4.2</span> <span>String view
+classes</span><span></span></a></li>
+<li><a href="#fixed.string" id="toc-fixed.string"><span class="toc-section-number">10.4.3</span> Fixed size string
+classes<span></span></a></li>
+</ul></li>
+<li><a href="#containers" id="toc-containers"><span class="toc-section-number">10.5</span> <span>Containers
+library</span><span></span></a>
+<ul>
+<li><a href="#container.requirements" id="toc-container.requirements"><span class="toc-section-number">10.5.1</span>
+<span>Requirements</span><span></span></a></li>
+</ul></li>
+<li><a href="#diff" id="toc-diff"><span class="toc-section-number">10.6</span> <span>Annex C
+(informative)</span><span></span></a>
+<ul>
+<li><a href="#diff.cpp23" id="toc-diff.cpp23"><span class="toc-section-number">10.6.1</span> <span>C++ and ISO C++
+2023</span><span></span></a></li>
+</ul></li>
+</ul></li>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">11</span>
+Acknowledgements<span></span></a></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">12</span> References<span></span></a></li>
+</ul>
+</div>
+<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
+<h2 data-number="1.1" id="changes-since-p3094r5"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P3094R5">[<a href="https://wg21.link/p3094r5" role="doc-biblioref">P3094R5</a>]</span><a href="#changes-since-p3094r5" class="self-link"></a></h2>
+<ul>
+<li><code class="sourceCode cpp">convertible_to<span class="op">&lt;</span>charT<span class="op">&gt;</span></code>
+replaced with <code class="sourceCode cpp">same_as<span class="op">&lt;</span>charT<span class="op">&gt;</span></code>.</li>
+<li><span class="citation" data-cites="P2484R0">[<a href="https://wg21.link/p2484r0" role="doc-biblioref">P2484R0</a>]</span> replaced with <span class="citation" data-cites="P3380R1">[<a href="https://wg21.link/p3380r1" role="doc-biblioref">P3380R1</a>]</span> for structural types.</li>
+<li><a href="#related-proposals">Related proposals</a> chapter
+added.</li>
+<li><a href="#stdstring_literal"><code class="sourceCode cpp">std<span class="op">::</span>string_literal</code></a>
+chapter added.</li>
+<li><a href="#constructor-from-the-string-literal">Constructor from the
+string literal</a> extended with <span class="citation" data-cites="P3491R0">[<a href="https://wg21.link/p3491r0" role="doc-biblioref">P3491R0</a>]</span>.</li>
+<li>Poll results added to the <a href="#inplace_string"><code class="sourceCode cpp">inplace_string</code></a>
+chapter.</li>
+<li>Compiler Explorer link updated.</li>
+</ul>
+<h2 data-number="1.2" id="changes-since-p3094r4"><span class="header-section-number">1.2</span> Changes since <span class="citation" data-cites="P3094R4">[<a href="https://wg21.link/p3094r4" role="doc-biblioref">P3094R4</a>]</span><a href="#changes-since-p3094r4" class="self-link"></a></h2>
+<ul>
+<li>Footnote modified to express immutability.</li>
+<li><code class="sourceCode cpp">char_traits</code> support removed and
+<a href="#char_traits"><code class="sourceCode cpp">char_traits</code></a>
+chapter added.</li>
+</ul>
+<h2 data-number="1.3" id="changes-since-p3094r3"><span class="header-section-number">1.3</span> Changes since <span class="citation" data-cites="P3094R3">[<a href="https://wg21.link/p3094r3" role="doc-biblioref">P3094R3</a>]</span><a href="#changes-since-p3094r3" class="self-link"></a></h2>
+<ul>
+<li><code class="sourceCode cpp">std<span class="op">::</span></code>
+prefix dropped in <a href="#wording">Wording</a>.</li>
+<li><a href="#fixed.string.iterators">Iterator support</a> and <a href="#fixed.string.access">Element access</a> chapters added.</li>
+<li><code class="sourceCode cpp">one<span class="op">-</span>of</code>
+exposition-only concept removed.</li>
+<li>Extraneous
+<code class="sourceCode cpp"><span class="kw">const</span></code>
+removed from <code class="sourceCode cpp"><span class="kw">operator</span><span class="op">+</span></code>.</li>
+</ul>
+<h2 data-number="1.4" id="changes-since-p3094r2"><span class="header-section-number">1.4</span> Changes since <span class="citation" data-cites="P3094R2">[<a href="https://wg21.link/p3094r2" role="doc-biblioref">P3094R2</a>]</span><a href="#changes-since-p3094r2" class="self-link"></a></h2>
+<ul>
+<li>Additional motivation for <a href="#constructor-taking-the-list-of-characters">Constructor taking the
+list of characters</a> added.</li>
+<li>Capacity related operations fixed to properly use <code class="sourceCode cpp">std<span class="op">::</span>integral_constant</code>.</li>
+<li><code class="sourceCode cpp"><span class="op">&lt;</span>fixed_string<span class="op">&gt;</span></code>
+added to <a href="https://eel.is/c++draft/tab:headers.cpp">Table 24: C++
+library headers</a>.</li>
+<li>Non-member
+<code class="sourceCode cpp">swap<span class="op">()</span></code> and
+rationale for it added.</li>
+<li>Ill-formed notes in synopsis replaced with “Mandates”.</li>
+<li>“Constructs an object” replaced with the “Initializes
+<code class="sourceCode cpp">data_</code>” in the constructor’s
+wording.</li>
+<li>“Annex C” entry added.</li>
+</ul>
+<h2 data-number="1.5" id="changes-since-p3094r1"><span class="header-section-number">1.5</span> Changes since <span class="citation" data-cites="P3094R1">[<a href="https://wg21.link/p3094r1" role="doc-biblioref">P3094R1</a>]</span><a href="#changes-since-p3094r1" class="self-link"></a></h2>
+<ul>
+<li><a href="#design-discussion">Design discussion</a> chapter
+extended.</li>
+<li><a href="#open-questions">Open questions</a> chapter updated.</li>
+<li>Compiler Explorer link added to the <a href="#implementation-experience">Implementation experience</a>
+chapter.</li>
+<li>“Synopsis” chapter renamed to <a href="#wording">Wording</a> and
+filled with standardeese.</li>
+<li>Char traits template parameter added.</li>
+<li><code class="sourceCode cpp">reverse_iterator</code> support.</li>
+<li>Functions taking string literals as parameters made
+<code class="sourceCode cpp"><span class="kw">consteval</span></code>.</li>
+<li>Constructor from a range added.</li>
+<li><code class="sourceCode cpp">view<span class="op">()</span></code>
+member function.</li>
+<li>More container-like and string-like member functions.</li>
+<li>Additional <code class="sourceCode cpp"><span class="kw">operator</span><span class="op">+</span></code>
+overloads that explicitly work with string literals and single
+characters.</li>
+<li>Comparison operators with string literals.</li>
+<li>Deduction guide from <code class="sourceCode cpp">array<span class="op">&lt;</span>charT, N<span class="op">&gt;</span></code>.</li>
+<li><code class="sourceCode cpp">formatter</code> specialization removed
+from synopsis as the <code class="sourceCode cpp">fixed_string</code>
+type was added to the debug-enabled string type specializations.</li>
+</ul>
+<h2 data-number="1.6" id="changes-since-p3094r0"><span class="header-section-number">1.6</span> Changes since <span class="citation" data-cites="P3094R0">[<a href="https://wg21.link/p3094r0" role="doc-biblioref">P3094R0</a>]</span><a href="#changes-since-p3094r0" class="self-link"></a></h2>
+<ul>
+<li><a href="#using-stdarray-for-storage">Using
+<code class="sourceCode cpp">std<span class="op">::</span>array</code>
+for storage</a> chapter added.</li>
+<li>[Design rationale] chapter added.</li>
+<li><a href="#open-questions">Open questions</a> chapter added.</li>
+<li>[Synopsis] chapter updated:
+<ul>
+<li><code class="sourceCode cpp"><span class="op">.</span>view<span class="op">()</span></code>
+replaced with a conversion operator to <code class="sourceCode cpp">std<span class="op">::</span>string_view</code>,</li>
+<li>constructor taking <code class="sourceCode cpp">std<span class="op">:</span>integral_constant</code>
+replaced with the one that takes iterator and sentinel,</li>
+<li><code class="sourceCode cpp"><span class="kw">operator</span><span class="op">==</span></code>
+specification improved,</li>
+<li>missing alias templates for
+<code class="sourceCode cpp"><span class="dt">wchar_t</span></code>,
+<code class="sourceCode cpp"><span class="dt">char8_t</span></code>,
+<code class="sourceCode cpp"><span class="dt">char16_t</span></code>,
+and <code class="sourceCode cpp"><span class="dt">char32_t</span></code>
+added.</li>
+</ul></li>
+</ul>
+<h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
+<p>This paper proposes standardizing a string type that could be used at
+compile-time as a non-type template parameter (NTTP). This means that
+such string type has to satisfy the structural type requirements of the
+C++ language. One of such requirements is to expose all the data members
+publicly. So far, none of the existing string types in the C++ standard
+library satisfies such requirements.</p>
+<p>This type is intended to serve as an essential building block and be
+exposed as a part of the public interface of quantities and units
+library proposed in <span class="citation" data-cites="P2980R1">[<a href="https://wg21.link/p2980r1" role="doc-biblioref">P2980R1</a>]</span>. All dimensions, units,
+prefixes, and constants definitions will use it to provide their textual
+representation.</p>
+<h1 data-number="3" id="fixed_string-is-an-established-practice"><span class="header-section-number">3</span>
+<code class="sourceCode cpp">fixed_string</code> is an established
+practice<a href="#fixed_string-is-an-established-practice" class="self-link"></a></h1>
+<p><code class="sourceCode cpp">fixed_string</code> is not just to
+enable quantities and units library. There are plenty of home-grown
+<code class="sourceCode cpp">fixed_string</code> types in the wild
+already. It is heavily used in low-latency finance, text formatting,
+compile-time regular expressions, and many other domains.</p>
+<p>Today, every project that wants to pass text as NTTP already provides
+its own version of such type. There are also some that predate C++20 and
+do not satisfy structural type requirements.</p>
+<p>A <a href="https://github.com/search?q=fixed_string+language%3AC%2B%2B&amp;type=repositories&amp;ref=advsearch">quick
+search in GitHub</a> returns plenty of results. Let’s mention a few of
+those:</p>
+<ul>
+<li><a href="https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h">mpusz/mp-units</a></li>
+<li><a href="https://github.com/fmtlib/fmt/blob/5cfd28d476c6859617878f951931b8ce7d36b9df/include/fmt/format.h#L1065-L1071">fmtlib/fmt</a></li>
+<li><a href="https://github.com/hanickadot/compile-time-regular-expressions/blob/029f1f13646cf65ec09780013418cb8f1c5d3a59/include/ctll/fixed_string.hpp#L44-L220">hanickadot/compile-time-regular-expressions</a></li>
+<li><a href="https://github.com/tomazos/fixed_string">tomazos/fixed_string</a>
+- a reference implementation of <span class="citation" data-cites="P0259R0">[<a href="https://wg21.link/p0259r0" role="doc-biblioref">P0259R0</a>]</span> (not a structural type as it is
+8 years old)</li>
+<li><a href="https://github.com/unterumarmung/fixed_string">unterumarmung/fixed_string</a></li>
+<li><a href="https://github.com/mu001999/fixed_string">mu001999/fixed_string</a></li>
+<li><a href="https://github.com/calebxyz/Fixed_Strings">calebxyz/Fixed_Strings</a></li>
+<li><a href="https://github.com/astral-shining/FixedString">astral-shining/FixedString</a></li>
+<li><a href="https://github.com/ynsn/fixed_string">ynsn/fixed_string</a></li>
+</ul>
+<p>Having such a type in the C++ standard library will prevent
+reinventing the wheel by the community and reimplementing it in every
+project that handles text at compile-time.</p>
+<h1 data-number="4" id="minimal-interface-requirements"><span class="header-section-number">4</span> Minimal interface requirements<a href="#minimal-interface-requirements" class="self-link"></a></h1>
+<p>Such type should at least:</p>
+<ul>
+<li>satisfy structural type requirements,</li>
+<li>be equality comparable and potentially totally ordered,</li>
+<li>store and provide concatenation support for zero-ended strings,</li>
+<li>provide storage that, if set at compile time, would also be
+available for read-only access at runtime,</li>
+<li>provide at least read-only access to the contained storage.</li>
+</ul>
+<p>It does not need to expose a string-like interface. In case its
+interface is immutable, as it is proposed in this paper, we can easily
+wrap it with <code class="sourceCode cpp">std<span class="op">::</span>string_view</code>
+to get such an interface for free.</p>
+<h1 data-number="5" id="fixed_string-design-alternatives"><span class="header-section-number">5</span>
+<code class="sourceCode cpp">fixed_string</code> design alternatives<a href="#fixed_string-design-alternatives" class="self-link"></a></h1>
+<h2 data-number="5.1" id="full-string_view-like-interface"><span class="header-section-number">5.1</span> Full
+<code class="sourceCode cpp">string_view</code>-like interface<a href="#full-string_view-like-interface" class="self-link"></a></h2>
+<p>We could add a whole
+<code class="sourceCode cpp">string_view</code>-like interface to this
+class, but the author decided not to do it. This will add plenty of
+overloads that will probably not be used too often by the users of this
+particular type anyway. Doing that will also add a maintenance burden to
+keep it consistent with all other string-like types in the library.</p>
+<p>If the user needs to obtain a
+<code class="sourceCode cpp">string_view</code>-like interface to work
+with this type, then <code class="sourceCode cpp">std<span class="op">::</span>string_view</code>
+itself can easily be used to achieve that:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>basic_fixed_string txt <span class="op">=</span> <span class="st">&quot;abc&quot;</span>;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> pos <span class="op">=</span> txt<span class="op">.</span>view<span class="op">().</span>find_first_of<span class="op">(</span><span class="ch">&#39;b&#39;</span><span class="op">)</span>;</span></code></pre></div>
+<h2 data-number="5.2" id="mutation-interface"><span class="header-section-number">5.2</span> Mutation interface<a href="#mutation-interface" class="self-link"></a></h2>
+<p>As stated above, this type is read-only. As we can’t resize the
+string, it could be considered controversial to allow mutation of the
+contents. The only thing we could provide would be support for
+overwriting specific characters in the internal storage. This, however,
+is not a common use case for such a type.</p>
+<p>If passed as an NTTP, such type would be
+<code class="sourceCode cpp"><span class="kw">const</span></code> at
+runtime, which would disable all the mutation interface anyway.</p>
+<p>On the other hand, such an interface would allow running every
+<code class="sourceCode cpp"><span class="kw">constexpr</span></code>
+algorithm from the C++ standard library on such a range at compile
+time.</p>
+<p>Suppose we decide to add such an interface. In that case, it is worth
+pointing out that wrapping the type in the <code class="sourceCode cpp">std<span class="op">::</span>string_view</code>
+would not be enough to obtain a proper string-like mutating interface.
+As we do not have another string-like reference type that provides
+mutating capabilities, we can end up with the need to implement the
+entire string interface in this class as well.</p>
+<p>This is why the author does not propose adding it to the first
+iteration. We can always easily add such an interface later if a need
+arises.</p>
+<h2 data-number="5.3" id="inplace_string"><span class="header-section-number">5.3</span>
+<code class="sourceCode cpp">inplace_string</code><a href="#inplace_string" class="self-link"></a></h2>
+<p>We could also consider providing a full-blown fixed-capacity string
+class similar to the <code class="sourceCode cpp">inplace_vector</code>
+<span class="citation" data-cites="P0843R9">[<a href="https://wg21.link/p0843r9" role="doc-biblioref">P0843R9</a>]</span>. It would provide not only full
+read-write capability but also be really beneficial for embedded and
+low-latency domains.</p>
+<p>Despite being welcomed and valuable in the C++ community, the author
+believes that such a type should not satisfy the current requirements
+for a structural type, which is a hard requirement of this proposal. If
+<code class="sourceCode cpp">inplace_string</code> was used instead, we
+would end up with separate template instantiations for objects with the
+same value but a different capacity.</p>
+<p>The above issue could be solved by <span class="citation" data-cites="P3380R1">[<a href="https://wg21.link/p3380r1" role="doc-biblioref">P3380R1</a>]</span>, which proposes a solution that
+would extend the definition of structural types to any type that can be
+serialized and deserialized. That paper is at the early stage of the
+standardization pipeline, and today, we can’t be sure if the Committee
+will accept it. Even if the paper is accepted in the future, nothing
+prevents us from having both a
+<code class="sourceCode cpp">fixed_string</code> and
+<code class="sourceCode cpp">inplace_string</code> in the library as
+types corresponding to <code class="sourceCode cpp">array</code> and
+<code class="sourceCode cpp">inplace_vector</code>.</p>
+<p>LEWG took the following poll during the Wrocław 2024 meeting:</p>
+<blockquote>
+<p>POLL: We want to proceed with
+<code class="sourceCode cpp">fixed_string</code> despite EWG proposals
+that make string structural or the possibility of
+<code class="sourceCode cpp">inplace_string</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><div style="text-align:center">
+<strong>SF</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>WF</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>N</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>WA</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>SA</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">2</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<h2 data-number="5.4" id="stdstring-with-a-static-storage-allocator"><span class="header-section-number">5.4</span>
+<code class="sourceCode cpp">std<span class="op">::</span>string</code>
+with a static storage allocator<a href="#stdstring-with-a-static-storage-allocator" class="self-link"></a></h2>
+<p>We could also try to use
+<code class="sourceCode cpp">std<span class="op">::</span>string</code>
+with a static storage allocator, but this solution does not meet
+structural type requirements and could be an overkill for this use
+case.</p>
+<p>Also, it would be hard or impossible to make the storage created at
+compile-time to be accessible at runtime in such cases.</p>
+<h2 data-number="5.5" id="using-stdarray-for-storage"><span class="header-section-number">5.5</span> Using
+<code class="sourceCode cpp">std<span class="op">::</span>array</code>
+for storage<a href="#using-stdarray-for-storage" class="self-link"></a></h2>
+<p>We could consider using
+<code class="sourceCode cpp">std<span class="op">::</span>array</code>
+instead, as it satisfies the current requirements for structural types.
+However, it does not properly construct from string literals and does
+not provide string-like concatenation interfaces.</p>
+<h2 data-number="5.6" id="just-wait-for-the-c-language-to-solve-it"><span class="header-section-number">5.6</span> Just wait for the C++ language
+to solve it<a href="#just-wait-for-the-c-language-to-solve-it" class="self-link"></a></h2>
+<p>We can’t wait for the C++ language to change forever. For example,
+the quantities and units library will be impossible to standardize
+without such a feature. This is why the author recommends progressing
+with the <code class="sourceCode cpp">basic_fixed_string</code>
+approach.</p>
+<h1 data-number="6" id="design-discussion"><span class="header-section-number">6</span> Design discussion<a href="#design-discussion" class="self-link"></a></h1>
+<h2 data-number="6.1" id="no-default-constructor"><span class="header-section-number">6.1</span> No default constructor<a href="#no-default-constructor" class="self-link"></a></h2>
+<p>As this type has sized fixed at compile time it can’t be empty upon
+construction. This means that this type can’t provide the default
+constructor. This also means that it does not satisfy the constraints of
+the
+<code class="sourceCode cpp">std<span class="op">::</span>regular</code>
+concept.</p>
+<h2 data-number="6.2" id="constructor-from-the-string-literal"><span class="header-section-number">6.2</span> Constructor from the string
+literal<a href="#constructor-from-the-string-literal" class="self-link"></a></h2>
+<p>This constructor is the workhorse of
+<code class="sourceCode cpp">fixed_string</code> type. It will be called
+by the users every time they want to pass string literals to NTTPs. This
+is why the author proposes to make it implicit. Making the constructors
+explicit would make the primary use case much more verbose:</p>
+<table>
+<thead>
+<tr class="header">
+<th><div style="text-align:center">
+<strong>Explicit</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Implicit</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><div>
+
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> second <span class="op">:</span> named_unit<span class="op">&lt;</span>std<span class="op">::</span>basic_fixed_string<span class="op">{</span><span class="st">&quot;s&quot;</span><span class="op">}&gt;</span> <span class="op">{}</span> second;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> metre <span class="op">:</span> named_unit<span class="op">&lt;</span>std<span class="op">::</span>fixed_string<span class="op">{</span><span class="st">&quot;m&quot;</span><span class="op">}&gt;</span> <span class="op">{}</span> metre;</span></code></pre></div>
+
+</div></td>
+<td><div>
+
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> second <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;s&quot;</span><span class="op">&gt;</span> <span class="op">{}</span> second;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> metre <span class="op">:</span> named_unit<span class="op">&lt;</span><span class="st">&quot;m&quot;</span><span class="op">&gt;</span> <span class="op">{}</span> metre;</span></code></pre></div>
+
+</div></td>
+</tr>
+</tbody>
+</table>
+<p>Typically, we agree on making the constructor implicit if:</p>
+<ol type="1">
+<li>The constructor argument and the type itself represent “the same”
+abstraction.</li>
+<li>There is no significant overhead of calling such a constructor.</li>
+</ol>
+<p>Point 1. is satisfied as both a string literal and
+<code class="sourceCode cpp">basic_fixed_string</code> represent an
+array of characters ended with
+<code class="sourceCode cpp">\<span class="dv">0</span></code>.</p>
+<p>Additionally, the author proposes to make this constructor
+<code class="sourceCode cpp"><span class="kw">consteval</span></code>.
+This should encourage calling it with string literals that by definition
+end with <code class="sourceCode cpp">\<span class="dv">0</span></code>
+character and limit chances of passing a hand-made array of characters.
+This approach got unanimous consent after discussion in LEWGI in Tokyo
+2024. This approach also extends to all other functions taking the array
+of <code class="sourceCode cpp">charT</code> as parameters to improve
+consistency and correctness.</p>
+<p>As calling such an immediate function does not impose any runtime
+overhead, the construction of this type also satisfies point 2.
+above.</p>
+<p>Additionally, in case <span class="citation" data-cites="P3491R0">[<a href="https://wg21.link/p3491r0" role="doc-biblioref">P3491R0</a>]</span> gets accepted, we could
+constrain this constructor with <code class="sourceCode cpp">is_string_literal<span class="op">(</span>ptr<span class="op">)</span></code>.</p>
+<h2 data-number="6.3" id="constructor-taking-the-list-of-characters"><span class="header-section-number">6.3</span> Constructor taking the list of
+characters<a href="#constructor-taking-the-list-of-characters" class="self-link"></a></h2>
+<p>This constructor enables a few use cases that are hard to implement
+otherwise:</p>
+<ol type="1">
+<li><code class="sourceCode cpp">std<span class="op">::</span>basic_fixed_string<span class="op">(</span><span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">char</span><span class="op">&gt;(</span><span class="ch">&#39;0&#39;</span> <span class="op">+</span> Value<span class="op">))</span></code>
+(used in <a href="https://github.com/mpusz/mp-units">mp-units</a>)</li>
+<li><code class="sourceCode cpp">std<span class="op">::</span>fixed_string<span class="op">{</span><span class="ch">&#39;V&#39;</span>, <span class="ch">&#39;P&#39;</span>, <span class="ch">&#39;B&#39;</span>, <span class="op">(</span><span class="dt">char</span><span class="op">)</span>version<span class="op">}</span></code>
+(credit to Hana Dusíková)</li>
+<li><code class="sourceCode cpp">std<span class="op">::</span>fixed_string<span class="op">{</span><span class="ch">&#39;W&#39;</span>, <span class="ch">&#39;e&#39;</span>, <span class="ch">&#39;i&#39;</span>, <span class="ch">&#39;r&#39;</span>, <span class="ch">&#39;d&#39;</span>, <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span>, <span class="ch">&#39;b&#39;</span>, <span class="ch">&#39;u&#39;</span>, <span class="ch">&#39;t&#39;</span>, <span class="ch">&#39; &#39;</span>, <span class="ch">&#39;t&#39;</span>, <span class="ch">&#39;r&#39;</span>, <span class="ch">&#39;u&#39;</span>, <span class="ch">&#39;e&#39;</span><span class="op">}</span></code>
+(credit to Tom Honermann)</li>
+</ol>
+<p>This constructor also allows us to deduce the size of the string from
+the initializer to improve CTAD usage. Using <code class="sourceCode cpp">std<span class="op">::</span>initializer_list<span class="op">&lt;</span>charT<span class="op">&gt;</span></code>
+would not support it.</p>
+<h2 data-number="6.4" id="constructor-from-the-range"><span class="header-section-number">6.4</span> Constructor from the range<a href="#constructor-from-the-range" class="self-link"></a></h2>
+<p>There are at least two ways of passing a range to a string-like type
+in the C++ standard library:</p>
+<ul>
+<li><code class="sourceCode cpp">basic_string</code> takes
+<code class="sourceCode cpp">from_range_t</code> as the first parameter
+and
+<code class="sourceCode cpp">R<span class="op">&amp;&amp;</span></code>
+as the second one,</li>
+<li><code class="sourceCode cpp">basic_string_view</code> takes
+<code class="sourceCode cpp">R<span class="op">&amp;&amp;</span></code>
+as the only parameter.</li>
+</ul>
+<p>If we decided to go with the latter case, this constructor would
+hijack the constructor taking the array of characters as a parameter.
+This is why we would need to provide a bit different signature than
+<code class="sourceCode cpp">string_view</code>. Taking <code class="sourceCode cpp"><span class="kw">const</span> R<span class="op">&amp;</span></code>
+parameter would be good enough as move on character types is not faster
+than a copy.</p>
+<p>Moreover, this type owns its storage, so it is more similar to
+<code class="sourceCode cpp">basic_string</code> than the
+<code class="sourceCode cpp">basic_string_view</code>.</p>
+<p>This is why the author decided to propose the first alternative that
+uses <code class="sourceCode cpp">from_range_t</code> as an additional
+first parameter.</p>
+<h2 data-number="6.5" id="assignment-and-swap"><span class="header-section-number">6.5</span> Assignment and
+<code class="sourceCode cpp">swap</code><a href="#assignment-and-swap" class="self-link"></a></h2>
+<p>Even though the type does not provide any string/container-like
+interface to mutate the contents, they can still be changed with the
+copy assignment operator. Not exposing this operator could be surprising
+to many users. Also, as we have assignment probably it is good to also
+provide a
+<code class="sourceCode cpp">swap<span class="op">()</span></code>
+member function for consistency with other types in the library.</p>
+<h2 data-number="6.6" id="simd-like-size"><span class="header-section-number">6.6</span>
+<code class="sourceCode cpp">simd</code>-like
+<code class="sourceCode cpp">size</code><a href="#simd-like-size" class="self-link"></a></h2>
+<p>During Tokyo 2024 discussion in LEWGI we took the following poll:</p>
+<blockquote>
+<p>POLL: Do we want the
+<code class="sourceCode cpp"><span class="op">.</span>size</code> member
+to be an <code class="sourceCode cpp">integral_constant<span class="op">&lt;</span><span class="dt">size_t</span>, N<span class="op">&gt;</span></code>
+(and <code class="sourceCode cpp"><span class="op">.</span>empty</code>
+to be <code class="sourceCode cpp">bool_constant<span class="op">&lt;</span>N<span class="op">==</span><span class="dv">0</span><span class="op">&gt;</span></code>)?</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><div style="text-align:center">
+<strong>SF</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>WF</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>N</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>WA</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>SA</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>As a result, the R2 version of this paper introduces this practice
+from the <code class="sourceCode cpp">simd</code> type to
+<code class="sourceCode cpp">size</code>,
+<code class="sourceCode cpp">length</code>,
+<code class="sourceCode cpp">max_size</code>, and
+<code class="sourceCode cpp">empty</code> member functions.</p>
+<h2 data-number="6.7" id="non-member-swap"><span class="header-section-number">6.7</span> Non-member
+<code class="sourceCode cpp">swap</code><a href="#non-member-swap" class="self-link"></a></h2>
+<p>Typically its implementation will not differ from calling the generic
+<code class="sourceCode cpp">std<span class="op">::</span>swap</code>.
+However, in some extreme cases, when we use the type with enormously
+long text, library implementers may choose to swap the data in chunks to
+save stack space. In such case, generic <code class="sourceCode cpp">std<span class="op">::</span>swap<span class="op">()</span></code>
+could provide a different behavior than calling the member
+<code class="sourceCode cpp">swap<span class="op">()</span></code>
+function.</p>
+<h2 data-number="6.8" id="user-defined-literals"><span class="header-section-number">6.8</span> User-defined literals<a href="#user-defined-literals" class="self-link"></a></h2>
+<p>In Tokyo 2024 we briefly discussed adding UDLs for this type.
+However, we decided not to do it as those strings are not massively used
+and typically are not created on the fly from literals in user’s
+code.</p>
+<p>As there is a dedicated constructor that takes a string literal as an
+argument, this is a recommended way to initialize the object of this
+type from a string literal.</p>
+<h2 data-number="6.9" id="structural-type-requirements"><span class="header-section-number">6.9</span> Structural type requirements<a href="#structural-type-requirements" class="self-link"></a></h2>
+<p>As of today, the C++ language requires a structural type to expose
+all its members publicly. This is why in the wording a public
+exposition-only data member is provided. However, we hope that the
+structural type requirements will be relaxed in the future and this data
+member will be possible to implement as a private data member in the
+future versions of the standard.</p>
+<h2 data-number="6.10" id="char_traits"><span class="header-section-number">6.10</span>
+<code class="sourceCode cpp">char_traits</code><a href="#char_traits" class="self-link"></a></h2>
+<p>Support for <code class="sourceCode cpp">char_traits</code> was added
+upon the LEWGI request in <span class="citation" data-cites="P3094R1">[<a href="https://wg21.link/p3094r1" role="doc-biblioref">P3094R1</a>]</span>. However, this was considered a
+bad decision by SG16.</p>
+<p><code class="sourceCode cpp">char_traits</code> promises
+configurability for operations where no user-level configuration makes
+sense.</p>
+<p>The <code class="sourceCode cpp">charT</code> template parameter
+needs to be a char-like type (<span>27.1
+<a href="https://wg21.link/strings.general">[strings.general]</a></span>),
+which means it’s trivial, and the implementation thus doesn’t need
+<code class="sourceCode cpp">char_traits</code> to enable
+<code class="sourceCode cpp">memcpy</code>-style optimizations.</p>
+<p>For the comparisons, having
+<code class="sourceCode cpp">char_traits</code> that implement
+case-insensitive comparisons is oversimplifying because
+case-insensitivity is locale-dependent. Also, encoding such comparison
+semantics into a data type seems like a bad design.</p>
+<p>During the SG16 meeting on October 9, 2024, the following poll was
+taken:</p>
+<blockquote>
+<p>POLL: P3094R4: Amend the proposal to remove the
+<code class="sourceCode cpp">traits</code> template parameter and
+dependence on <code class="sourceCode cpp">std<span class="op">::</span>char_traits</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><div style="text-align:center">
+<strong>SF</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>WF</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>N</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>WA</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>SA</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Attendees: 12 (2 abstentions)</li>
+<li>Author’s position: N</li>
+<li>Strong consensus</li>
+</ul>
+</blockquote>
+<p>As a result of this poll,
+<code class="sourceCode cpp">char_traits</code> were removed again from
+the paper in R5.</p>
+<h1 data-number="7" id="related-proposals"><span class="header-section-number">7</span> Related proposals<a href="#related-proposals" class="self-link"></a></h1>
+<p>There are two papers that could affect the shape of this
+proposal:</p>
+<ul>
+<li>“<span class="citation" data-cites="P3380R1">[<a href="https://wg21.link/p3380r1" role="doc-biblioref">P3380R1</a>]</span>: Extending support for class
+types as non-type template parameters” - could allow implementing
+<code class="sourceCode cpp">inplace_string</code> as a structural type
+(see <a href="#inplace_string"><code class="sourceCode cpp">inplace_string</code></a>).</li>
+<li>“<span class="citation" data-cites="P3491R0">[<a href="https://wg21.link/p3491r0" role="doc-biblioref">P3491R0</a>]</span>: <code class="sourceCode cpp">define_static_<span class="op">{</span>string,object,array<span class="op">}</span></code>”
+- provides <code class="sourceCode cpp">is_string_literal<span class="op">(</span>ptr<span class="op">)</span></code>
+function that could improve constraints of the function templates taking
+an array of characters in this proposal (see <a href="#constructor-from-the-string-literal">Constructor from the string
+literal</a>).</li>
+</ul>
+<h1 data-number="8" id="open-questions"><span class="header-section-number">8</span> Open questions<a href="#open-questions" class="self-link"></a></h1>
+<h2 data-number="8.1" id="should-we-unhide-our-friends"><span class="header-section-number">8.1</span> Should we unhide our friends?<a href="#should-we-unhide-our-friends" class="self-link"></a></h2>
+<p>A modern practice is to expose operators as hidden friends and this
+is what this type does. However, this is inconsistent with
+<code class="sourceCode cpp">string</code> and
+<code class="sourceCode cpp">string_view</code> which provide them as
+regular non-member functions. Should we consider doing the same for
+consistency?</p>
+<h2 data-number="8.2" id="stdstring_literal"><span class="header-section-number">8.2</span> <code class="sourceCode cpp">std<span class="op">::</span>string_literal</code><a href="#stdstring_literal" class="self-link"></a></h2>
+<p>During the last meeting in Wrocław, Barry Revzin proposed to rename
+this type to <code class="sourceCode cpp">string_literal</code>. It
+might be a good solution, considering that this type does not allow
+mutation of the underlying storage.</p>
+<h1 data-number="9" id="implementation-experience"><span class="header-section-number">9</span> Implementation experience<a href="#implementation-experience" class="self-link"></a></h1>
+<p>This particular interface is implemented, tested, and successfully
+used in the <a href="https://github.com/mpusz/mp-units/blob/master/src/core/include/mp-units/bits/external/fixed_string.h">mp-units</a>
+project. A complete implementation with tests can also be checked in the
+<a href="https://godbolt.org/z/dM1PPnG9f">Compiler Explorer</a>.</p>
+<h1 data-number="10" id="wording"><span class="header-section-number">10</span> Wording<a href="#wording" class="self-link"></a></h1>
+<h2 data-number="10.1" id="library"><span class="header-section-number">10.1</span> <a href="https://wg21.link/library">Library introduction</a><a href="#library" class="self-link"></a></h2>
+<h3 data-number="10.1.1" id="requirements"><span class="header-section-number">10.1.1</span> <a href="https://wg21.link/requirements">Library-wide requirements</a><a href="#requirements" class="self-link"></a></h3>
+<h4 data-number="10.1.1.1" id="organization"><span class="header-section-number">10.1.1.1</span> <a href="https://wg21.link/organization">Library contents and
+organization</a><a href="#organization" class="self-link"></a></h4>
+<h5 data-number="10.1.1.1.1" id="headers"><span class="header-section-number">10.1.1.1.1</span> <a href="https://wg21.link/headers">Headers</a><a href="#headers" class="self-link"></a></h5>
+<p>Add <code class="sourceCode cpp"><span class="op">&lt;</span>fixed_string<span class="op">&gt;</span></code>
+to the <a href="https://eel.is/c++draft/tab:headers.cpp">Table 24: C++
+library headers</a>.</p>
+<h2 data-number="10.2" id="version.syn"><span class="header-section-number">10.2</span> <a href="https://wg21.link/version.syn">Header <code class="sourceCode cpp"><span class="op">&lt;</span>version<span class="op">&gt;</span></code>
+synopsis</a><a href="#version.syn" class="self-link"></a></h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_filesystem                        </span><span class="dv">201703</span><span class="bu">L</span><span class="pp"> </span><span class="co">// also in &lt;filesystem&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">#define __cpp_lib_fixed_string                      YYYYMML // also in &lt;fixed_string&gt;</code></span></ins></span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_flat_map                          </span><span class="dv">202207</span><span class="bu">L</span><span class="pp"> </span><span class="co">// also in &lt;flat_map&gt;</span></span></code></pre></div>
+<p><strong>Editorial note</strong>: Adjust the placeholder value as
+needed so as to denote this proposal’s date of adoption.</p>
+<h2 data-number="10.3" id="utilities"><span class="header-section-number">10.3</span> <a href="https://wg21.link/utilities">General utilities library</a><a href="#utilities" class="self-link"></a></h2>
+<h3 data-number="10.3.1" id="format"><span class="header-section-number">10.3.1</span> <a href="https://wg21.link/format">Formatting</a><a href="#format" class="self-link"></a></h3>
+<h4 data-number="10.3.1.1" id="format.formatter"><span class="header-section-number">10.3.1.1</span> <a href="https://wg21.link/format.formatter">Formatter</a><a href="#format.formatter" class="self-link"></a></h4>
+<h5 data-number="10.3.1.1.1" id="format.formatter.spec"><span class="header-section-number">10.3.1.1.1</span> <a href="https://wg21.link/format.formatter.spec">Formatter
+specializations</a><a href="#format.formatter.spec" class="self-link"></a></h5>
+<p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> For
+each <code class="sourceCode cpp">charT</code>, the debug-enabled string
+type specializations</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;&gt;</span> <span class="kw">struct</span> formatter<span class="op">&lt;</span>charT<span class="op">*</span>, charT<span class="op">&gt;</span>;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;&gt;</span> <span class="kw">struct</span> formatter<span class="op">&lt;</span><span class="kw">const</span> charT<span class="op">*</span>, charT<span class="op">&gt;</span>;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> formatter<span class="op">&lt;</span>charT<span class="op">[</span>N<span class="op">]</span>, charT<span class="op">&gt;</span>;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> traits, <span class="kw">class</span> Allocator<span class="op">&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> formatter<span class="op">&lt;</span>basic_string<span class="op">&lt;</span>charT, Allocator<span class="op">&gt;</span>, charT<span class="op">&gt;</span>;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> traits<span class="op">&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> formatter<span class="op">&lt;</span>basic_string_view<span class="op">&lt;</span>charT<span class="op">&gt;</span>, charT<span class="op">&gt;</span>;</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">template&lt;size_t N&gt;</code></span></ins></span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">struct formatter&lt;basic_fixed_string&lt;charT, N&gt;, charT&gt;;</code></span></ins></span></span></code></pre></div>
+<h2 data-number="10.4" id="strings"><span class="header-section-number">10.4</span> <a href="https://wg21.link/strings">Strings library</a><a href="#strings" class="self-link"></a></h2>
+<h3 data-number="10.4.1" id="strings.general"><span class="header-section-number">10.4.1</span> <a href="https://wg21.link/strings.general">General</a><a href="#strings.general" class="self-link"></a></h3>
+<p>Modify <a href="https://eel.is/c++draft/tab:strings.summary">Table
+78: Strings library summary</a>:</p>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 23%" />
+<col style="width: 49%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><div style="text-align:center">
+<strong>Subclause</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Header</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span>27.2
+<a href="https://wg21.link/char.traits">[char.traits]</a></span></td>
+<td>Character traits</td>
+<td><code class="sourceCode cpp"><span class="op">&lt;</span>string<span class="op">&gt;</span></code></td>
+</tr>
+<tr class="even">
+<td><span>27.3
+<a href="https://wg21.link/string.view">[string.view]</a></span></td>
+<td>String view classes</td>
+<td><code class="sourceCode cpp"><span class="op">&lt;</span>string_view<span class="op">&gt;</span></code></td>
+</tr>
+<tr class="odd">
+<td><span>27.4
+<a href="https://wg21.link/string.classes">[string.classes]</a></span></td>
+<td>String classes</td>
+<td><code class="sourceCode cpp"><span class="op">&lt;</span>string<span class="op">&gt;</span></code></td>
+</tr>
+<tr class="even">
+<td><span class="add" style="color: #006e28"><ins><a href="#fixed.string">[fixed.string]</a></ins></span></td>
+<td><span class="add" style="color: #006e28"><ins>Fixed size string
+classes</ins></span></td>
+<td><span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">&lt;fixed_string&gt;</code></span></ins></span></td>
+</tr>
+<tr class="odd">
+<td><span>27.5
+<a href="https://wg21.link/c.strings">[c.strings]</a></span></td>
+<td>Null-terminated sequence utilities</td>
+<td><code class="sourceCode cpp"><span class="op">&lt;</span>cctype<span class="op">&gt;</span></code>,
+<code class="sourceCode cpp"><span class="op">&lt;</span>cstdlib<span class="op">&gt;</span></code>,
+<code class="sourceCode cpp"><span class="op">&lt;</span>cstring<span class="op">&gt;</span></code>,
+<code class="sourceCode cpp"><span class="op">&lt;</span>cuchar<span class="op">&gt;</span></code>,
+<code class="sourceCode cpp"><span class="op">&lt;</span>cwchar<span class="op">&gt;</span></code>,
+<code class="sourceCode cpp"><span class="op">&lt;</span>cwctype<span class="op">&gt;</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3 data-number="10.4.2" id="string.view"><span class="header-section-number">10.4.2</span> <a href="https://wg21.link/string.view">String view classes</a><a href="#string.view" class="self-link"></a></h3>
+<h4 data-number="10.4.2.1" id="string.view.general"><span class="header-section-number">10.4.2.1</span> <a href="https://wg21.link/string.view.general">General</a><a href="#string.view.general" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+[<em>Note 1</em>: The library provides implicit conversions from <code class="sourceCode cpp"><span class="kw">const</span> charT<span class="op">*</span></code>
+<span class="rm" style="color: #bf0303"><del>and</del></span><span class="add" style="color: #006e28"><ins>,</ins></span> <code class="sourceCode cpp">std​<span class="op">::</span>​basic_string<span class="op">&lt;</span>charT, <span class="op">...&gt;</span></code>
+<span class="add" style="color: #006e28"><ins>, and <span><code class="sourceCode default">std​::​basic_fixed_string&lt;charT, ...&gt;</code></span></ins></span>
+to <code class="sourceCode cpp">std​<span class="op">::</span>​basic_string_view<span class="op">&lt;</span>charT, <span class="op">...&gt;</span></code>
+so that user code can accept just <code class="sourceCode cpp">std​<span class="op">::</span>​basic_string_view<span class="op">&lt;</span>charT<span class="op">&gt;</span></code>
+as a non-templated parameter wherever a sequence of characters is
+expected. User-defined types can define their own implicit conversions
+to <code class="sourceCode cpp">std​<span class="op">::</span>​basic_string_view<span class="op">&lt;</span>charT<span class="op">&gt;</span></code>
+in order to interoperate with these functions. — <em>end note</em>]</p>
+<h3 data-number="10.4.3" id="fixed.string"><span class="header-section-number">10.4.3</span> Fixed size string classes<a href="#fixed.string" class="self-link"></a></h3>
+<h4 data-number="10.4.3.1" id="fixed.string.general"><span class="header-section-number">10.4.3.1</span> General<a href="#fixed.string.general" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+The header <code class="sourceCode cpp"><span class="op">&lt;</span>fixed_string<span class="op">&gt;</span></code>
+defines the <code class="sourceCode cpp">basic_fixed_string</code> class
+template that stores a read-only fixed-length sequences of char-like
+objects and five <a href="https://eel.is/c++draft/dcl.typedef#nt:typedef-name">typedef-names</a>,
+<code class="sourceCode cpp">fixed_string</code>,
+<code class="sourceCode cpp">fixed_u8string</code>,
+<code class="sourceCode cpp">fixed_u16string</code>,
+<code class="sourceCode cpp">fixed_u32string</code>, and
+<code class="sourceCode cpp">fixed_wstring</code>, that name the
+specializations <code class="sourceCode cpp">basic_fixed_string<span class="op">&lt;</span><span class="dt">char</span><span class="op">&gt;</span></code>,
+<code class="sourceCode cpp">basic_fixed_string<span class="op">&lt;</span><span class="dt">char8_t</span><span class="op">&gt;</span></code>,
+<code class="sourceCode cpp">basic_fixed_string<span class="op">&lt;</span><span class="dt">char16_t</span><span class="op">&gt;</span></code>,
+<code class="sourceCode cpp">basic_fixed_string<span class="op">&lt;</span><span class="dt">char32_t</span><span class="op">&gt;</span></code>,
+and <code class="sourceCode cpp">basic_fixed_string<span class="op">&lt;</span>​wchar_t<span class="op">&gt;</span></code>,
+respectively.</p>
+<h4 data-number="10.4.3.2" id="fixed.string.synop"><span class="header-section-number">10.4.3.2</span> Header <code class="sourceCode cpp"><span class="op">&lt;</span>fixed_string<span class="op">&gt;</span></code>
+synopsis<a href="#fixed.string.synop" class="self-link"></a></h4>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// mostly freestanding</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;compare&gt;</span><span class="pp">      </span><span class="co">// see <a href="https://wg21.link/compare.syn">[compare.syn]</a></span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;string_view&gt;</span><span class="pp">  </span><span class="co">// see <a href="https://wg21.link/string.view.synop">[string.view.synop]</a></span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">// <a href="#fixed.string.template">[fixed.string.template]</a>, class template <code class="sourceCode cpp">basic_fixed_string</code></span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> charT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> basic_fixed_string;  <span class="co">// partially freestanding</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">// <a href="#fixed.string.special">[fixed.string.special]</a>, specialized algorithms</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> charT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> swap<span class="op">(</span>basic_fixed_string<span class="op">&lt;</span>charT, N<span class="op">&gt;&amp;</span> x, basic_fixed_string<span class="op">&lt;</span>charT, N<span class="op">&gt;&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co">// basic_fixed_string <a href="https://eel.is/c++draft/dcl.typedef#nt:typedef-name">typedef-names</a></span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">using</span> fixed_string    <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char</span>, N<span class="op">&gt;</span>;</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">using</span> fixed_u8string  <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char8_t</span>, N<span class="op">&gt;</span>;</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">using</span> fixed_u16string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char16_t</span>, N<span class="op">&gt;</span>;</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">using</span> fixed_u32string <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">char32_t</span>, N<span class="op">&gt;</span>;</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">using</span> fixed_wstring   <span class="op">=</span> basic_fixed_string<span class="op">&lt;</span><span class="dt">wchar_t</span>, N<span class="op">&gt;</span>;</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="co">// <a href="#fixed.string.hash">[fixed.string.hash]</a>, hash support</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_string<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>    <span class="op">:</span> hash<span class="op">&lt;</span>string_view<span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_u8string<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>  <span class="op">:</span> hash<span class="op">&lt;</span>u8string_view<span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_u16string<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span> <span class="op">:</span> hash<span class="op">&lt;</span>u16string_view<span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_u32string<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span> <span class="op">:</span> hash<span class="op">&lt;</span>u32string_view<span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_wstring<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>   <span class="op">:</span> hash<span class="op">&lt;</span>wstring_view<span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+The function templates defined in <a href="https://wg21.link/utility.swap">utility.swap</a> and <a href="https://wg21.link/iterator.range">iterator.range</a> are available
+when <code class="sourceCode cpp"><span class="op">&lt;</span>fixed_string<span class="op">&gt;</span></code>
+is included.</p>
+<h4 data-number="10.4.3.3" id="fixed.string.template"><span class="header-section-number">10.4.3.3</span> Class template
+<code class="sourceCode cpp">basic_fixed_string</code><a href="#fixed.string.template" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+A specialization of
+<code class="sourceCode cpp">basic_fixed_string</code> is a <a href="https://eel.is/c++draft/container.reqmts#def:container,contiguous">contiguous
+container</a> storing a fixed-size sequence of characters. An instance
+of <code class="sourceCode cpp">basic_fixed_string<span class="op">&lt;</span>charT, N<span class="op">&gt;</span></code>
+stores <code class="sourceCode cpp">N</code> elements of type
+<code class="sourceCode cpp">charT</code>, so that <code class="sourceCode cpp">size<span class="op">()</span> <span class="op">==</span> N</code>
+is an invariant.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+A <code class="sourceCode cpp">fixed_string</code> meets all of the
+requirements of a container (<span>23.2.2.2
+<a href="https://wg21.link/container.reqmts">[container.reqmts]</a></span>)
+and of a reversible container (<span>23.2.2.3
+<a href="https://wg21.link/container.rev.reqmts">[container.rev.reqmts]</a></span>),
+except that <code class="sourceCode cpp">fixed_string</code> can’t be
+default constructed. A <code class="sourceCode cpp">fixed_string</code>
+meets some of the requirements of a sequence container (<span>23.2.4
+<a href="https://wg21.link/sequence.reqmts">[sequence.reqmts]</a></span>).
+Descriptions are provided here only for operations on
+<code class="sourceCode cpp">fixed_string</code> that are not described
+in one of these tables and for operations where there is additional
+semantic information.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<code class="sourceCode cpp">basic_fixed_string<span class="op">&lt;</span>charT, N<span class="op">&gt;</span></code>
+is a structural type (<span>13.2
+<a href="https://wg21.link/temp.param">[temp.param]</a></span>) if
+<code class="sourceCode cpp">charT</code> is structural types. Two
+values <code class="sourceCode cpp">fs1</code> and
+<code class="sourceCode cpp">fs2</code> of type <code class="sourceCode cpp">basic_fixed_string<span class="op">&lt;</span>charT, N<span class="op">&gt;</span></code>
+are template-argument-equivalent if and only if each pair of
+corresponding elements in <code class="sourceCode cpp">fs1</code> and
+<code class="sourceCode cpp">fs2</code> are
+template-argument-equivalent.</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+In all cases, <code class="sourceCode cpp"><span class="op">[</span>data<span class="op">()</span>, data<span class="op">()</span> <span class="op">+</span> size<span class="op">()]</span></code>
+is a valid range and <code class="sourceCode cpp">data<span class="op">()</span> <span class="op">+</span> size<span class="op">()</span></code>
+points at an object with value
+<code class="sourceCode cpp">charT<span class="op">()</span></code> (a
+“null terminator”).</p>
+<h5 data-number="10.4.3.3.1" id="general"><span class="header-section-number">10.4.3.3.1</span> General<a href="#general" class="self-link"></a></h5>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> charT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> basic_fixed_string <span class="op">{</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  charT data_<span class="op">[</span>N <span class="op">+</span> <span class="dv">1</span><span class="op">]</span> <span class="op">=</span> <span class="op">{}</span>;   <span class="co">// exposition only</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// types</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> value_type             <span class="op">=</span> charT;</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> pointer                <span class="op">=</span> value_type<span class="op">*</span>;</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> const_pointer          <span class="op">=</span> <span class="kw">const</span> value_type<span class="op">*</span>;</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reference              <span class="op">=</span> value_type<span class="op">&amp;</span>;</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> const_reference        <span class="op">=</span> <span class="kw">const</span> value_type<span class="op">&amp;</span>;</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> const_iterator         <span class="op">=</span> <em>implementation-defined</em>;  <span class="co">// see <a href="#fixed.string.iterators">fixed.string.iterators</a></span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> iterator               <span class="op">=</span> const_iterator; [^1]</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> const_reverse_iterator <span class="op">=</span> reverse_iterator<span class="op">&lt;</span>const_iterator<span class="op">&gt;</span>;</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reverse_iterator       <span class="op">=</span> const_reverse_iterator;</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> size_type              <span class="op">=</span> <span class="dt">size_t</span>;</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> difference_type        <span class="op">=</span> <span class="dt">ptrdiff_t</span>;</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="co">// <a href="#fixed.string.cons">[fixed.string.cons]</a>, construction and assignment</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span>same_as<span class="op">&lt;</span>charT<span class="op">&gt;...</span> Chars<span class="op">&gt;</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><span class="kw">sizeof</span><span class="op">...(</span>Chars<span class="op">)</span> <span class="op">==</span> N<span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">(...</span> <span class="op">&amp;&amp;</span> <span class="op">!</span>is_pointer_v<span class="op">&lt;</span>Chars<span class="op">&gt;)</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span> basic_fixed_string<span class="op">(</span>Chars<span class="op">...</span> chars<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">consteval</span> basic_fixed_string<span class="op">(</span><span class="kw">const</span> charT <span class="op">(&amp;</span>txt<span class="op">)[</span>N <span class="op">+</span> <span class="dv">1</span><span class="op">])</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span>input_iterator It, sentinel_for<span class="op">&lt;</span>It<span class="op">&gt;</span> S<span class="op">&gt;</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span> same_as<span class="op">&lt;</span>iter_value_t<span class="op">&lt;</span>It<span class="op">&gt;</span>, charT<span class="op">&gt;</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> basic_fixed_string<span class="op">(</span>It begin, S end<span class="op">)</span>;</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span>ranges<span class="op">::</span>input_range R<span class="op">&gt;</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span> same_as<span class="op">&lt;</span>ranges<span class="op">::</span>range_value_t<span class="op">&lt;</span>R<span class="op">&gt;</span>, charT<span class="op">&gt;</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> basic_fixed_string<span class="op">(</span>from_range_t, R<span class="op">&amp;&amp;</span> r<span class="op">)</span>;</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> basic_fixed_string<span class="op">(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> basic_fixed_string<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  <span class="co">// <a href="#fixed.string.iterators">[fixed.string.iterators]</a>, iterator support</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_iterator begin<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_iterator end<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_iterator cbegin<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_iterator cend<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_reverse_iterator rbegin<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_reverse_iterator rend<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_reverse_iterator crbegin<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_reverse_iterator crend<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">// capacity</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> integral_constant<span class="op">&lt;</span>size_type, N<span class="op">&gt;</span> size<span class="op">{}</span>;</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> integral_constant<span class="op">&lt;</span>size_type, N<span class="op">&gt;</span> length<span class="op">{}</span>;</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> integral_constant<span class="op">&lt;</span>size_type, N<span class="op">&gt;</span> max_size<span class="op">{}</span>;</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> bool_constant<span class="op">&lt;</span>N <span class="op">==</span> <span class="dv">0</span><span class="op">&gt;</span> empty<span class="op">{}</span>;</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>  <span class="co">// <a href="#fixed.string.access">[fixed.string.access]</a>, element access</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_reference <span class="kw">operator</span><span class="op">[](</span>size_type pos<span class="op">)</span> <span class="kw">const</span>;</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_reference at<span class="op">(</span>size_type pos<span class="op">)</span> <span class="kw">const</span>;  <span class="co">// freestanding-deleted</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_reference front<span class="op">()</span> <span class="kw">const</span>;</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_reference back<span class="op">()</span> <span class="kw">const</span>;</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>  <span class="co">// <a href="#fixed.string.modifiers">[fixed.string.modifiers]</a>, modifiers</span></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">void</span> swap<span class="op">(</span>basic_fixed_string<span class="op">&amp;</span> s<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>  <span class="co">// <a href="#fixed.string.ops">[fixed.string.ops]</a>, string operations</span></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_pointer c_str<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_pointer data<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> basic_string_view<span class="op">&lt;</span>charT<span class="op">&gt;</span> view<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">operator</span> basic_string_view<span class="op">&lt;</span>charT<span class="op">&gt;()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, N <span class="op">+</span> N2<span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs,</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>                                                               <span class="kw">const</span> basic_fixed_string<span class="op">&lt;</span>charT, N2<span class="op">&gt;&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, N <span class="op">+</span> <span class="dv">1</span><span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, charT rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, <span class="dv">1</span> <span class="op">+</span> N<span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> charT lhs, <span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>  <span class="kw">consteval</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, N <span class="op">+</span> N2 <span class="op">-</span> <span class="dv">1</span><span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs,</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>                                                                   <span class="kw">const</span> charT <span class="op">(&amp;</span>rhs<span class="op">)[</span>N2<span class="op">])</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N1<span class="op">&gt;</span></span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>  <span class="kw">consteval</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, N1 <span class="op">+</span> N <span class="op">-</span> <span class="dv">1</span><span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> charT <span class="op">(&amp;</span>lhs<span class="op">)[</span>N1<span class="op">]</span>,</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>                                                                   <span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>  <span class="co">// <a href="#fixed.string.comparison">[fixed.string.comparison]</a>, non-member comparison functions</span></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, <span class="kw">const</span> basic_fixed_string<span class="op">&lt;</span>charT, N2<span class="op">&gt;&amp;</span> rhs<span class="op">)</span>;</span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">consteval</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, <span class="kw">const</span> charT <span class="op">(&amp;</span>rhs<span class="op">)[</span>N2<span class="op">])</span>;</span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">constexpr</span> <em>see below</em> <span class="kw">operator</span><span class="op">&lt;=&gt;(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, <span class="kw">const</span> basic_fixed_string<span class="op">&lt;</span>charT, N2<span class="op">&gt;&amp;</span> rhs<span class="op">)</span>;</span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">consteval</span> <em>see below</em> <span class="kw">operator</span><span class="op">&lt;=&gt;(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, <span class="kw">const</span> charT <span class="op">(&amp;</span>rhs<span class="op">)[</span>N2<span class="op">])</span>;</span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>  <span class="co">// <a href="#fixed.string.io">[fixed.string.io]</a>, inserters and extractors</span></span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> basic_ostream<span class="op">&lt;</span>charT<span class="op">&gt;&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>basic_ostream<span class="op">&lt;</span>charT<span class="op">&gt;&amp;</span> os, <span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> str<span class="op">)</span>;  <span class="co">// hosted</span></span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a><span class="co">// <a href="#fixed.string.deduct">[fixed.string.deduct]</a>, deduction guides</span></span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> CharT, same_as<span class="op">&lt;</span>CharT<span class="op">&gt;...</span> Rest<span class="op">&gt;</span></span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>basic_fixed_string<span class="op">(</span>CharT, Rest<span class="op">...)</span> <span class="op">-&gt;</span> basic_fixed_string<span class="op">&lt;</span>CharT, <span class="dv">1</span> <span class="op">+</span> <span class="kw">sizeof</span><span class="op">...(</span>Rest<span class="op">)&gt;</span>;</span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> charT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a>basic_fixed_string<span class="op">(</span><span class="kw">const</span> charT <span class="op">(&amp;</span>str<span class="op">)[</span>N<span class="op">])</span> <span class="op">-&gt;</span> basic_fixed_string<span class="op">&lt;</span>charT, N <span class="op">-</span> <span class="dv">1</span><span class="op">&gt;</span>;</span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> CharT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>basic_fixed_string<span class="op">(</span>from_range_t, array<span class="op">&lt;</span>CharT, N<span class="op">&gt;)</span> <span class="op">-&gt;</span> basic_fixed_string<span class="op">&lt;</span>CharT, N<span class="op">&gt;</span>;</span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><em>Footnote [^1]</em>: Because
+<code class="sourceCode cpp">basic_fixed_string</code> is immutable,
+<code class="sourceCode cpp">iterator</code> and
+<code class="sourceCode cpp">const_iterator</code> are the same
+type.</p>
+<h4 data-number="10.4.3.4" id="fixed.string.cons"><span class="header-section-number">10.4.3.4</span> Construction and
+assignment<a href="#fixed.string.cons" class="self-link"></a></h4>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>same_as<span class="op">&lt;</span>charT<span class="op">&gt;...</span> Chars<span class="op">&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span><span class="kw">sizeof</span><span class="op">...(</span>Chars<span class="op">)</span> <span class="op">==</span> N<span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">(...</span> <span class="op">&amp;&amp;</span> <span class="op">!</span>is_pointer_v<span class="op">&lt;</span>Chars<span class="op">&gt;)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">explicit</span> basic_fixed_string<span class="op">(</span>Chars<span class="op">...</span> chars<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Effects</em>: Initializes <code class="sourceCode cpp">data_</code>
+with the values of
+<code class="sourceCode cpp">chars<span class="op">...</span></code>
+before the call followed by the
+<code class="sourceCode cpp">charT<span class="op">()</span></code> (a
+“null terminator”).</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">consteval</span> basic_fixed_string<span class="op">(</span><span class="kw">const</span> charT <span class="op">(&amp;</span>txt<span class="op">)[</span>N <span class="op">+</span> <span class="dv">1</span><span class="op">])</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Mandates</em>: <code class="sourceCode cpp">txt<span class="op">[</span>N<span class="op">]</span> <span class="op">==</span> CharT<span class="op">()</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Effects</em>: Initializes <code class="sourceCode cpp">data_</code>
+with a copy of <code class="sourceCode cpp">txt</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>input_iterator It, sentinel_for<span class="op">&lt;</span>It<span class="op">&gt;</span> S<span class="op">&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> same_as<span class="op">&lt;</span>iter_value_t<span class="op">&lt;</span>It<span class="op">&gt;</span>, charT<span class="op">&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> basic_fixed_string<span class="op">(</span>It begin, S end<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Preconditions</em>: <code class="sourceCode cpp">distance<span class="op">(</span>begin, end<span class="op">)</span> <span class="op">==</span> N</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<em>Effects</em>: Initializes <code class="sourceCode cpp">data_</code>
+from the values in the range <code class="sourceCode cpp"><span class="op">[</span>begin, end<span class="op">)</span></code>,
+as specified in <span>23.2.4
+<a href="https://wg21.link/sequence.reqmts">[sequence.reqmts]</a></span>.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>ranges<span class="op">::</span>input_range R<span class="op">&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> same_as<span class="op">&lt;</span>ranges<span class="op">::</span>range_value_t<span class="op">&lt;</span>R<span class="op">&gt;</span>, charT<span class="op">&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> basic_fixed_string<span class="op">(</span>from_range_t, R<span class="op">&amp;&amp;</span> r<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<em>Preconditions</em>: <code class="sourceCode cpp">ranges<span class="op">::</span>size<span class="op">(</span>r<span class="op">)</span> <span class="op">==</span> N</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<em>Effects</em>: Initializes <code class="sourceCode cpp">data_</code>
+from the values in the range <code class="sourceCode cpp">rg</code>, as
+specified in <span>23.2.4
+<a href="https://wg21.link/sequence.reqmts">[sequence.reqmts]</a></span>.</p>
+<h4 data-number="10.4.3.5" id="fixed.string.iterators"><span class="header-section-number">10.4.3.5</span> Iterator support<a href="#fixed.string.iterators" class="self-link"></a></h4>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> const_iterator <span class="op">=</span> <em>implementation-defined</em>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+A type that meets the requirements of a constant
+<code class="sourceCode cpp">Cpp17RandomAccessIterator</code>
+<span>24.3.5.7
+<a href="https://wg21.link/random.access.iterators">[random.access.iterators]</a></span>,
+models contiguous_iterator <span>24.3.4.14
+<a href="https://wg21.link/iterator.concept.contiguous">[iterator.concept.contiguous]</a></span>,
+and meets the
+<code class="sourceCode cpp"><span class="kw">constexpr</span></code>
+iterator requirements <span>24.3.1
+<a href="https://wg21.link/iterator.requirements.general">[iterator.requirements.general]</a></span>,
+whose <code class="sourceCode cpp">value_type</code> is the template
+parameter <code class="sourceCode cpp">charT</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+All requirements on container iterators <span>23.2
+<a href="https://wg21.link/container.requirements">[container.requirements]</a></span>
+apply to <code class="sourceCode cpp">fixed_string<span class="op">::</span>​const_iterator</code>
+as well.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_iterator begin<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_iterator cbegin<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Returns</em>: An iterator referring to the first character in the
+string.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_iterator end<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_iterator cend<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Returns</em>: An iterator which is the past-the-end value.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_reverse_iterator rbegin<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_reverse_iterator crbegin<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<em>Returns</em>: <code class="sourceCode cpp">const_reverse_iterator<span class="op">(</span>end<span class="op">())</span></code>.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_reverse_iterator rend<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_reverse_iterator crend<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<em>Returns</em>: <code class="sourceCode cpp">const_reverse_iterator<span class="op">(</span>begin<span class="op">())</span></code>.</p>
+<h4 data-number="10.4.3.6" id="fixed.string.access"><span class="header-section-number">10.4.3.6</span> Element access<a href="#fixed.string.access" class="self-link"></a></h4>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_reference <span class="kw">operator</span><span class="op">[](</span>size_type pos<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Preconditions</em>: <code class="sourceCode cpp">pos <span class="op">&lt;</span> size<span class="op">()</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Returns</em>: <code class="sourceCode cpp">data_<span class="op">[</span>pos<span class="op">]</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Throws</em>: Nothing.</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+[<em>Note 1</em>: Unlike <code class="sourceCode cpp">basic_string​<span class="op">::</span>​<span class="kw">operator</span><span class="op">[]</span></code>,
+<code class="sourceCode cpp">basic_fixed_string<span class="op">::</span>​<span class="kw">operator</span><span class="op">[](</span>size<span class="op">())</span></code>
+has undefined behavior instead of returning
+<code class="sourceCode cpp">charT<span class="op">()</span></code>. —
+<em>end note</em>]</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_reference at<span class="op">(</span>size_type pos<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<em>Returns</em>: <code class="sourceCode cpp">data_<span class="op">[</span>pos<span class="op">]</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<em>Throws</em>: <code class="sourceCode cpp">out_of_range</code> if
+<code class="sourceCode cpp">pos <span class="op">&gt;=</span> size<span class="op">()</span></code>.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_reference front<span class="op">()</span> <span class="kw">const</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<em>Preconditions</em>: <code class="sourceCode cpp"><span class="op">!</span>empty<span class="op">()</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+<em>Returns</em>: <code class="sourceCode cpp">data_<span class="op">[</span><span class="dv">0</span><span class="op">]</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<em>Throws</em>: Nothing.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_reference back<span class="op">()</span> <span class="kw">const</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
+<em>Preconditions</em>: <code class="sourceCode cpp"><span class="op">!</span>empty<span class="op">()</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
+<em>Returns</em>: <code class="sourceCode cpp">data_<span class="op">[</span>size<span class="op">()</span> <span class="op">-</span> <span class="dv">1</span><span class="op">]</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
+<em>Throws</em>: Nothing.</p>
+<h4 data-number="10.4.3.7" id="fixed.string.modifiers"><span class="header-section-number">10.4.3.7</span> Modifiers<a href="#fixed.string.modifiers" class="self-link"></a></h4>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> swap<span class="op">(</span>basic_fixed_string<span class="op">&amp;</span> s<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Effects</em>: Equivalent to <code class="sourceCode cpp">swap_ranges<span class="op">(</span>begin<span class="op">()</span>, end<span class="op">()</span>, s<span class="op">.</span>begin<span class="op">())</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+[<em>Note 1</em>: Unlike the <code class="sourceCode cpp">swap</code>
+function for other containers, <code class="sourceCode cpp">basic_fixed_string<span class="op">::</span>​swap</code>
+takes linear time and does not cause iterators to become associated with
+the other container. — <em>end note</em>]</p>
+<h4 data-number="10.4.3.8" id="fixed.string.ops"><span class="header-section-number">10.4.3.8</span> String operations<a href="#fixed.string.ops" class="self-link"></a></h4>
+<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_pointer c_str<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> const_pointer data<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Returns</em>: A pointer <code class="sourceCode cpp">p</code> such
+that <code class="sourceCode cpp">p <span class="op">+</span> i <span class="op">==</span> addressof<span class="op">(</span><span class="kw">operator</span><span class="op">[](</span>i<span class="op">))</span></code>
+for each <code class="sourceCode cpp">i</code> in <code class="sourceCode cpp"><span class="op">[</span><span class="dv">0</span>, size<span class="op">()]</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Complexity</em>: Constant time.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Remarks</em>: The program shall not modify any of the values stored
+in the character array; otherwise, the behavior is undefined.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> basic_string_view<span class="op">&lt;</span>charT<span class="op">&gt;</span> view<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">operator</span> basic_string_view<span class="op">&lt;</span>charT<span class="op">&gt;()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Effects</em>: Equivalent to: <code class="sourceCode cpp"><span class="cf">return</span> basic_string_view<span class="op">&lt;</span>charT<span class="op">&gt;(</span>data<span class="op">()</span>, size<span class="op">())</span>;</code></p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, N <span class="op">+</span> N2<span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs,</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                                                             <span class="kw">const</span> basic_fixed_string<span class="op">&lt;</span>charT, N2<span class="op">&gt;&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, N <span class="op">+</span> <span class="dv">1</span><span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, charT rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, <span class="dv">1</span> <span class="op">+</span> N<span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span>charT lhs, <span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<em>Effects</em>: Returns a new fixed string object whose value is the
+joint value of <code class="sourceCode cpp">lhs</code> and
+<code class="sourceCode cpp">rhs</code> followed by the
+<code class="sourceCode cpp">charT<span class="op">()</span></code>.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="kw">consteval</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, N <span class="op">+</span> N2 <span class="op">-</span> <span class="dv">1</span><span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs,</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>                                                                 <span class="kw">const</span> charT <span class="op">(&amp;</span>rhs<span class="op">)[</span>N2<span class="op">])</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<em>Mandates</em>: <code class="sourceCode cpp">rhs<span class="op">[</span>N2 <span class="op">-</span> <span class="dv">1</span><span class="op">]</span> <span class="op">==</span> CharT<span class="op">()</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<em>Effects</em>: Returns a new fixed string object whose value is the
+joint value of <code class="sourceCode cpp">lhs</code> and
+<code class="sourceCode cpp">rhs</code>.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N1<span class="op">&gt;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="kw">consteval</span> <span class="kw">friend</span> basic_fixed_string<span class="op">&lt;</span>charT, N1 <span class="op">+</span> N <span class="op">-</span> <span class="dv">1</span><span class="op">&gt;</span> <span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> charT <span class="op">(&amp;</span>lhs<span class="op">)[</span>N1<span class="op">]</span>,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>                                                                 <span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+<em>Mandates</em>: <code class="sourceCode cpp">lhs<span class="op">[</span>N1 <span class="op">-</span> <span class="dv">1</span><span class="op">]</span> <span class="op">==</span> CharT<span class="op">()</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<em>Effects</em>: Returns a new fixed string object whose value is the
+joint value of a subrange <code class="sourceCode cpp"><span class="op">[</span>lhs<span class="op">[</span><span class="dv">0</span><span class="op">]</span>, lhs<span class="op">[</span>N1 <span class="op">-</span> <span class="dv">1</span><span class="op">])</span></code>
+and <code class="sourceCode cpp">rhs</code> followed by the
+<code class="sourceCode cpp">charT<span class="op">()</span></code>.</p>
+<h4 data-number="10.4.3.9" id="fixed.string.comparison"><span class="header-section-number">10.4.3.9</span> Non-member comparison
+functions<a href="#fixed.string.comparison" class="self-link"></a></h4>
+<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, <span class="kw">const</span> basic_fixed_string<span class="op">&lt;</span>charT, N2<span class="op">&gt;&amp;</span> rhs<span class="op">)</span>;</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="kw">friend</span> <span class="kw">constexpr</span> <em>see below</em> <span class="kw">operator</span><span class="op">&lt;=&gt;(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, <span class="kw">const</span> basic_fixed_string<span class="op">&lt;</span>charT, N2<span class="op">&gt;&amp;</span> rhs<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Effects</em>: Let <code class="sourceCode cpp">op</code> be the
+operator. Equivalent to:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> lhs<span class="op">.</span>view<span class="op">()</span> <em>op</em> rhs<span class="op">.</span>view<span class="op">()</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="kw">friend</span> <span class="kw">consteval</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, <span class="kw">const</span> charT <span class="op">(&amp;</span>rhs<span class="op">)[</span>N2<span class="op">])</span>;</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N2<span class="op">&gt;</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="kw">friend</span> <span class="kw">consteval</span> <em>see below</em> <span class="kw">operator</span><span class="op">&lt;=&gt;(</span><span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> lhs, <span class="kw">const</span> charT <span class="op">(&amp;</span>rhs<span class="op">)[</span>N2<span class="op">])</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Mandates</em>: <code class="sourceCode cpp">rhs<span class="op">[</span>N2 <span class="op">-</span> <span class="dv">1</span><span class="op">]</span> <span class="op">==</span> CharT<span class="op">()</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Effects</em>: Let <code class="sourceCode cpp">op</code> be the
+operator. Equivalent to:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> lhs<span class="op">.</span>view<span class="op">()</span> <em>op</em> basic_string_view<span class="op">&lt;</span>CharT<span class="op">&gt;(</span>rhs, rhs <span class="op">+</span> N2 <span class="op">-</span> <span class="dv">1</span><span class="op">)</span>;</span></code></pre></div>
+<h4 data-number="10.4.3.10" id="fixed.string.io"><span class="header-section-number">10.4.3.10</span> Inserters and
+extractors<a href="#fixed.string.io" class="self-link"></a></h4>
+<div class="sourceCode" id="cb31"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">friend</span> basic_ostream<span class="op">&lt;</span>charT<span class="op">&gt;&amp;</span> <span class="kw">operator</span><span class="op">&lt;&lt;(</span>basic_ostream<span class="op">&lt;</span>charT<span class="op">&gt;&amp;</span> os, <span class="kw">const</span> basic_fixed_string<span class="op">&amp;</span> str<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Effects</em>: Equivalent to: <code class="sourceCode cpp"><span class="cf">return</span> os <span class="op">&lt;&lt;</span> str<span class="op">.</span>view<span class="op">()</span>;</code></p>
+<h4 data-number="10.4.3.11" id="fixed.string.special"><span class="header-section-number">10.4.3.11</span> Hash support<a href="#fixed.string.special" class="self-link"></a></h4>
+<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> charT, <span class="dt">size_t</span> N, <span class="kw">class</span> traits<span class="op">&gt;</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> swap<span class="op">(</span>basic_fixed_string<span class="op">&lt;</span>charT, N<span class="op">&gt;&amp;</span> x, basic_fixed_string<span class="op">&lt;</span>charT, N<span class="op">&gt;&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Effects</em>: As if by <code class="sourceCode cpp">x<span class="op">.</span>swap<span class="op">(</span>y<span class="op">)</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Complexity</em>: Linear in
+<code class="sourceCode cpp">N</code>.</p>
+<h4 data-number="10.4.3.12" id="fixed.string.hash"><span class="header-section-number">10.4.3.12</span> Hash support<a href="#fixed.string.hash" class="self-link"></a></h4>
+<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_string<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>    <span class="op">:</span> hash<span class="op">&lt;</span>string_view<span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_u8string<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>  <span class="op">:</span> hash<span class="op">&lt;</span>u8string_view<span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_u16string<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span> <span class="op">:</span> hash<span class="op">&lt;</span>u16string_view<span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_u32string<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span> <span class="op">:</span> hash<span class="op">&lt;</span>u32string_view<span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> N<span class="op">&gt;</span> <span class="kw">struct</span> hash<span class="op">&lt;</span>fixed_wstring<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>   <span class="op">:</span> hash<span class="op">&lt;</span>wstring_view<span class="op">&gt;</span> <span class="op">{}</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+If <code class="sourceCode cpp">FS</code> is one of these fixed string
+types, <code class="sourceCode cpp">SV</code> is the corresponding
+string view type, and <code class="sourceCode cpp">fs</code> is an
+object of type <code class="sourceCode cpp">FS</code>, then <code class="sourceCode cpp">hash<span class="op">&lt;</span>FS<span class="op">&gt;()(</span>fs<span class="op">)</span> <span class="op">==</span> hash<span class="op">&lt;</span>SV<span class="op">&gt;()(</span>SV<span class="op">(</span>fs<span class="op">))</span></code>.</p>
+<h2 data-number="10.5" id="containers"><span class="header-section-number">10.5</span> <a href="https://wg21.link/containers">Containers library</a><a href="#containers" class="self-link"></a></h2>
+<h3 data-number="10.5.1" id="container.requirements"><span class="header-section-number">10.5.1</span> <a href="https://wg21.link/container.requirements">Requirements</a><a href="#container.requirements" class="self-link"></a></h3>
+<h4 data-number="10.5.1.1" id="container.requirements.general"><span class="header-section-number">10.5.1.1</span> <a href="https://wg21.link/container.requirements.general">General
+containers</a><a href="#container.requirements.general" class="self-link"></a></h4>
+<h5 data-number="10.5.1.1.1" id="container.reqmts"><span class="header-section-number">10.5.1.1.1</span> <a href="https://wg21.link/container.reqmts">Container requirements</a><a href="#container.reqmts" class="self-link"></a></h5>
+<div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>X u<span class="op">(</span>rv<span class="op">)</span>;</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>X u <span class="op">=</span> rv;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">15</a></span>
+<em>Postconditions</em>: <code class="sourceCode cpp">u</code> is equal
+to the value that <code class="sourceCode cpp">rv</code> had before this
+construction.</p>
+<p><span class="marginalizedparent"><a class="marginalized">16</a></span>
+<em>Complexity</em>: Linear for
+<code class="sourceCode cpp">array</code> <span class="add" style="color: #006e28"><ins>and
+<span><code class="sourceCode default">basic_fixed_string</code></span>,</ins></span>
+<span class="rm" style="color: #bf0303"><del>and</del></span> constant
+for all other standard containers.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>t<span class="op">.</span>swap<span class="op">(</span>s<span class="op">)</span></span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">48</a></span>
+<em>Result</em>:
+<code class="sourceCode cpp"><span class="dt">void</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">49</a></span>
+<em>Effects</em>: Exchanges the contents of
+<code class="sourceCode cpp">t</code> and
+<code class="sourceCode cpp">s</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">50</a></span>
+<em>Complexity</em>: Linear for
+<code class="sourceCode cpp">array</code> <span class="add" style="color: #006e28"><ins>and
+<span><code class="sourceCode default">basic_fixed_string</code></span>,</ins></span>
+<span class="rm" style="color: #bf0303"><del>and</del></span> constant
+for all other standard containers.</p>
+<p><span class="marginalizedparent"><a class="marginalized">65</a></span> The
+expression <code class="sourceCode cpp">a<span class="op">.</span>swap<span class="op">(</span>b<span class="op">)</span></code>,
+for containers <code class="sourceCode cpp">a</code> and
+<code class="sourceCode cpp">b</code> of a standard container type other
+than <code class="sourceCode cpp">array</code> <span class="add" style="color: #006e28"><ins>and
+<span><code class="sourceCode default">basic_fixed_string</code></span></ins></span>,
+shall exchange the values of <code class="sourceCode cpp">a</code> and
+<code class="sourceCode cpp">b</code> without invoking any move, copy,
+or swap operations on the individual container elements.</p>
+<h4 data-number="10.5.1.2" id="container.alloc.reqmts"><span class="header-section-number">10.5.1.2</span> <a href="https://wg21.link/container.alloc.reqmts">Allocator-aware
+containers</a><a href="#container.alloc.reqmts" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+Except for <code class="sourceCode cpp">array</code> <span class="add" style="color: #006e28"><ins>and
+<span><code class="sourceCode default">basic_fixed_string</code></span></ins></span>,
+all of the containers defined in <span>23
+<a href="https://wg21.link/containers">[containers]</a></span>,
+<span>19.6.4
+<a href="https://wg21.link/stacktrace.basic">[stacktrace.basic]</a></span>,
+<span>27.4.3
+<a href="https://wg21.link/basic.string">[basic.string]</a></span>, and
+<span>28.6.9
+<a href="https://wg21.link/re.results">[re.results]</a></span> meet the
+additional requirements of an allocator-aware container, as described
+below.</p>
+<h4 data-number="10.5.1.3" id="sequence.reqmts"><span class="header-section-number">10.5.1.3</span> <a href="https://wg21.link/sequence.reqmts">Sequence containers</a><a href="#sequence.reqmts" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+A sequence container organizes a finite set of objects, all of the same
+type, into a strictly linear arrangement. The library provides four
+basic kinds of sequence containers:
+<code class="sourceCode cpp">vector</code>,
+<code class="sourceCode cpp">forward_list</code>,
+<code class="sourceCode cpp">list</code>, and
+<code class="sourceCode cpp">deque</code>. In addition,
+<code class="sourceCode cpp">array</code> <span class="add" style="color: #006e28"><ins>and
+<span><code class="sourceCode default">basic_fixed_string</code></span>
+are</ins></span> <span class="rm" style="color: #bf0303"><del>is</del></span> provided as <span class="rm" style="color: #bf0303"><del>a</del></span> sequence container<span class="add" style="color: #006e28"><ins>s</ins></span> which
+provide<span class="rm" style="color: #bf0303"><del>s</del></span>
+limited sequence operations because <span class="rm" style="color: #bf0303"><del>it has</del></span> <span class="add" style="color: #006e28"><ins>they have</ins></span> a fixed number of
+elements. The library also provides container adaptors that make it easy
+to construct abstract data types, such as
+<code class="sourceCode cpp">stacks</code>,
+<code class="sourceCode cpp">queues</code>,
+<code class="sourceCode cpp">flat_maps</code>,
+<code class="sourceCode cpp">flat_multimaps</code>,
+<code class="sourceCode cpp">flat_sets</code>, or
+<code class="sourceCode cpp">flat_multisets</code>, out of the basic
+sequence container kinds (or out of other program-defined sequence
+containers).</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>a<span class="op">.</span>front<span class="op">()</span></span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">69</a></span>
+<em>Result</em>: <code class="sourceCode cpp">reference</code>;
+<code class="sourceCode cpp">const_reference</code> for constant
+<code class="sourceCode cpp">a</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">70</a></span>
+<em>Returns</em>: <code class="sourceCode cpp"><span class="op">*</span>a<span class="op">.</span>begin<span class="op">()</span></code></p>
+<p><span class="marginalizedparent"><a class="marginalized">71</a></span>
+<em>Remarks</em>: Required for
+<code class="sourceCode cpp">basic_string</code>, <span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">basic_fixed_string</code></span>,</ins></span>
+<code class="sourceCode cpp">array</code>,
+<code class="sourceCode cpp">deque</code>,
+<code class="sourceCode cpp">forward_list</code>,
+<code class="sourceCode cpp">list</code>, and
+<code class="sourceCode cpp">vector</code>.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>a<span class="op">.</span>back<span class="op">()</span></span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">72</a></span>
+<em>Result</em>: <code class="sourceCode cpp">reference</code>;
+<code class="sourceCode cpp">const_reference</code> for constant
+<code class="sourceCode cpp">a</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">73</a></span>
+<em>Effects</em>: Equivalent to:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> tmp <span class="op">=</span> a<span class="op">.</span>end<span class="op">()</span>;</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="op">--</span>tmp;</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> <span class="op">*</span>tmp;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">74</a></span>
+<em>Remarks</em>: Required for
+<code class="sourceCode cpp">basic_string</code>, <span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">basic_fixed_string</code></span>,</ins></span>
+<code class="sourceCode cpp">array</code>,
+<code class="sourceCode cpp">deque</code>,
+<code class="sourceCode cpp">list</code>, and
+<code class="sourceCode cpp">vector</code>.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>a<span class="op">[</span>n<span class="op">]</span></span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">117</a></span>
+<em>Result</em>: <code class="sourceCode cpp">reference</code>;
+<code class="sourceCode cpp">const_reference</code> for constant
+<code class="sourceCode cpp">a</code></p>
+<p><span class="marginalizedparent"><a class="marginalized">118</a></span>
+<em>Effects</em>: Equivalent to: <code class="sourceCode cpp"><span class="cf">return</span> <span class="op">*(</span>a<span class="op">.</span>begin<span class="op">()</span> <span class="op">+</span> n<span class="op">)</span>;</code></p>
+<p><span class="marginalizedparent"><a class="marginalized">119</a></span>
+<em>Remarks</em>: Required for
+<code class="sourceCode cpp">basic_string</code>, <span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">basic_fixed_string</code></span>,</ins></span>
+<code class="sourceCode cpp">array</code>,
+<code class="sourceCode cpp">deque</code>, and
+<code class="sourceCode cpp">vector</code>.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>a<span class="op">.</span>at<span class="op">(</span>n<span class="op">)</span></span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">120</a></span>
+<em>Result</em>: <code class="sourceCode cpp">reference</code>;
+<code class="sourceCode cpp">const_reference</code> for constant
+<code class="sourceCode cpp">a</code></p>
+<p><span class="marginalizedparent"><a class="marginalized">121</a></span>
+<em>Returns</em>: <code class="sourceCode cpp"><span class="op">*(</span>a<span class="op">.</span>begin<span class="op">()</span> <span class="op">+</span> n<span class="op">)</span></code></p>
+<p><span class="marginalizedparent"><a class="marginalized">122</a></span>
+<em>Throws</em>: <code class="sourceCode cpp">out_of_range</code> if
+<code class="sourceCode cpp">n <span class="op">&gt;=</span> a<span class="op">.</span>size<span class="op">()</span></code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">123</a></span>
+<em>Remarks</em>: Required for
+<code class="sourceCode cpp">basic_string</code>, <span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">basic_fixed_string</code></span>,</ins></span>
+<code class="sourceCode cpp">array</code>,
+<code class="sourceCode cpp">deque</code>, and
+<code class="sourceCode cpp">vector</code>.</p>
+<h2 data-number="10.6" id="diff"><span class="header-section-number">10.6</span> <a href="https://wg21.link/diff">Annex C (informative)</a><a href="#diff" class="self-link"></a></h2>
+<h3 data-number="10.6.1" id="diff.cpp23"><span class="header-section-number">10.6.1</span> <a href="https://wg21.link/diff.cpp23">C++ and ISO C++ 2023</a><a href="#diff.cpp23" class="self-link"></a></h3>
+<h4 data-number="10.6.1.1" id="diff.cpp23.library"><span class="header-section-number">10.6.1.1</span> <a href="https://wg21.link/diff.cpp23.library">[library]: library
+introduction</a><a href="#diff.cpp23.library" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<strong>Affected subclause</strong>: [headers]</p>
+<p><strong>Change:</strong> New headers.</p>
+<p><strong>Rationale:</strong> New functionality.</p>
+<p><strong>Effect on original feature:</strong> The following C++
+headers are new: <code class="sourceCode cpp"><span class="op">&lt;</span>debugging<span class="op">&gt;</span></code>,
+<span class="add" style="color: #006e28"><ins><span><code class="sourceCode default">&lt;fixed_string&gt;</code></span>,</ins></span>
+<code class="sourceCode cpp"><span class="op">&lt;</span>hazard_pointer<span class="op">&gt;</span></code>,
+<code class="sourceCode cpp"><span class="op">&lt;</span>linalg<span class="op">&gt;</span></code>,
+<code class="sourceCode cpp"><span class="op">&lt;</span>rcu<span class="op">&gt;</span></code>,
+and <code class="sourceCode cpp"><span class="op">&lt;</span>text_encoding<span class="op">&gt;</span></code>.
+Valid C++ 2023 code that #includes headers with these names may be
+invalid in this revision of C++.</p>
+<h1 data-number="11" id="acknowledgements"><span class="header-section-number">11</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<p>Special thanks and recognition goes to <a href="http://www.epam.com">Epam Systems</a> for supporting Mateusz’s
+membership in the ISO C++ Committee and the production of this
+proposal.</p>
+<p>The author would also like to thank Hana Dusíková and Nevin Liber for
+providing valuable feedback that helped him shape the final version of
+this document.</p>
+<h1 data-number="12" id="bibliography"><span class="header-section-number">12</span> References<a href="#bibliography" class="self-link"></a></h1>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="1" role="doc-bibliography">
+<div id="ref-P0259R0" class="csl-entry" role="doc-biblioentry">
+[P0259R0] Michael Price, Andrew Tomazos. 2016-02-12. fixed_string: a
+compile-time string. <a href="https://wg21.link/p0259r0"><div class="csl-block">https://wg21.link/p0259r0</div></a>
+</div>
+<div id="ref-P0843R9" class="csl-entry" role="doc-biblioentry">
+[P0843R9] Gonzalo Brito Gadeschi, Timur Doumler, Nevin Liber, David
+Sankel. 2023-09-14. inplace_vector. <a href="https://wg21.link/p0843r9"><div class="csl-block">https://wg21.link/p0843r9</div></a>
+</div>
+<div id="ref-P2484R0" class="csl-entry" role="doc-biblioentry">
+[P2484R0] Richard Smith. 2021-11-17. Extending class types as non-type
+template parameters. <a href="https://wg21.link/p2484r0"><div class="csl-block">https://wg21.link/p2484r0</div></a>
+</div>
+<div id="ref-P2980R1" class="csl-entry" role="doc-biblioentry">
+[P2980R1] Mateusz Pusz, Dominik Berner, Johel Ernesto Guerrero Peña,
+Charles Hogg, Nicolas Holthaus, Roth Michaels, Vincent Reverdy.
+2023-11-28. A motivation, scope, and plan for a quantities and units
+library. <a href="https://wg21.link/p2980r1"><div class="csl-block">https://wg21.link/p2980r1</div></a>
+</div>
+<div id="ref-P3094R0" class="csl-entry" role="doc-biblioentry">
+[P3094R0] Mateusz Pusz. 2024-02-05. std::basic_fixed_string. <a href="https://wg21.link/p3094r0"><div class="csl-block">https://wg21.link/p3094r0</div></a>
+</div>
+<div id="ref-P3094R1" class="csl-entry" role="doc-biblioentry">
+[P3094R1] Mateusz Pusz. 2024-03-20. std::basic_fixed_string. <a href="https://wg21.link/p3094r1"><div class="csl-block">https://wg21.link/p3094r1</div></a>
+</div>
+<div id="ref-P3094R2" class="csl-entry" role="doc-biblioentry">
+[P3094R2] Mateusz Pusz. 2024-05-22. std::basic_fixed_string. <a href="https://wg21.link/p3094r2"><div class="csl-block">https://wg21.link/p3094r2</div></a>
+</div>
+<div id="ref-P3094R3" class="csl-entry" role="doc-biblioentry">
+[P3094R3] Mateusz Pusz. 2024-06-30. std::basic_fixed_string. <a href="https://wg21.link/p3094r3"><div class="csl-block">https://wg21.link/p3094r3</div></a>
+</div>
+<div id="ref-P3094R4" class="csl-entry" role="doc-biblioentry">
+[P3094R4] Mateusz Pusz. 2024-10-09. std::basic_fixed_string. <a href="https://wg21.link/p3094r4"><div class="csl-block">https://wg21.link/p3094r4</div></a>
+</div>
+<div id="ref-P3094R5" class="csl-entry" role="doc-biblioentry">
+[P3094R5] Mateusz Pusz. 2024-10-15. std::basic_fixed_string. <a href="https://wg21.link/p3094r5"><div class="csl-block">https://wg21.link/p3094r5</div></a>
+</div>
+<div id="ref-P3380R1" class="csl-entry" role="doc-biblioentry">
+[P3380R1] Barry Revzin. 2024-12-17. Extending support for class types as
+non-type template parameters. <a href="https://wg21.link/p3380r1"><div class="csl-block">https://wg21.link/p3380r1</div></a>
+</div>
+<div id="ref-P3491R0" class="csl-entry" role="doc-biblioentry">
+[P3491R0] Barry Revzin, Peter Dimov, Daveed Vandevoorde, Dan Katz.
+2024-12-15. define_static_{string,object,array}. <a href="https://wg21.link/p3491r0"><div class="csl-block">https://wg21.link/p3491r0</div></a>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
