@@ -14,6 +14,8 @@ author:
 
 ## Changes since [@P3094R5]
 
+- `convertible_to<charT>` replaced with `same_as<charT>`
+
 ## Changes since [@P3094R4]
 
 - Footnote modified to express immutability.
@@ -534,17 +536,18 @@ public:
   using difference_type        = ptrdiff_t;
 
   // @[[fixed.string.cons]](#fixed.string.cons)@, construction and assignment
-  template<convertible_to<charT>... Chars>
+  template<same_as<charT>... Chars>
     requires(sizeof...(Chars) == N) && (... && !is_pointer_v<Chars>)
   constexpr explicit basic_fixed_string(Chars... chars) noexcept;
 
   consteval basic_fixed_string(const charT (&txt)[N + 1]) noexcept;
 
   template<input_iterator It, sentinel_for<It> S>
-    requires convertible_to<iter_value_t<It>, charT>
+    requires same_as<iter_value_t<It>, charT>
   constexpr basic_fixed_string(It begin, S end);
 
-  template<@_container-compatible-range_@<charT> R>
+  template<ranges::input_range R>
+    requires same_as<ranges::range_reference_t<R>, charT>
   constexpr basic_fixed_string(from_range_t, R&& r);
 
   constexpr basic_fixed_string(const basic_fixed_string&) noexcept = default;
@@ -608,7 +611,7 @@ public:
 };
 
 // @[[fixed.string.deduct]](#fixed.string.deduct)@, deduction guides
-template<typename CharT, convertible_to<CharT>... Rest>
+template<typename CharT, same_as<CharT>... Rest>
 basic_fixed_string(CharT, Rest...) -> basic_fixed_string<CharT, 1 + sizeof...(Rest)>;
 
 template<typename charT, size_t N>
@@ -627,7 +630,7 @@ are the same type.
 #### Construction and assignment { #fixed.string.cons }
 
 ```cpp
-template<convertible_to<charT>... Chars>
+template<same_as<charT>... Chars>
   requires(sizeof...(Chars) == N) && (... && !is_pointer_v<Chars>)
 constexpr explicit basic_fixed_string(Chars... chars) noexcept;
 ```
@@ -645,7 +648,7 @@ consteval basic_fixed_string(const charT (&txt)[N + 1]);
 
 ```cpp
 template<input_iterator It, sentinel_for<It> S>
-  requires convertible_to<iter_value_t<It>, charT>
+  requires same_as<iter_value_t<It>, charT>
 constexpr basic_fixed_string(It begin, S end);
 ```
 
@@ -656,7 +659,8 @@ as specified in [sequence.reqmts]{.sref}.
 
 
 ```cpp
-template<@_container-compatible-range_@<charT> R>
+template<ranges::input_range R>
+  requires same_as<ranges::range_reference_t<R>, charT>
 constexpr basic_fixed_string(from_range_t, R&& r);
 ```
 
