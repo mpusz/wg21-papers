@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
@@ -423,7 +423,11 @@ code.sourceCode > span { display: inline; }
 <table style="border:none;float:right">
   <tr>
     <td>Document #:</td>
-    <td>P3094R6</td>
+    <td>
+      P3094R6
+      [<a href="https://wg21.link/P3094">Latest</a>]
+      [<a href="https://wg21.link/P3094/status">Status</a>]
+    </td>
   </tr>
   <tr>
     <td>Date:</td>
@@ -454,12 +458,12 @@ Systems</a>)<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateus
 <ul>
 <li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision history<span></span></a>
 <ul>
-<li><a href="#changes-since-p3094r5" id="toc-changes-since-p3094r5"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P3094R5">[<span>P3094R5</span>]</span><span></span></a></li>
-<li><a href="#changes-since-p3094r4" id="toc-changes-since-p3094r4"><span class="toc-section-number">1.2</span> Changes since <span class="citation" data-cites="P3094R4">[<span>P3094R4</span>]</span><span></span></a></li>
-<li><a href="#changes-since-p3094r3" id="toc-changes-since-p3094r3"><span class="toc-section-number">1.3</span> Changes since <span class="citation" data-cites="P3094R3">[<span>P3094R3</span>]</span><span></span></a></li>
-<li><a href="#changes-since-p3094r2" id="toc-changes-since-p3094r2"><span class="toc-section-number">1.4</span> Changes since <span class="citation" data-cites="P3094R2">[<span>P3094R2</span>]</span><span></span></a></li>
-<li><a href="#changes-since-p3094r1" id="toc-changes-since-p3094r1"><span class="toc-section-number">1.5</span> Changes since <span class="citation" data-cites="P3094R1">[<span>P3094R1</span>]</span><span></span></a></li>
-<li><a href="#changes-since-p3094r0" id="toc-changes-since-p3094r0"><span class="toc-section-number">1.6</span> Changes since <span class="citation" data-cites="P3094R0">[<span>P3094R0</span>]</span><span></span></a></li>
+<li><a href="#changes-since-p3094r5" id="toc-changes-since-p3094r5"><span class="toc-section-number">1.1</span> Changes since <span class="citation" data-cites="P3094R5"><span>[P3094R5]</span></span><span></span></a></li>
+<li><a href="#changes-since-p3094r4" id="toc-changes-since-p3094r4"><span class="toc-section-number">1.2</span> Changes since <span class="citation" data-cites="P3094R4"><span>[P3094R4]</span></span><span></span></a></li>
+<li><a href="#changes-since-p3094r3" id="toc-changes-since-p3094r3"><span class="toc-section-number">1.3</span> Changes since <span class="citation" data-cites="P3094R3"><span>[P3094R3]</span></span><span></span></a></li>
+<li><a href="#changes-since-p3094r2" id="toc-changes-since-p3094r2"><span class="toc-section-number">1.4</span> Changes since <span class="citation" data-cites="P3094R2"><span>[P3094R2]</span></span><span></span></a></li>
+<li><a href="#changes-since-p3094r1" id="toc-changes-since-p3094r1"><span class="toc-section-number">1.5</span> Changes since <span class="citation" data-cites="P3094R1"><span>[P3094R1]</span></span><span></span></a></li>
+<li><a href="#changes-since-p3094r0" id="toc-changes-since-p3094r0"><span class="toc-section-number">1.6</span> Changes since <span class="citation" data-cites="P3094R0"><span>[P3094R0]</span></span><span></span></a></li>
 </ul></li>
 <li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">2</span> Introduction<span></span></a></li>
 <li><a href="#fixed_string-is-an-established-practice" id="toc-fixed_string-is-an-established-practice"><span class="toc-section-number">3</span>
@@ -566,29 +570,29 @@ Acknowledgements<span></span></a></li>
 </ul>
 </div>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
-<h2 data-number="1.1" id="changes-since-p3094r5"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P3094R5">[<a href="https://wg21.link/p3094r5" role="doc-biblioref">P3094R5</a>]</span><a href="#changes-since-p3094r5" class="self-link"></a></h2>
+<h2 data-number="1.1" id="changes-since-p3094r5"><span class="header-section-number">1.1</span> Changes since <span class="citation" data-cites="P3094R5"><a href="https://wg21.link/p3094r5" role="doc-biblioref">[P3094R5]</a></span><a href="#changes-since-p3094r5" class="self-link"></a></h2>
 <ul>
 <li><code class="sourceCode cpp">convertible_to<span class="op">&lt;</span>charT<span class="op">&gt;</span></code>
 replaced with <code class="sourceCode cpp">same_as<span class="op">&lt;</span>charT<span class="op">&gt;</span></code>.</li>
-<li><span class="citation" data-cites="P2484R0">[<a href="https://wg21.link/p2484r0" role="doc-biblioref">P2484R0</a>]</span> replaced with <span class="citation" data-cites="P3380R1">[<a href="https://wg21.link/p3380r1" role="doc-biblioref">P3380R1</a>]</span> for structural types.</li>
+<li><span class="citation" data-cites="P2484R0"><a href="https://wg21.link/p2484r0" role="doc-biblioref">[P2484R0]</a></span> replaced with <span class="citation" data-cites="P3380R1"><a href="https://wg21.link/p3380r1" role="doc-biblioref">[P3380R1]</a></span> for structural types.</li>
 <li><a href="#related-proposals">Related proposals</a> chapter
 added.</li>
 <li><a href="#stdstring_literal"><code class="sourceCode cpp">std<span class="op">::</span>string_literal</code></a>
 chapter added.</li>
 <li><a href="#constructor-from-the-string-literal">Constructor from the
-string literal</a> extended with <span class="citation" data-cites="P3491R0">[<a href="https://wg21.link/p3491r0" role="doc-biblioref">P3491R0</a>]</span>.</li>
+string literal</a> extended with <span class="citation" data-cites="P3491R0"><a href="https://wg21.link/p3491r0" role="doc-biblioref">[P3491R0]</a></span>.</li>
 <li>Poll results added to the <a href="#inplace_string"><code class="sourceCode cpp">inplace_string</code></a>
 chapter.</li>
 <li>Compiler Explorer link updated.</li>
 </ul>
-<h2 data-number="1.2" id="changes-since-p3094r4"><span class="header-section-number">1.2</span> Changes since <span class="citation" data-cites="P3094R4">[<a href="https://wg21.link/p3094r4" role="doc-biblioref">P3094R4</a>]</span><a href="#changes-since-p3094r4" class="self-link"></a></h2>
+<h2 data-number="1.2" id="changes-since-p3094r4"><span class="header-section-number">1.2</span> Changes since <span class="citation" data-cites="P3094R4"><a href="https://wg21.link/p3094r4" role="doc-biblioref">[P3094R4]</a></span><a href="#changes-since-p3094r4" class="self-link"></a></h2>
 <ul>
 <li>Footnote modified to express immutability.</li>
 <li><code class="sourceCode cpp">char_traits</code> support removed and
 <a href="#char_traits"><code class="sourceCode cpp">char_traits</code></a>
 chapter added.</li>
 </ul>
-<h2 data-number="1.3" id="changes-since-p3094r3"><span class="header-section-number">1.3</span> Changes since <span class="citation" data-cites="P3094R3">[<a href="https://wg21.link/p3094r3" role="doc-biblioref">P3094R3</a>]</span><a href="#changes-since-p3094r3" class="self-link"></a></h2>
+<h2 data-number="1.3" id="changes-since-p3094r3"><span class="header-section-number">1.3</span> Changes since <span class="citation" data-cites="P3094R3"><a href="https://wg21.link/p3094r3" role="doc-biblioref">[P3094R3]</a></span><a href="#changes-since-p3094r3" class="self-link"></a></h2>
 <ul>
 <li><code class="sourceCode cpp">std<span class="op">::</span></code>
 prefix dropped in <a href="#wording">Wording</a>.</li>
@@ -599,7 +603,7 @@ exposition-only concept removed.</li>
 <code class="sourceCode cpp"><span class="kw">const</span></code>
 removed from <code class="sourceCode cpp"><span class="kw">operator</span><span class="op">+</span></code>.</li>
 </ul>
-<h2 data-number="1.4" id="changes-since-p3094r2"><span class="header-section-number">1.4</span> Changes since <span class="citation" data-cites="P3094R2">[<a href="https://wg21.link/p3094r2" role="doc-biblioref">P3094R2</a>]</span><a href="#changes-since-p3094r2" class="self-link"></a></h2>
+<h2 data-number="1.4" id="changes-since-p3094r2"><span class="header-section-number">1.4</span> Changes since <span class="citation" data-cites="P3094R2"><a href="https://wg21.link/p3094r2" role="doc-biblioref">[P3094R2]</a></span><a href="#changes-since-p3094r2" class="self-link"></a></h2>
 <ul>
 <li>Additional motivation for <a href="#constructor-taking-the-list-of-characters">Constructor taking the
 list of characters</a> added.</li>
@@ -616,7 +620,7 @@ rationale for it added.</li>
 wording.</li>
 <li>“Annex C” entry added.</li>
 </ul>
-<h2 data-number="1.5" id="changes-since-p3094r1"><span class="header-section-number">1.5</span> Changes since <span class="citation" data-cites="P3094R1">[<a href="https://wg21.link/p3094r1" role="doc-biblioref">P3094R1</a>]</span><a href="#changes-since-p3094r1" class="self-link"></a></h2>
+<h2 data-number="1.5" id="changes-since-p3094r1"><span class="header-section-number">1.5</span> Changes since <span class="citation" data-cites="P3094R1"><a href="https://wg21.link/p3094r1" role="doc-biblioref">[P3094R1]</a></span><a href="#changes-since-p3094r1" class="self-link"></a></h2>
 <ul>
 <li><a href="#design-discussion">Design discussion</a> chapter
 extended.</li>
@@ -642,7 +646,7 @@ characters.</li>
 from synopsis as the <code class="sourceCode cpp">fixed_string</code>
 type was added to the debug-enabled string type specializations.</li>
 </ul>
-<h2 data-number="1.6" id="changes-since-p3094r0"><span class="header-section-number">1.6</span> Changes since <span class="citation" data-cites="P3094R0">[<a href="https://wg21.link/p3094r0" role="doc-biblioref">P3094R0</a>]</span><a href="#changes-since-p3094r0" class="self-link"></a></h2>
+<h2 data-number="1.6" id="changes-since-p3094r0"><span class="header-section-number">1.6</span> Changes since <span class="citation" data-cites="P3094R0"><a href="https://wg21.link/p3094r0" role="doc-biblioref">[P3094R0]</a></span><a href="#changes-since-p3094r0" class="self-link"></a></h2>
 <ul>
 <li><a href="#using-stdarray-for-storage">Using
 <code class="sourceCode cpp">std<span class="op">::</span>array</code>
@@ -674,7 +678,7 @@ publicly. So far, none of the existing string types in the C++ standard
 library satisfies such requirements.</p>
 <p>This type is intended to serve as an essential building block and be
 exposed as a part of the public interface of quantities and units
-library proposed in <span class="citation" data-cites="P2980R1">[<a href="https://wg21.link/p2980r1" role="doc-biblioref">P2980R1</a>]</span>. All dimensions, units,
+library proposed in <span class="citation" data-cites="P2980R1"><a href="https://wg21.link/p2980r1" role="doc-biblioref">[P2980R1]</a></span>. All dimensions, units,
 prefixes, and constants definitions will use it to provide their textual
 representation.</p>
 <h1 data-number="3" id="fixed_string-is-an-established-practice"><span class="header-section-number">3</span>
@@ -696,8 +700,8 @@ those:</p>
 <li><a href="https://github.com/fmtlib/fmt/blob/5cfd28d476c6859617878f951931b8ce7d36b9df/include/fmt/format.h#L1065-L1071">fmtlib/fmt</a></li>
 <li><a href="https://github.com/hanickadot/compile-time-regular-expressions/blob/029f1f13646cf65ec09780013418cb8f1c5d3a59/include/ctll/fixed_string.hpp#L44-L220">hanickadot/compile-time-regular-expressions</a></li>
 <li><a href="https://github.com/tomazos/fixed_string">tomazos/fixed_string</a>
-- a reference implementation of <span class="citation" data-cites="P0259R0">[<a href="https://wg21.link/p0259r0" role="doc-biblioref">P0259R0</a>]</span> (not a structural type as it is
-8 years old)</li>
+- a reference implementation of <span class="citation" data-cites="P0259R0"><a href="https://wg21.link/p0259r0" role="doc-biblioref">[P0259R0]</a></span> (not a structural type as it
+is 8 years old)</li>
 <li><a href="https://github.com/unterumarmung/fixed_string">unterumarmung/fixed_string</a></li>
 <li><a href="https://github.com/mu001999/fixed_string">mu001999/fixed_string</a></li>
 <li><a href="https://github.com/calebxyz/Fixed_Strings">calebxyz/Fixed_Strings</a></li>
@@ -763,21 +767,21 @@ arises.</p>
 <code class="sourceCode cpp">inplace_string</code><a href="#inplace_string" class="self-link"></a></h2>
 <p>We could also consider providing a full-blown fixed-capacity string
 class similar to the <code class="sourceCode cpp">inplace_vector</code>
-<span class="citation" data-cites="P0843R9">[<a href="https://wg21.link/p0843r9" role="doc-biblioref">P0843R9</a>]</span>. It would provide not only full
-read-write capability but also be really beneficial for embedded and
-low-latency domains.</p>
+<span class="citation" data-cites="P0843R9"><a href="https://wg21.link/p0843r9" role="doc-biblioref">[P0843R9]</a></span>. It would provide not only
+full read-write capability but also be really beneficial for embedded
+and low-latency domains.</p>
 <p>Despite being welcomed and valuable in the C++ community, the author
 believes that such a type should not satisfy the current requirements
 for a structural type, which is a hard requirement of this proposal. If
 <code class="sourceCode cpp">inplace_string</code> was used instead, we
 would end up with separate template instantiations for objects with the
 same value but a different capacity.</p>
-<p>The above issue could be solved by <span class="citation" data-cites="P3380R1">[<a href="https://wg21.link/p3380r1" role="doc-biblioref">P3380R1</a>]</span>, which proposes a solution that
-would extend the definition of structural types to any type that can be
-serialized and deserialized. That paper is at the early stage of the
-standardization pipeline, and today, we can’t be sure if the Committee
-will accept it. Even if the paper is accepted in the future, nothing
-prevents us from having both a
+<p>The above issue could be solved by <span class="citation" data-cites="P3380R1"><a href="https://wg21.link/p3380r1" role="doc-biblioref">[P3380R1]</a></span>, which proposes a solution
+that would extend the definition of structural types to any type that
+can be serialized and deserialized. That paper is at the early stage of
+the standardization pipeline, and today, we can’t be sure if the
+Committee will accept it. Even if the paper is accepted in the future,
+nothing prevents us from having both a
 <code class="sourceCode cpp">fixed_string</code> and
 <code class="sourceCode cpp">inplace_string</code> in the library as
 types corresponding to <code class="sourceCode cpp">array</code> and
@@ -909,7 +913,7 @@ consistency and correctness.</p>
 <p>As calling such an immediate function does not impose any runtime
 overhead, the construction of this type also satisfies point 2.
 above.</p>
-<p>Additionally, in case <span class="citation" data-cites="P3491R0">[<a href="https://wg21.link/p3491r0" role="doc-biblioref">P3491R0</a>]</span> gets accepted, we could
+<p>Additionally, in case <span class="citation" data-cites="P3491R0"><a href="https://wg21.link/p3491r0" role="doc-biblioref">[P3491R0]</a></span> gets accepted, we could
 constrain this constructor with <code class="sourceCode cpp">is_string_literal<span class="op">(</span>ptr<span class="op">)</span></code>.</p>
 <h2 data-number="6.3" id="constructor-taking-the-list-of-characters"><span class="header-section-number">6.3</span> Constructor taking the list of
 characters<a href="#constructor-taking-the-list-of-characters" class="self-link"></a></h2>
@@ -1035,8 +1039,8 @@ future versions of the standard.</p>
 <h2 data-number="6.10" id="char_traits"><span class="header-section-number">6.10</span>
 <code class="sourceCode cpp">char_traits</code><a href="#char_traits" class="self-link"></a></h2>
 <p>Support for <code class="sourceCode cpp">char_traits</code> was added
-upon the LEWGI request in <span class="citation" data-cites="P3094R1">[<a href="https://wg21.link/p3094r1" role="doc-biblioref">P3094R1</a>]</span>. However, this was considered a
-bad decision by SG16.</p>
+upon the LEWGI request in <span class="citation" data-cites="P3094R1"><a href="https://wg21.link/p3094r1" role="doc-biblioref">[P3094R1]</a></span>. However, this was considered
+a bad decision by SG16.</p>
 <p><code class="sourceCode cpp">char_traits</code> promises
 configurability for operations where no user-level configuration makes
 sense.</p>
@@ -1100,11 +1104,11 @@ the paper in R5.</p>
 <p>There are two papers that could affect the shape of this
 proposal:</p>
 <ul>
-<li>“<span class="citation" data-cites="P3380R1">[<a href="https://wg21.link/p3380r1" role="doc-biblioref">P3380R1</a>]</span>: Extending support for class
+<li>“<span class="citation" data-cites="P3380R1"><a href="https://wg21.link/p3380r1" role="doc-biblioref">[P3380R1]</a></span>: Extending support for class
 types as non-type template parameters” - could allow implementing
 <code class="sourceCode cpp">inplace_string</code> as a structural type
 (see <a href="#inplace_string"><code class="sourceCode cpp">inplace_string</code></a>).</li>
-<li>“<span class="citation" data-cites="P3491R0">[<a href="https://wg21.link/p3491r0" role="doc-biblioref">P3491R0</a>]</span>: <code class="sourceCode cpp">define_static_<span class="op">{</span>string,object,array<span class="op">}</span></code>”
+<li>“<span class="citation" data-cites="P3491R0"><a href="https://wg21.link/p3491r0" role="doc-biblioref">[P3491R0]</a></span>: <code class="sourceCode cpp">define_static_<span class="op">{</span>string,object,array<span class="op">}</span></code>”
 - provides <code class="sourceCode cpp">is_string_literal<span class="op">(</span>ptr<span class="op">)</span></code>
 function that could improve constraints of the function templates taking
 an array of characters in this proposal (see <a href="#constructor-from-the-string-literal">Constructor from the string
