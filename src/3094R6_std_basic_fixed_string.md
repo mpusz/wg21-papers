@@ -19,6 +19,7 @@ author:
 - [Related proposals] chapter added.
 - [`std::string_literal`] chapter added.
 - [Constructor from the string literal] extended with [@P3491R0].
+- Poll results added to the [`inplace_string`] chapter.
 - Compiler Explorer link updated.
 
 ## Changes since [@P3094R4]
@@ -183,6 +184,15 @@ is at the early stage of the standardization pipeline, and today, we can't be su
 Committee will accept it. Even if the paper is accepted in the future, nothing prevents us from
 having both a `fixed_string` and `inplace_string` in the library as types corresponding to `array`
 and `inplace_vector`.
+
+LEWG took the following poll during the Wrocław 2024 meeting:
+
+> POLL: We want to proceed with `fixed_string` despite EWG proposals that make string structural or
+>       the possibility of `inplace_string`.
+>
+> | SF | WF | N | WA | SA |
+> |:--:|:--:|:-:|:--:|:--:|
+> | 9  | 8  | 6 | 1  | 2  |
 
 ## `std::string` with a static storage allocator
 
