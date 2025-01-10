@@ -125,7 +125,7 @@ Such type should at least:
 - provide at least read-only access to the contained storage.
 
 It does not need to expose a string-like interface. In case its interface is immutable, as it is
-proposed in this paper, we can easily wrap it with `std::string_view` to get such an interface for  
+proposed in this paper, we can easily wrap it with `std::string_view` to get such an interface for
 free.
 
 
