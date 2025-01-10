@@ -3,7 +3,6 @@ title: "`std::basic_fixed_string`"
 document: P3094R6
 date: today
 audience:
-  - SG16 Unicode
   - Library Evolution Working Group
 author:
   - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
