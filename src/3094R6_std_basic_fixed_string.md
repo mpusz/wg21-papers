@@ -14,7 +14,8 @@ author:
 
 ## Changes since [@P3094R5]
 
-- `convertible_to<charT>` replaced with `same_as<charT>`
+- `convertible_to<charT>` replaced with `same_as<charT>`.
+- [@P2484R0] replaced with [@P3380R1] for structural types.
 
 ## Changes since [@P3094R4]
 
@@ -170,8 +171,14 @@ be really beneficial for embedded and low-latency domains.
 Despite being welcomed and valuable in the C++ community, the author believes that such a type
 should not satisfy the current requirements for a structural type, which is a hard requirement
 of this proposal. If `inplace_string` was used instead, we would end up with separate template
-instantiations for objects with the same value but a different capacity. This is why we should
-not consider adding such a type to the library for now.
+instantiations for objects with the same value but a different capacity.
+
+The above issue could be solved by [@P3380R1], which proposes a solution that would extend the
+definition of structural types to any type that can be serialized and deserialized. That paper
+is at the early stage of the standardization pipeline, and today, we can't be sure if the
+Committee will accept it. Even if the paper is accepted in the future, nothing prevents us from
+having both a `fixed_string` and `inplace_string` in the library as types corresponding to `array`
+and `inplace_vector`.
 
 ## `std::string` with a static storage allocator
 
@@ -188,10 +195,6 @@ structural types. However, it does not properly construct from string literals a
 provide string-like concatenation interfaces.
 
 ## Just wait for the C++ language to solve it
-
-[@P2484R0] proposed extending support for class types as non-type template parameters in the
-C++ language. However, this proposal's primary author is no longer active in C++ standardization,
-and there have been no updates to the paper in the last two years.
 
 We can't wait for the C++ language to change forever. For example, the quantities and units library
 will be impossible to standardize without such a feature. This is why the author recommends
