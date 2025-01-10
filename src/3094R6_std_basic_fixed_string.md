@@ -16,6 +16,7 @@ author:
 
 - `convertible_to<charT>` replaced with `same_as<charT>`.
 - [@P2484R0] replaced with [@P3380R1] for structural types.
+- [Related proposals] chapter added.
 
 ## Changes since [@P3094R4]
 
@@ -355,6 +356,17 @@ During the SG16 meeting on October 9, 2024, the following poll was taken:
 > - Strong consensus
 
 As a result of this poll, `char_traits` were removed again from the paper in R5.
+
+
+# Related proposals
+
+There are two papers that could affect the shape of this proposal:
+
+- "[@P3380R1]: Extending support for class types as non-type template parameters" - could allow
+  implementing `inplace_string` as a structural type (see [`inplace_string`]).
+- "[@P3491R0]: `define_static_{string,object,array}`" - provides `is_string_literal(ptr)` function
+  that could improve constraints of the function templates taking an array of characters in this
+  proposal (see [Constructor from the string literal]).
 
 
 # Open questions
