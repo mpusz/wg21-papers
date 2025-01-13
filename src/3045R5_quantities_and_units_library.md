@@ -3800,7 +3800,7 @@ algorithm.
 
 ```cpp
 struct dimension_symbol_formatting {
-  character_set encoding = character_set::default_encoding;
+  character_set char_set = character_set::default_encoding;
 };
 ```
 
@@ -3866,7 +3866,7 @@ enum class unit_symbol_separator : std::int8_t {
 };
 
 struct unit_symbol_formatting {
-  character_set encoding = character_set::default_encoding;
+  character_set char_set = character_set::default_encoding;
   unit_symbol_solidus solidus = unit_symbol_solidus::default_denominator;
   unit_symbol_separator separator = unit_symbol_separator::default_separator;
 };
