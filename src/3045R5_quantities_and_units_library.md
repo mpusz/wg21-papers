@@ -46,6 +46,7 @@ toc-depth: 4
 - Invalid [@ISO80000] quote removed from the [Unit formatting] chapter.
 - Explicit unit conversion example added to the [Symbols of common units] chapter.
 - UTF-8 printing rules specified for `symbol_text`.
+- `unit-symbol-solidus` alternative grammars added.
 
 ## Changes since [@P3045R3]
 
@@ -4224,6 +4225,17 @@ In the above grammar:
 _Note: The intent of the above grammar was that the elements of `unit-spec` can appear in
 any order as they have unique characters. Users shouldn't have to remember the order of those tokens
 to control the formatting of a unit symbol._
+
+The above grammar for `unit-symbol-solidus` is consistent with the current state of [@MP-UNITS].
+However, a few aternatives are possible:
+
+```ebnf
+unit-symbol-solidus   = '1' | 'a' | 'n';
+unit-symbol-solidus   = 'o' | 'a' | 'n';
+unit-symbol-solidus   = '1' | '*' | '0';
+unit-symbol-solidus   = '1' | '*' | '-';
+unit-symbol-solidus   = '1' | '+' | '-';
+```
 
 Unit symbols of some quantities are specified to use Unicode signs by the [@SI] (e.g., `Ω` symbol
 for the _resistance_ quantity). The library follows this by default. From the engineering point of
