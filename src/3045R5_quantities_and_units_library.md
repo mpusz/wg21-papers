@@ -42,6 +42,7 @@ toc-depth: 4
 - `QuantityOf` and `QuantityPointOf` concepts constrained with `ReferenceOf`.
 - Conversions beyond quantity subkinds added to the [Nested quantity kinds] chapter.
 - [@P2830R7] referred in the [Simplifying the resulting symbolic expressions] chapter.
+- Scaled units are now surrounded with `(...)` instead of `[...]` in the text output.
 
 ## Changes since [@P3045R3]
 
@@ -3947,7 +3948,7 @@ std::cout << 6.7 * L_per_100km << "\n";
 prints:
 
 ```text
-6.7 L/[100 km]
+6.7 L/(100 km)
 ```
 
 ### Symbols of common units
@@ -3967,10 +3968,10 @@ std::cout << 1. * rad + 1. * deg << "\n";
 prints:
 
 ```text
-40771 EQUIV{[1/25146 mi], [1/15625 km]}
-108167 EQUIV{[1/50292 mi], [1/57875 nmi]}
-23 EQUIV{[1/5 km/h], [1/18 m/s]}
-183.142 EQUIV{[1/π°], [1/180 rad]}
+40771 EQUIV{(1/25146 mi), (1/15625 km)}
+108167 EQUIV{(1/50292 mi), (1/57875 nmi)}
+23 EQUIV{(1/5 km/h), (1/18 m/s)}
+183.142 EQUIV{(1/π°), (1/180 rad)}
 ```
 
 Thanks to the above, it might be easier for the user to reason about the magnitude of the resulting
