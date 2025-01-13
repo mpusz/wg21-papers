@@ -40,6 +40,7 @@ toc-depth: 4
 - An alternative of printing space " " for `half_high_dot` added.
 - `QuantitySpecOf` and `UnitOf` concepts simplified.
 - `QuantityOf` and `QuantityPointOf` concepts constrained with `ReferenceOf`.
+- Conversions beyond quantity subkinds added to the [Nested quantity kinds] chapter.
 
 ## Changes since [@P3045R3]
 
@@ -8251,6 +8252,25 @@ inline constexpr struct bit final : named_unit<"bit", one, kind_of<storage_capac
 
 This still allows the usage of `one` (possibly scaled) for such quantities which is exactly what
 we wanted to achieve.
+
+It is worth mentioning here that converting up the hierarchy beyond a subkind requires an explicit
+conversion. For example:
+
+```cpp
+static_assert(implicitly_convertible(isq::rotation, dimensionless));
+static_assert(!implicitly_convertible(isq::angular_measure, dimensionless));
+static_assert(explicitly_convertible(isq::angular_measure, dimensionless));
+```
+
+This increases type safety and prevents accidental quantities with invalid units. For example,
+a result of a conversion from `isq::angular_measure[rad]` to `dimensionless` would be
+a reference of `dimensionless[rad]`, which contains an incorrect unit for a `dimensionless`
+quantity. Such a conversion must be explicit and be preceded by an explicit unit conversion:
+
+```cpp
+quantity q1 = isq::angular_measure(42. * rad);
+quantity<dimensionless[one]> q2 = dimensionless(q1.in(one));
+```
 
 
 ### Value conversions
