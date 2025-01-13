@@ -35,6 +35,7 @@ toc-depth: 4
 - `mp_units` namespace usage replaced with `std`.
 - `absolute` creation helper renamed to `point`.
 - Expression templates renamed to symbolic expressions.
+- Usage examples updated.
 
 ## Changes since [@P3045R3]
 
@@ -2341,7 +2342,7 @@ The above prints:
  65534 hwV ( 10 V)
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/51TbGn6nn).
+Try it in [the Compiler Explorer](https://godbolt.org/z/KdKanbMMo).
 
 
 ## User defined quantities and units
@@ -2380,11 +2381,11 @@ inline constexpr struct QuarterNote final : std::named_unit<"q", std::one, std::
 inline constexpr struct HalfNote final : std::named_unit<"h", std::mag<2> * QuarterNote> {} HalfNote;
 inline constexpr struct DottedHalfNote final : std::named_unit<"h.", std::mag<3> * QuarterNote> {} DottedHalfNote;
 inline constexpr struct WholeNote final : std::named_unit<"w", std::mag<4> * QuarterNote> {} WholeNote;
-inline constexpr struct EightNote final : std::named_unit<"8th", std::mag_ratio<1, 2> * QuarterNote> {} EightNote;
-inline constexpr struct DottedQuarterNote final : std::named_unit<"q.", std::mag<3> * EightNote> {} DottedQuarterNote;
+inline constexpr struct EighthNote final : std::named_unit<"8th", std::mag_ratio<1, 2> * QuarterNote> {} EighthNote;
+inline constexpr struct DottedQuarterNote final : std::named_unit<"q.", std::mag<3> * EighthNote> {} DottedQuarterNote;
 inline constexpr struct QuarterNoteTriplet final : std::named_unit<"qt", std::mag_ratio<1, 3> * HalfNote> {} QuarterNoteTriplet;
-inline constexpr struct SixteenthNote final : std::named_unit<"16th", std::mag_ratio<1, 2> * EightNote> {} SixteenthNote;
-inline constexpr struct DottedEightNote final : std::named_unit<"q.", std::mag<3> * SixteenthNote> {} DottedEightNote;
+inline constexpr struct SixteenthNote final : std::named_unit<"16th", std::mag_ratio<1, 2> * EighthNote> {} SixteenthNote;
+inline constexpr struct DottedEighthNote final : std::named_unit<"q.", std::mag<3> * SixteenthNote> {} DottedEighthNote;
 
 inline constexpr auto Beat = QuarterNote;
 
@@ -2404,8 +2405,8 @@ inline constexpr auto n_h = HalfNote;
 inline constexpr auto n_qd = DottedQuarterNote;
 inline constexpr auto n_q = QuarterNote;
 inline constexpr auto n_qt = QuarterNoteTriplet;
-inline constexpr auto n_8thd = DottedEightNote;
-inline constexpr auto n_8th = EightNote;
+inline constexpr auto n_8thd = DottedEighthNote;
+inline constexpr auto n_8th = EighthNote;
 inline constexpr auto n_16th = SixteenthNote;
 
 }
@@ -2442,14 +2443,14 @@ int main()
 
   const std::quantity samples = 512 * Smpl;
 
-  const std::quantity sampleTime1 = (samples / sr1).in(s);
-  const std::quantity sampleTime2 = (samples / sr2).in(ms);
+  const std::quantity sampleTime1 = (samples.in<float>() / sr1).in(s);
+  const std::quantity sampleTime2 = (samples.in<float>() / sr2).in(ms);
 
-  const std::quantity sampleDuration1 = (1 / sr1).in(ms);
-  const std::quantity sampleDuration2 = (1 / sr2).in(ms);
+  const std::quantity sampleDuration1 = std::inverse<ms>(sr1);
+  const std::quantity sampleDuration2 = std::inverse<ms>(sr2);
 
   const std::quantity rampTime = 35.f * ms;
-  const std::quantity rampSamples1 = (rampTime * sr1).force_in<int>(Smpl);
+  const std::quantity rampSamples1 = ni::SampleCount((rampTime * sr1).in(one)).force_in<int>(Smpl);
   const std::quantity rampSamples2 = (rampTime * sr2).force_in<int>(Smpl);
 
   std::println("Sample rate 1 is: {}", sr1);
@@ -2516,7 +2517,7 @@ Transport Beats is: 16.495832 q
 Transport Time is: 8.997726 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/a7eYa91cM).
+Try it in [the Compiler Explorer](https://godbolt.org/z/z7sPqe66e).
 
 _Note: More about this example can be found in
 ["Exploration of Strongly-typed Units in C++: A Case Study from Digital Audio"](https://www.youtube.com/watch?v=oxnCdIfC4Z4)
