@@ -47,6 +47,7 @@ toc-depth: 4
 - Explicit unit conversion example added to the [Symbols of common units] chapter.
 - UTF-8 printing rules specified for `symbol_text`.
 - `unit-symbol-solidus` alternative grammars added.
+- [Extensions to `std-format-spec`] chapter added.
 
 ## Changes since [@P3045R3]
 
@@ -218,14 +219,15 @@ in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                      | Priority |         Papers         | Description                                                                                                |
-|------------------------------|:--------:|:----------------------:|------------------------------------------------------------------------------------------------------------|
-| `fixed_string`               |    1     |       [@P3094R0]       | String-like structural type with inline storage (can be used as an NTTP).                                  |
-| Nested entities formatting   |    1     |          ???           | Possibility to override the format string in the parse and format contexts.                                |
-| Compile-time prime numbers   |    2     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
-| Value-preserving conversions |    2     | [@P0870R5], [@P2509R0] | Type trait stating if the conversion from one type to another is value preserving or not.                  |
-| Number concepts              |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
-| Bounded numeric types        |    3     |       [@P2993R0]       | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
+| Feature                               | Priority |         Papers         | Description                                                                                                |
+|---------------------------------------|:--------:|:----------------------:|------------------------------------------------------------------------------------------------------------|
+| `fixed_string`                        |    1     |       [@P3094R0]       | String-like structural type with inline storage (can be used as an NTTP).                                  |
+| Nested entities formatting            |    1     |          ???           | Possibility to override the format string in the parse and format contexts.                                |
+| Grouping numbers in `std-format-spec` |    2     |          ???           | [Extensions to `std-format-spec`].                                                                         |
+| Compile-time prime numbers            |    2     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
+| Value-preserving conversions          |    2     | [@P0870R5], [@P2509R0] | Type trait stating if the conversion from one type to another is value preserving or not.                  |
+| Number concepts                       |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
+| Bounded numeric types                 |    3     |       [@P2993R0]       | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -4473,6 +4475,32 @@ std::println("{::N[G]}",   1.2345678e8 * m);    // 1.23457E+08 m
 std::println("{::N[.3G]}", 1.2345678 * m);      // 1.23 m
 std::println("{::N[.3G]}", 1.2345678e8 * m);    // 1.23E+08 m
 ```
+
+#### Extensions to `std-format-spec`
+
+Both [@ISO80000] and [@SI] are recommending printing numbers into separated into groups of three:
+
+> To facilitate the reading of numbers with many digits, these may be separated into groups of
+> three, counting from the decimal sign towards the left and the right. In the case where there
+> is no decimal part (and thus no decimal marker), the counting shall be from the right-most digit,
+> towards the left. No group shall contain more than three digits, except that when there are only
+> four digits before or after the decimal marker it is customary not to use a space to isolate
+> a single digit. Where such separation into groups of three is used, the groups shall be separated
+> by a small space and not by a point or a comma or by any other means.
+>
+> EXAMPLE 1: 12 345  
+> EXAMPLE 2: 1 234 or 1234  
+> EXAMPLE 3: 1 234,567 8 or 1234,5678  
+>
+> The practice of grouping digits in this way is a matter of choice. It is not always followed in
+> certain specialized applications such as engineering drawings and scripts to be read by a
+> computer. The separation into groups of three should not be used for ordinal numbers used as
+> reference numbers. A year, when given by four digits, shall always be written without a space
+> between the digits.
+
+As of today, no flag in `std-format-spec` would force it. Similar output may be obtained thanks
+to localization, but international standards mentioned above recommend that for every user,
+no matter what localization option is being used.
 
 
 ## Quantity point text output
