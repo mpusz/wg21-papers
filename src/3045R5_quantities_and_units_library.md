@@ -45,6 +45,7 @@ toc-depth: 4
 - Scaled units are now surrounded with `(...)` instead of `[...]` in the text output.
 - Invalid [@ISO80000] quote removed from the [Unit formatting] chapter.
 - Explicit unit conversion example added to the [Symbols of common units] chapter.
+- UTF-8 printing rules specified for `symbol_text`.
 
 ## Changes since [@P3045R3]
 
@@ -3741,8 +3742,8 @@ objects:
 template<std::size_t N, std::size_t M>
 class symbol_text {
 public:
-  fixed_u8string<N> utf8_;  // exposition only
-  fixed_string<M> portable;      // exposition only
+  fixed_u8string<N> utf8_;    // exposition only
+  fixed_string<M> portable_;  // exposition only
 
   constexpr explicit(false) symbol_text(char ch);
   consteval explicit(false) symbol_text(const char (&txt)[N + 1]);
@@ -3779,6 +3780,14 @@ symbol_text(const char8_t (&)[N], const char (&)[M]) -> symbol_text<N - 1, M - 1
 template<std::size_t N, std::size_t M>
 symbol_text(const fixed_u8string<N>&, const fixed_string<M>&) -> symbol_text<N, M>;
 ```
+
+It is important to note that the `utf8_` text representation is used only when the output is of
+either:
+
+- `char8_t` type,
+- `char` and `std::text_encoding::literal().mib() == std::text_encoding::id::UTF8`.
+
+Otherwise, `portable_` is used.
 
 ### Symbols for derived entities
 
