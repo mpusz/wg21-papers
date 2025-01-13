@@ -41,6 +41,7 @@ toc-depth: 4
 - `QuantitySpecOf` and `UnitOf` concepts simplified.
 - `QuantityOf` and `QuantityPointOf` concepts constrained with `ReferenceOf`.
 - Conversions beyond quantity subkinds added to the [Nested quantity kinds] chapter.
+- [@P2830R7] referred in the [Simplifying the resulting symbolic expressions] chapter.
 
 ## Changes since [@P3045R3]
 
@@ -6532,7 +6533,10 @@ the resulting symbolic expression.
     - _d_<sub>1/2</sub> - _half-value thickness_,
     - _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
 
-    This is why the library chose to use type name identifiers in such cases.
+    This is why the library chose to use type name identifiers in such cases. As of today, it could
+    be implementation-defined of how a specific implementation orders the identifiers on a type list.
+    If [@P2830R7] gets standardized, then it will be possible for every implementation to guarantee
+    the same ordering of types.
 
 2. **Aggregation**
 
