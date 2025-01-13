@@ -37,6 +37,7 @@ toc-depth: 4
 - Expression templates renamed to symbolic expressions.
 - Usage examples updated.
 - "Minimal Viable Product (MVP) scope" refactored to [Core Library Framework scope].
+- An alternative of printing space " " for `half_high_dot` added.
 
 ## Changes since [@P3045R3]
 
@@ -3995,7 +3996,9 @@ of them together with the recommended portable replacements:
 
 [^1]: Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
 at the same time. This symbol is valid only for UTF-8 encoding. Otherwise, we propose to throw
-an exception during the unit symbol string processing.
+an exception during the unit symbol string processing. We could also ignore the
+`unit_symbol_separator::half_high_dot` option and use space " ", like this is the case for
+`character_set::portable`.
 
 Here is an example of how the above are being used in a code:
 
