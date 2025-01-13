@@ -44,6 +44,7 @@ toc-depth: 4
 - [@P2830R7] referred in the [Simplifying the resulting symbolic expressions] chapter.
 - Scaled units are now surrounded with `(...)` instead of `[...]` in the text output.
 - Invalid [@ISO80000] quote removed from the [Unit formatting] chapter.
+- Explicit unit conversion example added to the [Symbols of common units] chapter.
 
 ## Changes since [@P3045R3]
 
@@ -3977,6 +3978,20 @@ prints:
 
 Thanks to the above, it might be easier for the user to reason about the magnitude of the resulting
 unit and its impact on the value stored in the quantity.
+
+It is important to note that this output is provided only for intermediate results of the equations,
+as shown above. A user usually knows which unit should be used, and explicit conversion can be made
+to achieve that. For example:
+
+```cpp
+std::cout << (1 * km + 1 * mi).in<double>(km) << "\n";
+```
+
+prints:
+
+```text
+2.60934 km
+```
 
 ### Unicode characters and their portable replacements
 
