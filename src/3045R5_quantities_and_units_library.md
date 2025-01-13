@@ -43,6 +43,7 @@ toc-depth: 4
 - Conversions beyond quantity subkinds added to the [Nested quantity kinds] chapter.
 - [@P2830R7] referred in the [Simplifying the resulting symbolic expressions] chapter.
 - Scaled units are now surrounded with `(...)` instead of `[...]` in the text output.
+- Invalid [@ISO80000] quote removed from the [Unit formatting] chapter.
 
 ## Changes since [@P3045R3]
 
@@ -4232,17 +4233,6 @@ std::println("{:a}", kg / m / s2);  // kg/(m s²)
 std::println("{:n}", m / s);        // m s⁻¹
 std::println("{:n}", kg / m / s2);  // kg m⁻¹ s⁻²
 ```
-
-Also, there are a few options to separate the units being multiplied. [@ISO80000] (part 1) says:
-
-> When symbols for quantities are combined in a product of two or more quantities, this combination
-> is indicated in one of the following ways: `ab`, `a b`, `a · b`, `a × b`
->
-> _NOTE 1_ In some fields, e.g., vector algebra, distinction is made between `a ∙ b` and `a × b`.
-
-The library supports `a b` and `a · b` only. Additionally, we decided that the extraneous space
-in the latter case makes the result too verbose, so we decided just to use the `·` symbol as
-a separator.
 
 The `unit-symbol-separator` token allows us to obtain the following outputs:
 
