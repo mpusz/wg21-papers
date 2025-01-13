@@ -36,6 +36,7 @@ toc-depth: 4
 - `absolute` creation helper renamed to `point`.
 - Expression templates renamed to symbolic expressions.
 - Usage examples updated.
+- "Minimal Viable Product (MVP) scope" refactored to [Core Library Framework scope].
 
 ## Changes since [@P3045R3]
 
@@ -4477,10 +4478,10 @@ library does not have enough information to print it that way by itself.
     quantity capacitance = 100 * µF;
     ```
 
-# Minimal Viable Product (MVP) scope
+# Core Library Framework scope
 
 After a rough introduction of most of the features and abstractions in the library, it might be
-good to discuss the scope for the Minimal Viable Product (MVP).
+good to discuss the scope for the Core Library Framework.
 
 We have several significant features to consider here:
 
@@ -4495,7 +4496,7 @@ We have several significant features to consider here:
 
 Please note that the above only lists the features present in this proposal. Additional features,
 like definitions of specific systems of quantities and units, math utilities, and other extensions,
-will be provided in the follow-up papers. We chose not to include those features here because
+may be provided in the follow-up papers. We chose not to include those features here because
 they can be separately added later. This also means that we believe that all of the features listed
 above should be provided in the first release of the library.
 
@@ -4562,38 +4563,6 @@ MVP scope:
    all the symbols provided in unit and dimension definitions will be useless. If we do not intend
    to have text output, we should remove symbol text from the core framework class templates.
    This is why we should take that decision now.
-
-Some pople may consider the above a lot already. However, it is important to realize that besides
-the most critical framework features described in this proposal, there is much more to consider
-for standardization. Here are the features that should/can be added later and which are not a part
-of the MVP as of today:
-
-- The minimal SI definition
-- ISQ: Space and time
-- ISQ: Mechanics
-- ISQ: Thermodynamics
-- ISQ: Electromagnetism
-- ISQ: Light and radiation
-- ISQ: Acoustics
-- ISQ: Physical chemistry and molecular physics
-- ISQ: Atomic and nuclear physics
-- ISQ: Characteristic numbers
-- ISQ: Condensed matter physics
-- ISQ: Information science and technology
-- ISQ: Logarithmic and related quantities
-- International yard and pound units
-- Imperial Units
-- U.S. customary units
-- IEC units
-- CGS units
-- Polymorphic unit
-- Polymorphic quantity
-- Math utilities for quantities
-- Random number generators for quantities
-
-All of the above features can be added later on top of the framework facilities described in this
-document. Some of them probably should land in the first iteration, but others can wait for
-the next one.
 
 
 # Safety
