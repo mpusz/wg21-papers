@@ -38,6 +38,7 @@ toc-depth: 4
 - Usage examples updated.
 - "Minimal Viable Product (MVP) scope" refactored to [Core Library Framework scope].
 - An alternative of printing space " " for `half_high_dot` added.
+- `QuantitySpecOf` and `UnitOf` concepts simplified.
 
 ## Changes since [@P3045R3]
 
@@ -6138,22 +6139,6 @@ concept and when they compare equal.
 `QuantitySpecOf` concept is satisfied when both arguments satisfy a
 [`QuantitySpec`](#QuantitySpec-concept) concept and when `T` is implicitly convertible to `V`.
 
-Additionally:
-
-- `T` should not be a nested quantity specification of `V`
-- either `T` is quantity kind or `V` should not be a
-  nested quantity specification of `T`
-
-Those additional conditions are required to make the following work:
-
-```cpp
-static_assert(ReferenceOf<si::radian, isq::angular_measure>);
-static_assert(!ReferenceOf<si::radian, dimensionless>);
-static_assert(!ReferenceOf<isq::angular_measure[si::radian], dimensionless>);
-static_assert(ReferenceOf<one, isq::angular_measure>);
-static_assert(!ReferenceOf<dimensionless[one], isq::angular_measure>);
-```
-
 ### `Unit<T>` concept { #Unit-concept }
 
 `Unit` concept matches all the units in the library including:
@@ -6192,16 +6177,8 @@ Such units can be passed as an argument to a `prefixed_unit` class template.
 
 #### `UnitOf<T, V>` concept { #UnitOf-concept }
 
-`UnitOf` concept is satisfied for all units `T` matching an
-[`AssociatedUnit`](#AssociatedUnit-concept) concept with an associated quantity type implicitly
+`UnitOf` concept is satisfied for all units `T` for which an associated quantity spec is implicitly
 convertible to `V`.
-
-Additionally, the kind of `V` and the kind of quantity type associated with `T` must be the same,
-or the quantity type associated with `T` may not be derived from the kind of `V`.
-
-This condition is required to make `dimensionless[si::radian]` invalid as `si::radian` should
-be only used for `isq::angular_measure`, which is a nested quantity kind within the dimensionless
-quantities tree.
 
 #### `UnitCompatibleWith<T, V1, V2>` concept { #UnitCompatibleWith-concept }
 
