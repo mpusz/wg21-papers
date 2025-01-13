@@ -4248,7 +4248,7 @@ _Note: 'd' requires the UTF-8 encoding to be set._
 ### Quantity formatting
 
 ```ebnf
-quantity-format-spec        = [fill-and-align], [widt4h], [quantity-specs], [defaults-specs];
+quantity-format-spec        = [fill-and-align], [width], [quantity-specs], [defaults-specs];
 quantity-specs              = conversion-spec;
                             | quantity-specs, conversion-spec;
                             | quantity-specs, literal-char;
