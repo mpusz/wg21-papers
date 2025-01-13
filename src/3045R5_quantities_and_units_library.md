@@ -39,6 +39,7 @@ toc-depth: 4
 - "Minimal Viable Product (MVP) scope" refactored to [Core Library Framework scope].
 - An alternative of printing space " " for `half_high_dot` added.
 - `QuantitySpecOf` and `UnitOf` concepts simplified.
+- `QuantityOf` and `QuantityPointOf` concepts constrained with `ReferenceOf`.
 
 ## Changes since [@P3045R3]
 
@@ -6204,7 +6205,7 @@ A `Reference` can either be:
 #### `ReferenceOf<T, V>` concept { #ReferenceOf-concept }
 
 `ReferenceOf` concept is satisfied by references `T` which have a quantity specification that
-satisfies [`QuantitySpecOf<V>`](#QuantitySpecOf-concept) concept.          |
+satisfies [`QuantitySpecOf<V>`](#QuantitySpecOf-concept) concept.
 
 ### `Representation<T>` concept { #Representation-concept }
 
@@ -6251,7 +6252,7 @@ deriving from an instantiation of a `quantity` class template.
 #### `QuantityOf<T, V>` concept { #QuantityOf-concept }
 
 `QuantityOf` concept is satisfied by all the quantities for which a
-[`QuantitySpecOf<V>`](#QuantitySpecOf-concept) is `true`.
+[`ReferenceOf<V>`](#ReferenceOf-concept) is `true`.
 
 ### `PointOrigin<T>` concept { #PointOrigin-concept }
 
@@ -6292,10 +6293,10 @@ them is implicitly convertible to `isq::altitude`:
 `QuantityPointOf` concept is satisfied by all the quantity points `T` that match the following
 value `V`:
 
-| `V`            | Condition                                                                                                   |
-|----------------|-------------------------------------------------------------------------------------------------------------|
-| `QuantitySpec` | The quantity point quantity specification satisfies [`QuantitySpecOf<V>`](#QuantitySpecOf-concept) concept. |
-| `PointOrigin`  | The _point_ and `V` have the same absolute point origin.                                                    |
+| `V`            | Condition                                                                                             |
+|----------------|-------------------------------------------------------------------------------------------------------|
+| `QuantitySpec` | The quantity point quantity specification satisfies [`ReferenceOf<V>`](#ReferenceOf-concept) concept. |
+| `PointOrigin`  | The _point_ and `V` have the same absolute point origin.                                              |
 
 ### `QuantityLike<T>` concept { #QuantityLike-concept }
 
