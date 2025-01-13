@@ -3374,7 +3374,7 @@ is defined using a floating-point magnitude having a factor of the number π (Pi
 
 ```cpp
 inline constexpr struct pi final :
-  mag_constant<symbol_text{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, std::numbers::pi_v<long double>> {} pi;
+  mag_constant<{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, std::numbers::pi_v<long double>> {} pi;
 inline constexpr auto π /* U+03C0 GREEK SMALL LETTER PI */ = pi;
 ```
 
