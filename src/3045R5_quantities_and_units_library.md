@@ -3975,22 +3975,22 @@ unit and its impact on the value stored in the quantity.
 Library's framework requires some Unicode characters for text output. The below table lists all
 of them together with the recommended portable replacements:
 
-| Name                  | Symbol |  C++ code  | Portable alternative |
-|-----------------------|:------:|:----------:|:--------------------:|
-| SUPERSCRIPT ZERO      |   ⁰    | u8"\u2070" |         "0"          |
-| SUPERSCRIPT ONE       |   ¹    | u8"\u00b9" |         "1"          |
-| SUPERSCRIPT TWO       |   ²    | u8"\u00b2" |         "2"          |
-| SUPERSCRIPT THREE     |   ³    | u8"\u00b3" |         "3"          |
-| SUPERSCRIPT FOUR      |   ⁴    | u8"\u2074" |         "4"          |
-| SUPERSCRIPT FIVE      |   ⁵    | u8"\u2075" |         "5"          |
-| SUPERSCRIPT SIX       |   ⁶    | u8"\u2076" |         "6"          |
-| SUPERSCRIPT SEVEN     |   ⁷    | u8"\u2077" |         "7"          |
-| SUPERSCRIPT EIGHT     |   ⁸    | u8"\u2078" |         "8"          |
-| SUPERSCRIPT NINE      |   ⁹    | u8"\u2079" |         "9"          |
-| SUPERSCRIPT MINUS     |   ⁻    | u8"\u207b" |         "-"          |
-| MULTIPLICATION SIGN   |   ×    | u8"\u00d7" |         "x"          |
-| GREEK SMALL LETTER PI |   π    | u8"\u03c0" |         "pi"         |
-| DOT OPERATOR          |   ⋅    | u8"\u22C5" |      `<none>`[^1]    |
+| Name                  | Symbol |   C++ code   | Portable alternative |
+|-----------------------|:------:|:------------:|:--------------------:|
+| SUPERSCRIPT ZERO      |   ⁰    | `u8"\u2070"` |        `"0"`         |
+| SUPERSCRIPT ONE       |   ¹    | `u8"\u00b9"` |        `"1"`         |
+| SUPERSCRIPT TWO       |   ²    | `u8"\u00b2"` |        `"2"`         |
+| SUPERSCRIPT THREE     |   ³    | `u8"\u00b3"` |        `"3"`         |
+| SUPERSCRIPT FOUR      |   ⁴    | `u8"\u2074"` |        `"4"`         |
+| SUPERSCRIPT FIVE      |   ⁵    | `u8"\u2075"` |        `"5"`         |
+| SUPERSCRIPT SIX       |   ⁶    | `u8"\u2076"` |        `"6"`         |
+| SUPERSCRIPT SEVEN     |   ⁷    | `u8"\u2077"` |        `"7"`         |
+| SUPERSCRIPT EIGHT     |   ⁸    | `u8"\u2078"` |        `"8"`         |
+| SUPERSCRIPT NINE      |   ⁹    | `u8"\u2079"` |        `"9"`         |
+| SUPERSCRIPT MINUS     |   ⁻    | `u8"\u207b"` |        `"-"`         |
+| MULTIPLICATION SIGN   |   ×    | `u8"\u00d7"` |        `"x"`         |
+| GREEK SMALL LETTER PI |   π    | `u8"\u03c0"` |        `"pi"`        |
+| DOT OPERATOR          |   ⋅    | `u8"\u22C5"` |     `<none>`[^1]     |
 
 [^1]: Users should not select `unit_symbol_separator::half_high_dot` and `character_set::portable`
 at the same time. This symbol is valid only for UTF-8 encoding. Otherwise, we propose to throw
