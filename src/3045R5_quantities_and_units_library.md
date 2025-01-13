@@ -4049,7 +4049,7 @@ There are more units with such properties. For example, per mille(`‰`).
 To support the above, the library exposes `space_before_unit_symbol` customization point.
 By default, its value is `true` for all the units. This means that a number and a unit will be
 separated by the space in the output text. To change this behavior, a user should provide
-a partial specialization for a specific unit:
+a explicit specialization for a specific unit:
 
 ```cpp
 template<>
@@ -8584,7 +8584,7 @@ Typically, in the C++ language, the implicit conversions are allowed in cases wh
 
 In all other scenarios, we should probably enforce explicit conversions.
 
-The kinds of inter-library conversions can be easily configured in partial specializations
+The kinds of inter-library conversions can be easily configured in specializations
 of conversion traits in the **mp-units** library. Conversion traits should provide
 a static data member convertible to `bool`. If the value is `true`, then the conversion is
 `explicit`. Otherwise, if the value is `false`, implicit conversions will be allowed.
@@ -8612,8 +8612,8 @@ to `std::quantity` to happen implicitly.
 On the other hand, the `quantity` type is much safer than the `Meter`, and that is why we would
 prefer to see the opposite conversions stated explicitly in our code.
 
-To enable such interoperability, we must define a partial specialization of
-the `quantity_like_traits<T>` type trait. Such specialization should provide:
+To enable such interoperability, we must define a specialization of the `quantity_like_traits<T>`
+type trait. Such specialization should provide:
 
 - `reference` static data member that provides the quantity reference (e.g., unit),
 - `rep` type that specifies the underlying storage type,
@@ -8732,7 +8732,7 @@ As we described in [The Affine Space] chapter, timestamps should be modeled as q
 rather than regular quantities.
 
 To allow the conversion between our custom `Timestamp` type and the `quantity_point` class template
-we need to provide the following in the partial specialization of the `quantity_point_like_traits<T>`
+we need to provide the following in the specialization of the `quantity_point_like_traits<T>`
 type trait:
 
 - `reference` static data member that provides the quantity point reference (e.g., unit),
@@ -8801,7 +8801,7 @@ Those are:
 
 This library comes with built-in interoperability with those types thanks to:
 
-- partial specializations of `quantity_like_traits` and `quantity_point_like_traits` that provide
+- specializations of `quantity_like_traits` and `quantity_point_like_traits` that provide
   support for implicit conversions between types in both directions,
 - `chrono_point_origin<Clock>` point origin for `std` clocks,
 - `to_chrono_duration` and `to_chrono_time_point` dedicated conversion functions that result
