@@ -48,6 +48,7 @@ toc-depth: 4
 - UTF-8 printing rules specified for `symbol_text`.
 - `unit-symbol-solidus` alternative grammars added.
 - [Extensions to `std-format-spec`] chapter added.
+- [Text output open questions] chapter updated.
 
 ## Changes since [@P3045R3]
 
@@ -4524,8 +4525,8 @@ library does not have enough information to print it that way by itself.
 ## Text output open questions
 
 1. Should we somehow provide text support for quantity points? What about temperatures?
-2. How to name a non-Unicode accessor member function (e.g., `.portable()`)? The same name should
-   consistently be used in `character_set` and in the formatting grammar.
+2. How to name `symbol_text` accessor member functions (e.g., `.portable()`)? The same names
+   should consistently be used in `character_set` and in the formatting grammar.
 3. What about the localization for units? Will we get something like ICU in the C++ standard?
 4. Do we care about ostreams enough to introduce custom manipulators to format dimensions and units?
 5. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
@@ -4539,6 +4540,9 @@ library does not have enough information to print it that way by itself.
     quantity resistance = 60 * kΩ;
     quantity capacitance = 100 * µF;
     ```
+
+8. Can we have digits grouping for numbers?
+
 
 # Core Library Framework scope
 
