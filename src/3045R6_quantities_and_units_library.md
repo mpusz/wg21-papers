@@ -1252,9 +1252,9 @@ subject.
 
 ## Typed quantities (safer mode)
 
-Simple mode is all about and just about units. In case we care about a specific quantity type,
-typed quantities should be preferred. Those store information not only about a unit but also
-about a specific quantity type we want to model.
+Simple mode is all about and just about units. Typed quantities should be preferred if we also
+want to be quantity-safe. Those store information not only about a unit but also about a specific
+quantity type we want to model.
 
 There a few ways to obtain such a quantity:
 
