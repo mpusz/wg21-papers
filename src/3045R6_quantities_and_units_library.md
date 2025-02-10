@@ -29,6 +29,8 @@ toc-depth: 4
 
 ## Changes since [@P3045R5]
 
+- [Scaling overflow prevention] chapter added.
+
 ## Changes since [@P3045R4]
 
 - [Hardware voltage measurement readout] example description fixed.
@@ -4768,6 +4770,23 @@ respective types:
 The above functions are constrained to accept destination types that have exactly the same quantity
 specification as the source function argument. This means that in case quantity specifications do
 not match, explicit `quantity_cast` should be used first.
+
+### Scaling overflow prevention
+
+In the case of small integral types, it is easy to overflow the representation type for every value
+besides `0` while performing simple and popular unit conversions. This is why the library prevents
+such invalid conversions at compile-time both for explicit and implicit conversions:
+
+```cpp
+quantity q1 = std::int8_t(1) * km;
+quantity q2 = q1.force_in(m);   // Compile-time error
+if(q1 != 1 * m) { /* ... */ }   // Compile-time error
+```
+
+In the above example, the conversion factor between `km` and `m` is `1'000`, which is larger than
+the maximum value that can be stored in `std::int8_t`. Even if we want to convert the
+smallest possible integral amount (e.g., `1 km`), we will overflow the quantity representation type.
+We decided not to allow such conversions for safety reasons despite the value of `0 km` would work.
 
 ### Safety introduced by the affine space abstractions
 
