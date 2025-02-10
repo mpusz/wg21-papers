@@ -51,6 +51,7 @@ toc-depth: 4
 - `unit-symbol-solidus` alternative grammars added.
 - [Extensions to `std-format-spec`] chapter added.
 - [Text output open questions] chapter updated.
+- [Integer overflow] chapter added.
 
 ## Changes since [@P3045R3]
 
