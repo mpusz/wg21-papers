@@ -33,6 +33,7 @@ toc-depth: 4
 - [Concepts] chapter updated.
 - [Storage tank] example updated.
 - [Safe operations of vector and tensor quantities] chapter updated.
+- [Superpowers of the unit `one`] chapter updated.
 
 ## Changes since [@P3045R4]
 
@@ -8198,10 +8199,12 @@ inline constexpr auto ppm = parts_per_million;
 
 ##### Superpowers of the unit `one`
 
-Quantities of the unit `one` are the only ones that are implicitly convertible from a raw value
-and explicitly convertible to it. This property also expands to usual arithmetic operators.
+Quantities implicitly convertible to `dimensionless` with the unit equivalent to `one` are the only
+ones that are:
 
-Thanks to the above, we can type:
+- implicitly constructible from the raw value,
+- explicitly convertible to a raw value,
+- comparable to a raw value.
 
 ```cpp
 quantity<one> inc(quantity<one> q) { return q + 1; }
@@ -8211,9 +8214,12 @@ if (auto q = inc(42); q != 0)
   legacy(static_cast<int>(q));
 ```
 
+This property also expands to usual arithmetic operators.
+
 Please note that those rules do not apply to all the dimensionless quantities. It would be unsafe
 and misleading to allow such operations on units with a magnitude different than `1`
-(e.g., `percent` or `radian`).
+(e.g., `percent`) or for quantities that are not implicitly convertible to `dimensionless`
+(e.g., `angular_measure`).
 
 
 #### Angular quantities
