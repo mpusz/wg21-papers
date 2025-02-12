@@ -30,6 +30,7 @@ toc-depth: 4
 ## Changes since [@P3045R5]
 
 - [Scaling overflow prevention] chapter added.
+- [Concepts] chapter updated.
 
 ## Changes since [@P3045R4]
 
@@ -6223,6 +6224,12 @@ concept and when they compare equal.
 `QuantitySpecOf` concept is satisfied when both arguments satisfy a
 [`QuantitySpec`](#QuantitySpec-concept) concept and when `T` is implicitly convertible to `V`.
 
+### `UnitMagnitude<T>` { #UnitMagnitude-concept }
+
+`UnitMagnitude` concept is satisfied by all types defining a unit magnitude.
+
+_Note:_ Unit magnitude implementation is a private implementation detail of the library.
+
 ### `Unit<T>` concept { #Unit-concept }
 
 `Unit` concept matches all the units in the library including:
@@ -6264,16 +6271,6 @@ Such units can be passed as an argument to a `prefixed_unit` class template.
 `UnitOf` concept is satisfied for all units `T` for which an associated quantity spec is implicitly
 convertible to `V`.
 
-#### `UnitCompatibleWith<T, V1, V2>` concept { #UnitCompatibleWith-concept }
-
-`UnitCompatibleWith` concept is satisfied for all units `T` when:
-
-- `V1` is a [`Unit`](#Unit-concept),
-- `V2` is a [`QuantitySpec`](#QuantitySpec-concept),
-- `T` and `V1` are defined in terms of the same reference unit,
-- if `T` is an [`AssociatedUnit`](#AssociatedUnit-concept) it should satisfy
-  [`UnitOf<V2>`](#UnitOf-concept).
-
 ### `Reference<T>` concept { #Reference-concept }
 
 `Reference` concept is satisfied by all quantity reference types. Such types provide all the
@@ -6290,42 +6287,20 @@ A `Reference` can either be:
 `ReferenceOf` concept is satisfied by references `T` which have a quantity specification that
 satisfies [`QuantitySpecOf<V>`](#QuantitySpecOf-concept) concept.
 
-### `Representation<T>` concept { #Representation-concept }
-
-`Representation` concept constraints a type of a number that stores the value of a quantity.
-
 #### `RepresentationOf<T, Ch>` concept { #RepresentationOf-concept }
 
-`RepresentationOf` concept is satisfied:
+`RepresentationOf` concept constraints a type of a number that stores the value of a quantity
+and is satisfied:
 
 - if the type of `V` satisfies [`QuantitySpec`](#QuantitySpec-concept):
 
-    - by all [`Representation`](#Representation-concept) types when `V` describes
-      a quantity kind,
-    - otherwise, by [`Representation`](#Representation-concept) types that are of
-      a quantity character associated with a provided quantity specification `V`.
+    - by all representation types when `V` describes a quantity kind,
+    - otherwise, by representation types that are of a quantity character associated with
+      a provided quantity specification `V`.
 
 - if `V` is of `quantity_character` type:
 
-    - by [`Representation`](#Representation-concept) types that are of a provided
-      quantity character.
-
-A user can declare a custom representation type to be of a specific character by providing
-the specialization with `true` for one or more of the following variable templates:
-
-- `is_scalar<T>`,
-- `is_complex<T>`,
-- `is_vector<T>`,
-- `is_tensor<T>`.
-
-If we want to use scalar types to also express vector quantities (e.g., ignoring the "direction"
-of the vector) the following definition can be provided to enable such a behavior:
-
-```cpp
-template<class T>
-  requires is_scalar<T>
-constexpr bool is_vector<T> = true;
-```
+    - by representation types that are of a provided quantity character.
 
 ### `Quantity<T>` concept { #Quantity-concept }
 
@@ -6336,6 +6311,49 @@ deriving from an instantiation of a `quantity` class template.
 
 `QuantityOf` concept is satisfied by all the quantities for which a
 [`ReferenceOf<V>`](#ReferenceOf-concept) is `true`.
+
+#### `QuantityLike<T>` concept { #QuantityLike-concept }
+
+`QuantityLike` concept provides interoperability with other libraries and is satisfied by a type `T`
+for which an instantiation of `quantity_like_traits` type trait yields a valid type that provides:
+
+- `reference` static data member that matches the [`Reference`](#Reference-concept) concept,
+- `rep` type that matches [`RepresentationOf`](#RepresentationOf-concept) concept with the
+  character provided in `reference`.
+- `explicit_import` static data member convertible to `bool` that specifies that the conversion
+  from `T` to a `quantity` type should happen explicitly (if `true`),
+- `explicit_export` static data member convertible to `bool` that specifies that the conversion
+  from a `quantity` type to `T` should happen explicitly (if `true`),
+- `to_numerical_value(T)` static member function returning a raw value of the quantity,
+- `from_numerical_value(rep)` static member function returning `T`.
+
+For example, this is how support for `std::chrono::seconds` can be provided:
+
+```cpp
+template<>
+struct quantity_like_traits<std::chrono::seconds> {
+  static constexpr auto reference = detail::time_unit_from_chrono_period<Period>();
+  static constexpr bool explicit_import = false;
+  static constexpr bool explicit_export = false;
+  using rep = Rep;
+  using T = std::chrono::duration<Rep, Period>;
+
+  [[nodiscard]] static constexpr rep to_numerical_value(const T& q) noexcept(
+    std::is_nothrow_copy_constructible_v<rep>)
+  {
+    return q.count();
+  }
+
+  [[nodiscard]] static constexpr T from_numerical_value(const rep& v) noexcept(
+    std::is_nothrow_copy_constructible_v<rep>)
+  {
+    return T(v);
+  }
+};
+
+quantity q = 42s;
+std::chrono::seconds dur = 42 * s;
+```
 
 ### `PointOrigin<T>` concept { #PointOrigin-concept }
 
@@ -6381,50 +6399,7 @@ value `V`:
 | `QuantitySpec` | The quantity point quantity specification satisfies [`ReferenceOf<V>`](#ReferenceOf-concept) concept. |
 | `PointOrigin`  | The _point_ and `V` have the same absolute point origin.                                              |
 
-### `QuantityLike<T>` concept { #QuantityLike-concept }
-
-`QuantityLike` concept provides interoperability with other libraries and is satisfied by a type `T`
-for which an instantiation of `quantity_like_traits` type trait yields a valid type that provides:
-
-- `reference` static data member that matches the [`Reference`](#Reference-concept) concept,
-- `rep` type that matches [`RepresentationOf`](#RepresentationOf-concept) concept with the
-  character provided in `reference`.
-- `explicit_import` static data member convertible to `bool` that specifies that the conversion
-  from `T` to a `quantity` type should happen explicitly (if `true`),
-- `explicit_export` static data member convertible to `bool` that specifies that the conversion
-  from a `quantity` type to `T` should happen explicitly (if `true`),
-- `to_numerical_value(T)` static member function returning a raw value of the quantity,
-- `from_numerical_value(rep)` static member function returning `T`.
-
-For example, this is how support for `std::chrono::seconds` can be provided:
-
-```cpp
-template<>
-struct quantity_like_traits<std::chrono::seconds> {
-  static constexpr auto reference = detail::time_unit_from_chrono_period<Period>();
-  static constexpr bool explicit_import = false;
-  static constexpr bool explicit_export = false;
-  using rep = Rep;
-  using T = std::chrono::duration<Rep, Period>;
-
-  [[nodiscard]] static constexpr rep to_numerical_value(const T& q) noexcept(
-    std::is_nothrow_copy_constructible_v<rep>)
-  {
-    return q.count();
-  }
-
-  [[nodiscard]] static constexpr T from_numerical_value(const rep& v) noexcept(
-    std::is_nothrow_copy_constructible_v<rep>)
-  {
-    return T(v);
-  }
-};
-
-quantity q = 42s;
-std::chrono::seconds dur = 42 * s;
-```
-
-### `QuantityPointLike<T>` concept { #QuantityPointLike-concept }
+#### `QuantityPointLike<T>` concept { #QuantityPointLike-concept }
 
 `QuantityPointLike` concept provides interoperability with other libraries and is satisfied by
 a type `T` for which an instantiation of `quantity_point_like_traits` type trait yields a valid
