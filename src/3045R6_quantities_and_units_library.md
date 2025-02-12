@@ -31,6 +31,7 @@ toc-depth: 4
 
 - [Scaling overflow prevention] chapter added.
 - [Concepts] chapter updated.
+- [Storage tank] example updated.
 
 ## Changes since [@P3045R4]
 
@@ -2062,12 +2063,6 @@ when needed, and
 ```cpp
 import std;
 
-// allows standard gravity (acceleration) and weight (force) to be expressed with scalar representation
-// types instead of requiring the usage of Linear Algebra library for this simple example
-template<class T>
-  requires std::is_scalar<T>
-constexpr bool std::is_vector<T> = true;
-
 namespace {
 
 using namespace std::si::unit_symbols;
@@ -2177,7 +2172,7 @@ float rise rate = 2e-04 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/5M54z45aa).
+Try it in [the Compiler Explorer](https://godbolt.org/z/WGePbWzo8).
 
 ## Bridge across the Rhine
 
