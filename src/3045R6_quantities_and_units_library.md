@@ -32,6 +32,7 @@ toc-depth: 4
 - [Scaling overflow prevention] chapter added.
 - [Concepts] chapter updated.
 - [Storage tank] example updated.
+- [Safe operations of vector and tensor quantities] chapter updated.
 
 ## Changes since [@P3045R4]
 
@@ -5167,20 +5168,14 @@ Vector and tensor quantities can be implemented in two ways:
 
 Additionally, the library knows the expected quantity character, which is provided (implicitly
 or explicitly) in the definition of each quantity type. Thanks to that, it prevents the user,
-for example, from providing a scalar representation type for _force_ or a vector representation
-for _power_ quantities.
+for example, from providing a vector representation type for _speed_.
 
 ```cpp
-QuantityOf<isq::velocity> q1 = 60 * km / h;                             // Compile-time error
-QuantityOf<isq::velocity> q2 = la_vector{0, 0, -60} * km / h;           // OK
-QuantityOf<isq::force> q3 = 80 * kg * (10 * m / s2);                    // Compile-time error
-QuantityOf<isq::force> q4 = 80 * kg * (la_vector{0, 0, -10} * m / s2);  // OK
-QuantityOf<isq::power> q5 = q2 * q4;                                    // Compile-time error
-QuantityOf<isq::power> q5 = dot(q2, q4);                                // OK
+quantity q1 = isq::speed(60 * km / h);                       // OK
+quantity q2 = isq::speed(la_vector{0, 0, -60} * km / h);     // Compile-time error
+quantity q3 = isq::velocity(60 * km / h);                    // OK
+quantity q4 = isq::velocity(la_vector{0, 0, -60} * km / h);  // OK
 ```
-
-_Note: `q1` and `q3` can be permitted to compile by explicitly specializing the `is_vector<T>`
-trait for the representation type._
 
 As we can see above, such features additionally improves the compile-time safety of the library
 by ensuring that quantities are created with proper quantity equations and are using correct
