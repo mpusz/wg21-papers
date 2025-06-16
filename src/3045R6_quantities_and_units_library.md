@@ -29,6 +29,7 @@ toc-depth: 4
 
 ## Changes since [@P3045R5]
 
+- [Dependencies on other proposals] chapter updated.
 - [Scaling overflow prevention] chapter added.
 - [Concepts] chapter updated.
 - [Storage tank] example updated.
@@ -230,15 +231,18 @@ in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                               | Priority |         Papers         | Description                                                                                                |
-|---------------------------------------|:--------:|:----------------------:|------------------------------------------------------------------------------------------------------------|
-| `fixed_string`                        |    1     |       [@P3094R0]       | String-like structural type with inline storage (can be used as an NTTP).                                  |
-| Nested entities formatting            |    1     |          ???           | Possibility to override the format string in the parse and format contexts.                                |
-| Grouping numbers in `std-format-spec` |    2     |          ???           | [Extensions to `std-format-spec`].                                                                         |
-| Compile-time prime numbers            |    2     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
-| Value-preserving conversions          |    2     | [@P0870R5], [@P2509R0] | Type trait stating if the conversion from one type to another is value preserving or not.                  |
-| Number concepts                       |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
-| Bounded numeric types                 |    3     |       [@P2993R0]       | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
+| Feature                               | Priority |   Papers    | Description                                                                                                |
+|---------------------------------------|:--------:|:-----------:|------------------------------------------------------------------------------------------------------------|
+| `std::basic_fixed_string`             |    1     | [@P3094R6]  | String-like structural type with inline storage (can be used as an NTTP).                                  |
+| Extending NTTPs                       |    2     | [@P3380R1]  | Avoiding public members in classes.                                                                        |
+| User control of associated entities   |    2     | [@P2822R2]  | ADL for NTTP parameters.                                                                                   |
+| Value-preserving conversions          |    2     | [@P2509R1]  | Type trait stating if the conversion from one type to another is value preserving or not.                  |
+| Standardized constexpr type ordering  |    2     | [@P2830R10] | Ordering of symbolic expressions.                                                                          |
+| Nested entities formatting            |    2     |     ???     | Possibility to override the format string in the parse and format contexts.                                |
+| Grouping numbers in `std-format-spec` |    2     |     ???     | [Extensions to `std-format-spec`].                                                                         |
+| Number concepts                       |    2     | [@P3003R0]  | Concepts for vector- and point-space numbers.                                                              |
+| Compile-time prime numbers            |    3     | [@P3133R0]  | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
+| Constrained Numbers                   |    3     | [@P2993R0]  | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
 
 <!-- markdownlint-enable MD013 -->
 
