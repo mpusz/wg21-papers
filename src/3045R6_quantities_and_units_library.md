@@ -30,6 +30,7 @@ toc-depth: 4
 ## Changes since [@P3045R5]
 
 - [Dependencies on other proposals] chapter updated.
+- [Constraining a variable on the stack] chapter extended.
 - [Scaling overflow prevention] chapter added.
 - [Concepts] chapter updated.
 - [Storage tank] example updated.
@@ -1421,15 +1422,29 @@ If we know exactly what the function does in its internals and if we know the ex
 passed to such a function, we often know the exact type that will be returned from its invocation.
 
 However, if we care about performance, we should often use the generic interfaces described in this
-chapter. A side effect is that we sometimes are unsure about the return type. Even if we know it
-today, it might change a week from now due to some code refactoring.
+chapter. An obvious outcome is that return types depend directly on the function argument types:
 
-In such cases, we can again use `auto` to denote the type:
+```cpp
+quantity<si::kilo<si::metre> / non_si::hour, int> s1 = avg_speed(220 * km, 2 * h);
+quantity<international::mile / non_si::hour, int> s2 = avg_speed(140 * mi, 2 * h);
+quantity<si::metre / si::second, int> s3 = avg_speed(20 * m, 2 * s);
+```
+
+Even if we know explicit types today, they might change a week from now due to some code refactoring.
+In such cases, we can again use `auto` to declare the variable:
 
 ```cpp
 auto s1 = avg_speed(220 * km, 2 * h);
 auto s2 = avg_speed(140 * mi, 2 * h);
 auto s3 = avg_speed(20 * m, 2 * s);
+```
+
+or CTAD:
+
+```cpp
+quantity s1 = avg_speed(220 * km, 2 * h);
+quantity s2 = avg_speed(140 * mi, 2 * h);
+quantity s3 = avg_speed(20 * m, 2 * s);
 ```
 
 In this case, it is probably OK to do so as the `avg_speed` function name explicitly provides
