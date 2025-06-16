@@ -34,6 +34,7 @@ toc-depth: 4
 - [Storage tank] example updated.
 - [Safe operations of vector and tensor quantities] chapter updated.
 - [Superpowers of the unit `one`] chapter updated.
+- [Symbols of scaled units] chapter updated.
 
 ## Changes since [@P3045R4]
 
@@ -3955,9 +3956,9 @@ a user directly faces a scaled unit. For example:
 constexpr Unit auto L_per_100km = L / (mag<100> * km);
 ```
 
-The above is a derived unit of litre divided by a scaled unit of 100 kilometers. As we can
+The above is a derived unit of litre divided by a scaled unit of `100` kilometers. As we can
 see a scaled unit has a magnitude and a reference unit. To denote the scope of such
-a unit, we enclose it in `[...]`. For example, the following:
+a unit, we enclose it in `(...)`. For example, the following:
 
 ```cpp
 std::cout << 6.7 * L_per_100km << "\n";
@@ -3968,6 +3969,64 @@ prints:
 ```text
 6.7 L/(100 km)
 ```
+
+This is only one of the options here. It favors a derived unit over a scaled unit
+(i.e., the resulting type is
+`derived_unit<non_si::litre, per<scaled_unit<{some magnitude representing '100'}, si::kilo<si::metre>>>>`).
+Another option would be to prefer a scaled unit so the result would be
+`scaled_unit<{some magnitude representing '1/100'}, derived_unit<non_si::litre, per<si::kilo<si::metre>>>`
+and the output would look like:
+
+```text
+6.7 (1/100 L/km)
+```
+
+The output could also look like this:
+
+```text
+6.7 × 10⁻² L/km
+```
+
+but this, even though it is mathematically correct, is the poorest to express the intent here.
+The unit we use daily is the number of liters consumed for `100 km`, and not for a single `km`,
+which the last output suggests (i.e., "6.7 hundredths of a liter per kilometer").
+
+This is why we initially proposed the first version. However, on one of the meetings it was brought
+that this approach also leads to some issues in case of other quantities.
+
+According to the current rules, the following code:
+
+```cpp
+std::cout << 10 * L_per_100km * (20 * km) << "\n";
+```
+
+prints the following output:
+
+```text
+200 L km/(100 km)
+```
+
+At least for now, the units do not simplify which may look suprising.
+
+Another thing worth noting here is that in case a value of a numerator or denumerator
+is greater or equal `1000` we use an exponential notation:
+
+```cpp
+constexpr Unit auto L_per_1000km = L / (mag<1000> * km);
+std::cout << 10 * L_per_1000km << "\n";
+```
+
+prints:
+
+```text
+10 L/(10³ km)
+```
+
+A motivation for that is that typically, for a value of `1000` or greater, a user could use
+a larger SI prefix (even though it would not make sense for kilometers).
+
+All of the above are the inputs for a discussion and we are open to fine-tuning this behavior
+according to the LEWG guidelines.
 
 ### Symbols of common units
 
