@@ -31,6 +31,7 @@ toc-depth: 4
 
 - [Dependencies on other proposals] chapter updated.
 - [Constraining a variable on the stack] chapter extended.
+- [Usage examples] links updated.
 - [Scaling overflow prevention] chapter added.
 - [Concepts] chapter updated.
 - [Storage tank] example updated.
@@ -2194,7 +2195,7 @@ float rise rate = 2e-04 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/WGePbWzo8).
+Try it in [the Compiler Explorer](https://godbolt.org/z/ErxqTE65h).
 
 ## Bridge across the Rhine
 
@@ -2302,7 +2303,7 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 - Switzerland: 33000 cm
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/zv6eenqq3).
+Try it in [the Compiler Explorer](https://godbolt.org/z/ErnT8eKcG).
 
 
 ## Hardware voltage measurement readout
@@ -2379,7 +2380,7 @@ The above prints:
  65534 hwV ( 10 V)
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/KdKanbMMo).
+Try it in [the Compiler Explorer](https://godbolt.org/z/GavqT4dao).
 
 
 ## User defined quantities and units
@@ -2554,7 +2555,7 @@ Transport Beats is: 16.495832 q
 Transport Time is: 8.997726 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/z7sPqe66e).
+Try it in [the Compiler Explorer](https://godbolt.org/z/44sre8hdr).
 
 _Note: More about this example can be found in
 ["Exploration of Strongly-typed Units in C++: A Case Study from Digital Audio"](https://www.youtube.com/watch?v=oxnCdIfC4Z4)
