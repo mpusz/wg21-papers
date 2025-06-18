@@ -42,6 +42,7 @@ toc-depth: 4
 - [Inconsistencies with `std::chrono::duration`] chapter added
 - [Complex operations] chapter added.
 - [Integer division] chapter extended.
+- Many small cleanup changes in other chapters.
 
 ## Changes since [@P3045R4]
 
@@ -57,7 +58,7 @@ toc-depth: 4
 - `QuantitySpecOf` and `UnitOf` concepts simplified.
 - `QuantityOf` and `QuantityPointOf` concepts constrained with `ReferenceOf`.
 - Conversions beyond quantity subkinds added to the [Nested quantity kinds] chapter.
-- [@P2830R7] referred in the [Simplifying the resulting symbolic expressions] chapter.
+- [@P2830R10] referred in the [Simplifying the resulting symbolic expressions] chapter.
 - Scaled units are now surrounded with `(...)` instead of `[...]` in the text output.
 - Invalid [@ISO80000] quote removed from the [Unit formatting] chapter.
 - Explicit unit conversion example added to the [Symbols of common units] chapter.
@@ -225,7 +226,7 @@ with time abstractions in the C++ standard library. If this proposal gets accept
 
 - `std::chrono` abstractions together with `std::ratio` should be used primarily to deal
   with calendars and threading facilities,
-- abstractions introduced in this proposal should be used in all other use cases (e.g.
+- abstractions introduced in this proposal should be used in all other use cases (e.g.,
   physical quantities equations).
 
 ## Dependencies on other proposals
@@ -237,18 +238,18 @@ in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                               | Priority |   Papers    | Description                                                                                                |
-|---------------------------------------|:--------:|:-----------:|------------------------------------------------------------------------------------------------------------|
-| `std::basic_fixed_string`             |    1     | [@P3094R6]  | String-like structural type with inline storage (can be used as an NTTP).                                  |
-| Extending NTTPs                       |    2     | [@P3380R1]  | Avoiding public members in classes.                                                                        |
-| User control of associated entities   |    2     | [@P2822R2]  | ADL for NTTP parameters.                                                                                   |
-| Value-preserving conversions          |    2     | [@P2509R1]  | Type trait stating if the conversion from one type to another is value preserving or not.                  |
-| Standardized constexpr type ordering  |    2     | [@P2830R10] | Ordering of symbolic expressions.                                                                          |
-| Nested entities formatting            |    2     |     ???     | Possibility to override the format string in the parse and format contexts.                                |
-| Grouping numbers in `std-format-spec` |    2     |     ???     | [Extensions to `std-format-spec`].                                                                         |
-| Number concepts                       |    2     | [@P3003R0]  | Concepts for vector- and point-space numbers.                                                              |
-| Compile-time prime numbers            |    3     | [@P3133R0]  | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
-| Constrained Numbers                   |    3     | [@P2993R0]  | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
+| Feature                               | Priority |         Papers         | Description                                                                                                |
+|---------------------------------------|:--------:|:----------------------:|------------------------------------------------------------------------------------------------------------|
+| `std::basic_fixed_string`             |    1     |       [@P3094R6]       | String-like structural type with inline storage (can be used as an NTTP).                                  |
+| Extending NTTPs                       |    2     |       [@P3380R1]       | Avoiding public members in classes.                                                                        |
+| User control of associated entities   |    2     |       [@P2822R2]       | ADL for NTTP parameters.                                                                                   |
+| Preventing value truncation           |    2     | [@P0870R5], [@P2509R1] | Type traits stating if the conversion from one type to another is narrowing/value preserving or not.       |
+| Standardized constexpr type ordering  |    2     |      [@P2830R10]       | Ordering of symbolic expressions.                                                                          |
+| Nested entities formatting            |    2     |          ???           | Possibility to override the format string in the parse and format contexts.                                |
+| Grouping numbers in `std-format-spec` |    2     |          ???           | [Extensions to `std-format-spec`].                                                                         |
+| Number concepts                       |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
+| Compile-time prime numbers            |    3     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
+| Constrained Numbers                   |    3     |       [@P2993R0]       | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -1195,7 +1196,7 @@ std::cout << "The total distance in meters is " << (dist1 + dist2).in(m) << "\n"
 
 The `.in` utility has safety mechanisms to prevent accidentally losing precision.  For example, we
 could try doing the same thing to express `speed_limit` in `m/s`, which is equivalent to multiplying
-the underlying value by the non-integer factor $5 / 18$:
+the underlying value by the non-integer factor `5/18`:
 
 ```cpp
 std::cout << "The speed limit in m/s is " << speed_limit.in(m / s) << "\n";
@@ -2708,7 +2709,7 @@ we can ask ourselves what should be the result of the following:
 None of the above code should compile, but most of the libraries on the market happily accept it
 and provide meaningless results. Some of them decide not to define one or more of the above
 units at all to avoid potential safety issues. For example,
-[the Au library does not define `Sv` to avoid mixing it up with Gy](https://github.com/aurora-opensource/au/pull/157).
+[the [@AU] library does not define `Sv` to avoid mixing it up with Gy](https://github.com/aurora-opensource/au/pull/157).
 
 ### Derived quantities of the same dimension but different kinds
 
@@ -3736,7 +3737,7 @@ Such type should:
 Such a type does not need to expose a string-like interface. In case its interface is immutable, we
 can easily wrap it with `std::string_view` to get such an interface for free.
 
-This type is being proposed separately in [@P3094R0].
+This type is being proposed separately in [@P3094R6].
 
 ### `symbol_text`
 
@@ -4842,7 +4843,7 @@ or:
 
 ```cpp
 auto q1 = 5 * m;     // source quantity uses `int` as a representation type
-std::cout << value_cast<double>(q1).in(km) << '\n';
+std::cout << q1.in<double>(km) << '\n';
 quantity<si::kilo<si::metre>> q2 = q1;  // `double` by default
 ```
 
@@ -4882,7 +4883,9 @@ In some cases there is also a need to change both a unit and a representation ty
 This is why the library also exposes the following functions:
 
 - `value_cast<Unit, Representation>(Quantity)`,
-- `value_cast<Unit, Representation>(QuantityPoint)`.
+- `value_cast<Unit, Representation>(QuantityPoint)`,
+- `q.force_in<Representation>(Unit)`,
+- `qp.force_in<Representation>(Unit)`.
 
 Exposing such functions:
 
@@ -4918,6 +4921,8 @@ In the above example, the conversion factor between `km` and `m` is `1'000`, whi
 the maximum value that can be stored in `std::int8_t`. Even if we want to convert the
 smallest possible integral amount (e.g., `1 km`), we will overflow the quantity representation type.
 We decided not to allow such conversions for safety reasons despite the value of `0 km` would work.
+
+More discussion on this subject can be found in the [Integer overflow] chapter.
 
 ### Safety introduced by the affine space abstractions
 
@@ -5082,8 +5087,11 @@ numerical value stored in a `quantity`. For those cases, the library exposes
 
 The first condition above aims to limit the possibility of dangling references. We want to increase
 the chances that the reference/pointer provided to an underlying API remains valid for the time of
-its usage. (We're much less concerned about performance aspects for a `quantity` here, as we expect
-the majority (if not all) of representation types to be cheap to copy.)
+its usage. We're much less concerned about performance aspects for a `quantity` here, as we expect
+the majority (if not all) of representation types to be cheap to copy.
+
+It is worth mentioning that such an approach is already used in many places in the standard library
+(e.g., `std::ranges::dangling`).
 
 That said, we acknowledge that this approach to preventing dangling references conflates value
 category with lifetime.  While it may prevent the majority of dangling references, it also admits
@@ -5102,7 +5110,10 @@ legacy_func((4 * s + 2 * s).numerical_value_ref_in(si::second));  // Compile-tim
 ```
 
 The library also goes one step further, by implementing all compound assignments, pre-increment,
-and pre-decrement operators as non-member functions that preserve the initial value category.
+and pre-decrement operators as hidden friend functions that preserve the initial value category.
+A traditional implementation of those operators returns an lvalue to the `lhs` parameter which
+may "lie" about the actual value category of the `lhs` argument.
+
 Thanks to that, the following will also not compile:
 
 ```cpp
@@ -5450,7 +5461,7 @@ user-facing types_ --- they can be confident that their values won't overflow.
 
 This approach works very well in practice for the (great many) users who can meet both of these
 conditions.  However, it doesn't translate well to a _multi-dimensional_ units library: since there
-are many dimensions, and new ones can be created on the fly, it's infeasible to try to define
+are many quantity types, and new ones can be created on the fly, it's infeasible to try to define
 a "practical range" for _all_ of them.  Besides, users can still form arbitrary
 `std::chrono::duration` types, and they are unlikely to notice the danger they have incurred in
 doing so.
@@ -5487,7 +5498,7 @@ How small should we consider "scary"?  Here are some considerations.
   variables with something like `500 * si::mega<si::hertz>`.  Thus, we'd like this operation to
   succeed (although it should probably be near the border of what's allowed).
 
-Putting it all together, the Au library settled on a value threshold of `2'147`.  If this value can
+Putting it all together, the [@AU] library settled on a value threshold of `2'147`.  If this value can
 convert without overflow, then they permit the operation; otherwise, they don't. They picked this
 value because it satisfies the above criteria nicely.  It will prevent the scariest operations that
 can't even handle a value of 1,000, but it still permits free use of $\text{MHz}$ when storing
@@ -5497,6 +5508,11 @@ operations that users would tend to judge as "safe".  This policy also lends its
 visualization: the [Au
 docs](https://aurora-opensource.github.io/au/0.4.1/discussion/concepts/overflow/#plot-the-overflow-safety-surface)
 show the boundary between forbidden and permitted conversions.
+
+In this paper, we decided to be a bit more conservative in restricting possibly valid use cases,
+and we make the conversion fail if the representation type can't handle the value `1` converted
+to a destination unit, as described in the [Scaling overflow prevention] chapter.  In such a case,
+we are pessimizing only the value `0` usage.
 
 #### Check every conversion at runtime
 
@@ -5510,7 +5526,7 @@ conversions very rarely appear in the "hot loops" of a well designed program, so
 to get perfect conversion safety tends to be a net win.
 
 The hardest problem in this approach is not the performance cost, but the error handling.  There are
-a variety of methods --- exceptions, C++17's `optional`, C++23's `expected`, etc. --- and no single
+a variety of methods --- exceptions, `optional`, `expected`, contracts, etc. --- and no single
 strategy is best in all cases.  One promising strategy is therefore to separate error _detection_
 and _response_.  The units library can provide boolean checkers for every conversion to indicate
 whether a _specific_ input will overflow, or will truncate, or will be lossy in either of these
@@ -5544,7 +5560,7 @@ complementary use cases.  A simple adaptive policy provides a good baseline leve
 unduly restricting use cases: this is indispensable for "hidden conversions" such as mixed-unit
 comparisons.  Runtime conversion checkers make it easy to check individual input values for specific
 kinds of loss.  Finally --- and, orthogonally to this library --- more advanced users can use
-overflow-safe numeric types from whatever library they choose, as the rep.
+overflow-safe numeric types from whatever library they choose, as the `rep`.
 
 ### Lack of safe numeric types
 
@@ -6182,7 +6198,7 @@ derived_unit<si::kilo_<struct si::gram>, per<power<struct si::second, 2>>> u4;
 
 The usage of the explicit `struct` keyword might be surprising to many users.
 
-Also, when dealing with quantities, a user does need to spell a unit's type:
+Also, when dealing with quantities, a user does not need to spell a unit's type:
 
 ```cpp
 void foo(quantity<si::kilo<si::gram> * si::metre / square(si::second)>) {}
@@ -6199,8 +6215,8 @@ types presented in the debugger or compilation errors. This is why they should n
 exposition-only and be regular members of the `std` namespace. Every implementation has to spell
 and use them in the same way.
 
-[@MP-UNITS] library decided to define those class templates in the `mp_units` namespace, but not
-export them from the `mp_units.core` module. With this, users will have no way to
+[@MP-UNITS] library decided to define those class templates in the `mp_units` namespace, but to
+not export them from the `mp_units.core` module. With this, users will have no way to
 instantiate those templates by themselves, which is the exact intent of this library. Initially,
 we wanted to propose something similar for the Standard Library, but
 [the LWG did not like the idea](https://lists.isocpp.org/lib/2024/10/29544.php).
@@ -6209,7 +6225,7 @@ An alternative might be to state that it is IFNDR or UB to instantiate those by 
 not technically prevent users from doing so, but if they do it, they are on their own.
 
 Last but not least, we can allow such instantiations and add restrictive constraints to verify
-template arguments.
+template arguments, which could affect compilation times.
 
 
 ## Framework entities
@@ -6417,6 +6433,9 @@ All units in the [@SI] have associated quantities. For example, `si::second` is 
 Natural units typically do not have an associated quantity. For example, if we assume `c = 1`,
 a `natural::second` unit can be used to measure both `time` and `length`. In such case, `speed`
 would have a unit of `one`.
+
+_Note: If we decide not to support natural units in the initial release, this concept will not be
+needed for now._
 
 #### `PrefixableUnit<T>` concept { #PrefixableUnit-concept }
 
@@ -6748,7 +6767,7 @@ the resulting symbolic expression.
 
     This is why the library chose to use type name identifiers in such cases. As of today, it could
     be implementation-defined of how a specific implementation orders the identifiers on a type list.
-    If [@P2830R7] gets standardized, then it will be possible for every implementation to guarantee
+    If [@P2830R10] gets standardized, then it will be possible for every implementation to guarantee
     the same ordering of types.
 
 2. **Aggregation**
