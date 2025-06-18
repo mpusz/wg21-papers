@@ -39,6 +39,7 @@ toc-depth: 4
 - [Superpowers of the unit `one`] chapter updated.
 - [Symbols of scaled units] chapter updated.
 - "EQUIV{...}" replaced with "[...]" in the text output of common units.
+- [Inconsistencies with `std::chrono::duration`] chapter added
 
 ## Changes since [@P3045R4]
 
@@ -4606,6 +4607,35 @@ Both [@ISO80000] and [@SI] are recommending printing numbers into separated into
 As of today, no flag in `std-format-spec` would force it. Similar output may be obtained thanks
 to localization, but international standards mentioned above recommend that for every user,
 no matter what localization option is being used.
+
+#### Inconsistencies with `std::chrono::duration`
+
+This library prints the quantities and their units according to specific ISO specifications.
+Unfortunately, this is not the case for `std::chrono::duration`:
+
+```cpp
+using my_duration = std::chrono::duration<int, std::ratio<1, 4>>;
+
+inline constexpr Unit auto my_unit = mag_ratio<1, 4> * si::second;
+
+std::println("{}", std::chrono::seconds(42));
+std::println("{}", 42 * s);
+std::println("{}", my_duration(100));
+std::println("{}", 100 * my_unit);
+```
+
+The above prints:
+
+```text
+42s
+42 s
+100[1/4]s
+100 (1/4 s)
+```
+
+We are unsure if that is a problem that we should be worried about. If so, we could consider
+adding ISO-compatible formatting to `std::chrono` abstractions, but it is not planned in the
+scope of this paper.
 
 
 ## Quantity point text output
