@@ -3970,16 +3970,37 @@ kg⋅m⋅s⁻²
 
 ### Symbols of scaled units
 
-In most cases scaled units are hidden behind named units. However, there are a few real-life where
-a user directly faces a scaled unit. For example:
+Here are a few examples of scaled unit text output in action:
 
 ```cpp
-constexpr Unit auto L_per_100km = L / (mag<100> * km);
+inline constexpr Unit auto my_unit_1 = mag_ratio<1, 4> * si::second;
+inline constexpr Unit auto my_unit_2 = mag_power<10, 4> * si::metre;
+inline constexpr Unit auto my_unit_3 = mag<25> * mag_power<10, 4> * si::metre;
+
+std::cout << 100 * my_unit_1 << "\n";
+std::cout << 100 * my_unit_2 << "\n";
+std::cout << 100 * my_unit_3 << "\n";
 ```
 
-The above is a derived unit of litre divided by a scaled unit of `100` kilometers. As we can
-see a scaled unit has a magnitude and a reference unit. To denote the scope of such
-a unit, we enclose it in `(...)`. For example, the following:
+The above prints:
+
+```text
+100 (1/4 s)
+100 (10⁴ m)
+100 (25 × 10⁴ m)
+```
+
+As we can see a scaled unit has a magnitude and a reference unit. To denote the scope of such
+a unit, we currently enclose it in `(...)`.
+
+In most cases scaled units are hidden behind named units so the above outputs are a bit artifical.
+However, there are a few real-life where a user directly faces a scaled unit. For example:
+
+```cpp
+inline constexpr Unit auto L_per_100km = L / (mag<100> * km);
+```
+
+The above is a derived unit of litre divided by a scaled unit of `100` kilometers. For example, the following:
 
 ```cpp
 std::cout << 6.7 * L_per_100km << "\n";
@@ -3991,11 +4012,11 @@ prints:
 6.7 L/(100 km)
 ```
 
-This is only one of the options here. It favors a derived unit over a scaled unit
-(i.e., the resulting type is
-`derived_unit<non_si::litre, per<scaled_unit<{some magnitude representing '100'}, si::kilo<si::metre>>>>`).
+The current output of the fuel consumption unit is only one of the options here. It favors a derived
+unit over a scaled unit (i.e., the resulting type is
+`derived_unit<non_si::litre, per<scaled_unit<{some magnitude representing 100}, si::kilo<si::metre>>>>`).
 Another option would be to prefer a scaled unit so the result would be
-`scaled_unit<{some magnitude representing '1/100'}, derived_unit<non_si::litre, per<si::kilo<si::metre>>>`
+`scaled_unit<{some magnitude representing 1/100}, derived_unit<non_si::litre, per<si::kilo<si::metre>>>`
 and the output would look like:
 
 ```text
@@ -4033,7 +4054,7 @@ Another thing worth noting here is that in case a value of a numerator or denume
 is greater or equal `1000` we use an exponential notation:
 
 ```cpp
-constexpr Unit auto L_per_1000km = L / (mag<1000> * km);
+inline constexpr Unit auto L_per_1000km = L / (mag<1000> * km);
 std::cout << 10 * L_per_1000km << "\n";
 ```
 
@@ -4066,10 +4087,10 @@ std::cout << 1. * rad + 1. * deg << "\n";
 prints:
 
 ```text
-40771 [1/25146 mi, 1/15625 km]
-108167 [1/50292 mi, 1/57875 nmi]
-23 [1/5 km/h, 1/18 m/s]
-183.142 [1/π°, 1/180 rad]
+40771 [(1/25146 mi), (1/15625 km)]
+108167 [(1/50292 mi), (1/57875 nmi)]
+23 [(1/5 km/h), (1/18 m/s)]
+183.142 [(1/π°), (1/180 rad)]
 ```
 
 Thanks to the above, it might be easier for the user to reason about the magnitude of the resulting
