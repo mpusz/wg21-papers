@@ -42,6 +42,7 @@ toc-depth: 4
 - [Inconsistencies with `std::chrono::duration`] chapter added
 - [Complex operations] chapter added.
 - [Integer division] chapter extended.
+- [Bikeshedding concepts] chapter added.
 - Many small cleanup changes in other chapters.
 
 ## Changes since [@P3045R4]
@@ -6360,7 +6361,8 @@ some that are hard to distinguish from the corresponding type names, such as `Qu
 consistently for all the concept identifiers to make it clear when we are talking about a type
 or concept identifier. However, we are aware that this might be a temporary solution. In case
 the library gets standardized, we can expect the LEWG to bikeshed/rename all of the concept
-identifiers to a `standard_case`, even if it will result in a harder to understand code._
+identifiers to a `standard_case`, even if it will result in a harder to understand code.
+We propose some suggestions at the end of the chapter._
 
 ### `Dimension<T> concept` { #Dimension-concept }
 
@@ -6621,6 +6623,81 @@ struct quantity_point_like_traits<std::chrono::time_point<C, std::chrono::second
 quantity_point qp = time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now());
 std::chrono::sys_seconds q = qp + 42 * s;
 ```
+
+### Bikeshedding concepts
+
+This chapter provides some alternative names in `standard_case` for concepts.
+
+| Before              | After                 | Alternative           | Comments                                                                                           |
+|---------------------|-----------------------|-----------------------|----------------------------------------------------------------------------------------------------|
+| `Dimension`         | `dimension`           | `some_dimension`      |                                                                                                    |
+| `DimensionOf`       | `dimension_of`        |                       | This concept is never used in the framework but might be useful to users.                          |
+| `QuantitySpec`      | `quantity_spec`       | `some_quantity_spec`  | "After" requires renaming `quantity_spec` to `named_quantity_spec` for a class template.           |
+| `QuantitySpecOf`    | `quantity_spec_of`    |                       |                                                                                                    |
+| `UnitMagnitude`     | `unit_magnitude`      | `some_unit_magnitude` |                                                                                                    |
+| `Unit`              | `unit`                | `some_unit`           | "Alternative" allows renaming named_unit class template to unit                                    |
+| `AssociatedUnit`    | `associated_unit`     |                       |                                                                                                    |
+| `PrefixableUnit`    | `prefixable_unit`     | `some_prefixed_unit`  | The class template is called `prefixed_unit`.                                                      |
+| `UnitOf`            | `unit_of`             |                       |                                                                                                    |
+| `Reference`         | `reference`           | `some_reference`      | Collides with `reference` class template, but we have some ideas how to remove the class template. |
+| `ReferenceOf`       | `reference_of`        |                       |                                                                                                    |
+| `RepresentationOf`  | `representation_of`   |                       |                                                                                                    |
+| `Quantity`          | `delta_quantity`      | `some_quantity`       | Collides with `quantity` class template.                                                           |
+| `QuantityOf`        | `delta_quantity_of`   | `quantity_of`         |                                                                                                    |
+| `QuantityLike`      | `delta_quantity_like` | `quantity_like`       |                                                                                                    |
+| `PointOrigin`       | `point_origin`        | `some_point_origin`   |                                                                                                    |
+| `PointOriginFor`    | `point_origin_for`    |                       |                                                                                                    |
+| `QuantityPoint`     | `point_quantity`      | `some_quantity_point` | Collides with `quantity_point` class template.                                                     |
+| `QuantityPointOf`   | `point_quantity_of`   | `quantity_point_of`   |                                                                                                    |
+| `QuantityPointLike` | `point_quantity_like` | `quantity_point_like` |                                                                                                    |
+
+How do we like `some_XXX` practice? It is already being used in some open source projects. It also
+reads nicely against `XXX_of`, which provides more restrictive constraints. If we are OK with it,
+should we apply it only in the conflicting cases or apply everywhere for consistency?
+
+If we go for `some_XXX` then we can leave `quantity_spec` as the class template, and also we could
+rename `named_unit` class template to `unit` so the user can type less while defining their own system
+entities.
+
+Here is a comparison of quantity specification and units definitions in both alternatives:
+
+Today (inconsistent?):
+
+```cpp
+inline constexpr struct length final : quantity_spec<dim_length> {} length;
+inline constexpr struct time final   : quantity_spec<dim_time> {} time;
+inline constexpr struct speed final  : quantity_spec<length / time> {} speed;
+
+inline constexpr struct metre final  : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
+```
+
+Option 1:
+
+```cpp
+inline constexpr struct length final : named_quantity_spec<dim_length> {} length;
+inline constexpr struct time final   : named_quantity_spec<dim_time> {} time;
+inline constexpr struct speed final  : named_quantity_spec<length / time> {} speed;
+
+inline constexpr struct metre final  : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
+```
+
+Option 2:
+
+```cpp
+inline constexpr struct length final : quantity_spec<dim_length> {} length;
+inline constexpr struct time final   : quantity_spec<dim_time> {} time;
+inline constexpr struct speed final  : quantity_spec<length / time> {} speed;
+
+inline constexpr struct metre final  : unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct second final : unit<"s", kind_of<isq::time>> {} second;
+```
+
+Please also note, that we've added `point_quantityXXX` alternatives as we consider replacing
+`quantity_point<..., Rep>` with `quantity<point<...>, Rep>`. In such a case, we could still need
+`some_quantity = delta_quantity || point_quantity`.
+
 
 ## Symbolic expressions
 
