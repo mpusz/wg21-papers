@@ -43,6 +43,7 @@ toc-depth: 4
 - [Complex operations] chapter added.
 - [Integer division] chapter extended.
 - [Bikeshedding concepts] chapter added.
+- [Supported operations and their results] chapter updated.
 - Many small cleanup changes in other chapters.
 
 ## Changes since [@P3045R4]
@@ -6827,20 +6828,10 @@ the resulting symbolic expression.
     This is probably the most important of all the steps, as it allows comparing types and enables
     the rest of the simplification rules.
 
-    Units and dimensions have unique symbols, but ordering quantity types might not be that
-    trivial. Although the ISQ defined in [@ISO80000] provides symbols for each
-    quantity, there is little use for them in the C++ code. This is caused by the fact that
-    such symbols use a lot of characters that are not available with the Unicode encoding.
-    Most of the limitations correspond to Unicode providing only a minimal set of characters
-    available as subscripts, which are often used to differentiate various quantities of the same
-    kind. For example, it is impossible to encode the symbols of the following quantities:
-
-    - _c_<sub>sat</sub> - _specific heat capacity at saturated vapour pressure_,
-    - _μ_<sub>JT</sub> - _Joule-Thomson coefficient_,
-    - _w_<sub>H<sub>2</sub>O</sub> - _mass fraction of water_,
-    - _σ_<sub>Ω,E</sub> - _direction and energy distribution of cross section_,
-    - _d_<sub>1/2</sub> - _half-value thickness_,
-    - _Φ_<sub>e,λ</sub> - _spectral radiant flux_.
+    User-provided symbols (when available) are not guaranteed to be unique in the project.
+    For example, someone may use `"s"` as a symbol for a count of samples, which, when used in
+    a unit expression with seconds, would cause fatal consequences (e.g., `sample * second` would
+    yield `s²`, or `sample / second` would result in `one`).
 
     This is why the library chose to use type name identifiers in such cases. As of today, it could
     be implementation-defined of how a specific implementation orders the identifiers on a type list.
@@ -6912,20 +6903,6 @@ the resulting symbolic expression.
     |  `X / A`  |          `{identity}, per<B>`           |
     |  `X / B`  |          `A, per<power<B, 2>>`          |
 
-Please note that for as long as for the ordering step in some cases, we use user-provided
-symbols, the aggregation, and the next steps do not benefit from those. They always use type
-identifiers to determine whether the operation should be performed.
-
-Unit symbols are not guaranteed to be unique in the project. For example, someone may use `"s"`
-as a symbol for a count of samples, which, when used in a unit expression with seconds, would
-cause fatal consequences (e.g., `sample * second` would yield `s²`, or `sample / second` would
-result in `one`).
-
-Some units would provide worse text output if the ordering step used type identifiers rather
-than unit symbols. For example, `si::metre * si::second * cgs::second` would result
-in `s m s`, or `newton * metre` would result in `m N`, which is not how we typically spell this
-unit. However, for the sake of consistency, we may also consider changing the algorithm used for
-ordering to be based on type identifiers.
 
 ### Symbolic expressions in action
 

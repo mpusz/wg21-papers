@@ -1139,6 +1139,8 @@ added.</li>
 extended.</li>
 <li><a href="#bikeshedding-concepts">Bikeshedding concepts</a> chapter
 added.</li>
+<li><a href="#supported-operations-and-their-results">Supported
+operations and their results</a> chapter updated.</li>
 <li>Many small cleanup changes in other chapters.</li>
 </ul>
 <h2 data-number="1.2" id="changes-since-p3045r4"><span class="header-section-number">1.2</span> Changes since <span class="citation" data-cites="P3045R4"><a href="https://wg21.link/p3045r4" role="doc-biblioref">[P3045R4]</a></span><a href="#changes-since-p3045r4" class="self-link"></a></h2>
@@ -8299,26 +8301,12 @@ sorted according to a specific predicate. This is why:</p>
 <span id="cb240-2"><a href="#cb240-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>A <span class="op">*</span> B<span class="op">)</span>, <span class="kw">decltype</span><span class="op">(</span>B <span class="op">*</span> A<span class="op">)&gt;)</span>;</span></code></pre></div>
 <p>This is probably the most important of all the steps, as it allows
 comparing types and enables the rest of the simplification rules.</p>
-<p>Units and dimensions have unique symbols, but ordering quantity types
-might not be that trivial. Although the ISQ defined in <span class="citation" data-cites="ISO80000"><a href="https://www.iso.org/standard/76921.html" role="doc-biblioref">[ISO/IEC 80000]</a></span> provides symbols for
-each quantity, there is little use for them in the C++ code. This is
-caused by the fact that such symbols use a lot of characters that are
-not available with the Unicode encoding. Most of the limitations
-correspond to Unicode providing only a minimal set of characters
-available as subscripts, which are often used to differentiate various
-quantities of the same kind. For example, it is impossible to encode the
-symbols of the following quantities:</p>
-<ul>
-<li><em>c</em><sub>sat</sub> - <em>specific heat capacity at saturated
-vapour pressure</em>,</li>
-<li><em>μ</em><sub>JT</sub> - <em>Joule-Thomson coefficient</em>,</li>
-<li><em>w</em><sub>H<sub>2</sub>O</sub> - <em>mass fraction of
-water</em>,</li>
-<li><em>σ</em><sub>Ω,E</sub> - <em>direction and energy distribution of
-cross section</em>,</li>
-<li><em>d</em><sub>1/2</sub> - <em>half-value thickness</em>,</li>
-<li><em>Φ</em><sub>e,λ</sub> - <em>spectral radiant flux</em>.</li>
-</ul>
+<p>User-provided symbols (when available) are not guaranteed to be
+unique in the project. For example, someone may use <code class="sourceCode cpp"><span class="st">&quot;s&quot;</span></code> as a
+symbol for a count of samples, which, when used in a unit expression
+with seconds, would cause fatal consequences (e.g., <code class="sourceCode cpp">sample <span class="op">*</span> second</code>
+would yield <code class="sourceCode cpp">s²</code>, or <code class="sourceCode cpp">sample <span class="op">/</span> second</code>
+would result in <code class="sourceCode cpp">one</code>).</p>
 <p>This is why the library chose to use type name identifiers in such
 cases. As of today, it could be implementation-defined of how a specific
 implementation orders the identifiers on a type list. If <span class="citation" data-cites="P2830R10"><a href="https://wg21.link/p2830r10" role="doc-biblioref">[P2830R10]</a></span> gets standardized, then it
@@ -8463,23 +8451,6 @@ simplified there.</p>
 </tbody>
 </table></li>
 </ol>
-<p>Please note that for as long as for the ordering step in some cases,
-we use user-provided symbols, the aggregation, and the next steps do not
-benefit from those. They always use type identifiers to determine
-whether the operation should be performed.</p>
-<p>Unit symbols are not guaranteed to be unique in the project. For
-example, someone may use <code class="sourceCode cpp"><span class="st">&quot;s&quot;</span></code> as a
-symbol for a count of samples, which, when used in a unit expression
-with seconds, would cause fatal consequences (e.g., <code class="sourceCode cpp">sample <span class="op">*</span> second</code>
-would yield <code class="sourceCode cpp">s²</code>, or <code class="sourceCode cpp">sample <span class="op">/</span> second</code>
-would result in <code class="sourceCode cpp">one</code>).</p>
-<p>Some units would provide worse text output if the ordering step used
-type identifiers rather than unit symbols. For example, <code class="sourceCode cpp">si<span class="op">::</span>metre <span class="op">*</span> si<span class="op">::</span>second <span class="op">*</span> cgs<span class="op">::</span>second</code>
-would result in <code class="sourceCode cpp">s m s</code>, or <code class="sourceCode cpp">newton <span class="op">*</span> metre</code>
-would result in <code class="sourceCode cpp">m N</code>, which is not
-how we typically spell this unit. However, for the sake of consistency,
-we may also consider changing the algorithm used for ordering to be
-based on type identifiers.</p>
 <h3 data-number="18.5.5" id="symbolic-expressions-in-action"><span class="header-section-number">18.5.5</span> Symbolic expressions in
 action<a href="#symbolic-expressions-in-action" class="self-link"></a></h3>
 <p>Thanks to all of the steps described above, a user may write the code
