@@ -40,6 +40,7 @@ toc-depth: 4
 - [Symbols of scaled units] chapter updated.
 - "EQUIV{...}" replaced with "[...]" in the text output of common units.
 - [Inconsistencies with `std::chrono::duration`] chapter added
+- [Complex operations] chapter added.
 
 ## Changes since [@P3045R4]
 
@@ -5313,6 +5314,24 @@ As we can see above, such features additionally improves the compile-time safety
 by ensuring that quantities are created with proper quantity equations and are using correct
 representation types.
 
+
+### Complex operations
+
+We can encounter very similar issues in the case of complex quantities. They should expose proper
+complex operations that will yield specific quantities as a result. This prevents pervasive
+and dangerous errors in the industry.
+
+For example, _complex power_ can only be constructed from _active power_ and _reactive power_
+provided in exactly this order. The latter should also be the result of only specific operations
+done on the former:
+
+```cpp
+quantity<isq::complex_power[V * A], std::complex<double>> complex1 = get_power();
+quantity<isq::complex_power[W]> active = complex1.real();
+quantity<isq::complex_power[var]> reactive = complex1.imag();
+quantity<isq::apparent_power[V * A]> apparent = complex1.modulus();
+quantity<isq::complex_power[V * A], std::complex<double>> complex2 = make_complex(active, reactive);
+```
 
 ## Safety pitfalls
 
