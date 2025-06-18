@@ -41,6 +41,7 @@ toc-depth: 4
 - "EQUIV{...}" replaced with "[...]" in the text output of common units.
 - [Inconsistencies with `std::chrono::duration`] chapter added
 - [Complex operations] chapter added.
+- [Integer division] chapter extended.
 
 ## Changes since [@P3045R4]
 
@@ -5350,6 +5351,21 @@ The same applies to:
 ```cpp
 static_assert(5 * h / (120 * min) == 0 * one);
 ```
+
+We may consider adding a special mode to detect the above cases at compile-time and try to bring the
+unit to a common unit before doing the operation. However, it will make it inconsistent with the
+following code:
+
+```cpp
+static_assert(2 * m * (5 * h) / (120 * min) == 0 * m);
+```
+
+If we decide to change the current behavior, it would:
+
+- make generic programming harder,
+- should be enabled only for integers (inconsistent resulting units with floating-point mode),
+- would make it harder to express ratios of hugely different units of the same dimension
+ (e.g., Hubble constant is expressed in `km/s/Mpc`).
 
 This is why floating-point representation types are recommended as a default to store the numerical
 value of a quantity. Some popular physical units libraries even
