@@ -38,6 +38,7 @@ toc-depth: 4
 - [Safe operations of vector and tensor quantities] chapter updated.
 - [Superpowers of the unit `one`] chapter updated.
 - [Symbols of scaled units] chapter updated.
+- "EQUIV{...}" replaced with "[...]" in the text output of common units.
 
 ## Changes since [@P3045R4]
 
@@ -4065,10 +4066,10 @@ std::cout << 1. * rad + 1. * deg << "\n";
 prints:
 
 ```text
-40771 EQUIV{(1/25146 mi), (1/15625 km)}
-108167 EQUIV{(1/50292 mi), (1/57875 nmi)}
-23 EQUIV{(1/5 km/h), (1/18 m/s)}
-183.142 EQUIV{(1/π°), (1/180 rad)}
+40771 [1/25146 mi, 1/15625 km]
+108167 [1/50292 mi, 1/57875 nmi]
+23 [1/5 km/h, 1/18 m/s]
+183.142 [1/π°, 1/180 rad]
 ```
 
 Thanks to the above, it might be easier for the user to reason about the magnitude of the resulting
