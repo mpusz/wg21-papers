@@ -44,6 +44,7 @@ toc-depth: 4
 - [Integer division] chapter extended.
 - [Bikeshedding concepts] chapter added.
 - [Supported operations and their results] chapter updated.
+- [Equality and equivalence] chapter extended.
 - Many small cleanup changes in other chapters.
 
 ## Changes since [@P3045R4]
@@ -7037,21 +7038,59 @@ static_assert(isq::time[second] != second);
 static_assert(kind_of<isq::time>[second] == second);
 ```
 
-Units may have many shades. This is why a quality check is not enough for them. In many cases, we
-want to be able to check for equivalence. Watt (`W`) should be equivalent to `J/s` and `kg m²/s³`.
-Also, a litre (`l`) should be equivalent to a cubic decimetre (`dm³`).
+Units may have many shades. This is why an equality check is not enough for them. In many cases,
+we don't need to check against a concrete unit, but we want to ensure that the underlying numerical
+value will not change during a unit conversion. In such cases we check for equivalence.
+Watt (`W`) should be equivalent to `J/s` and `kg m²/s³`. Also, a litre (`l`) should be equivalent
+to a cubic decimetre (`dm³`).
 
-To check for unit equivalence, we convert each unit to its canonical representation (scaled unit
-with magnitude expressed relative to some "blessed" implementation-specific reference unit) and
-then, we compare if the reference units and the magnitudes are the same:
+To check for unit equivalence, currently we convert each unit to its canonical representation
+(scaled unit with magnitude expressed relative to some "blessed" implementation-specific reference
+unit) and then, we compare if the reference units and the magnitudes are the same:
 
 ```cpp
 consteval bool equivalent(Unit auto lhs, Unit auto rhs)
-  requires(convertible(lhs, rhs))
 {
-  return get_canonical_unit(lhs).mag == get_canonical_unit(rhs).mag;
+  const auto lhs_canonical = get_canonical_unit(lhs);
+  const auto rhs_canonical = get_canonical_unit(rhs);
+  return lhs_canonical.mag == rhs_canonical.mag && lhs_canonical.reference_unit == rhs_canonical.reference_unit;
 }
 ```
+
+_Note: A `canonical_unit` is an implementation detail and is not exposed in public APIs for now._
+
+For example:
+
+```cpp
+static_assert(N != kg * m / s2);
+static_assert(equivalent(N, kg * m / s2));
+```
+
+It is also worth noting that the above implementation makes the last line below pass, even though
+we can't convert a quantity measured in `Hz` to the one in `Bq`:
+
+```cpp
+quantity q1 = (42 * Hz).in(one / s);
+quantity q2 = (42 * Bq).in(one / s);
+quantity q3 = (42 * one / s).in(Hz);
+quantity q4 = (42 * one / s).in(Bq);
+// quantity q5 = (42 * Hz).in(Bq);  // does not compile
+
+quantity q6 = 1 * Hz + 1 * one / s;
+quantity q7 = 1 * Bq + 1 * one / s;
+// quantity q8 = 1 * Hz + 1 * Bq;   // does not compile
+
+static_assert(Hz != Bq);
+static_assert(Hz != one / s);
+static_assert(Bq != one / s);
+static_assert(equivalent(Hz, one / s));
+static_assert(equivalent(Bq, one / s));
+static_assert(equivalent(Hz, Bq));  // OK ???
+```
+
+Depending on the desired semanthics of `equivalent` function, we may want to make the last line to
+fail as well.
+
 
 ### Ordering
 
