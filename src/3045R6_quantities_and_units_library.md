@@ -46,6 +46,7 @@ toc-depth: 4
 - [Supported operations and their results] chapter updated.
 - [Equality and equivalence] chapter extended.
 - [Obtaining common entities] chapter renamed to [Arithmetics] and changed.
+- [Negative constants] chapter added.
 - Many small cleanup changes in other chapters.
 
 ## Changes since [@P3045R4]
@@ -7568,6 +7569,31 @@ p = 2.13771e-18 kg m/s
 m = 5.34799e-27 kg
 E = 8.01088e-10 J
 ```
+
+### Negative constants
+
+Named units may not be enough to model all of the constants out there. It turns out that there are
+many negative constants. Some of them can be found in [CODATA](https://physics.nist.gov/cuu/Constants).
+One such constant is [_helion g factor_](https://physics.nist.gov/cgi-bin/cuu/Value?ghn).
+Trying to model this as below fails to compile:
+
+```cpp
+inline constexpr struct helion_g_factor :
+  named_unit<basic_symbol_text{"𝘨ₕ", "g_h"}, mag<-ratio{4'255'250'615, 1'000'000'000}> * one> {} helion_g_factor;
+```
+
+The reason of the error above is the fact that the conversion factors between units should be
+positive. This means that reusing `named_units` to define constants may not be the best idea and
+we probably need to introduce a dedicated class.
+
+One of the problems associated with a new class will be finding a good name for it. Naming is hard 😉.
+`std::constant` would be too generic for a C++ library. [@ISO80000] (part 1) §A.4 "Constants" names
+them as universal constants or fundamental physical constants. Based on that we could use one of
+the following names:
+
+- `universal_constant`,
+- `fundamental_constant`,
+- `physical_constant` (although, they are not limited only to physics).
 
 
 ## Quantity specifications
