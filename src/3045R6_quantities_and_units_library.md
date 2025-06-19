@@ -45,7 +45,7 @@ toc-depth: 4
 - [Bikeshedding concepts] chapter added.
 - [Supported operations and their results] chapter updated.
 - [Equality and equivalence] chapter extended.
-- [Obtaining common entities] chapter changed.
+- [Obtaining common entities] chapter renamed to [Arithmetics] and changed.
 - Many small cleanup changes in other chapters.
 
 ## Changes since [@P3045R4]
@@ -7124,7 +7124,7 @@ than the other one in some cases.
 
 This is why we discourage providing ordering operations for any of those entities.
 
-### Obtaining common entities
+### Arithmetics
 
 For consistency, we should also define arithmetic `operator+` and `operator-` for such entities
 to resemble the operations performed on quantities. For example:
@@ -7150,6 +7150,19 @@ static_assert(km + mi == get_common_unit(km, mi));
 static_assert(isq::radius + isq::distance == isq::length);
 static_assert(isq::position_vector - isq::position_vector == isq::displacement);
 // constexpr auto qs = isq::position_vector + isq::position_vector;  // should not compile
+```
+
+The operations that we expose must cover all of the operations we can do on quantities. This
+is why we not only have to overload operators but also expose other operations that can be
+performed on vector, tensor, and complex quantities:
+
+```cpp
+static_assert(implicitly_convertible(magnitude(isq::velocity), isq::speed));
+static_assert(implicitly_convertible(scalar_product(isq::force, isq::displacement), isq::work));
+static_assert(implicitly_convertible(vector_product(isq::position_vector, isq::force), isq::moment_of_force));
+static_assert(implicitly_convertible(real(isq::complex_power), isq::active_power));
+static_assert(implicitly_convertible(imag(isq::complex_power), isq::reactive_power));
+static_assert(implicitly_convertible(modulus(isq::complex_power), isq::apparent_power));
 ```
 
 
