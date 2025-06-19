@@ -45,6 +45,7 @@ toc-depth: 4
 - [Bikeshedding concepts] chapter added.
 - [Supported operations and their results] chapter updated.
 - [Equality and equivalence] chapter extended.
+- [Obtaining common entities] chapter changed.
 - Many small cleanup changes in other chapters.
 
 ## Changes since [@P3045R4]
@@ -7123,29 +7124,33 @@ than the other one in some cases.
 
 This is why we discourage providing ordering operations for any of those entities.
 
-### Obtaininig common entities
+### Obtaining common entities
 
-We could also define arithmetic `operator+` and `operator-` for such entities to resemble the
-operations performed on quantities. For example:
+For consistency, we should also define arithmetic `operator+` and `operator-` for such entities
+to resemble the operations performed on quantities. For example:
 
 ```cpp
-quantity q = isq::radius(1 * m) + isq::distance(1 * cm);
+quantity q1 = isq::radius(1 * m) + isq::distance(1 * cm);
+quantity q2 = isq::position_vector(1 * m) - isq::position_vector(1 * cm);
+// quantity q3 = isq::position_vector(1 * m) + isq::position_vector(1 * cm);  // should not compile
 ```
 
-returns a `quantity<get_common_quantity_spec(isq::radius, isq::distance)[get_common_unit(m, cm)], int>`
-aka `quantity<isq::length[cm], int>`.
-For consistency, our `operator+` and `operator-` overloads could return those common entities:
+returns:
+
+- `quantity<isq::length[cm], int>` for `q1`,
+- `quantity<isq::displacement[cm], int>` for `q2`.
+
+Users may be interested to check what will be the result of performing such operations on
+ingredients of the quantity. This is why providing such operators for them seems to be a good
+idea:
 
 ```cpp
 static_assert(m + cm == cm);
 static_assert(km + mi == get_common_unit(km, mi));
 static_assert(isq::radius + isq::distance == isq::length);
+static_assert(isq::position_vector - isq::position_vector == isq::displacement);
+// constexpr auto qs = isq::position_vector + isq::position_vector;  // should not compile
 ```
-
-However, we've decided that this is not the best idea, and the usage of named functions
-(`common_XXX()`) much better expresses the intent, is less ambiguous, and does not break
-dimensional analysis math rules.
-
 
 
 ## Units
