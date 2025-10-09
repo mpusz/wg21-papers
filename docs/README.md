@@ -59,6 +59,7 @@ to this activity.
 - [P3094R4: `std::basic_fixed_string`](papers/3094R4_std_basic_fixed_string.html)
 - [P3094R5: `std::basic_fixed_string`](papers/3094R5_std_basic_fixed_string.html)
 - [P3094R6: `std::basic_fixed_string`](papers/3094R6_std_basic_fixed_string.html)
+- [P3788R0: Fixing `std::complex` binary operators](papers/3788R0_fixing_std_complex_binary_operators.html)
 
 ### Under Development
 
