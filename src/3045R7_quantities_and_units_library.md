@@ -40,6 +40,7 @@ toc-depth: 4
 - Direct comparison against literal `0` replaced the discussion of non-ideal alternatives
 - `named_constant` support added.
 - `pi` `mag_constant` renamed to `pi_c` to allow `π` be an identifier for a `named_constant`.
+- `default_denominator` renamed to `default_solidus` in `unit_symbol_solidus` enum.
 - `quantity_values` trait renamed to `representation_values`.
 - `quantity::one()` static member function removed after LEWGI and SG6 feedback.
 - [Teachability] chapter significantly expanded for SG20.
@@ -3388,7 +3389,7 @@ enum class unit_symbol_solidus : std::int8_t {
   one_denominator,  // m/s;   kg m⁻¹ s⁻¹
   always,           // m/s;   kg/(m s)
   never,            // m s⁻¹; kg m⁻¹ s⁻¹
-  default_denominator = one_denominator
+  default_solidus = one_denominator
 };
 
 enum class unit_symbol_separator : std::int8_t {
@@ -3399,7 +3400,7 @@ enum class unit_symbol_separator : std::int8_t {
 
 struct unit_symbol_formatting {
   character_set char_set = character_set::default_encoding;
-  unit_symbol_solidus solidus = unit_symbol_solidus::default_denominator;
+  unit_symbol_solidus solidus = unit_symbol_solidus::default_solidus;
   unit_symbol_separator separator = unit_symbol_separator::default_separator;
 };
 ```

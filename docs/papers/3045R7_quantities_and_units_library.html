@@ -1161,6 +1161,9 @@ added.</li>
 <code class="sourceCode cpp">pi_c</code> to allow
 <code class="sourceCode cpp">π</code> be an identifier for a
 <code class="sourceCode cpp">named_constant</code>.</li>
+<li><code class="sourceCode cpp">default_denominator</code> renamed to
+<code class="sourceCode cpp">default_solidus</code> in
+<code class="sourceCode cpp">unit_symbol_solidus</code> enum.</li>
 <li><code class="sourceCode cpp">quantity_values</code> trait renamed to
 <code class="sourceCode cpp">representation_values</code>.</li>
 <li><code class="sourceCode cpp">quantity<span class="op">::</span>one<span class="op">()</span></code>
@@ -4598,7 +4601,7 @@ contains three orthogonal fields, each with a default value.</p>
 <span id="cb108-2"><a href="#cb108-2" aria-hidden="true" tabindex="-1"></a>  one_denominator,  <span class="co">// m/s;   kg m⁻¹ s⁻¹</span></span>
 <span id="cb108-3"><a href="#cb108-3" aria-hidden="true" tabindex="-1"></a>  always,           <span class="co">// m/s;   kg/(m s)</span></span>
 <span id="cb108-4"><a href="#cb108-4" aria-hidden="true" tabindex="-1"></a>  never,            <span class="co">// m s⁻¹; kg m⁻¹ s⁻¹</span></span>
-<span id="cb108-5"><a href="#cb108-5" aria-hidden="true" tabindex="-1"></a>  default_denominator <span class="op">=</span> one_denominator</span>
+<span id="cb108-5"><a href="#cb108-5" aria-hidden="true" tabindex="-1"></a>  default_solidus <span class="op">=</span> one_denominator</span>
 <span id="cb108-6"><a href="#cb108-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
 <span id="cb108-7"><a href="#cb108-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb108-8"><a href="#cb108-8" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> <span class="kw">class</span> unit_symbol_separator <span class="op">:</span> std<span class="op">::</span><span class="dt">int8_t</span> <span class="op">{</span></span>
@@ -4609,7 +4612,7 @@ contains three orthogonal fields, each with a default value.</p>
 <span id="cb108-13"><a href="#cb108-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb108-14"><a href="#cb108-14" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> unit_symbol_formatting <span class="op">{</span></span>
 <span id="cb108-15"><a href="#cb108-15" aria-hidden="true" tabindex="-1"></a>  character_set char_set <span class="op">=</span> character_set<span class="op">::</span>default_encoding;</span>
-<span id="cb108-16"><a href="#cb108-16" aria-hidden="true" tabindex="-1"></a>  unit_symbol_solidus solidus <span class="op">=</span> unit_symbol_solidus<span class="op">::</span>default_denominator;</span>
+<span id="cb108-16"><a href="#cb108-16" aria-hidden="true" tabindex="-1"></a>  unit_symbol_solidus solidus <span class="op">=</span> unit_symbol_solidus<span class="op">::</span>default_solidus;</span>
 <span id="cb108-17"><a href="#cb108-17" aria-hidden="true" tabindex="-1"></a>  unit_symbol_separator separator <span class="op">=</span> unit_symbol_separator<span class="op">::</span>default_separator;</span>
 <span id="cb108-18"><a href="#cb108-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><code class="sourceCode cpp">unit_symbol_solidus</code> impacts how
