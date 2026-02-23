@@ -3,11 +3,12 @@ title: "Quantities and units library"
 document: P3045R7
 date: today
 audience:
+  - LEWG Library Evolution Working Group
   - SG6 Numerics
   - SG16 Unicode
-  - SG18 Library Evolution Working Group Incubator (LEWGI)
+  - SG20 Education
 author:
-  - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
+  - name: Mateusz Pusz ([Train IT](http://www.train-it.eu))
     email: <mateusz.pusz@gmail.com>
   - name: Dominik Berner
     email: <dominik.berner@gmail.com>
@@ -28,6 +29,19 @@ toc-depth: 4
 # Revision history
 
 ## Changes since [@P3045R6]
+
+- Document metadata updated (added LEWG and SG20 to audience).
+- Several chapters significantly condensed and unneeded content duplication removed.
+- Compiler Explorer examples updated to match the latest version of [@MP-UNITS].
+- [Creating distinct quantity kinds with `is_kind`] chapter added.
+- [Safety] chapter redesigned to be scoped around six distinct safety levels.
+- `AssociatedUnit` concept removed.
+- Missing `PrefixableUnit` concept added.
+- Direct comparison against literal `0` replaced the discussion of non-ideal alternatives
+- `pi` `mag_constant` renamed to `pi_c` to allow `π` be an identifier for a `named_constant`.
+- `quantity_values` trait renamed to `representation_values`.
+- `quantity::one()` static member function removed after LEWGI and SG6 feedback.
+- [Teachability] chapter significantly expanded for SG20.
 
 ## Changes since [@P3045R5]
 
@@ -202,7 +216,13 @@ More details will arrive in the next revisions of this paper._
 This paper describes and defines a generic framework for quantities and units library. Such
 framework should allow modeling various systems of quantities and units customized according
 to specific user's needs. Such systems can be embraced with the affine space abstractions to
-provide type-, unit-, and point origin-safe abstractions for many industries.
+provide dimension-, unit-, representation-, quantity kind-, quantity-, and affine space-safe
+abstractions for many industries.
+
+Beyond physical units, this library may also provide long-awaited functionality
+for the C++ community. It enables creating strongly-typed wrappers for fundamental
+types to prevent bugs that arise from accidentally mixing semantically different
+values.
 
 Even if mentioned, this paper does not propose standardizing any systems of quantities or units.
 Such definitions will arrive in subsequent proposals.
@@ -232,7 +252,7 @@ We should also mention the potential confusion of users with having two differen
 with time abstractions in the C++ standard library. If this proposal gets accepted:
 
 - `std::chrono` abstractions together with `std::ratio` should be used primarily to deal
-  with calendars and threading facilities,
+  with clocks, calendars, and threading facilities,
 - abstractions introduced in this proposal should be used in all other use cases (e.g.,
   physical quantities equations).
 
@@ -271,169 +291,69 @@ Priorities used above:
 
 ## Dominik Berner
 
-Dominik is a strong believer that the C++ language can provide very high safety guarantees when
-programming through strong typing; a type error caught during compilation saves hours of
-debugging. For the last 15 years, he has mainly coded in C++ and actively follows its evolution
-through the new standards.
-
-When working on regulated projects at Med-Tech, there usually were very tight requirements on
-which data types were to be used for what, which turned out to be lists of primitives to be
-memorized by each developer. However, throughout his career, Dominik spent way too many hours
-debugging and fixing issues caused by these types being incorrect. In an attempt to bring
-a closer semantic meaning to these lists, he eventually wrote [@SI_LIB] as a side project.
-
-While [@SI_LIB] provides many useful features, such as type-safe conversion between physical
-quantities as well as zero-overhead computation for values of the same units, there are some
-shortcomings which would require major rework. Instead of creating yet another library,
-Dominik decided to join forces with the other authors of this paper to push for standardizing
-support for more type-safety for physical quantities. He hopes that this will eventually lead
-to a safer and more robust C++ and open many more opportunities for the language.
+Dominik has 15+ years of C++ experience, primarily in regulated Med-Tech projects where type safety
+is critical. He is the author of [@SI_LIB], a physical quantities library focused on type-safe
+conversions and zero-overhead computation. His extensive experience debugging issues caused by
+incorrect primitive type usage in safety-critical contexts motivated his work on standardizing
+quantities and units. He joined this proposal to contribute his practical experience with production
+safety requirements and strongly-typed interfaces.
 
 ## Johel Ernesto Guerrero Peña
 
-Johel got interested in the units domain while writing his first hundred lines of game development.
-He got up to opening the game window, so this milestone was not reached until years later.
-Instead, he looked for the missing piece of abstraction,
-called "pixel" in the GUI framework, but modeled as an `int`.
-He found out about [@NHOLTHAUS-UNITS], and
-got fascinated with the idea of a library that succinctly allows expressing his domain's units
-(<https://github.com/nholthaus/units/issues/124#issuecomment-390773279>).
-
-Johel became a contributor to [@NHOLTHAUS-UNITS] v3 from 2018 to 2020.
-He improved the interfaces and implementations by remodeling them after `std::chrono::duration`.
-This included parameterizing the representation type with a template parameter instead of a macro.
-He also improved the error messages by mapping a list of types to an user-defined name.
-
-By 2020, Johel had been aware of [@MP-UNITS] v0 `quantity<dim_length, length, int>`, put off by its
-verbosity.
-But then, he watched a talk by Mateusz Pusz on [@MP-UNITS].
-It described how good error messages was a stake in the ground for the library.
-Thanks to his experience in the domain, Johel was convinced that [@MP-UNITS] was the future.
-
-Since 2020, Johel has been contributing to [@MP-UNITS].
-He added `quantity_point`, the generalization of `std::chrono::time_point`, closing #1.
-He also added `quantity_kind`, which explored the need of representing distinct quantities of
-the same dimension.
-To help guide its evolution, he's been constantly pointing in the direction of [@BIPM-VIM] as a
-source of truth.
-And more recently, to [@ISO80000], also helping interpret it.
-
-Computing systems engineering graduate.
-(C++) programmer since 2014.
-Lives at HEAD with C++Next and good practices.
-Performs in-depth code reviews of familiarized code bases.
-Has an eye for identifying automation opportunities, and acts on them.
-Mostly at <https://github.com/JohelEGP/>.
+Johel is a computing systems engineer and C++ programmer since 2014. He was a core contributor
+to [@NHOLTHAUS-UNITS] v3 (2018-2020), where he remodeled interfaces after `std::chrono::duration`
+and improved error messages. Since 2020, he has been a key contributor to [@MP-UNITS], designing
+and implementing `quantity_point` (affine space) and `quantity_kind` (distinct quantities of same
+dimension). He ensures the library's alignment with [@BIPM-VIM] and [@ISO80000] metrology standards,
+bringing rigorous domain expertise to the proposal.
 
 ## Charles Hogg
 
-Chip Hogg is a Staff Software Engineer on the Motion Planning Team at Aurora Innovation, the
-self-driving vehicle company that is developing the Aurora Driver.  After obtaining his PhD in
-Physics from Carnegie Mellon in 2010, he was a postdoctoral researcher and then staff scientist at
-the National Institute of Standards and Technology (NIST), doing Bayesian data analysis. He joined
-Google in 2012 as a software engineer, leaving in 2016 to work on autonomous vehicles at Uber's
-Advanced Technologies Group (ATG), where he stayed until their acquisition by Aurora in 2021.
-
-Chip built his first C++ units library at Uber ATG in 2018, where he first developed the concept of
-unit-safe interfaces.  At Aurora in 2021, he ported over only the test cases, writing a new and more
-powerful units library from scratch.  This included novel features such as vector space magnitudes,
-and an adaptive conversion policy which guards against overflow in integers.
-
-He soon realized that there was a much broader need for Aurora's units library.  No publicly
-available units library for C++14 or C++17 could match its ergonomics, developer experience, and
-performance.  This motivated him to create [@AU] in 2022: a new, zero-dependency units library,
-which was a drop-in replacement for Aurora's original units library, but offered far more composable
-interfaces, and was built on simpler, stronger foundations.  Once Au proved its value internally,
-Chip migrated it to a separate repository and led the open-sourcing process, culminating in its
-public release in 2023.
-
-While Au provides excellent ergonomics and robustness for pre-C++20 users, Chip also believes the
-C++ community would benefit from a standard units library.  For that reason, he has joined forces
-with the [@MP-UNITS] project, contributing code and design ideas.
+Chip Hogg is a Staff Software Engineer at Aurora Innovation working on autonomous vehicle Motion
+Planning. He holds a PhD in Physics from Carnegie Mellon and worked as a staff scientist at NIST.
+He is the creator and lead developer of [@AU], a widely-adopted zero-dependency units library with
+novel features including vector space magnitudes and adaptive overflow protection. His pioneering
+work on unit-safe interfaces at Uber ATG (2018) and Aurora (2021) established best practices for
+safe API design with quantities. He contributes his extensive production experience and focus on
+developer ergonomics to this proposal.
 
 ## Nicolas Holthaus
 
-Nicolas graduated Summa Cum Laude from Northwestern University with a B.S. in  Computer Engineering.
-He worked for several years at the United States Naval Air Warfare Center - Manned Flight Simulator -
-designing real-time C++ software for aircraft survivability simulation. He has subsequently continued
-in the field at various start-ups, MIT Lincoln Laboratory, and most recently, STR (Science and
-Technology Research).
-
-Nicolas became obsessed with dimensional analysis as a high school JETS team member after learning
-that the \$125M Mars Climate Orbiter was destroyed due to a simple feet-to-meters miscalculation. He
-developed the widely adopted C++ [@NHOLTHAUS-UNITS] library based on the findings of the 2002 white
-paper "Dimensional Analysis in C++" by Scott Meyers. Astounded that no one smarter had already
-written such a library, he continued with `units` 2.0 and 3.0 based on modern C++. Those libraries
-have been extensively adopted in many fields, including modeling & simulation, agriculture, and
-geodesy.
-
-In 2023, recognizing the limits of `units`, he joined forces with Mateusz Pusz in his effort to
-standardize his evolutionary dimensional analysis library, with the goal of providing the
-highest-quality dimensional analysis to all C++ users via the C++ standard library.
+Nicolas holds a B.S. in Computer Engineering (Summa Cum Laude) from Northwestern University. He
+designed real-time C++ software for aircraft survivability simulation at the U.S. Naval Air Warfare
+Center and has continued in safety-critical domains at MIT Lincoln Laboratory and STR. He is the
+author of [@NHOLTHAUS-UNITS], one of the most widely adopted C++ units libraries, with extensive
+deployment in modeling & simulation, agriculture, and geodesy. His practical experience with
+production units libraries across multiple domains informs the safety and usability requirements
+of this proposal.
 
 ## Roth Michaels
 
-Roth Michaels is a Principal Software Engineer at
-[Native Instruments](https://www.native-instruments.com), a leading
-manufacturer of audio, and music, software and hardware.  Working in
-this domain, he has been involved with the creation of ad hoc typed
-quantities/units for digital signal processing and GUI library
-use-cases.  Seeing both the complexity of development and practical uses
-where developers need to leave the safety of these simple wrappers
-encouraged Roth to explore various quantity/units libraries to see if
-they would apply to this domain.  He has been doing research into
-defining and using digital audio and music domain-specific quantities
-and units using first [@MP-UNITS] as proposed in [@P1935R2] and the new
-V2 library described in this paper.
-
-Before working for Native Instruments, Roth worked as a consultant in
-multiple industries using a variety of programming languages.  He was
-involved with the Swift Evolution community in its early days before
-focusing primarily on C++ after joining
-[iZotope](https://www.izotope.com) and now Native Instruments.
-
-Holding a degree in music composition, Roth has over a decade of
-experience working with quantities and units of measure related to
-music, digital signal processing, analog audio, and acoustics.  He has
-joined the [@MP-UNITS] project as a domain expert in these areas and to
-provide perspective on logarithmic and non-linear quantity/unit
-relationships.
+Roth Michaels is a Principal Software Engineer at Native Instruments, working on audio and music
+software. With a degree in music composition and over a decade of experience in digital signal
+processing, analog audio, and acoustics, he brings unique domain expertise to the proposal. He
+has researched and prototyped domain-specific quantities and units for audio (samples, beats,
+frequency, power ratios) using [@MP-UNITS], contributing perspective on logarithmic quantities,
+non-linear relationships, and the needs of domains beyond traditional physics and engineering.
 
 ## Mateusz Pusz
 
-Mateusz got interested in the physical units subject while contributing to the [@LK8000]
-Tactical Flight Computer Open Source project over 10 years ago. The project's code was far
-from being "safe" in the C++ sense, and this is when Mateusz started to explore alternatives.
-
-Through the following years, he tried to use several existing solutions, which were always
-far from being user-friendly, so he also tried to write a better framework a few times from
-scratch by himself.
-
-Finally, with the availability of brand new Concepts TS in the gcc-7, the [@MP-UNITS] project
-was created. It was designed with safety and user experience in mind. After many years
-of working on the project, the [@MP-UNITS] library is probably the most modern and complete
-solution in the C++ market.
-
-Through the last few years, Mateusz has put much effort into building a community around physical
-units. He provided many talks and workshops on this subject at various C++ conferences.
-He also approached the authors of other actively maintained libraries to get their feedback
-and invited them to work together to find and agree on the best solution for the C++ language.
-This paper is the result of those actions.
+Mateusz is the creator and lead developer of [@MP-UNITS], the most popular and actively maintained
+C++ physical quantities and units library. With over 10 years of experience in the domain dating
+back to the [@LK8000] flight computer project, he designed [@MP-UNITS] to leverage modern C++
+(Concepts, NTTP) for safety and user experience. He has unified the C++ quantities community by
+bringing together authors of other major libraries to collaborate on this proposal. Through
+numerous conference talks and workshops, he has become a recognized expert in physical quantities
+and units for C++.
 
 ## Vincent Reverdy
 
-Vincent is an astrophysicist, computer scientist, and a member of the French delegation to
-the ISO C++ Committee, currently working as a full researcher at the French National Centre
-for Scientific Research (CNRS). He has been interested for years in units and quantities
-for programming languages to ensure higher levels of both expressivity and safety in computational
-physics codes. Back in 2019, he authored [@P1930R0] to provide some context of what could
-be a quantity and unit library for C++.
-
-After designing and implementing several Domain-Specific Language (DSL) demonstrators dedicated
-to units of measurements in C++, he became more interested in the theoretical side of
-the problem. Today, one of his research activities is dedicated to the mathematical formalization
-of systems of quantities and systems of units as an interdisciplinary problem between physics,
-mathematics, and computer science.
+Vincent is an astrophysicist and computer scientist at the French National Centre for Scientific
+Research (CNRS) and a member of the French delegation to the ISO C++ Committee. He authored
+[@P1930R0] providing foundational context for quantities and units in C++. His current research
+focuses on the mathematical formalization of systems of quantities and units as an interdisciplinary
+problem spanning physics, mathematics, and computer science. He brings rigorous theoretical
+foundations and scientific computing perspective to this proposal.
 
 
 # Motivation
@@ -441,7 +361,7 @@ mathematics, and computer science.
 This chapter describes why we believe that physical quantities and units should be part of
 a C++ Standard Library.
 
-## Safety
+## Safety concerns
 
 It is no longer only the space industry or experienced pilots that benefit from the autonomous
 operations of some machines. We live in a world where more and more ordinary people trust
@@ -594,19 +514,26 @@ many other potential users for such a library.
 
 Here is a list of some less obvious candidates:
 
-- Manufacturing,
+- Manufacturing and production systems,
+- energy sector (power generation, electrical grids, renewable energy),
 - maritime industry,
-- freight transport,
+- freight transport and logistics,
+- chemical and process engineering,
+- oil and gas (drilling, pipelines, refineries),
+- HVAC and environmental control,
+- telecommunications and signal processing,
 - military,
 - astronomy,
-- 3D design,
+- civil engineering and construction,
+- 3D design and CAD,
 - robotics,
-- audio,
-- medical devices,
+- audio and music production,
+- medical devices and pharmaceutical dosing,
+- gaming and physics simulation,
 - national laboratories,
 - scientific institutions and universities,
 - all kinds of navigation and charting,
-- GUI frameworks,
+- GUI frameworks and computer graphics,
 - finance (including HFT).
 
 As we can see, the range of domains for such a library is vast and not
@@ -919,13 +846,13 @@ It should be possible for most proposed features (besides the text output) to be
 
 # Quick domain introduction
 
-This chapter provides a very brief introduction to the quantities and units domain. Please refer to
+This chapter provides a brief introduction to the quantities and units domain. Please refer to
 [@ISO80000] and [@SI] for more details.
 
 <!-- 
 flowchart TD
-    dimension --- quantity_type["quantity type"]
-    quantity_type --- reference["quantity reference\n(e.g., unit)"]
+    dimension --- quantity_type["quantity kind & type"]
+    quantity_type --- reference["quantity reference<br>(i.e., unit)"]
     reference --- quantity
     number --- quantity
  -->
@@ -961,79 +888,47 @@ For example:
 - [@ISO80000] (part 13) provides _traffic intensity_ quantity that is measured in erlangs but not in the unit one,
   which also implies that it should be introduced as a base quantity with its own dimension.
 
-## Quantity type
+## Quantity kind & type
 
-Dimension is not enough to describe a quantity. This is why [@ISO80000] provides hundreds of
-named quantity types. It turns out that there are many more quantity types in the ISQ than the named
-units in the [@SI].
+Dimension alone is insufficient to describe a quantity. [@ISO80000] provides hundreds of
+named quantity types—much more than the named units in [@SI].
 
-[@ISO80000] also defines the term **kind of quantity** as an aspect common to mutually comparable
-quantities. It explicitly says that two or more quantities cannot be added or subtracted unless they
+[@ISO80000] defines **kind of quantity** as an aspect common to mutually comparable
+quantities. Two or more quantities cannot be added or subtracted unless they
 belong to the same category of mutually comparable quantities.
 
 Quantities might be:
 
 - of different dimensions (e.g., _length_, _time_, _speed_, _power_),
-- of the same dimension but of a different kind (e.g., _work_ vs. _torque_, _frequency_ vs. _activity_,
+- of the same dimension but different kind (e.g., _work_ vs. _torque_, _frequency_ vs. _activity_,
    _area_ vs. _fuel consumption_),
 - of the same dimension and kind but still distinct (e.g., _radius_ vs. _width_ vs. _height_ or
   _potential energy_ vs. _kinetic energy_ vs. _thermodynamic energy_).
 
-Additionally, ISO explicitly specifies a quantity of dimension one, which is commonly known as
-a dimensionless quantity. It is a quantity for which all the exponents of the factors corresponding
-to the base quantities in its quantity dimension are zero. Typically, they represent ratios of two
-quantities of the same dimension or counts of things.
+ISO specifies **quantities of dimension one** (dimensionless quantities) where all exponents of base
+quantities are zero. These typically represent ratios of quantities of the same dimension or counts.
 
 ## Quantity reference
 
-[@ISO80000] defines a quantity as:
+[@ISO80000] defines quantity value as number and reference together expressing magnitude of a
+quantity, where the reference can be a measurement unit, measurement procedure, reference material,
+or combination thereof.
 
-> property of a phenomenon, body, or substance, where the property has a magnitude that can be
-> expressed as a number and a reference.
->
-> NOTE 2 A reference can be a measurement unit, a measurement
-> procedure, a reference material, or a combination of such.
+Measurement units are designated by assigned names and symbols. Units of quantities with the same
+dimension may share names and symbols even when quantities differ in kind (e.g., joule per kelvin
+for both _heat capacity_ and _entropy_). However, some units are restricted to specific kinds
+(e.g., hertz for _frequency_, becquerel for _radioactive activity_, both equivalent to 1/s).
 
-The term "reference" is repeated several times in that ISO specification. For example:
-
-- quantity value is defined as:
-
-    > Number and reference together expressing magnitude of a quantity.
-
-- numerical quantity value is defined as:
-
-    > Number in the expression of a quantity value, other than any number serving as the reference
-
-We realize that the term "reference" might be overloaded in the C++ domain. However, preserving
-the official metrology terminology here is still worth trying.
-
-Measurement units are designated by conventionally assigned names and symbols.
-
-Measurement units of quantities of the same quantity dimension may be designated by the same name
-and symbol even when the quantities are not of the same kind. For example, joule per kelvin and J/K
-are, respectively, the name and symbol of both a measurement unit of _heat capacity_ and a measurement
-unit of _entropy_, which are generally considered to not be quantities of the same kind.
-
-However, in some cases, special measurement unit names are restricted to be used with quantities of
-specific kind only. For example, the measurement unit 'second to the power minus one' (1/s) is
-called hertz (Hz) when used for _frequencies_ and becquerel (Bq) when used for _activities of
-radionuclides_.
-
-Measurement units of quantities of dimension one are numbers. In some cases, these measurement
-units are given special names, e.g., radian, steradian, and decibel, or are expressed by quotients
-such as millimole per mole equal to $10^{−3}$ and microgram per kilogram equal to $10^{−9}$.
+Dimensionless quantities have units that are numbers, sometimes with special names (radian, steradian,
+decibel) or expressed as ratios (millimole per mole: $10^{−3}$, microgram per kilogram: $10^{−9}$).
 
 ## Quantity
 
-As stated above, [@ISO80000] defines a quantity as:
+[@ISO80000] defines a quantity as "property of a phenomenon, body, or substance, where the property
+has a magnitude that can be expressed as a number and a reference."
 
-> property of a phenomenon, body, or substance, where the property has a magnitude that can be
-> expressed as a number and a reference.
-
-The above means that a quantity abstraction should store a runtime value representing the quantity
-numerical value and a reference that might be represented as a unit. It is a common practice to
-embed a reference into the C++ type expressing the quantity so it does not occupy a space/storage at
-runtime.
+This means a quantity abstraction should store a numerical value and a reference (typically a unit).
+Common practice embeds the reference into the C++ type to avoid runtime storage overhead.
 
 It is also worth mentioning here that the distinction between a quantity and a quantity type is
 not clearly defined in [@ISO80000]. [@ISO80000] even explicitly states:
@@ -1055,26 +950,22 @@ vector/interval quantities of [The affine space].
 
 # API overview
 
-This chapter is intended to be a short overview and present the proposed library's final look and
-feel. We start with the most straightforward use cases and gradually introduce more complex
-abstractions. Thanks to that, the readers can assess the [Teachability] effort of
-this library by themselves.
+This chapter presents the library's core abstractions and design choices. The `quantity` class
+template represents displacement vectors in an affine space, while `quantity_point` represents
+points. Generic interfaces enable efficient, type-safe code without unit-specific functions.
 
 More details about the design, rationale for it, and alternative syntaxes discussions can be found in
 the [Design details and rationale] chapter.
 
-## Unit-based quantities (simple mode)
+## Quantity construction
 
-Consistently with a [Quantity] definition, a `quantity` class template takes a reference and
-a representation type as parameters:
+The `quantity` class template takes a reference and representation type:
 
 ```cpp
 template<Reference auto R,
          RepresentationOf<get_quantity_spec(R)> Rep = double>
 class quantity;
 ```
-
-### Constructing a quantity
 
 If we want to set a value for a quantity, we always have to provide a number and a unit:
 
@@ -1088,25 +979,6 @@ provided in the initializer, it is recommended to use CTAD:
 ```cpp
 quantity q{42, si::metre};
 ```
-
-Please, note that `double` is used as a default representation type, so the following does not
-result with a quantity of integral representation type:
-
-```cpp
-quantity<si::metre> q2{42, si::metre};
-```
-
-This is why CTAD usage is recommended when the user wants to prevent potential conversion and
-just deduce the `quantity` class template parameters from the initializer. This often prevents
-unneeded conversions that can affect runtime performance or memory footprint.
-
-CTAD-based spelling is shorter but is still quite verbose. Consider having to write:
-
-```cpp
-quantity q = quantity{1, si::kilo<si::metre>} + quantity{200, si::metre};
-```
-
-This is why the library offers an alternative way to construct a quantity.
 
 The [@SI] says:
 
@@ -1148,14 +1020,6 @@ quantity speed1 = 60 * si::kilo<si::metre> / non_si::hour;
 quantity speed2 = 60 * km / h;
 ```
 
-In case a complex derived unit is used a lot in the project, for convenience, a user can quickly
-provide a nicely named wrapper for it with:
-
-```cpp
-constexpr auto kmph = si::kilo<si::metre> / non_si::hour;
-quantity speed3 = 60 * kmph;
-```
-
 The library is optimized to generate short and easy-to-understand types that highly improve
 the analysis of compile-time errors and debugging experience. All of the above definitions will create
 an instance of the type
@@ -1163,184 +1027,17 @@ an instance of the type
 type generation is optimized to be easily understood even by non-experts in the domain.
 The library tries to keep the type's readability as close to English as possible.
 
-To learn find more discussion on a quantity creation syntax please refer to the following chapters:
+To find more discussion on a quantity creation syntax please refer to the following chapters:
 
 - [`explicit` is not explicit enough],
 - [Why don't we use UDLs to create quantities?],
 - [Potential surprises during units composition].
 
-### Typical operations on quantities
-
-Various quantities can be multiplied or divided to obtain other derived quantities. Quantities of
-the same kind can be added, subtracted, and compared to each other. Quantities can also be easily
-printed with output streams or formatting facilities.
-
-```cpp
-quantity dist1 = 80 * km;
-quantity dist2 = 105 * km;
-quantity duration = 2 * h;
-quantity speed_limit = 100 * km / h;
-
-if ((dist1 + dist2) / duration < speed_limit)
-  std::cout << "Thanks for driving within the speed limit of " << speed_limit << " :-)\n";
-else
-  std::println("Slow down! The speed limit here is {}!", speed_limit);
-```
-
-The above prints:
-
-```text
-Thanks for driving within the speed limit of 100 km/h :-)
-```
-
-#### Unit conversions
-
-If we want to change the unit of a current quantity, we can use `.in(Unit)` member function:
-
-```cpp
-std::cout << "The total distance in meters is " << (dist1 + dist2).in(m) << "\n";
-```
-
-The `.in` utility has safety mechanisms to prevent accidentally losing precision.  For example, we
-could try doing the same thing to express `speed_limit` in `m/s`, which is equivalent to multiplying
-the underlying value by the non-integer factor `5/18`:
-
-```cpp
-std::cout << "The speed limit in m/s is " << speed_limit.in(m / s) << "\n";
-// Compiler error!  Does not work.
-```
-
-However, scaling an integral type by a rational or irrational factor is considered not
-value-preserving. To force such a conversion, we can use either a `.force_in(Unit)` member function
-or an explicit `value_cast<Unit>(Quantity)`.
-
-```cpp
-std::cout << "The speed limit in m/s is " << speed_limit.force_in(m / s) << "\n";
-std::cout << "The speed limit in m/s is " << value_cast<m / s>(speed_limit) << "\n";
-```
-
-We will get a truncated value of `27 m/s` in both cases.
-
-To prevent truncation, we must explicitly change the quantity representation type to a
-value-preserving one with `value_cast<Representation>(Quantity)` or `.in<Representation>()`
-overload. For example:
-
-```cpp
-std::cout << "The speed limit in m/s is " << value_cast<double>(speed_limit).in(m / s) << "\n";
-std::cout << "The speed limit in m/s is " << speed_limit.in<double>(m / s) << "\n";
-```
-
-This time, we will see the following in the text output:
-
-```text
-The speed limit in m/s is 27.7778 m/s
-```
-
-More details about conversions can be found in the [Safe unit conversions] and
-[Preventing truncation of data] chapters.
-
-#### Obtaining a numerical value of a quantity
-
-Last but not least, if we need to obtain the numerical value of a quantity and pass it to some
-the legacy unsafe interface, we can use either `.numerical_value_in(Unit)` or
-`.force_numerical_value_in(Unit)` member functions:
-
-```cpp
-void legacy_check_speed_limit(int speed_in_km_per_h);
-```
-
-```cpp
-legacy_check_speed_limit(((dist1 + dist2) / duration).numerical_value_in(km / h));
-```
-
-Such a getter will explicitly enforce the usage of a correct unit required by the underlying
-interface, which reduces a significant number of safety-related issues.
-
-`numerical_value_in(Unit)` always returns by value as a quantity value conversion may be required
-to adjust to the target unit. In case a user needs a reference to the underlying storage
-`.numerical_value_ref_in(Unit)` should be used:
-
-```cpp
-void legacy_set_speed_limit(int* speed_in_km_per_h) { *speed_in_km_per_h = 100; }
-```
-
-```cpp
-quantity<km / h, int> speed_limit;
-legacy_set_speed_limit(&speed_limit.numerical_value_ref_in(km / h));
-```
-
-This member function again requires a target unit to enforce safety. This overload does not
-participate in overload resolution if the provided unit has a different scaling factor than
-the current one.
-
-Please refer to the [Safe quantity numerical value getters] chapter for more details on this
-subject.
-
-## Typed quantities (safer mode)
-
-Simple mode is all about and just about units. Typed quantities should be preferred if we also
-want to be quantity-safe. Those store information not only about a unit but also about a specific
-quantity type we want to model.
-
-There a few ways to obtain such a quantity:
-
-```cpp
-quantity<isq::height[m], int> q1 = 42 * m;
-quantity q2{42, isq::height[m]};
-quantity q3 = 42 * isq::height[m];
-quantity q4 = isq::height(42 * m);
-```
-
-All of the above cases use a slightly different approach to get the quantity, but all of them
-result in exactly the same `quantity` class template instantiation.
-
-In the above examples, an expression of `isq::height[m]` is called a quantity reference and
-results in `reference<isq::height, si::metre>` class template instantiation.
-
-_Note: The identifier `reference` is being used in the [@MP-UNITS] library but definitely will
-need bikeshedding during the standardization process._
-
-More about typed quantities can be found in the following chapters:
-
-- [Why do we need typed quantities?] provides a detailed rationale.
-- [Systems of quantities] describes their conversion and arithmetic rules.
-- [Constraining a derived unit to work only with a specific derived quantity] provides a solution
-  to the problem of units of quantities different kinds but the same dimension.
-- [Quantity kinds improve safety] and [Additional safety introduced by modeling various quantities of the same kind]
-  discuss the safety benefits of quantity kinds.
-- [Limitations of systems of quantities] discusses cases that can't be addressed with the current
-  design of systems of quantities.
-
-
 ## Generic interfaces
-
-Using a concrete unit in the interface often has a lot of sense. It is especially useful if we
-store the data internally in the object. In such a case, we have to select a specific unit anyway.
-
-For example, let's consider a simple storage tank:
-
-```cpp
-class StorageTank {
-  quantity<horizontal_area[m2]> base_;
-  quantity<isq::height[m]> height_;
-  quantity<isq::mass_density[kg / m3]> density_ = air_density;
-public:
-  constexpr StorageTank(const quantity<horizontal_area[m2]>& base, const quantity<isq::height[m]>& height) :
-      base_(base), height_(height)
-  {
-  }
-
-  // ...
-};
-```
-
-As the quantities provided in the function's interface are then stored in the class, there is probably
-no sense in using generic interfaces here.
 
 ### The issues with unit-specific interfaces
 
-However, in many cases, using a specific unit in the interface is counterproductive. Let's consider
-the following function:
+Unit-specific function interfaces introduce several problems:
 
 ```cpp
 quantity<km / h> avg_speed(quantity<km> distance, quantity<h> duration)
@@ -1349,46 +1046,25 @@ quantity<km / h> avg_speed(quantity<km> distance, quantity<h> duration)
 }
 ```
 
-Everything seems fine for now. It also works great if we call it with:
+Using this function:
 
 ```cpp
 quantity<km / h> s1 = avg_speed(220 * km, 2 * h);
-```
-
-However, if the user starts doing the following:
-
-```cpp
 quantity<mi / h> s2 = avg_speed(140 * mi, 2 * h);
 quantity<m / s> s3 = avg_speed(20 * m, 2 * s);
 ```
 
-some issues start to be clearly visible:
+Problems:
 
-1. The arguments must be converted to units mandated by the function's parameters at each call.
-   This involves potentially expensive multiplication/division operations at runtime.
-2. After the function returns the speed in a unit of `km/h`, another potentially expensive
-   multiplication/division operations have to be performed to convert the resulting quantity into
-   a unit being the derived unit of the initial function's arguments.
-3. Besides the obvious runtime cost, some unit conversions may result in a data truncation, which
-   means that the result will not be exactly equal to a direct division of the function's arguments.
-4. We have to use a floating-point representation type (the `quantity` class template by default
-   uses `double` as a representation type) which is considered value preserving.
-   Trying to use an integral type in this scenario will work only for `s1`, while `s2` and `s3`
-   will fail to compile. Failing to compile is a good thing here as the library tries to prevent
-   the user from doing a clearly wrong thing. To make the code compile, the user needs to use
-   dedicated `value_cast` or `force_in` like this:
-
-    ```cpp
-    quantity<mi / h> s2 = avg_speed(value_cast<km>(140 * mi), 2 * h);
-    quantity<m / s> s3 = avg_speed((20 * m).force_in(km), (2 * s).force_in(h));
-    ```
-
-    But the above will obviously provide an incorrect behavior (e.g., division by `0` in the
-    evaluation of `s3`).
+1. Expensive unit conversions at each call and return.
+2. Additional conversions to use results in caller's preferred units.
+3. Potential data truncation during conversions.
+4. Forces floating-point types; integral types fail to compile without explicit `value_cast` or
+   `force_in`, which can produce incorrect results (e.g., division by zero).
 
 ### Constraining function parameters with concepts
 
-Much better generic code can be implemented using basic concepts provided with the library:
+Generic code using quantity concepts eliminates these issues:
 
 ```cpp
 auto avg_speed(QuantityOf<isq::length> auto distance,
@@ -1398,19 +1074,13 @@ auto avg_speed(QuantityOf<isq::length> auto distance,
 }
 ```
 
-This explicitly states that the arguments passed by the user must not only satisfy a
-[`Quantity`](#Quantity-concept) concept, but also that their quantity specification must be
-implicitly convertible to `isq::length` and `isq::time`, respectively. This no longer leaves
-room for error while still allowing the compiler to generate the most efficient code.
-
-Please, note that now it is safe just to use integral types all the way, which again improves
-the runtime performance as the multiplication/division operations are often faster on integral rather
-than floating-point types.
+This ensures arguments are implicitly convertible to the required quantity types while allowing
+the compiler to generate optimal code without conversions. Integral types can be safely used,
+improving performance.
 
 ### Constraining the function return type
 
-The above function template resolves all of the issues described before. However, we can do even
-better here by additionally constraining the return type:
+Constraining return types provides documentation and verification:
 
 ```cpp
 QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto distance,
@@ -1420,51 +1090,15 @@ QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto distance,
 }
 ```
 
-Doing so has two important benefits:
+Benefits:
 
-1. It informs the users of our interface about what to expect to be the result of a function
-   invocation. It is superior to just returning `auto`, which does not provide any hint about
-   the thing being returned there.
-2. Such a concept constrains the type returned from the function. This means that it works as
-   a unit test to verify if our function actually performs what it is supposed to do. If there is
-   an error in the quantity equation, we will learn about it right away.
+1. Documents expected results for users.
+2. Acts as a compile-time test verifying the quantity equation is correct.
 
 ### Constraining a variable on the stack
 
-If we know exactly what the function does in its internals and if we know the exact argument types
-passed to such a function, we often know the exact type that will be returned from its invocation.
-
-However, if we care about performance, we should often use the generic interfaces described in this
-chapter. An obvious outcome is that return types depend directly on the function argument types:
-
-```cpp
-quantity<si::kilo<si::metre> / non_si::hour, int> s1 = avg_speed(220 * km, 2 * h);
-quantity<international::mile / non_si::hour, int> s2 = avg_speed(140 * mi, 2 * h);
-quantity<si::metre / si::second, int> s3 = avg_speed(20 * m, 2 * s);
-```
-
-Even if we know explicit types today, they might change a week from now due to some code refactoring.
-In such cases, we can again use `auto` to declare the variable:
-
-```cpp
-auto s1 = avg_speed(220 * km, 2 * h);
-auto s2 = avg_speed(140 * mi, 2 * h);
-auto s3 = avg_speed(20 * m, 2 * s);
-```
-
-or CTAD:
-
-```cpp
-quantity s1 = avg_speed(220 * km, 2 * h);
-quantity s2 = avg_speed(140 * mi, 2 * h);
-quantity s3 = avg_speed(20 * m, 2 * s);
-```
-
-In this case, it is probably OK to do so as the `avg_speed` function name explicitly provides
-the information on what to expect as a result.
-
-In other scenarios where the returned quantity type is not so obvious, it is again helpful to
-constrain the type with a concept like so:
+When using generic interfaces, constrain variables with concepts to document intent and verify
+correctness:
 
 ```cpp
 QuantityOf<isq::speed> auto s1 = avg_speed(220 * km, 2 * h);
@@ -1472,18 +1106,14 @@ QuantityOf<isq::speed> auto s2 = avg_speed(140 * mi, 2 * h);
 QuantityOf<isq::speed> auto s3 = avg_speed(20 * m, 2 * s);
 ```
 
-Again, this explicitly provides additional information about the quantity we are dealing with in
-the code, and it serves as a unit test checking if the "thing" returned from a function is actually
-what we expected here.
-
+This serves as documentation and a unit test for the returned type.
 
 ## The affine space
 
-The affine space has two types of entities:
+The affine space distinguishes between:
 
-- **_point_** - a position specified with coordinate values (e.g., location, address, etc.)
-- **_displacement vector_** - the difference between two points (e.g., shift, offset,
-  displacement, duration, etc.)
+- **_point_** - a position (_location_, _timestamp_, _altitude_, _temperature reading_, etc.)
+- **_displacement vector_** - the difference between two points (_distance_, _duration_, _offset_, etc.)
 
 The _displacement vector_ described here is specific to the affine space theory and is not the same
 thing as the quantity of a vector character that we discuss later (although, in some cases, those
@@ -1494,18 +1124,16 @@ brevity.
 
 ### Operations in the affine space
 
-Here are the primary operations one can do in the affine space:
+Valid operations:
 
-- _vector_ + _vector_ -> _vector_
-- _vector_ - _vector_ -> _vector_
-- -_vector_ -> _vector_
-- _vector_ * scalar -> _vector_
-- scalar * _vector_ -> _vector_
-- _vector_ / scalar -> _vector_
-- _point_ - _point_ -> _vector_
-- _point_ + _vector_ -> _point_
-- _vector_ + _point_ -> _point_
-- _point_ - _vector_ -> _point_
+- _vector_ ± _vector_ → _vector_
+- -_vector_ → _vector_
+- _vector_ × scalar → _vector_
+- scalar × _vector_ → _vector_
+- _vector_ / scalar → _vector_
+- _point_ - _point_ → _vector_
+- _point_ ± _vector_ → _point_
+- _vector_ + _point_ → _point_
 
 It is not possible to:
 
@@ -1513,54 +1141,20 @@ It is not possible to:
 - subtract a _point_ from a _vector_,
 - multiply nor divide _points_ with anything else.
 
-### _Points_ are more common than most of us imagine
-
-_Point_ abstractions should be used more often in the C++ software.
-They are not only about _temperature_ or _time_. _Points_ are everywhere around us and should become
-more popular in the products we implement. They can be used to implement:
-
-- _temperature_ points,
-- timestamps,
-- daily _mass_ readouts from the scale,
-- _altitudes_ of mountain peaks on a map,
-- current _path length_ measured by the car's odometer,
-- today's _price_ of instruments on the market,
-- and many more.
-
-Improving the affine space's _Points_ intuition will allow us to write better and safer software.
-
 ### _Displacement vector_ is modeled by `quantity`
 
-Up until now, each time when we used a `quantity` in our code, we were modeling some kind of a
-difference between two things:
+The `quantity` type models displacement vectors. Construction options include:
 
-- the _distance_ between two points,
-- _duration_ between two time points,
-- the difference in _speed_ (even if relative to `0`).
+- Multiply syntax: `42 * m`, `100 * km / h`
+- `delta<Reference>` constructor: `delta<deg_C>(3)`, `delta<isq::height[m]>(42)`
+- Two-parameter constructor: `quantity{42, si::metre}`
 
-As we already know, a `quantity` type provides all operations required for the _displacement vector_
-abstraction in the affine space. It can be constructed with:
-
-- the multiply syntax which works for most of the units besides the ones that provide a point origin
-  in their definition (i.e., units of temperature like `K`, `deg_C`, and `deg_F`),
-- `delta<Reference>` construction helper (e.g., `delta<isq::height[m]>(42)`, `delta<deg_C>(3)`),
-- two-parameter constructor taking a number and a quantity reference/unit.
-
-A rationale for `delta` and disabling the multiply syntax for some units can be found in the
-[`delta` and `point` creation helpers] chapter.
-
+The multiply syntax is disabled for units with inherent point origins (temperature units).
+Rationale is in [`delta` and `point` creation helpers].
 
 ### _Point_ is modeled by `quantity_point` and `PointOrigin`
 
-In the library, the _point_ abstraction is modeled by:
-
-- the [`PointOrigin`](#PointOrigin-concept) concept that specifies a measurement's origin, and
-- the `quantity_point` class template that specifies a _point_ relative to a predefined origin.
-
-#### `quantity_point`
-
-The `quantity_point` class template specifies an absolute quantity measured from a predefined
-origin:
+The `quantity_point` class template represents points:
 
 ```cpp
 template<Reference auto R,
@@ -1569,45 +1163,25 @@ template<Reference auto R,
 class quantity_point;
 ```
 
-As we can see above, the `quantity_point` class template exposes one additional parameter compared
-to `quantity`. The `PO` parameter satisfies a [`PointOriginFor`](#PointOriginFor-concept) concept
-and specifies the origin of our measurement scale.
+The `PO` parameter specifies the measurement origin. By default, `default_point_origin(R)` provides:
 
-Each `quantity_point` internally stores a `quantity` object, which represents a _displacement vector_
-from the predefined origin. Thanks to this, an instantiation of a `quantity_point` can be considered
-as a model of a vector space from such an origin.
+- The unit's defined origin (e.g., for °C, °F), or
+- `zeroth_point_origin<QuantitySpec>` for other quantities.
 
-Forcing the user to manually predefine an origin for every domain may be cumbersome and discourage
-users from using such abstractions at all. This is why, by default, the `PO` template
-parameter is initialized with the `default_point_origin(R)` that provides the quantity points'
-scale zeroth point using the following rules:
-
-- if the measurement unit of a quantity specifies its point origin in its definition
-  (e.g., degree Celsius), then this origin is being used,
-- otherwise, an instantiation of `zeroth_point_origin<QuantitySpec>` is being used which
-  provides a well-established zeroth point for a specific quantity type.
-
-Quantity points with default point origins may be constructed with the `point` construction
-helper or forcing an explicit conversion from the `quantity`:
+Construction requires explicit conversion or the `point` helper:
 
 ```cpp
-// quantity_point qp1 = 42 * m;           // Compile-time error
-// quantity_point qp2 = 42 * K;           // Compile-time error
-// quantity_point qp3 = delta<deg_C>(42); // Compile-time error
-quantity_point qp4(42 * m);
-quantity_point qp5(42 * K);
-quantity_point qp6(delta<deg_C>(42));
-quantity_point qp7 = point<m>(42);
-quantity_point qp8 = point<K>(42);
-quantity_point qp9 = point<deg_C>(42);
+quantity_point qp1(42 * m);              // explicit conversion
+quantity_point qp2 = point<m>(42);       // construction helper
+quantity_point qp3 = point<deg_C>(21);   // temperature point
 ```
+
+Multiply syntax is disabled to prevent confusion between vectors and points.
 
 #### `zeroth_point_origin<QuantitySpec>`
 
-`zeroth_point_origin<QuantitySpec>` is meant to be used in cases where the specific domain has
-a well-established, non-controversial, and unique zeroth point on the measurement scale.
-This saves the user from the need to write a boilerplate code that would predefine such a type
-for this domain.
+`zeroth_point_origin<QuantitySpec>` provides a default origin for domains with a well-established,
+unique zeroth point, eliminating boilerplate:
 
 <img src="img/affine_space_1.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
@@ -1615,46 +1189,24 @@ for this domain.
 quantity_point<isq::distance[si::metre]> qp1(100 * m);
 quantity_point<isq::distance[si::metre]> qp2 = point<m>(120);
 
-assert(qp1.quantity_from_zero() == 100 * m);
-assert(qp2.quantity_from_zero() == 120 * m);
-assert(qp2.quantity_from(qp1) == 20 * m);
-assert(qp1.quantity_from(qp2) == -20 * m);
-
 assert(qp2 - qp1 == 20 * m);
-assert(qp1 - qp2 == -20 * m);
-
+assert(qp1.quantity_from_zero() == 100 * m);
 // auto res = qp1 + qp2;   // Compile-time error
 ```
 
-In the above code `100 * m` and `120 * m` still create two quantities that serve as _displacement
-vectors_ here. Quantity point objects can be explicitly constructed from such quantities only when
-their origin is an instantiation of the `zeroth_point_origin<QuantitySpec>`.
+Key design considerations:
 
-It is really important to understand that even though we can use `.quantity_from_zero()` to obtain
-the _displacement vector_ of a point from the origin, the point by itself does not represent or have
-any associated physical value. It is just a point in some space. The same point can be expressed
-with different _displacement vectors_ from different origins.
-
-It is also worth mentioning that simplicity comes with a safety cost here. For some users, it
-might be surprising that the usage of `zeroth_point_origin<QuantitySpec>` makes various quantity
-point objects compatible as long as quantity types used in the origin and reference are
-compatible:
-
-```cpp
-quantity_point<si::metre> qp1{isq::distance(100 * m)};
-quantity_point<si::metre> qp2 = point<isq::height[m]>(120);
-
-assert(qp2.quantity_from(qp1) == 20 * m);
-assert(qp1.quantity_from(qp2) == -20 * m);
-assert(qp2 - qp1 == 20 * m);
-assert(qp1 - qp2 == -20 * m);
-```
+- Points can be explicitly constructed from quantities when using `zeroth_point_origin`.
+- A point has no inherent value—it's a position expressible with different displacement vectors
+  from different origins.
+- **Safety trade-off**: `zeroth_point_origin` makes quantity points compatible when their quantity
+  types are compatible (e.g., `isq::distance` and `isq::height` points can be subtracted), which
+  may be surprising but enables ergonomic usage for common cases.
 
 #### Absolute _point_ origin
 
-In cases where we want to implement an isolated independent space in which points are not compatible
-with other spaces, even of the same quantity type, we should manually predefine an absolute point
-origin.
+Absolute point origins establish isolated, independent spaces where points are incompatible even
+with the same quantity type:
 
 <img src="img/affine_space_2.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
@@ -1662,61 +1214,23 @@ origin.
 inline constexpr struct origin final : absolute_point_origin<isq::distance> {} origin;
 
 // quantity_point<si::metre, origin> qp1{100 * m};        // Compile-time error
-// quantity_point<si::metre, origin> qp2{delta<m>(120)};  // Compile-time error
 quantity_point<si::metre, origin> qp1 = origin + 100 * m;
-quantity_point<si::metre, origin> qp2 = 120 * m + origin;
+quantity_point qp2{120 * m, origin};  // alternative syntax
 
-// assert(qp1.quantity_from_zero() == 100 * m);   // Compile-time error
-// assert(qp2.quantity_from_zero() == 120 * m);   // Compile-time error
 assert(qp1.quantity_from(origin) == 100 * m);
-assert(qp2.quantity_from(origin) == 120 * m);
-assert(qp2.quantity_from(qp1) == 20 * m);
-assert(qp1.quantity_from(qp2) == -20 * m);
-
 assert(qp1 - origin == 100 * m);
-assert(qp2 - origin == 120 * m);
 assert(qp2 - qp1 == 20 * m);
-assert(qp1 - qp2 == -20 * m);
-
 assert(origin - qp1 == -100 * m);
-assert(origin - qp2 == -120 * m);
-
 // assert(origin - origin == 0 * m);   // Compile-time error
 ```
 
-We can't construct a quantity point directly from the quantity anymore when a custom, named origin
-is used. To prevent potential safety and maintenance issues, we always need to
-explicitly provide both a compatible origin and a quantity measured from it to construct a quantity
-point.
-
-Said otherwise, a quantity point defined in terms of a specific origin is the result of adding
-the origin and the _displacement vector_ measured from it to the point we create.
-
-Similarly to quantities, if someone does not like the arithmetic way to construct a quantity
-point a two-parameter constructor can be used:
-
-```cpp
-quantity_point qp1{100 * m, origin};
-```
-
-Again, CTAD always helps to use precisely the type we need in a current case.
-
-We can't construct a quantity point directly from the quantity anymore when a custom, named origin
-is used. To prevent potential safety and maintenance issues, we always need to
-explicitly provide both a compatible origin and a quantity measured from it to construct a quantity
-point.
-
-Said otherwise, a quantity point defined in terms of a specific origin is the result of adding
-the origin and the _displacement vector_ measured from it to the point we create.
-
-Finally, please note that it is not allowed to subtract two point origins defined in terms of
-`absolute_point_origin` (e.g., `origin - origin`) as those do not contain information about the
-unit, so we cannot determine a resulting `quantity` type.
+**Design rationale**: Safety requires explicit construction with both origin and displacement vector.
+Direct construction from quantities is prevented. Subtracting two `absolute_point_origin` instances
+is forbidden because they lack unit information needed to determine the resulting quantity type.
 
 ##### Modeling independent spaces in one domain
 
-Absolute point origins are also perfect for establishing independent spaces even if the same quantity
-type and unit is being used:
+Absolute point origins enable multiple independent coordinate systems within the same quantity type:
 
 <img src="img/affine_space_3.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
@@ -1727,30 +1241,15 @@ inline constexpr struct origin2 final : absolute_point_origin<isq::distance> {} 
 quantity_point qp1 = origin1 + 100 * m;
 quantity_point qp2 = origin2 + 120 * m;
 
-assert(qp1.quantity_from(origin1) == 100 * m);
-assert(qp2.quantity_from(origin2) == 120 * m);
-
 assert(qp1 - origin1 == 100 * m);
-assert(qp2 - origin2 == 120 * m);
-assert(origin1 - qp1 == -100 * m);
-assert(origin2 - qp2 == -120 * m);
-
-// assert(qp2 - qp1 == 20 * m);                    // Compile-time error
-// assert(qp1 - origin2 == 100 * m);               // Compile-time error
-// assert(qp2 - origin1 == 120 * m);               // Compile-time error
-// assert(qp2.quantity_from(qp1) == 20 * m);       // Compile-time error
-// assert(qp1.quantity_from(origin2) == 100 * m);  // Compile-time error
-// assert(qp2.quantity_from(origin1) == 120 * m);  // Compile-time error
+// assert(qp2 - qp1 == 20 * m);         // Compile-time error: incompatible origins
+// assert(qp1 - origin2 == 100 * m);    // Compile-time error: wrong origin
 ```
 
 #### Relative _point_ origin
 
-We often do not have only one ultimate "zero" point when we measure things. Often, we have one
-common scale, but we measure various quantities relative to different points and expect
-those points to be compatible. There are many examples here, but probably the most common are
-temperatures, timestamps, and altitudes.
-
-For such cases, relative point origins should be used:
+Relative point origins support common scales with multiple reference points that remain compatible
+(_temperatures_, _timestamps_, _altitudes_):
 
 <img src="img/affine_space_4.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
@@ -1763,103 +1262,44 @@ inline constexpr struct D final : relative_point_origin<A + 30 * m> {} D;
 quantity_point qp1 = C + 100 * m;
 quantity_point qp2 = D + 120 * m;
 
-assert(qp1.quantity_ref_from(qp1.point_origin) == 100 * m);
-assert(qp2.quantity_ref_from(qp2.point_origin) == 120 * m);
-
-assert(qp2.quantity_from(qp1) == 30 * m);
-assert(qp1.quantity_from(qp2) == -30 * m);
-assert(qp2 - qp1 == 30 * m);
-assert(qp1 - qp2 == -30 * m);
-
-assert(qp1.quantity_from(A) == 120 * m);
-assert(qp1.quantity_from(B) == 110 * m);
+assert(qp2 - qp1 == 30 * m);           // Compatible: both relative to A
 assert(qp1.quantity_from(C) == 100 * m);
-assert(qp1.quantity_from(D) == 90 * m);
-assert(qp1 - A == 120 * m);
-assert(qp1 - B == 110 * m);
-assert(qp1 - C == 100 * m);
-assert(qp1 - D == 90 * m);
-
-assert(qp2.quantity_from(A) == 150 * m);
-assert(qp2.quantity_from(B) == 140 * m);
-assert(qp2.quantity_from(C) == 130 * m);
-assert(qp2.quantity_from(D) == 120 * m);
-assert(qp2 - A == 150 * m);
-assert(qp2 - B == 140 * m);
-assert(qp2 - C == 130 * m);
-assert(qp2 - D == 120 * m);
-
-assert(B - A == 10 * m);
-assert(C - A == 20 * m);
-assert(D - A == 30 * m);
-assert(D - C == 10 * m);
-
-assert(B - B == 0 * m);
-// assert(A - A == 0 * m);  // Compile-time error
+assert(qp1.quantity_from(A) == 120 * m);
+assert(B - A == 10 * m);               // Can subtract relative from absolute
+assert(C - B == 10 * m);               // Can subtract relative origins
+// assert(A - A == 0 * m);             // Compile-time error
 ```
 
-Even though we can't subtract two absolute point origins from each other, it is possible to
-subtract relative ones or relative and absolute ones.
+**Design feature**: Unlike absolute origins, relative origins can be subtracted from each other or
+from their absolute base.
 
 #### Converting between different representations of the same _point_
 
-As we might represent the same _point_ with _displacement vectors_ from various origins, the
-library provides facilities to convert the same _point_ to the `quantity_point` class templates
-expressed in terms of different origins.
+The same point can be represented with displacement vectors from various origins:
 
 <img src="img/affine_space_5.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
-For this purpose, we can use either:
-
-- A converting constructor:
-
-    ```cpp
-    quantity_point<si::metre, C> qp2C = qp2;
-    assert(qp2C.quantity_ref_from(qp2C.point_origin) == 130 * m);
-    ```
-
-- A dedicated conversion interface:
-
-    ```cpp
-    quantity_point qp2B = qp2.point_for(B);
-    quantity_point qp2A = qp2.point_for(A);
-
-    assert(qp2B.quantity_ref_from(qp2B.point_origin) == 140 * m);
-    assert(qp2A.quantity_ref_from(qp2A.point_origin) == 150 * m);
-    ```
-
-It is important to understand that all such translations still describe exactly the same point
-(e.g., all of them compare equal):
-
 ```cpp
-assert(qp2 == qp2C);
+quantity_point<si::metre, C> qp2C = qp2;          // converting constructor
+quantity_point qp2B = qp2.point_for(B);           // conversion interface
+
+assert(qp2 == qp2C);  // Same point, different representation
 assert(qp2 == qp2B);
-assert(qp2 == qp2A);
 ```
 
-It is only allowed to convert between various origins defined in terms of the same
-`absolute_point_origin`. Even if it is possible to express the same _point_ as a
-_displacement vector_ from another `absolute_point_origin`, the library will not provide such
-a conversion. A custom user-defined conversion function will be needed to add such a functionality.
-
-Said another way, in the library, there is no way to spell how two distinct `absolute_point_origin`
-types relate to each other.
+**Design constraint**: Conversions are only allowed between origins sharing the same
+`absolute_point_origin` base. There is no way to express relationships between distinct
+absolute origins—custom conversion functions are required for such cases.
 
 #### Temperature support
 
-Support for temperature quantity points is probably one of the most common examples of relative
-point origins in action that we use in daily life.
-
-The [@SI] definition in the library provides a few predefined point origins for this purpose:
+_Temperature_ is a canonical example of relative point origins with stacked hierarchies:
 
 ```cpp
 namespace si {
 
 inline constexpr struct absolute_zero final : absolute_point_origin<isq::thermodynamic_temperature> {} absolute_zero;
-inline constexpr auto zeroth_kelvin = absolute_zero;
-
 inline constexpr struct ice_point final : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
-inline constexpr auto zeroth_degree_Celsius = ice_point;
 
 }
 
@@ -1871,18 +1311,8 @@ inline constexpr struct zeroth_degree_Fahrenheit final :
 }
 ```
 
-The above is a great example of how point origins can be stacked on top of each other:
-
-- `usc::zeroth_degree_Fahrenheit` is defined relative to `si::zeroth_degree_Celsius`
-- `si::zeroth_degree_Celsius` is defined relative to `si::zeroth_kelvin`.
-
-_Note: Notice that while stacking point origins, we can use different representation types
-and units for origins and a point. In the above example, the relative point origin for degree
-Celsius is defined in terms of `si::kelvin`, while the quantity point for it will use
-`si::degree_Celsius` as a unit._
-
-The temperature point origins defined above are provided explicitly in the respective units'
-definitions:
+**Design feature**: Origins stack hierarchically (°F → °C → K), and units embed their natural
+origins:
 
 ```cpp
 namespace si {
@@ -1891,53 +1321,17 @@ inline constexpr struct kelvin final : named_unit<"K", kind_of<isq::thermodynami
 inline constexpr struct degree_Celsius final : named_unit<{u8"℃", "`C"}, kelvin, zeroth_degree_Celsius> {} degree_Celsius;
 
 }
-
-namespace usc {
-
-inline constexpr struct degree_Fahrenheit final :
-    named_unit<{u8"℉", "`F"}, mag_ratio<5, 9> * si::degree_Celsius, zeroth_degree_Fahrenheit> {} degree_Fahrenheit;
-
-}
 ```
 
-As it was described above, `default_point_origin(R)` returns a `zeroth_point_origin<QuantitySpec>`
-when a unit does not provide any origin in its definition. As of today, the units of temperature
-are the only ones in the entire library that provide such origins.
+Construction syntax flexibility (all produce the same type):
 
-Now, let's see how we can benefit from the above definitions. We have quite a few alternatives to
-choose from here. Depending on our needs or tastes, we can:
+```cpp
+quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q1 = si::zeroth_degree_Celsius + delta<deg_C>(20.5);
+quantity_point q2{delta<deg_C>(20.5)};
+quantity_point q3 = point<deg_C>(20.5);
+```
 
-- be explicit about the unit and origin:
-
-    ```cpp
-    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q1 = si::zeroth_degree_Celsius + delta<deg_C>(20.5);
-    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q2{delta<deg_C>(20.5), si::zeroth_degree_Celsius};
-    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q3{delta<deg_C>(20.5)};
-    quantity_point<si::degree_Celsius, si::zeroth_degree_Celsius> q4 = point<deg_C>(20.5);
-    ```
-
-- specify a unit and use its zeroth point origin implicitly:
-
-    ```cpp
-    quantity_point<si::degree_Celsius> q5 = si::zeroth_degree_Celsius + delta<deg_C>(20.5);
-    quantity_point<si::degree_Celsius> q6{delta<deg_C>(20.5), si::zeroth_degree_Celsius};
-    quantity_point<si::degree_Celsius> q7{delta<deg_C>(20.5)};
-    quantity_point<si::degree_Celsius> q8 = point<deg_C>(20.5);
-    ```
-
-- benefit from CTAD:
-
-    ```cpp
-    quantity_point q9 = si::zeroth_degree_Celsius + delta<deg_C>(20.5);
-    quantity_point q10{delta<deg_C>(20.5), si::zeroth_degree_Celsius};
-    quantity_point q11{delta<deg_C>(20.5)};
-    quantity_point q12 = point<deg_C>(20.5);
-    ```
-
-In all of the above cases, we end up with the `quantity_point` of the same type and value.
-
-To play a bit more with temperatures, we can implement a simple room AC temperature controller in
-the following way:
+Custom temperature references enable domain-specific applications:
 
 <img src="img/affine_space_6.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
@@ -1945,7 +1339,7 @@ the following way:
 constexpr struct room_reference_temp final : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
 using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
 
-constexpr auto step_delta = delta<isq::Celsius_temperature<deg_C>>(0.5);
+constexpr auto step_delta = delta<isq::Celsius_temperature[deg_C]>(0.5);
 constexpr int number_of_steps = 6;
 
 room_temp room_ref{};
@@ -1988,22 +1382,17 @@ chapter.
 
 ## User-defined representation types
 
-The library of physical quantities and units library should work with any custom representation type.
-Those can be used to:
+The library should work with any representation type for:
 
-- improve safety (e.g., prevent overflows, restrict the range of accepted values, etc.),
-- provide additional information (e.g., not only a quantity value but also the uncertainty of the
-  measurement), and
-- enable linear algebra usage.
+- Improved safety (overflow prevention, range restrictions).
+- Additional information (measurement uncertainty).
+- Linear algebra support.
 
-As of right now, we have two other concurrent proposals to SG6 in this subject on the fly
-([@P2993R0] and [@P3003R0]), so we do not provide any concrete requirements or recommendations here
-so far.
+By default, floating-point and integral types (except `bool`) are treated as real scalars.
 
-Based on the results of discussions on the mentioned proposals, we will provide correct guidelines
-in the next revisions of this paper.
+## Complex quantities and units
 
-By default all floating-point and integral (besides `bool`) types are treated as scalars.
+TBD
 
 ## Vector and tensor quantities
 
@@ -2015,6 +1404,8 @@ TBD
 
 
 # Usage examples
+
+This chapter demonstrates key safety features through minimal compile-time examples.
 
 ## Basic quantity equations
 
@@ -2045,7 +1436,7 @@ static_assert(10 * km / (5 * km) == 2);
 static_assert(1000 / (1 * s) == 1 * kHz);
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/fT1r4sohs).
+Try it in [the Compiler Explorer](https://godbolt.org/z/xKE7b81Yb).
 
 ## Hello units
 
@@ -2063,7 +1454,7 @@ constexpr std::QuantityOf<std::isq::speed> auto avg_speed(std::QuantityOf<std::i
 int main()
 {
   using namespace std::si::unit_symbols;
-  using namespace std::international::unit_symbols;
+  using namespace std::yard_pound::unit_symbols;
 
   constexpr std::quantity v1 = 110 * km / h;
   constexpr std::quantity v2 = 70 * mph;
@@ -2083,7 +1474,7 @@ int main()
 }
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/nhqhT8Mzb).
+Try it in [the Compiler Explorer](https://godbolt.org/z/1YfYxer7v).
 
 ## Storage tank
 
@@ -2207,7 +1598,7 @@ float rise rate = 2e-04 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/ErxqTE65h).
+Try it in [the Compiler Explorer](https://godbolt.org/z/Yzax3c3vs).
 
 ## Bridge across the Rhine
 
@@ -2315,7 +1706,7 @@ Bridge road altitude relative to the Amsterdam Sea Level:
 - Switzerland: 33000 cm
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/ErnT8eKcG).
+Try it in [the Compiler Explorer](https://godbolt.org/z/sG8K6Y4Tv).
 
 
 ## Hardware voltage measurement readout
@@ -2392,7 +1783,7 @@ The above prints:
  65534 hwV ( 10 V)
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/GavqT4dao).
+Try it in [the Compiler Explorer](https://godbolt.org/z/ME8xrGq8d).
 
 
 ## User defined quantities and units
@@ -2567,7 +1958,7 @@ Transport Beats is: 16.495832 q
 Transport Time is: 8.997726 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/44sre8hdr).
+Try it in [the Compiler Explorer](https://godbolt.org/z/eYx79sxzz).
 
 _Note: More about this example can be found in
 ["Exploration of Strongly-typed Units in C++: A Case Study from Digital Audio"](https://www.youtube.com/watch?v=oxnCdIfC4Z4)
@@ -2584,8 +1975,8 @@ improvements provided by additional abstractions in this chapter. But before we 
 extensions, let's first discuss some limitations of the units-only solution.
 
 _Note: The issues described below do not apply to the proposed library, because with the proposed
-interfaces, even if we decide to only use the simple mode, units are still backed up by quantity
-kinds under the framework's hood._
+interfaces, even if we decide to only use units, they are still backed up by quantity kinds under
+the framework's hood._
 
 ### No way to specify a quantity type in generic interfaces
 
@@ -2968,7 +2359,7 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
     ```
 
     Explicit conversions are forced by passing the quantity to a call operator of a `quantity_spec`
-    type:
+    type or by calling `quantity`'s explicit constructor::
 
     ```cpp
     void foo(quantity<isq::height[m]> q);
@@ -2977,6 +2368,7 @@ Quantity conversion rules can be defined based on the same hierarchy of quantiti
     ```cpp
     quantity<isq::length[m]> q1 = 42 * m;
     quantity<isq::height[m]> q2 = isq::height(q1);  // explicit quantity conversion
+    quantity<isq::height[m]> q3(q1);                // direct initialization
     foo(isq::height(q1));                           // explicit quantity conversion
     ```
 
@@ -3233,6 +2625,99 @@ specifier. For example, `kind_of<isq::width>` will fail to compile. However, we 
 static_assert(get_kind(isq::width) == kind_of<isq::length>);
 ```
 
+### Creating distinct quantity kinds with `is_kind`
+
+Dimension-based type safety prevents many errors, but quantities may share the same dimension
+while representing fundamentally incompatible physical concepts. The `is_kind` specifier creates
+distinct quantity types within a hierarchy that cannot be mixed despite sharing dimension and
+parent quantity properties.
+
+#### Design rationale
+
+The `is_kind` specifier addresses cases where multiple incompatible concepts must share a parent
+quantity's properties (unit, quantity type) while remaining isolated from each other. This is
+necessary when quantities cannot be meaningfully added or compared without explicit conversion,
+yet derive from the same physical basis.
+
+The `is_kind` specifier creates subkinds within an existing quantity hierarchy tree, not
+independent trees. Subkinds inherit properties from their parent:
+
+- Unit of measure: _fluid head_ and _water head_ inherit metre from _height_; _angular measure_
+  inherits one from _dimensionless_
+- Quantity type: Subkinds inherit their parent's quantity type, essential when they appear in
+  derived quantities (e.g., _sampling rate_ and _tempo_ can use Hz because they properly model
+  a dimensionless component divided by _duration_)
+
+For completely independent quantities with different dimension trees, separate root quantities
+should be defined instead (e.g., _frequency_ and _activity_ are independent roots, not subkinds).
+
+Examples:
+
+- _Angular measure_ (rad), _solid angular measure_ (sr), _storage capacity_ (bit) — subkinds
+  of _dimensionless_
+- _Fluid head_ and _water head_ in hydraulic engineering — subkinds of _height_ (dimension
+  of _length_)
+
+#### Syntax
+
+A distinct quantity kind is defined by adding `is_kind` to the `quantity_spec` definition:
+
+```cpp
+inline constexpr struct fluid_head final : quantity_spec<isq::height, is_kind> {} fluid_head;
+inline constexpr struct water_head final : quantity_spec<isq::height, is_kind> {} water_head;
+```
+
+Both `fluid_head` and `water_head` are subkinds of _height_ (inheriting dimension of _length_
+and unit of metre), but `is_kind` makes them distinct incompatible kinds requiring explicit
+conversion.
+
+#### Type safety properties
+
+Quantities marked with `is_kind` enforce strict type boundaries:
+
+1. No implicit or explicit conversion between different kinds:
+
+    ```cpp
+    static_assert(!implicitly_convertible(fluid_head, water_head));
+    static_assert(!explicitly_convertible(fluid_head, water_head));
+    static_assert(!castable(fluid_head, water_head));
+    ```
+
+2. No arithmetic operations or comparisons between different kinds:
+
+    ```cpp
+    quantity h_fluid = fluid_head(2 * m);
+    quantity h_water = water_head(10 * m);
+
+    // auto sum = h_fluid + h_water;  // Compile-time error
+    // bool cmp = h_fluid < h_water;  // Compile-time error
+    ```
+
+3. Explicit conversion to base quantity required for generic operations:
+
+    ```cpp
+    quantity h1 = isq::height(h_fluid);
+    quantity h2 = isq::height(h_water);
+    quantity sum = h1 + h2;  // OK: both are isq::height
+    ```
+
+    Note: Implicit conversion from `is_kind` quantities to their base is not allowed:
+
+    ```cpp
+    quantity<isq::height[m]> h = h_fluid;  // Compile-time error
+    ```
+
+4. Compatible with `kind_of` introspection:
+
+    ```cpp
+    static_assert(get_kind(fluid_head) == kind_of<fluid_head>);
+    static_assert(get_kind(water_head) == kind_of<water_head>);
+    static_assert(get_kind(isq::height) == kind_of<isq::length>);
+
+    static_assert(get_kind(fluid_head) != get_kind(water_head));
+    static_assert(get_kind(fluid_head) != get_kind(isq::height));
+    ```
+
 
 ## Systems of units
 
@@ -3263,18 +2748,6 @@ inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} m
 The `kind_of<isq::length>` above states explicitly that this unit has an associated quantity
 kind. In other words, `si::metre` (and scaled units based on it) can be used to express
 the amount of any quantity of kind _length_.
-
-Associated units are so useful and common in the library that they got their own
-[`AssociatedUnit<T>`](#AssociatedUnit-concept) concept to improve the interfaces.
-
-Please note that for some systems of units (e.g., natural units), a unit may not have an
-associated quantity type. For example, if we define the speed of light constant as `c = 1`, we can
-define a system where both _length_ and _time_ will be measured in seconds, and _speed_ will be
-a quantity measured with the unit `one`. In such case, the definition will look as follows:
-
-```cpp
-inline constexpr struct second final : named_unit<"s"> {} second;
-```
 
 ### Units compose
 
@@ -3423,13 +2896,13 @@ For some units, a magnitude might also be irrational. The best example here is a
 is defined using a floating-point magnitude having a factor of the number π (Pi):
 
 ```cpp
-inline constexpr struct pi final :
-  mag_constant<{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, std::numbers::pi_v<long double>> {} pi;
+inline constexpr struct pi_c final : mag_constant<{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, std::numbers::pi_v<long double>> {} pi_c;
+inline constexpr struct pi final : named_constant<symbol_text{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, mag<pi_c> * one> {} pi;
 inline constexpr auto π /* U+03C0 GREEK SMALL LETTER PI */ = pi;
 ```
 
 ```cpp
-inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag<π> / mag<180> * si::radian> {} degree;
+inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag_ratio<1, 180> * π * si::radian> {} degree;
 ```
 
 ### Common units
@@ -4161,9 +3634,9 @@ static_assert(unit_symbol<usf{.char_set = portable, .solidus = never}>(kilogram 
 static_assert(unit_symbol(mag_ratio<1, 18000> * metre / second) == "[1/18 × 10⁻³ m]/s");
 static_assert(unit_symbol<usf{.char_set = portable}>(mag_ratio<1, 18000> * metre / second) == "[1/18 x 10^-3 m]/s");
 
-static_assert(unit_symbol(mag<1> / (mag<2> * mag<π>)*metre) == "[2⁻¹ π⁻¹ m]");
-static_assert(unit_symbol<usf{.solidus = always}>(mag<1> / (mag<2> * mag<π>)*metre) == "[1/(2 π) m]");
-static_assert(unit_symbol<usf{.char_set = portable, .solidus = always}>(mag<1> / (mag<2> * mag<π>)*metre) == "[1/(2 pi) m]");
+static_assert(unit_symbol(mag<1> / (mag<2> * mag<pi_c>)*metre) == "[2⁻¹ π⁻¹ m]");
+static_assert(unit_symbol<usf{.solidus = always}>(mag<1> / (mag<2> * mag<pi_c>)*metre) == "[1/(2 π) m]");
+static_assert(unit_symbol<usf{.char_set = portable, .solidus = always}>(mag<1> / (mag<2> * mag<pi_c>)*metre) == "[1/(2 pi) m]");
 ```
 
 Additionally, if we decide to provide `per_mille` unit together with the framework (next to `one`,
@@ -4734,23 +4207,29 @@ MVP scope:
 
 3. **Various quantities of the same kind**
 
-   This might look like a less important use case. However, we already have feedback from production
-   that it is a groundbreaking feature that prevents many bugs in the production software. Just
-   consider a warehouse robot that will misinterpret the dimensions of the box or a flight computer
-   that will pass _forward velocity_ to a function getting _sink rate_. Being able to pass a
-   _kinetic energy_ to a function that expects a _potential energy_ can also have fatal consequences.
+   Production feedback confirms this is a groundbreaking feature preventing critical bugs:
+   warehouse robots misinterpreting box dimensions, flight computers passing _forward velocity_
+   to _sink rate_ parameters, or _kinetic energy_ substituting for _potential energy_.
 
-   It is not only about the convertibility of the quantities themselves but also about the construction
-   of derived quantities from their components. Without this feature, we will not be able to say that
-   the _kinetic energy_ should not be implicitly convertible from the `m g h` quantity equation
-   (recipe for the _gravitational potential energy_).
+   Beyond convertibility, hierarchies validate derived quantity construction: _kinetic energy_ cannot
+   implicitly convert from `m g h` (recipe for _gravitational potential energy_). This validates correct
+   ingredients in quantity equations.
 
-   Also, deciding to skip this feature will prevent us from modeling the International System
-   of Quantities (ISQ) in the future.
+   Without hierarchies, we cannot:
+   - Distinguish specific _lengths_ (_width_, _height_, _radius_), _energies_ (_kinetic_, _potential_,
+     _thermal_, _enthalpy_), or custom dimensions
+   - Validate specific _energy_ ingredients (e.g., _height_ for _gravitational potential energy_)
+   - Separate _plane angle_ (radian) from _solid angle_ (steradian) in dimensionless hierarchy
+   - Discriminate between ratios, storage capacities, or algorithmic complexities
+   - Support quantity characters (scalar vs. vector operations, character-specific operations)
+   - Enforce correct units for different _power_ types (`W` vs `VA` vs `var` in AC circuits)
+   - Model physical systems like _water head_, _mass density_ specializations, or audio examples
+     (samples, beats, sounds)
+   - Provide strongly-typed counts extending the dimensionless tree without custom dimension overhead
 
-   Again, if we decide to postpone this feature, then it will affect how the SI system is modeled.
-   If we provide a collection of the SI units without this feature, then it will never be possible
-   to improve them later.
+   **Removing quantity hierarchies eliminates quantity-safety entirely**, reducing the library to basic
+   dimensional analysis. Postponing affects SI system modeling irreversibly—SI units provided without
+   quantity specifications cannot be improved later. ISQ modeling becomes impossible.
 
 4. **The affine space**
 
@@ -4777,495 +4256,308 @@ MVP scope:
 
 # Safety
 
-## Safety features
+Physical quantities and units libraries prevent errors at compile time through multiple safety layers.
+All safety features described here have **zero runtime overhead**—they're enforced entirely at compile
+time, providing safety without performance cost.
 
-This chapter describes the features that enforce safety in our code bases. It starts with obvious
-things, but then it moves to probably less known benefits of using physical quantities
-and units libraries. This chapter also serves as a proof that it is not easy to implement such a
-library correctly, and that there are many cases where the lack of experience or time for the development
-of such a utility may easily lead to safety issues as well.
+## Overview of safety levels
 
-Before we go through all the features, it is essential to note that they do not introduce any runtime
-overhead over the raw unsafe code doing the same thing. This is a massive benefit of C++ compared
-to other programming languages (e.g., Python, Java, etc.).
+This library provides six distinct safety levels:
 
-### Safe unit conversions
+1. **Dimension Safety** - Prevents mixing incompatible dimensions (e.g., adding _length_ to _time_)
+2. **Unit Safety** - Prevents unit mismatches and eliminates manual scaling factors
+3. **Representation Safety** - Protects against overflows and precision loss
+4. **Quantity Kind Safety** - Prevents arithmetic on quantities of different kinds (e.g., `Hz` vs `Bq`)
+5. **Quantity Safety** - Enforces correct quantity relationships and equation ingredients
+6. **Affine Space Safety** - Distinguishes points (absolute positions) from vectors (differences)
 
-The first thing that comes to our mind when discussing the safety of such libraries is
-automated unit conversions between values of the same physical quantity.
-This is probably the most important subject here. We learned about its huge benefits long ago
-thanks to the `std::chrono::duration` that made conversions of time durations error-proof.
+All major C++ units libraries provide dimension safety (level 1) and unit safety (level 2).
+Some provide representation safety (level 3) and affine space safety (level 6). However, [@MP-UNITS]
+is the only C++ library implementing quantity kind safety (level 4) and quantity safety (level 5),
+making it uniquely comprehensive in its safety guarantees.
 
-Unit conversions are typically performed either via a converting constructor or a dedicated conversion
-function:
+## Dimension safety
+
+Dimension safety prevents mixing quantities with incompatible dimensions through automatic dimensional
+analysis:
+
+```cpp
+quantity<si::metre / si::second> speed = 100 * km / h;  // OK: km/h is speed (same as m/s)
+quantity<si::second> time = 2 * h;                      // OK: hour is time (same as second)
+quantity<si::metre> distance = speed * time;            // OK: length
+// quantity<si::metre> distance = 2 * h;                // Error: incompatible dimensions!
+// quantity<si::metre> distance = speed / time;         // Error: wrong dimension!
+// auto result = distance + time;                       // Error: cannot add length and time!
+```
+
+All major C++ units libraries provide this foundational feature enabling dimensional analysis.
+
+## Unit safety
+
+Unit safety ensures compatible units at interface boundaries (function arguments, return types,
+component integration).
+
+```cpp
+// Function accepts any length and time units
+quantity<si::metre / si::second> avg_speed(quantity<si::metre> d, quantity<si::second> t)
+{
+  return d / t;
+}
+
+quantity distance = 220 * km;
+quantity time = 2 * h;
+quantity<km / h> speed = avg_speed(distance, time);  // 110 km/h - automatic conversion
+```
+
+Unit conversions are automated and checked at compile-time:
 
 ```cpp
 auto q1 = 5 * km;
-std::cout << q1.in(m) << '\n';
-quantity<si::metre, int> q2 = q1;
+std::cout << q1.in(m) << '\n';           // prints: 5000 m
+quantity<si::metre, int> q2 = q1;        // OK: km → m
 ```
 
-Such a feature benefits from the fact that the library knows about the magnitudes of the source and
-destination units at compile-time, and may use that information to calculate and apply a conversion
-factor automatically for the user.
+Unlike `std::chrono::duration` which uses `std::ratio`, this library supports arbitrary conversion
+factors including irrational numbers (π for radians/degrees) and extreme ratios (electronvolt: 1 eV =
+1.602176634×10⁻¹⁹ J).
 
-In `std::chrono::duration`, the magnitude of a unit is always expressed with `std::ratio`. This is
-not enough for a general-purpose physical units library. Some of the derived units have huge
-or tiny ratios. The difference from the base units is so huge that it cannot be expressed with
-`std::ratio`, which is implemented in terms of `std::intmax_t`. This makes it impossible to define
-units like electronvolt (eV), where 1 eV = 1.602176634×10<sup>−19</sup> J, or Dalton (Da), where
-1 Da = 1.660539040(20)×10<sup>−27</sup> kg. Moreover, some conversions, such as radian to a degree,
-require a conversion factor based on an irrational number like pi.
+### Safe quantity numerical value getters
 
-### Preventing truncation of data
-
-The second safety feature of such libraries is preventing accidental truncation of a quantity value.
-If we try the operations above with swapped units, both conversions should fail to compile:
+Legacy APIs often require raw numerical values. Always specify the unit explicitly:
 
 ```cpp
-auto q1 = 5 * m;
-std::cout << q1.in(km) << '\n';              // Compile-time error
-quantity<si::kilo<si::metre>, int> q2 = q1;  // Compile-time error
+void legacy_func(std::int64_t seconds);
 ```
 
-We can't preserve the value of a source quantity when we convert it to one with a unit of
-a lower resolution while dealing with an integral representation type for a quantity.
-In the example above, converting `5` meters would result in `0` kilometers if internal conversion
-is performed using regular integer arithmetic.
-
-While this could be a valid behavior, the problem arises when the user expects to be able to convert
-the quantity back to the original unit without loss of information.
-So the library should prevent such conversions from happening implicitly. This is why it offers
-the named cast `value_cast` for these conversions marked as unsafe.
-
-To make the above conversions compile, we could use a floating-point representation type:
-
-```cpp
-auto q1 = 5. * m;    // source quantity uses `double` as a representation type
-std::cout << q1.in(km) << '\n';
-quantity<si::kilo<si::metre>> q2 = q1;
-```
-
-or:
-
-```cpp
-auto q1 = 5 * m;     // source quantity uses `int` as a representation type
-std::cout << q1.in<double>(km) << '\n';
-quantity<si::kilo<si::metre>> q2 = q1;  // `double` by default
-```
-
-Another possibility would be to force such a truncating conversion explicitly from the code:
-
-```cpp
-auto q1 = 5 * m;     // source quantity uses `int` as a representation type
-std::cout << q1.force_in(km) << '\n';
-quantity<si::kilo<si::metre>, int> q2 = value_cast<km>(q1);
-```
-
-The code above makes it clear that "something bad" may happen here if we are not extra careful.
-
-Another case for truncation happens when we assign a quantity with a floating-point representation
-type to the one using an integral representation type for its value:
-
-```cpp
-auto q1 = 2.5 * m;
-quantity<si::metre, int> q2 = q1;  // Compile-time error
-```
-
-Such an operation should fail to compile as well. Again, to force such a truncation, we have to
-be explicit in the code:
-
-```cpp
-auto q1 = 2.5 * m;
-quantity<si::metre, int> q2 = value_cast<int>(q1);
-```
-
-As we can see, it is essential not to allow such truncating conversions to happen implicitly,
-and a good physical quantities and units library should fail at compile-time in case an user makes
-such a mistake.
-
-The same conversion utilities are also available for quantity points described in the next chapter.
-
-In some cases there is also a need to change both a unit and a representation type in one step.
-This is why the library also exposes the following functions:
-
-- `value_cast<Unit, Representation>(Quantity)`,
-- `value_cast<Unit, Representation>(QuantityPoint)`,
-- `q.force_in<Representation>(Unit)`,
-- `qp.force_in<Representation>(Unit)`.
-
-Exposing such functions:
-
-- makes the code easier to write, understand, and maintain compared to nesting two independent
-  function calls,
-- allows the library to try to order those operations in the best way to prevent data truncation
-  or overflow.
-
-Additionally, in cases where users have typedefs for their quantity or quantity point types,
-the following two functions are provided to save unnecessary typing to obtain the contents of
-respective types:
-
-- `value_cast<Quantity>(Quantity)`,
-- `value_cast<QuantityPoint>(QuantityPoint)`.
-
-The above functions are constrained to accept destination types that have exactly the same quantity
-specification as the source function argument. This means that in case quantity specifications do
-not match, explicit `quantity_cast` should be used first.
-
-### Scaling overflow prevention
-
-In the case of small integral types, it is easy to overflow the representation type for every value
-besides `0` while performing simple and popular unit conversions. This is why the library prevents
-such invalid conversions at compile-time both for explicit and implicit conversions:
-
-```cpp
-quantity q1 = std::int8_t(1) * km;
-quantity q2 = q1.force_in(m);   // Compile-time error
-if(q1 != 1 * m) { /* ... */ }   // Compile-time error
-```
-
-In the above example, the conversion factor between `km` and `m` is `1'000`, which is larger than
-the maximum value that can be stored in `std::int8_t`. Even if we want to convert the
-smallest possible integral amount (e.g., `1 km`), we will overflow the quantity representation type.
-We decided not to allow such conversions for safety reasons despite the value of `0 km` would work.
-
-More discussion on this subject can be found in the [Integer overflow] chapter.
-
-### Safety introduced by the affine space abstractions
-
-The affine space has two types of entities:
-
-- point - a position specified with coordinate values (e.g., _location_, _address_, etc.)
-- vector - the difference between two points (e.g., _shift_, _offset_, _displacement_, _duration_, etc.)
-
-One can do a limited set of operations in affine space on points and vectors. This greatly
-helps to prevent quantity equations that do not have physical sense.
-
-People often think that affine space is needed only to model _temperatures_ and maybe _time_ points
-(following the [`std::chrono::time_point`](https://en.cppreference.com/w/cpp/chrono/time_point) example).
-Still, the applicability of this concept is much wider.
-
-For example, if we would like to model a Mount Everest climbing expedition, we would deal with
-two kinds of altitude-related entities. The first would be absolute _altitudes above the mean sea
-level_ (points) like _base camp altitude_, _mount peak altitude_, etc. The second one would be the
-_heights of daily climbs_ (vectors). Although it makes physical sense to add _heights of daily climbs_,
-there is no sense in adding _altitudes_. What does adding the _altitude_ of a base camp and
-the mountain peak mean after all?
-
-Modeling such affine space entities with the `quantity` (vector) and `quantity_point` (point) class
-templates improves the overall project's safety by only providing the operators defined by the concepts.
-
-The following operations are not allowed in the affine space:
-
-- **adding** two `quantity_point` objects
-    - It is physically impossible to add the positions of home and Denver airport.
-- **subtracting** a `quantity_point` from a `quantity`
-    - What would it mean to subtract the DEN airport location from a distance?
-- **multiplying/dividing** a `quantity_point` with a scalar
-    - What is the position of `2 *` DEN airport location?
-- **multiplying/dividing** a `quantity_point` with a quantity
-    - What would multiplying a distance with the DEN airport location mean?
-- **multiplying/dividing** two `quantity_point` objects
-    - What would multiplying the home and DEN airport location mean?
-- **mixing** `quantity_points` of different quantity kinds
-    - It is physically impossible to subtract ISQ time from ISQ length.
-- **mixing** `quantity_points` of inconvertible quantities
-    - What does it mean to subtract a distance point to DEN airport from the Mount Everest base camp
-      altitude?
-- **mixing** `quantity_points` of convertible quantities but with unrelated origins
-    - How to subtract a point on our trip to CppCon measured relatively to our home location from
-      a point measured relative to the center of the Solar System?
-
-The usage of `quantity_point`, and affine space types in general, improves expressiveness and
-type-safety of the code we write.
-
-
-### `explicit` is not explicit enough
-
-Consider the following structure and a code using it:
+**Bad** (like `std::chrono::duration::count()` - doesn't specify unit):
 
 ```cpp
 struct X {
   std::vector<std::chrono::milliseconds> vec;
-  // ...
 };
-```
 
-```cpp
 X x;
-x.vec.emplace_back(42);
+x.vec.emplace_back(42s);
+legacy_func(x.vec[0].count());  // Wrong if storage does not match seconds!
 ```
 
-Everything works fine for years until, at some point, someone changes the structure to:
-
-```cpp
-struct X {
-  std::vector<std::chrono::microseconds> vec;
-  // ...
-};
-```
-
-The code continues to compile fine, but all the calculations are now off by orders of magnitude.
-This is why a good quantities and units library should not provide an explicit quantity constructor
-taking a raw value.
-
-To solve this issue, a quantity always requires information about both a number and a unit during
-construction:
+**Good** (explicit unit specification):
 
 ```cpp
 struct X {
   std::vector<quantity<si::milli<si::second>>> vec;
-  // ...
 };
+
+X x;
+x.vec.emplace_back(42 * s);
+legacy_func(x.vec[0].numerical_value_in(si::second));        // Safe
+legacy_func(x.vec[0].force_numerical_value_in(si::second));  // If truncation OK
+```
+
+The member function `numerical_value_ref_in(Unit)` enables direct access without conversion or
+copying:
+
+```cpp
+void legacy_func(const int& joules);
+
+quantity q1 = 42 * J;
+quantity q2 = 42 * N * (2 * m);
+quantity q3 = 42 * kJ;
+
+legacy_func(q1.numerical_value_ref_in(si::joule));  // OK
+legacy_func(q2.numerical_value_ref_in(si::joule));  // OK (equivalent unit)
+legacy_func(q3.numerical_value_ref_in(si::joule));  // Compile-time error (different magnitude)
+legacy_func((4 * J + 2 * J).numerical_value_ref_in(si::joule));  // Compile-time error (rvalue)
+```
+
+This prevents most dangling references while acknowledging the value category ≠ lifetime limitation
+(see [@VCINL]).
+
+## Representation safety
+
+Representation safety protects against numerical issues like overflow, underflow, and precision loss
+during conversions and arithmetic operations.
+
+### Truncation prevention
+
+Conversions that would lose precision with integral types are prevented at compile-time:
+
+```cpp
+quantity q1 = 5 * m;
+std::cout << q1.in(km) << '\n';              // Compile-time error
+quantity<si::kilo<si::metre>, int> q2 = q1;  // Compile-time error
+```
+
+Converting 5 meters to kilometers with `int` would truncate to 0. To allow such conversions,
+use floating-point types or explicit casts:
+
+```cpp
+quantity q1 = 5. * m;                        // double representation
+std::cout << q1.in(km) << '\n';              // OK: prints 0.005 km
 ```
 
 ```cpp
+quantity q1 = 5 * m;                         // int representation  
+std::cout << q1.in<double>(km) << '\n';      // OK: explicit conversion to double
+std::cout << q1.force_in(km) << '\n';        // OK: explicit truncation (prints 0 km)
+quantity<si::kilo<si::metre>, int> q2 = value_cast<km>(q1);  // OK: explicit cast
+```
+
+The same protection applies to representation type conversions:
+
+```cpp
+quantity q1 = 2.5 * m;
+quantity<si::metre, int> q2 = q1;                   // Compile-time error
+quantity<si::metre, int> q3 = value_cast<int>(q1);  // OK: explicit truncation
+```
+
+Combined conversions (unit + representation) are supported to prevent intermediate overflow:
+
+```cpp
+value_cast<Unit, Representation>(Quantity);
+value_cast<Representation, Unit>(Quantity);
+value_cast<Unit, Representation>(QuantityPoint);
+value_cast<Representation, Unit>(QuantityPoint);
+q.force_in<Representation>(Unit);
+qp.force_in<Representation>(Unit);
+```
+
+### Scaling overflow prevention
+
+Converting small integral types between units can overflow even for non-zero values:
+
+```cpp
+quantity q1 = std::int8_t(1) * km;
+quantity q2 = q1.force_in(m);   // Compile-time error (factor 1'000 > max int8_t)
+if(q1 != 1 * m) { /* ... */ }   // Compile-time error
+```
+
+The conversion factor (1000) exceeds `std::int8_t` range, so the library prevents the conversion
+even though `0 * km` would technically work. See [Integer overflow] for details.
+
+_Note: No library can prevent runtime arithmetic overflow at compile time (e.g., `quantity * 2`), nor
+can they prevent floating-point overflow/underflow. For such cases, use custom representation types
+with runtime checks._
+
+### `explicit` is not explicit enough
+
+Consider:
+
+```cpp
+struct X {
+  std::vector<std::chrono::milliseconds> vec;
+};
+X x;
+x.vec.emplace_back(42);  // Compiles but fragile!
+```
+
+If someone changes `milliseconds` to `microseconds`, the code still compiles but calculations are
+wrong by 1000×. The solution: require both number and unit:
+
+```cpp
+struct X {
+  std::vector<quantity<si::milli<si::second>>> vec;
+};
 X x;
 x.vec.emplace_back(42);       // Compile-time error
 x.vec.emplace_back(42 * ms);  // OK
 ```
 
-For consistency and to prevent similar safety issues, the `quantity_point` using explicit point
-origins can't be created from a standalone value of a `quantity` (contrary to the
-`std::chrono::time_point` design). Such a point has to always be associated with an explicit origin:
+Similarly, `quantity_point` requires explicit origin association (unlike `std::chrono::time_point`):
 
 ```cpp
 quantity_point qp1 = mean_sea_level + 42 * m;
 quantity_point qp2 = default_ac_temperature + 2 * delta<deg_C>;
 ```
 
-### Safe quantity numerical value getters
+## Quantity kind safety
 
-Continuing our previous example, let's assume that we have an underlying "legacy" API that
-requires us to pass a raw numerical value of a quantity and that we do the following to use it:
+Quantity kind safety distinguishes between quantities sharing the same dimension but representing
+different physical concepts.
 
-```cpp
-void legacy_func(std::int64_t seconds);
-```
+What should `1 * Hz + 1 * Bq + 1 * Bd` equal? Several leading libraries disagree:
 
-```cpp
-X x;
-x.vec.emplace_back(42s);
-legacy_func(x.vec[0].count());
-```
+- [@BOOST-UNITS] claims the answer to be 2 Hz (bauds not supported),
+- [@NHOLTHAUS-UNITS] claims it is 2 s<sup>-1</sup> (bauds not supported),
+- [@PINT] library in Python claims the result is 3.0 Hz,
+- [@JSR-385] library in Java throws an exception—**the only correct answer**.
 
-The preceding code is incorrect. Even though the duration stores a quantity equal to 42 s, it
-is not stored in seconds (it's either microseconds or milliseconds, depending on which
-of the interfaces from the previous chapter is the current one). Such issues
-can be prevented with the usage of `std::chrono::duration_cast`:
+[@ISO-GUIDE] states:
 
-```cpp
-legacy_func(duration_cast<seconds>(x.vec[0]).count());
-```
-
-However, users often forget about this step, especially when, at the moment of writing such code,
-the duration stores the underlying raw value in the expected unit. But as we know, the interface can
-be refactored at any point to use a different unit, and the code using an underlying numerical value
-without the usage of an explicit cast will become incorrect.
-
-To prevent such safety issues, the library exposes only the interface that returns a quantity
-numerical value in the required unit to ensure that no data truncation happens:
-
-```cpp
-X x;
-x.vec.emplace_back(42 * s);
-legacy_func(x.vec[0].numerical_value_in(si::second));
-```
-
-or in case we are fine with data truncation:
-
-```cpp
-X x;
-x.vec.emplace_back(42 * s);
-legacy_func(x.vec[0].force_numerical_value_in(si::second));
-```
-
-As the above member functions may need to do a conversion to provide a value in the expected unit,
-their results are prvalues.
-
-### Preventing dangling references
-
-Besides returning prvalues, sometimes users need to get an actual reference to the underlying
-numerical value stored in a `quantity`. For those cases, the library exposes
-`quantity::numerical_value_ref_in(Unit)` that participates in overload resolution only:
-
-- for lvalues (rvalue reference qualified overload is explicitly deleted),
-- when the provided `Unit` has the same magnitude as the one currently used by the quantity.
-
-The first condition above aims to limit the possibility of dangling references. We want to increase
-the chances that the reference/pointer provided to an underlying API remains valid for the time of
-its usage. We're much less concerned about performance aspects for a `quantity` here, as we expect
-the majority (if not all) of representation types to be cheap to copy.
-
-It is worth mentioning that such an approach is already used in many places in the standard library
-(e.g., `std::ranges::dangling`).
-
-That said, we acknowledge that this approach to preventing dangling references conflates value
-category with lifetime.  While it may prevent the majority of dangling references, it also admits
-both false positives and false negatives, as explained in [@VCINL]. We want to highlight this
-dilemma for the committee's consideration.
-
-In case we do decide to keep this policy of deleting rvalue overloads, here's an example of code
-that it would prevent from compiling.
-
-```cpp
-void legacy_func(const int& seconds);
-```
-
-```cpp
-legacy_func((4 * s + 2 * s).numerical_value_ref_in(si::second));  // Compile-time error
-```
-
-The library also goes one step further, by implementing all compound assignments, pre-increment,
-and pre-decrement operators as hidden friend functions that preserve the initial value category.
-A traditional implementation of those operators returns an lvalue to the `lhs` parameter which
-may "lie" about the actual value category of the `lhs` argument.
-
-Thanks to that, the following will also not compile:
-
-```cpp
-quantity<si::second, int> get_duration();
-```
-
-```cpp
-legacy_func((4 * s += 2 * s).numerical_value_ref_in(si::second));    // Compile-time error
-legacy_func((++get_duration()).numerical_value_ref_in(si::second));  // Compile-time error
-```
-
-The second condition above enables the usage of various equivalent units. For example, `J` is
-equivalent to `N * m`, and `kg * m2 / s2`. As those have the same magnitude, it does not
-matter exactly which one is being used here, as the same numerical value should be returned
-for all of them.
-
-```cpp
-void legacy_func(const int& joules);
-```
-
-```cpp
-quantity q1 = 42 * J;
-quantity q2 = 42 * N * (2 * m);
-quantity q3 = 42 * kJ;
-legacy_func(q1.numerical_value_ref_in(si::joule)); // OK
-legacy_func(q2.numerical_value_ref_in(si::joule)); // OK
-legacy_func(q3.numerical_value_ref_in(si::joule)); // Compile-time error
-```
-
-### Quantity kinds improve safety
-
-What should be the result of the following quantity equation?
-
-```cpp
-auto res = 1 * Hz + 1 * Bq + 1 * Bd;
-```
-
-We have checked a few leading libraries on the market, and here are the results:
-
-- [@BOOST-UNITS] claims the answer to be 2 Hz (bauds are not supported by it, so we removed it from
-  the equation),
-- [@NHOLTHAUS-UNITS] claims it is 2 s<sup>-1</sup> (no support for bauds as well),
-- [@PINT] library in Python claims that the result is 3.0 Hz,
-- [@JSR-385] library in Java throws an exception saying that we can't add those quantities.
-
-Now let's check what [@ISO-GUIDE] says about quantity kinds:
-
-- Quantities may be grouped together into categories of quantities that are **mutually comparable**
-- Mutually comparable quantities are called **quantities of the same kind**
-- Two or more quantities **cannot be added or subtracted unless they belong to the same category
-  of mutually comparable quantities**
-- Quantities of the **same kind** within a given system of quantities **have the same quantity
-  dimension**
+- Quantities may be grouped into categories that are **mutually comparable**
+- Mutually comparable quantities are **quantities of the same kind**
+- Quantities **cannot be added or subtracted unless they belong to the same category**
+- Quantities of the **same kind** have the **same dimension**
 - Quantities of the **same dimension are not necessarily of the same kind**
 
-[@ISO80000] also explicitly notes:
+[@ISO80000] explicitly notes:
 
-> **Measurement units of quantities of the same quantity dimension may be designated by the same name
-> and symbol even when the quantities are not of the same kind**. For example, joule per kelvin and J/K
+> Measurement units of quantities of the same quantity dimension may be designated by the same name
+> and symbol even when the quantities are not of the same kind. For example, joule per kelvin and J/K
 > are respectively the name and symbol of both a measurement unit of heat capacity and a measurement
 > unit of entropy, which are generally not considered to be quantities of the same kind. **However,
 > in some cases special measurement unit names are restricted to be used with quantities of specific
-> kind only**. For example, the measurement unit ‘second to the power minus one’ (1/s) is called hertz
-> (Hz) when used for frequencies and becquerel (Bq) when used for activities of radionuclides. As
-> another example, the joule (J) is used as a unit of energy, but never as a unit of moment of force,
-> i.e. the newton metre (N · m).
+> kind only**. For example, the measurement unit 'second to the power minus one' (1/s) is called hertz
+> (Hz) when used for frequencies and becquerel (Bq) when used for activities of radionuclides.
 
-To summarize the above, [@ISO80000] explicitly states that _frequency_ is measured in Hz and _activity_
-is measured in Bq, which are quantities of different kinds. As such, they should not be able to be
-compared, added, or subtracted. So, the only library from the above that was correct was [@JSR-385].
-The rest of them are wrong to allow such operations. Doing so may lead to vulnerable safety issues
-when two unrelated quantities of the same dimension are accidentally added or assigned to each other.
-
-The reason for most of the libraries on the market to be wrong in this field is the fact that their
-quantities are implemented only in terms of the concept of dimension. However, we've learned that
-a dimension is not enough to describe a quantity.
-
-The library goes beyond that and properly models quantity kinds. We believe that it is a significant
-feature that improves the safety of the library.
-
-### Additional safety introduced by modeling various quantities of the same kind
-
-Proper modeling of distinct kinds for quantities of the same dimension is often not enough from the
-safety point of view. Most of the libraries allow us to write the following code in the type-safe
-way:
+[@ISO80000] explicitly states that _frequency_ (Hz) and _activity_ (Bq) are different kinds—they
+should not be comparable, added, or subtracted. Allowing such operations leads to safety issues when
+unrelated quantities of the same dimension are accidentally added or assigned:
 
 ```cpp
-quantity<isq::speed[m/s]> avg_speed(quantity<isq::length[m]> l, quantity<isq::time[s]> t)
-{
-  return l / t;
-}
+quantity absorbed_dose = 1.5 * Gy;
+quantity dose_equivalent = 2.0 * Sv;
+
+// auto result = absorbed_dose + dose_equivalent;           // Compile-time error!
+// Error: cannot add absorbed dose and dose equivalent (both L²T⁻², but different kinds)
+
+// QuantityOf<isq::absorbed_dose> auto d = 2.5 * Sv;        // Compile-time error!
+// Error: cannot initialize absorbed dose with dose equivalent
 ```
 
-However, they fail when we need to model an abstraction using more than one quantity of
-the same kind:
+_[@MP-UNITS] is the only C++ library implementing quantity kind safety, fully distinguishing all SI
+quantity kinds including Gy/Sv, Hz/Bq, and rad/sr._
+
+## Quantity safety
+
+Quantity safety is the highest level, ensuring semantic correctness through:
+
+1. **Quantity Type Correctness** - Hierarchies, conversions, and quantity equation ingredient validation
+2. **Quantity Character Correctness** - Representation types and character-specific operations
+
+### Quantity hierarchies
+
+Dimension-only libraries can't distinguish between different quantities of the same kind:
 
 ```cpp
 class Box {
   quantity<isq::area[m2]> base_;
-  quantity<isq::length[m]> height_;
+  quantity<isq::length[m]> height_;  // Can't distinguish length, width, height!
 public:
   Box(quantity<isq::length[m]> l, quantity<isq::length[m]> w, quantity<isq::length[m]> h)
-    : base_(l * w), height_(h)
-  {}
-  // ...
+    : base_(l * w), height_(h) {}
 };
 ```
 
-This does not provide strongly typed interfaces anymore.
+[@ISO80000] defines hierarchies: _width_, _height_, _radius_ are distinct but all are _lengths_.
+This library models these hierarchies to prevent errors:
 
-Again, it turns out that [@ISO80000] has an answer. This specification standardizes hundreds
-of quantities, many of which are of the same kind. Various quantities of the same kind are
-not a flat set. They form a hierarchy tree which influences:
+```cpp
+// Quantity Type: Hierarchy prevents mixing energy types
+void process_kinetic(quantity<isq::kinetic_energy[J]> ke) { /* ... */ }
 
-- conversion rules,
-- the quantity type being the result of adding or subtracting different quantities of the same kind.
+quantity pe = isq::potential_energy(100 * J);
+// process_kinetic(pe);                                                   // Compile-time error!
+// Error: cannot pass potential_energy where kinetic_energy is required
 
-More information on this subject can be found in the [Systems of quantities] chapter.
+// Quantity Type: Ingredient validation requires specific quantity types
+quantity<isq::height[m]> h = 5 * m;
+quantity<isq::gravitational_potential_energy[J]> Ep = mass * g * height;  
+// quantity<isq::gravitational_potential_energy[J]> wrong = mass * g * width;  // Compile-time error!
+// Error: cannot form gravitational potential energy from width
+```
 
-### Non-negative quantities
-
-<!-- TODO refactor this to state that we can benefit for points -->
-
-Some quantity types are defined by [@ISO80000] as explicitly non-negative. Those include quantities
-like width, thickness, diameter, and radius. However, it turns out that it is possible to have negative
-values of quantities defined as non-negative. For example, `-1 * isq::diameter[mm]` could represent
-a change in the diameter of some object. Also, a subtraction `4 * width[mm] - 6 * width[mm]` results
-in a negative value as the width of the second argument is larger than the first one.
-
-Non-negative quantities are not limited to those explicitly stated as being non-negative in
-[@ISO80000]. Some quantities are implicitly non-negative from their definition. The most
-obvious example here might be scalar quantities specified as magnitudes of a vector quantity.
-For example, speed is defined as the magnitude of velocity. Again, `-1 * speed[m/s]` could represent
-a change in average speed between two measurements.
-
-This means that enforcing such constraints for quantity types might be impossible as those typically
-are used to represent a difference between two states or measurements. However, we could apply
-such constraints to quantity points, which, by definition, describe the absolute quantity values.
-For example, when height is the measure of an object, a negative value is physically meaningless.
-
-Such logic errors could be detected at runtime with contracts or some other preconditions or
-invariants checks.
-
-<!-- Lots of exciting discussion at https://github.com/mpusz/mp-units/issues/468 -->
-
+See [Systems of quantities] for details.
 
 ### Safe operations of vector and tensor quantities
 
@@ -5333,32 +4625,67 @@ As we can see above, such features additionally improves the compile-time safety
 by ensuring that quantities are created with proper quantity equations and are using correct
 representation types.
 
+### Complex quantities
 
-### Complex operations
-
-We can encounter very similar issues in the case of complex quantities. They should expose proper
-complex operations that will yield specific quantities as a result. This prevents pervasive
-and dangerous errors in the industry.
-
-For example, _complex power_ can only be constructed from _active power_ and _reactive power_
-provided in exactly this order. The latter should also be the result of only specific operations
-done on the former:
+Complex quantities enforce domain-specific construction rules. Example: _complex power_ requires
+_active power_ and _reactive power_ in correct order:
 
 ```cpp
-quantity<isq::complex_power[V * A], std::complex<double>> complex1 = get_power();
-quantity<isq::complex_power[W]> active = complex1.real();
-quantity<isq::complex_power[var]> reactive = complex1.imag();
-quantity<isq::apparent_power[V * A]> apparent = complex1.modulus();
-quantity<isq::complex_power[V * A], std::complex<double>> complex2 = make_complex(active, reactive);
+quantity<isq::complex_power[V * A], std::complex<double>> complex = get_power();
+quantity<isq::active_power[W]> active = complex.real();
+quantity<isq::reactive_power[var]> reactive = complex.imag();
+quantity<isq::apparent_power[V * A]> apparent = complex.modulus();
 ```
+
+## Affine space safety
+
+Affine space safety distinguishes between **quantity points** (absolute positions) and **quantity
+vectors** (differences/displacements). `quantity` represents vectors; `quantity_point` represents
+points. This prevents nonsensical operations:
+
+**Forbidden operations:**
+
+- Adding two points: `home + airport` (what is "Boston + New York"?)
+- Subtracting vector from point: `distance - airport`
+- Scaling points: `2 * airport`
+- Mixing incompatible point origins
+
+**Allowed operations:**
+
+- Subtracting points yields vector: `airport - home` → distance
+- Adding vector to point: `home + distance` → new location
+- Scaling vectors: `2 * distance`
+
+Example with temperature: _Temperatures_ are points on a scale with an origin;
+_temperature changes_ are vectors. You can add _temperature changes_, but adding two
+_temperatures_ is meaningless:
+
+```cpp
+// Points: Positions on a scale with an origin
+quantity_point room_temp = point<deg_C>(20.);
+quantity_point outside_temp = point<deg_C>(5.);
+
+quantity temp_diff = room_temp - outside_temp;      // OK: 15 K (vector)
+// auto temp_sum = room_temp + outside_temp;        // Compile-time error!
+// Error: cannot add points (meaningless: what is 20 °C + 5 °C?)
+
+// Vectors: Differences between values
+quantity temp_change = delta<K>(10);
+quantity_point new_temp = room_temp + temp_change;  // OK: point + vector = 30 °C
+quantity total_change = temp_change + temp_change;  // OK: vector + vector = 20 K
+
+// auto wrong = temp_change - room_temp;            // Compile-time error!
+// Error: cannot subtract point from vector (meaningless: what is 10 K - 20 °C?)
+```
+
+Examples where affine space safety prevents errors: _temperature_ (cannot add 20 °C + 10 °C, but can
+compute difference), _time_ (cannot add two _timestamps_, but can subtract them), _position_ (cannot
+add GPS coordinates, but can compute _displacement_), _altitude_ (cannot add two _elevations_,
+but can compute _height_ difference).
 
 ## Safety pitfalls
 
 ### Integer division
-
-The physical units library can't do any runtime branching logic for the division operator.
-All logic has to be done at compile-time when the actual values are not known, and the quantity types
-can't change at runtime.
 
 If we expect `120 * km / (2 * h)` to return `60 km / h`, we have to agree with the fact that
 `5 * km / (24 * h)` returns `0 km/h`. We can't do a range check at runtime to dynamically adjust scales
@@ -5383,62 +4710,19 @@ If we decide to change the current behavior, it would:
 - make generic programming harder,
 - should be enabled only for integers (inconsistent resulting units with floating-point mode),
 - would make it harder to express ratios of hugely different units of the same dimension
- (e.g., Hubble constant is expressed in `km/s/Mpc`).
+  (e.g., Hubble constant is expressed in `km/s/Mpc`).
 
 This is why floating-point representation types are recommended as a default to store the numerical
 value of a quantity. Some popular physical units libraries even
 [forbid integer division at all](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden).
 
-The problem is similar to the one described in the section about accidental truncation of values
-through conversion. While the consequent use of floating-point representation types may be a good idea,
-it is not always possible. Especially in close-to-the-metal applications and small embedded systems,
-the use of floating-point types is sometimes not an option, either for performance reasons or lack
-of hardware support.
-Having different operators for safe floating-point operations and unsafe integer operations would
-hurt generic programming.
-As such, users should instead use safer representation types.
-
 ### Integer overflow
 
-To convert a quantity to different units, we must multiply or divide its numerical value by a conversion
-factor.  Sometimes, the result is too big to fit in the type: a problem known as _overflow_.  While
-any numerical type can overflow, we focus on integral types here, because they carry the most risk.
-Even the smallest floating point type in common use, `float`, has a range of $10^{38}$, while the
-diameter of the observable universe measured in atomic diameters is "only" about $10^{37}$![^2]
+**The problem**: Unit conversions multiply by hidden factors. Comparing `11 * m > 12 * yd` converts
+both to a common unit (800 μm), multiplying by ~1000× under the hood—easy to overflow small integer
+types.
 
-[^2]: Here, we take the radius of the observable universe as 46.6 billion light years, and the
-      diameter of a hydrogen atom as 0.1 nanometers.
-
-Units libraries generate conversion factors automatically when the program is built, and apply them
-invisibly.  This amazing convenience comes with a risk: since users don't see the conversion
-factors, it's easy to overlook the multiplication that's taking place under the hood.  This is even
-more true in certain "hidden" conversions, where most users don't even realize that a conversion is
-taking place!  Consider this comparison:
-
-```cpp
-constexpr bool result = (11 * si::metre > 12 * international::yard);
-```
-
-Even though the quantities have different units, this code compiles and produces a correct result.
-It turns out that `11 * si::metre` is roughly 0.2% larger than `12 * international::yard`, so
-`result` is `true`.
-
-The goal is to obtain this answer without leaving the domain of exact integer arithmetic.  To do so,
-we must find another unit that can accommodate _both_ inputs as integer values --- essentially,
-a kind of "greatest common factor" of these two units, which we call their "common unit".  This
-particular common unit has no special name, but it turns out to be equal to 800 micrometers.  The
-metre is larger by a factor of 1250, and the yard by a factor of 1143.  Therefore, what takes place
-under the hood is that we multiply `11 * 1250`, and compare it to `12 * 1143`: since the former is
-indeed larger, the result of `>` will be `true`.
-
-Now that we have a fuller understanding of what's going on under the hood, let's take another look
-at the code.  When we see something like `11 * si::metre > 12 * international::yard`, it's certainly
-not obvious at a glance that this will multiply each underlying value by a factor of over 1,000!
-Whatever approach we take to mitigating overflow risk, it will need to handle these kinds of
-"hidden" cases as well.
-
-Over the decades that people have been writing units libraries, several approaches have emerged for
-dealing with overflow risk.  That said, there isn't a consensus about the best approach to take ---
+**Mitigation strategies:**
 in fact, at the time of writing, new strategies are still being developed and tested.  Here are the
 main strategies we have seen.
 
@@ -5448,521 +4732,140 @@ This is the simplest approach, and probably also the most popular: make the user
 avoiding overflow.  The documentation may simply warn them to check their values ahead of time, as
 in this [example from the bernedom/SI
 library](https://github.com/bernedom/SI/blob/main/doc/implementation-details.md#implicit-ratio-conversion--possible-loss-of-precision).
-
-While this approach is perfectly valid, it does put a lot of responsibility onto the end users, many
-of whom may not realize that they have incurred it.  Even for those who do, we've seen above that
-many unit conversions are hard to spot.  It's reasonable to assume that this approach leads to the
-highest incidence of overflow bugs.
+This valid approach places substantial responsibility on users, many unaware of the risk. Since unit
+conversions are hard to spot, this likely leads to the highest incidence of overflow bugs.
 
 #### Curate user-facing types
 
-The [`std::chrono`](https://en.cppreference.com/w/cpp/chrono/duration) library, a time-only units
-library, takes a different approach.  It uses intimate knowledge of the domain to craft its
-user-facing types such that they all cover the same (very generous) range of values. Specifically,
-every named `std::chrono::duration` type shorter than a day --- everything from
-`std::chrono::hours`, all the way down to `std::chrono::nanoseconds` --- is guaranteed to be able to
-represent _at least_ ±292 years.
+[`std::chrono`](https://en.cppreference.com/w/cpp/chrono/duration) crafts user-facing types with
+generous ranges: all named durations shorter than a day (hours to nanoseconds) represent ±292 years.
+Users within this range who stick to these primary types avoid overflow.
 
-As long as users' durations are within this range --- _and_, as long as they _stick to these primary
-user-facing types_ --- they can be confident that their values won't overflow.
-
-This approach works very well in practice for the (great many) users who can meet both of these
-conditions.  However, it doesn't translate well to a _multi-dimensional_ units library: since there
-are many quantity types, and new ones can be created on the fly, it's infeasible to try to define
-a "practical range" for _all_ of them.  Besides, users can still form arbitrary
-`std::chrono::duration` types, and they are unlikely to notice the danger they have incurred in
-doing so.
+This works well for time-only libraries but doesn't scale to multi-dimensional units libraries where
+quantity types proliferate and users can create arbitrary combinations on the fly.
 
 #### Adapt to risk
 
-Fundamentally, there are two contributions to the level of overflow risk:
+Overflow risk depends on: (1) conversion factor size (bigger = more risk)[^2], and (2) maximum
+representable value (larger = less risk).
 
-1. The _size of the conversion factor_: **bigger factors** mean **more risk**.[^3]
+[^2]: For integral reps, conversion factors are always integers. Non-integer factors already fail
+due to truncation, so overflow is moot.
 
-2. The _largest representable value in the destination type_: **larger max values** mean **less
-   risk**.
+An adaptive policy can forbid conversions where the "smallest overflowing value" is "small enough
+to be scary". [@AU] uses threshold 2,147: if this value converts without overflow, permit the
+operation. This prevents operations failing on values under 1,000 while allowing common patterns
+like `500 * mega<hertz>` in `int32_t`. Production experience confirms this provides good default
+protection.
 
-[^3]: Note that we're implicitly assuming that the conversion factor is simply an integer.  This is
-always true for the cases discussed in this section, because we're talking about converting quantity
-types with integral rep.  If the conversion factor were _not_ an integer, then we would already
-forbid this conversion due to _truncation_, so we wouldn't need to bother considering overflow.
-
-Therefore, we should be able to create an _adaptive policy_ that takes these factors into account.
-The key concept is the "smallest overflowing value".  For every combination of "conversion factor"
-and "type," there is some smallest starting-value that will overflow.  The simplest adaptive policy
-is to forbid conversions when that smallest value is "small enough to be scary".
-
-How small should we consider "scary"?  Here are some considerations.
-
-- Users tend to choose units that fit their problem domain, and produce "manageable" values.  For
-  example, the most common SI prefixes cover 3 orders of magnitude.  In practice, this means that
-  values less than $1,000$ are common, but higher values much less so (because, for example, lengths
-  of over $1,000\,\text{m}$ can be more concisely expressed in $\text{km}$.)  This means that if
-  a value as small as 1,000 would overflow --- so small that we haven't even _reached_ the next unit
-  --- we should _definitely_ forbid the conversion.
-
-- On the other hand, we've found it useful to initialize, say, `quantity<si::hertz, int32_t>`
-  variables with something like `500 * si::mega<si::hertz>`.  Thus, we'd like this operation to
-  succeed (although it should probably be near the border of what's allowed).
-
-Putting it all together, the [@AU] library settled on a value threshold of `2'147`.  If this value can
-convert without overflow, then they permit the operation; otherwise, they don't. They picked this
-value because it satisfies the above criteria nicely.  It will prevent the scariest operations that
-can't even handle a value of 1,000, but it still permits free use of $\text{MHz}$ when storing
-$\text{Hz}$ quantities in `int32_t`.  Several years' practical experience in production has shown
-that this threshold provides a good default level of protection, while still permitting most
-operations that users would tend to judge as "safe".  This policy also lends itself well to
-visualization: the [Au
-docs](https://aurora-opensource.github.io/au/0.4.1/discussion/concepts/overflow/#plot-the-overflow-safety-surface)
-show the boundary between forbidden and permitted conversions.
-
-In this paper, we decided to be a bit more conservative in restricting possibly valid use cases,
-and we make the conversion fail if the representation type can't handle the value `1` converted
-to a destination unit, as described in the [Scaling overflow prevention] chapter.  In such a case,
-we are pessimizing only the value `0` usage.
+This paper is more conservative: we fail conversion if the representation can't handle value `1`
+converted to the destination unit (see [Scaling overflow prevention]), pessimizing only the `0` case.
 
 #### Check every conversion at runtime
 
-While the overflow safety surface is a leap forward in safety and flexibility, it's still only
-a heuristic.  There will always be valid conversions which it forbids, and invalid ones which it
-permits.
+Runtime checks guarantee perfect safety. While unit conversions rarely appear in hot loops, making
+runtime cost worthwhile, the main challenge is error handling (exceptions, `optional`, `expected`,
+contracts, etc.).
 
-One way to _guarantee_ doing better is to check every conversion at runtime.  While we generally
-prefer to avoid runtime costs in units libraries, this particular case is worth the cost.  Unit
-conversions very rarely appear in the "hot loops" of a well designed program, so paying a few cycles
-to get perfect conversion safety tends to be a net win.
-
-The hardest problem in this approach is not the performance cost, but the error handling.  There are
-a variety of methods --- exceptions, `optional`, `expected`, contracts, etc. --- and no single
-strategy is best in all cases.  One promising strategy is therefore to separate error _detection_
-and _response_.  The units library can provide boolean checkers for every conversion to indicate
-whether a _specific_ input will overflow, or will truncate, or will be lossy in either of these
-ways.  Then each project can write conversion functions that use these helpers to detect problematic
-inputs, and respond with whatever error handling mechanism they prefer.
+A promising approach separates error detection and response: the library provides boolean checkers
+for overflow/truncation, then each project uses these with their preferred error handling mechanism.
 
 #### Delegate to rep
 
 Perhaps the most appealing approach to overflow in units libraries is to delegate the problem to
-another library entirely.  Quantity types can work with any underlying numeric type (called the
-"rep", as in the `chrono` library) that satisfies certain concepts related to basic arithmetic.  If
+another library entirely. Quantity types can work with any underlying numeric type (called the
+"rep", as in the `chrono` library) that satisfies certain concepts related to basic arithmetic. If
 that rep comes from a library that is dedicated to providing overflow-safe numeric types, then the
 problem is solved without any additional effort on the units library side.
 
-This approach currently suffers from at least two significant downsides.  First, it is less
-thoroughly tested in production usage, so we don't know what the practical pitfalls are.  Second,
+This approach currently suffers from at least two significant downsides. First, it is less
+thoroughly tested in production usage, so we don't know what the practical pitfalls are. Second,
 raw numeric types are likely to be overwhelmingly common in practice, and using this approach alone
-would leave this group of users unprotected --- a group where less-experienced users are likely to
-be over-represented.  Therefore, this can't be the _only_ solution to overflow.
-
-#### Summary
-
-Overflow for integer reps is a serious problem for quantities and units libraries, made worse by the
-fact that many instances are hard even for experts to spot.  We can easily rule out several common
-strategies for a standard units library.  First, with a "do nothing" approach, the library would not
-be acceptably safe to use with integer types.  Second, the "curated types" approach from the
-`chrono` library can't scale to the multi-dimensional use case.
-
-We recommend combining the remaining three strategies, which can work together to handle
-complementary use cases.  A simple adaptive policy provides a good baseline level of safety, without
-unduly restricting use cases: this is indispensable for "hidden conversions" such as mixed-unit
-comparisons.  Runtime conversion checkers make it easy to check individual input values for specific
-kinds of loss.  Finally --- and, orthogonally to this library --- more advanced users can use
-overflow-safe numeric types from whatever library they choose, as the `rep`.
+would leave this group of users unprotected—a group where less-experienced users are likely to
+be over-represented. Therefore, this can't be the _only_ solution to overflow.
 
 ### Lack of safe numeric types
 
-Integers can overflow on arithmetics. This has already caused some expensive failures in engineering
-[@ARIANE].
+Integers overflow on arithmetic (causing expensive failures [@ARIANE]) and truncate on narrowing
+assignment. Floating-point types lose precision on narrowing, and `int64_t` to `double` conversion
+also loses precision.
 
-Integers can also be truncated during assignment to a narrower type.
-
-Floating-point types may lose precision during assignment to a narrower type.
-Conversion from `std::int64_t` to `double` may also lose precision.
-
-If we had safe numeric types in the C++ standard library, they could easily be used as a `quantity`
-representation type in the physical quantities and units library, which would address these safety
-concerns.
-
-Also, having a type trait informing if a conversion from one type to another is value-preserving
-would help to address some of the issues mentioned above.
+Safe numeric types in the standard library would address these concerns as `quantity` reps. A type
+trait indicating value-preserving conversions would also help.
 
 ### Potential surprises during units composition
 
-One of the most essential requirements for a good physical quantities and units library is to
-implement units in such a way that they compose. With that, one can easily create any derived
-unit using a simple unit equation on other base or derived units. For example:
+Units compose to create derived units (`constexpr Unit auto kmph = km / h;`), an industry standard
+in [@BOOST-UNITS] and [@PINT].
+
+However, order of operations can surprise users:
 
 ```cpp
-constexpr Unit auto kmph = km / h;
+quantity q = 60 * km / 2 * h;  // Results in 30 km⋅h, not 30 km/h
+quantity q = 60 * km / (2 * h); // Requires parentheses for 30 km/h
 ```
 
-We can also easily obtain a quantity with:
-
-```cpp
-quantity q = 60 * km / h;
-```
-
-Such a solution is an industry standard and is implemented not only in this library, but also is
-available for many years now in both [@BOOST-UNITS] and [@PINT].
-
-We believe that is the correct thing to do. However, we want to make it straight in this paper that
-some potential issues are associated with such a syntax. Inexperienced users are often surprised by
-the results of the following expression:
-
-```cpp
-quantity q = 60 * km / 2 * h;
-```
-
-This looks like like `30 km/h`, right? But it is not. Thanks to the order of operations, it results
-in `30 km⋅h`. In case we want to divide `60 km` by `2 h`, parentheses are needed:
-
-```cpp
-quantity q = 60 * km / (2 * h);
-```
-
-Another surprising issue may result from the following code:
+Generic code can also produce unexpected types:
 
 ```cpp
 template<typename T>
 auto make_length(T v) { return v * si::metre; }
 
-auto v = 42;
-quantity q = make_length(v);
+quantity v = 42 * m;
+quantity q = make_length(v);  // Returns area (m²), not length!
 ```
 
-This might look like a good idea, but let's consider what would happen if the user provided a
-quantity as input:
+[@MP-UNITS] initially disallowed multiplying/dividing quantities by units to prevent this, but
+requiring `60 * (km / h)` proved too verbose and confusing.
+
+These issues always surface as compile-time errors when assigning to explicitly-typed quantities:
 
 ```cpp
-auto v = 42 * m;
-quantity q = make_length(v);
-```
-
-The above function call will result in a quantity of _area_ instead of the expected quantity
-of _length_.
-
-The issues mentioned above could be turned into compilation errors by disallowing multiplying or
-dividing a quantity by a unit. The [@MP-UNITS] library initially provided such an approach, but with
-time, we decided this to not be user-friendly. Forcing the user to put the parenthesis around all
-derived units in quantity equations like the one below, was too verbose and confusing:
-
-```cpp
-quantity q = 60 * (km / h);
-```
-
-It is important to notice that the problems mentioned above will always surface with a compile-time
-error at some point in the user's code when they assign the resulting quantity to one with an
-explicitly provided quantity type.
-
-Below, we provide a few examples that correctly detect such issues at compile-time:
-
-```cpp
-quantity<si::kilo<si::metre> / non_si::hour, int> q1 = 60 * km / 2 * h;             // Compile-time error
-quantity<isq::speed[si::kilo<si::metre> / non_si::hour], int> q2 = 60 * km / 2 * h; // Compile-time error
-QuantityOf<isq::speed> auto q3 = 60 * km / 2 * h;                                   // Compile-time error
-```
-
-```cpp
-template<typename T>
-auto make_length(T v) { return v * si::metre; }
-
-auto v = 42 * m;
-quantity<si::metre, int> q1 = make_length(v);           // Compile-time error
-quantity<isq::length[si::metre]> q2 = make_length(v);   // Compile-time error
-QuantityOf<isq::length> q3 = make_length(v);            // Compile-time error
-```
-
-```cpp
-template<typename T>
-QuantityOf<isq::length> auto make_length(T v) { return v * si::metre; }
-
-auto v = 42 * m;
-quantity q = make_length(v);  // Compile-time error
-```
-
-```cpp
-template<Representation T>
-auto make_length(T v) { return v * si::metre; }
-
-auto v = 42 * m;
-quantity q = make_length(v);  // Compile-time error
+quantity<si::kilo<si::metre> / non_si::hour, int> q1 = 60 * km / 2 * h;  // Error
+QuantityOf<isq::speed> auto q3 = 60 * km / 2 * h;                        // Error
+quantity<si::metre, int> q1 = make_length(42 * m);                       // Error
+QuantityOf<isq::length> auto make_length(T v) { return v * si::metre; }  // Constrains return type
 ```
 
 ### Limitations of systems of quantities
 
-As stated before, modeling systems of quantities and various quantities of the same kind
-significantly improves the safety of the project. However, it is essential to mention here
-that such modeling is not ideal and there might be some pitfalls and surprises associated with
-some corner cases.
+Modeling systems of quantities improves safety but has pitfalls in corner cases.
 
 #### Allowing irrational quantity combinations
 
-Everyone probably agrees that multiplying two _lengths_ is an _area_, and that area should be
-implicitly convertible to the result of such a multiplication:
-
-```cpp
-static_assert(implicitly_convertible(isq::length * isq::length, isq::area));
-static_assert(implicitly_convertible(isq::area, isq::length * isq::length));
-```
-
-Also, probably no one would be surprised by the fact that the multiplication of _width_ and
-_height_ is also convertible to _area_. Still, the reverse operation is not valid in this case.
-Not every _area_ is an _area_ over _width_ and _height_, so we need an explicit cast to force
-such a conversion:
+While `length * length → area` makes sense bidirectionally, `width * height → area`
+is unidirectional—not all areas are width×height products:
 
 ```cpp
 static_assert(implicitly_convertible(isq::width * isq::height, isq::area));
 static_assert(!implicitly_convertible(isq::area, isq::width * isq::height));
-static_assert(explicitly_convertible(isq::area, isq::width * isq::height));
 ```
 
-However, it might be surprising to some that the similar behavior will also be observed for the
-product of two _heights_:
-
-```cpp
-static_assert(implicitly_convertible(isq::height * isq::height, isq::area));
-static_assert(!implicitly_convertible(isq::area, isq::height * isq::height));
-static_assert(explicitly_convertible(isq::area, isq::height * isq::height));
-```
-
-For humans, it is hard to imagine how two _heights_ form an _area_, but the library's logic
-has no way to prevent such operations.
+Surprisingly, `height * height → area` behaves similarly. While hard to imagine physically, the
+library cannot prevent such operations.
 
 #### Arithmetic and compatibility of quantities of dimension one
 
-Some pitfalls might also arise when dealing with quantities of dimension one
-(also known as dimensionless quantities).
-
-If we divide two quantities of the same kind, we end up with a quantity of dimension one.
-For example, we can divide two _lengths_ to get a _slope of the ramp_ or two _durations_ to get
-the _clock accuracy_. Those ratios mean something fundamentally different, but from the dimensional
-analysis standpoint, they are mutually comparable.
+Dividing quantities of the same kind yields dimension-one quantities with different meanings (_slope
+of ramp_, _clock accuracy_), yet they're mutually comparable per dimensional analysis.
 
 The above means that the following code is valid:
 
 ```cpp
-quantity q1 = 1 * m / (10 * m) + 1 * us / (1 * h);
-quantity q2 = isq::length(1 * m) / isq::length(10 * m) + isq::time(1 * us) / isq::time(1 * h);
-quantity q3 = isq::height(1 * m) / isq::length(10 * m) + isq::time(1 * us) / isq::time(1 * h);
+quantity q1 = isq::length(1. * m) / isq::length(10. * m) + isq::time(1. * us) / isq::time(1 * h);
+quantity q2 = isq::height(1. * m) / isq::length(10. * m) + isq::time(1. * us) / isq::time(1 * h);
 ```
 
-The fact that the above code compiles fine might again be surprising to some users of such a library.
-The result of all such quantity equations is a `dimensionless` quantity as it is the root of this
-hierarchy tree.
-
-Now, let's try to convert such results to some quantities of dimension one. The `q1` was obtained
-from the expression that only used units in the equation, which means that the actual result of it
-is a quantity of `kind_of<dimensionless>`, which behaves like any quantity from the tree.
-Because of it, all of the below will compile for `q1`:
+Both produce `dimensionless` (root of hierarchy). Converting `q2` and `q3` to specific dimension-one
+quantities works for general forms but requires explicit conversion for specific combinations:
 
 ```cpp
-quantity<si::metre / si::metre> ok1 = q1;
-quantity<(isq::length / isq::length)[m / m]> ok2 = q1;
-quantity<(isq::height / isq::length)[m / m]> ok3 = q1;
+quantity<(isq::length / isq::length)[m / m]> ok1 = q1;     // OK (same quantity)
+quantity<(isq::length / isq::length)[m / m]> ok2 = q2;     // OK (same quantity)
+quantity<(isq::height / isq::length)[m / m]> bad1 = q1;    // Error (not every dimensionless is height/length)
+quantity<(isq::height / isq::length)[m / m]> bad2 = q2;    // Error (not every dimensionless is height/length)
 ```
 
-For `q2` and `q3`, the two first conversions also succeed. The first one passes because
-all quantities of a kind are convertible to such kind. The type of the second quantity is
-`quantity<dimensionless[one]>` in disguise. Such a quantity is a root of the kind tree, so
-again, all the quantities from such a tree are convertible to it.
-
-The third conversion fails in both cases, though. Not every dimensionless quantity
-is a result of dividing height and length, so an explicit conversion would be needed to
-force it to work.
-
-```cpp
-quantity<si::metre / si::metre> ok4 = q2;
-quantity<(isq::length / isq::length)[m / m]> ok5 = q2;
-quantity<(isq::height / isq::length)[m / m]> bad1 = q2;  // Compile-time error
-
-quantity<si::metre / si::metre> ok6 = q3;
-quantity<(isq::length / isq::length)[m / m]> ok7 = q3;
-quantity<(isq::height / isq::length)[m / m]> bad2 = q3;  // Compile-time error
-```
-
-### Potential surprises while working with temperatures
-
-_Temperature_ support is one the most challenging parts of any physical quantities and units library
-design. This is why it is probably reasonable to dedicate a chapter to this subject to describe how
-they are intended to work and what are the potential pitfalls or surprises.
-
-First, let's run the following code:
-
-```cpp
-quantity q1 = delta<isq::thermodynamic_temperature[K]>(30.);
-quantity q2 = delta<isq::Celsius_temperature[deg_C]>(30.);
-
-std::println("q1: {}, {}, {}", q1, q1.in(deg_C), q1.in(deg_F));
-std::println("q2: {}, {}, {}", q2.in(K), q2, q2.in(deg_F));
-```
-
-This outputs:
-
-```text
-q1: 30 K, 30 ℃, 54 ℉
-q2: 30 K, 30 ℃, 54 ℉
-```
-
-Also doing the following:
-
-```cpp
-quantity q3 = isq::Celsius_temperature(q1);
-quantity q4 = isq::thermodynamic_temperature(q2);
-```
-
-outputs:
-
-```text
-q3: 30 K
-q4: 30 ℃
-```
-
-Even though [@ISO80000] provides dedicated quantity types for _thermodynamic temperature_
-and _Celsius temperature_, it explicitly states in the description of the first one:
-
-> Differences of thermodynamic temperatures or changes may be expressed either in kelvin,
-> symbol K, or in degrees Celsius, symbol °C
-
-In the description of the second quantity type, we can read:
-
-> The unit degree Celsius is a special name for the kelvin for use in stating values of Celsius
-> temperature. The unit degree Celsius is by definition equal in magnitude to the kelvin. A
-> difference or interval of temperature may be expressed in kelvin or in degrees Celsius.
-
-As the `quantity` is a differential quantity type, it is okay to use any _temperature_ unit for
-those, and the results should differ only by the conversion factor. No offset should be applied
-here to convert between the origins of different unit scales.
-
-It is important to mention here that the existence of _Celsius temperature_ quantity type
-in [@ISO80000] is controversial.
-
-[@ISO80000] (part 1) says:
-
-> The system of quantities presented in this document is named the International System of
-> Quantities (ISQ), in all languages. This name was not used in ISO 31 series, from which
-> the present harmonized series has evolved. However, the ISQ does appear in ISO/IEC Guide 99
-> and is the system of quantities underlying the International System of Units, denoted “SI”,
-> in all languages according to the SI Brochure.
-
-According to the [@ISO-GUIDE], a system of quantities is a "set of quantities together with
-a set of non-contradictory equations relating those quantities". It also defines the
-system of units as "set of base units and derived units, together with their multiples
-and submultiples, defined in accordance with given rules, for a given system of quantities".
-
-To say it explicitly, the system of quantities should not assume or use any specific units
-in its definitions. It is essential as various systems of units can be defined on top of it,
-and none of those should be favored.
-
-However, the _Celsius temperature_ quantity type is defined in [@ISO80000] (part 5) as:
-
-> temperature difference from the thermodynamic temperature of the ice point is called the
-> Celsius temperature $t$, which is defined by the quantity equation:
->
-> $t = T − T_0$
->
-> where $T$ is thermodynamic temperature (item 5-1) and $T_0 = 273,15\:K$
-
-_Celsius temperature_ is an exceptional quantity in the ISQ as it uses specific SI units in
-its definition. This breaks the direction of dependencies between systems of quantities and
-units and imposes significant implementation issues.
-
-As [@MP-UNITS] implementation clearly distinguishes between systems of quantities
-and units and assumes that the latter directly depends on the former, this quantity
-definition does not enforce any units or offsets. It is defined as just a more specialized
-quantity of the kind of _thermodynamic temperature_. We have added the Celsius temperature
-quantity type for completeness and to gain more experience with it. Still, maybe a good
-decision would be to skip it in the standardization process to not confuse users.
-
-After quoting the official definitions and terms and presenting how quantities
-work, let's discuss quantity points. Those describe specific points and are measured
-relative to a provided origin:
-
-```cpp
-quantity_point qp1 = si::zeroth_kelvin + delta<isq::thermodynamic_temperature[K]>(300.);
-quantity_point qp2 = si::zeroth_degree_Celsius + delta<isq::Celsius_temperature[deg_C]>(30.);
-```
-
-The above provides two different temperature points. The first one is measured as a relative
-quantity to the absolute zero (`0 K`), and the second one stores the value relative to
-the ice point being the beginning of the degree Celsius scale.
-
-Thanks to the `default_point_origin` used in the `quantity_point` class template definition,
-and benefiting from the fact that units of temperature have point origins provided in their
-definitions, we can obtain exactly the same quantity points with the following:
-
-```cpp
-quantity_point qp3 = point<isq::thermodynamic_temperature[K]>(300.);
-quantity_point qp4 = point<isq::Celsius_temperature[deg_C]>(30.);
-```
-
-It is essential to understand that the origins of quantity points will not change if
-we convert their units:
-
-```cpp
-quantity_point qp3 = qp1.in(deg_C);
-quantity_point qp4 = qp2.in(K);
-
-static_assert(std::is_same_v<decltype(qp3.point_origin), decltype(si::absolute_zero)>);
-static_assert(std::is_same_v<decltype(qp4.point_origin), decltype(si::ice_point)>);
-```
-
-If we want to obtain the values of quantities in specific units relative to the origins
-of their scales, we have to be explicit. We can do it in several ways:
-
-1. Subtracting points to obtain the quantity:
-
-    ```cpp
-    std::println("qp1: {}, {}, {}",
-                qp1 - si::zeroth_kelvin,
-                (qp1 - si::zeroth_degree_Celsius).in(deg_C),
-                (qp1 - usc::zeroth_degree_Fahrenheit).in(deg_F));
-    std::println("qp2: {::N[.2f]}, {}, {}",
-                (qp2 - si::zeroth_kelvin).in(K),
-                qp2 - si::zeroth_degree_Celsius,
-                (qp2 - usc::zeroth_degree_Fahrenheit).in(deg_F));
-    ```
-
-2. Using `quantity_from(PointOrigin)` member function:
-
-    ```cpp
-    std::println("qp1: {}, {}, {}",
-                qp1.quantity_from(si::zeroth_kelvin),
-                qp1.quantity_from(si::zeroth_degree_Celsius).in(deg_C),
-                qp1.quantity_from(usc::zeroth_degree_Fahrenheit).in(deg_F));
-    std::println("qp2: {::N[:.2f]}, {}, {}",
-                qp2.quantity_from(si::zeroth_kelvin).in(K),
-                qp2.quantity_from(si::zeroth_degree_Celsius),
-                qp2.quantity_from(usc::zeroth_degree_Fahrenheit).in(deg_F));
-    ```
-
-3. Using `quantity_from_zero()` member function that will use the point origin defined for
-   the current unit:
-
-    ```cpp
-    fmt::println("qp1: {}, {}, {}",
-                qp1.quantity_from_zero(),
-                qp1.in(deg_C).quantity_from_zero(),
-                qp1.in(deg_F).quantity_from_zero());
-    fmt::println("qp2: {::N[.2f]}, {}, {}",
-                qp2.in(K).quantity_from_zero(),
-                qp2.quantity_from_zero(),
-                qp2.in(deg_F).quantity_from_zero());
-    ```
-
-All of the cases above will provide the same output:
-
-```text
-qp1: 300 K, 26.85 ℃, 80.33 ℉
-qp2: 303.15 K, 30 ℃, 86 ℉
-```
-
-Of course, all other combinations are also possible. For example, nothing should prevent us
-from checking how many degrees of Celsius are there starting from the `zeroth_degree_Fahrenheit`
-for a quantity point using kelvins with the `zeroth_kelvin` origin:
-
-```cpp
-quantity q = qp1.quantity_from(usc::zeroth_degree_Fahrenheit).in(deg_C);
-```
 
 ### Structural types
 
@@ -6150,8 +5053,6 @@ Several proposed class templates like:
 
 - `derived_unit`, `derived_dimension`, `derived_quantity_spec`,
 - `per`, `power`,
-- `kilo_` and other prefixes,
-- `magnitude`,
 
 should not be explicitly instantiated by the user.
 
@@ -6249,17 +5150,19 @@ we describe the remaining ones.
 
 [@ISO80000] explicitly states that quantities (even of the same kind) may have different characters:
 
-- scalar,
+- real scalar,
+- complex scalar,
 - vector,
 - tensor.
 
 The quantity character in the library is implemented with the `quantity_character` enumeration:
 
 ```cpp
-enum class quantity_character { scalar, vector, tensor };
+enum class quantity_character { real_scalar, complex_scalar, vector, tensor };
 ```
 
-More information on quantity characters can be found in the [Character of a quantity] chapter.
+More information on quantity characters can be found in the [Safe operations of vector and tensor quantities]
+chapter.
 
 ### Quantity specification
 
@@ -6270,20 +5173,27 @@ units in the [@SI].
 This is why the library introduces a quantity specification entity that stores:
 
 - [Dimension],
-- [Quantity type],
+- [Quantity kind & type],
 - [Quantity character],
 - the quantity equation being the recipe to create this quantity (only for derived quantities that
   specify such a recipe).
 
 For example:
 
-- `isq::length`, `isq::mass`, `isq::time`, `isq::electric_current`, `isq::thermodynamic_temperature`,
-  `isq::amount_of_substance`, and `isq::luminous_intensity` are the specifications of base quantities
-  in the ISQ.
-- `isq::width`, `isq::height`, `isq::radius`, and `isq::position_vector` are only a few of many
-   quantities of a kind length specified in the ISQ.
-- `isq::area`, `isq::speed`, `isq::moment_of_force` are only a few of many derived quantities provided
-  in the ISQ.
+| Quantity Specification | Dimension | Quantity Kind          | Character | Equation                           |
+|------------------------|-----------|------------------------|-----------|------------------------------------|
+| `isq::length`          | L         | `isq::length`          | scalar    | base quantity                      |
+| `isq::mass`            | M         | `isq::mass`            | scalar    | base quantity                      |
+| `isq::time`            | T         | `isq::time`            | scalar    | base quantity                      |
+| `isq::width`           | L         | `isq::length`          | scalar    | `isq::length`                      |
+| `isq::height`          | L         | `isq::length`          | scalar    | `isq::length`                      |
+| `isq::position_vector` | L         | `isq::length`          | vector    | `isq::length`                      |
+| `isq::area`            | L²        | `isq::area`            | scalar    | `isq::length²`                     |
+| `isq::speed`           | LT⁻¹      | `isq::speed`           | scalar    | `isq::length / isq::time`          |
+| `isq::velocity`        | LT⁻¹      | `isq::speed`           | vector    | `isq::position_vector / isq::time` |
+| `isq::acceleration`    | LT⁻²      | `isq::acceleration`    | scalar    | `isq::speed / isq::time`           |
+| `isq::force`           | LMT⁻²     | `isq::force`           | scalar    | `isq::mass * isq::acceleration`    |
+| `isq::moment_of_force` | L²MT⁻²    | `isq::moment_of_force` | scalar    | `isq::force * isq::length`         |
 
 ### Unit
 
@@ -6294,7 +5204,7 @@ For example:
 
 - `si::second`, `si::metre`, `si::kilogram`, `si::ampere`, `si::kelvin`, `si::mole`, and `si::candela`
   are the base units of the [@SI].
-- `si::kilo<si::metre>` is a prefixed unit of length.
+- `si::kilo<si::metre>` is a prefixed unit of _length_.
 - `si::radian`, `si::newton`, and `si::watt` are examples of named derived units within the [@SI].
 - `non_si::minute` is an example of a scaled unit of time.
 - `si::si2019::speed_of_light_in_vacuum` is a physical constant standardized by the SI in 2019.
@@ -6306,7 +5216,8 @@ _Note: In this library, physical constants are also implemented as units._
 Quantity representation defines the type used to store the numerical value of a quantity. Such
 a type should be of a specific quantity character provided in the quantity specification.
 
-_Note: By default, all floating-point and integral (besides `bool`) types are treated as scalars._
+_Note: By default, all floating-point and integral (besides `bool`) types are treated as real scalars
+and `std::complex` as a complex scalar._
 
 ### Point origin
 
@@ -6329,10 +5240,10 @@ _Note: More information on this subject can be found in [The affine space] chapt
 
 ## Library namespace
 
-The number of types we propose with this library is not that large. They provide long-awaited
+The number of framework types we propose with this library is not that large. They provide long-awaited
 strong types support not only to model physical quantities and units but also to improve safety
-of everything that can be counted or resembles mathematical numbers in some ways (e.g., longitude
-and latitude, pixel coordinates, prices, etc.). This library also provides the affine space
+of everything that can be counted or resembles mathematical numbers in some ways (e.g., _longitude_
+and _latitude_, pixel _coordinates_, _prices_, etc.). This library also provides the affine space
 abstraction that has a broad usage by itself.
 
 This is why we propose to put all the framework entities directly in the namespace `std`. This
@@ -6362,8 +5273,8 @@ _Note: Initially, C++20 was meant to use `CamelCase` for all the concept identif
 Frustratingly, `CamelCase` concepts got dropped from the C++ standard at the last moment before
 releasing C++20. Now, we are facing the predictable consequences of running out of names.
 As long as some concepts in the library could be easily named with a `standard_case` there are
-some that are hard to distinguish from the corresponding type names, such as `Quantity`,
-`QuantityPoint`, `QuantitySpec`, or `Reference`. This is why we decided to use `CamelCase`
+some that are hard to distinguish from the corresponding type names, such as `Quantity` or
+`QuantitySpec`. This is why we decided to use `CamelCase`
 consistently for all the concept identifiers to make it clear when we are talking about a type
 or concept identifier. However, we are aware that this might be a temporary solution. In case
 the library gets standardized, we can expect the LEWG to bikeshed/rename all of the concept
@@ -6379,6 +5290,8 @@ We propose some suggestions at the end of the chapter._
   describing this dimension in a specific system of quantities.
 - Derived dimensions are implicitly created by the library's framework based on the quantity
   equation provided in the quantity specification.
+
+All of the above dimensions have to be marked as `final`.
 
 #### `DimensionOf<T, V>` concept { #DimensionOf-concept }
 
@@ -6399,6 +5312,8 @@ concept and when they compare equal.
 - Quantity kinds describing a family of mutually comparable quantities.
 - Intermediate derived quantity specifications being a result of a quantity equations on other
   specifications.
+
+All of the above quantity specifications have to be marked as `final`.
 
 #### `QuantitySpecOf<T, V>` concept { #QuantitySpecOf-concept }
 
@@ -6425,27 +5340,11 @@ _Note:_ Unit magnitude implementation is a private implementation detail of the 
   instantiated with a unique symbol identifier and a result of unit equation passed as an argument.
 - Derived unnamed units being a result of a unit equations on other units.
 
+All of the above units have to be marked as `final`.
+
 _Note: Physical constants are also implemented as units._
 
-#### `AssociatedUnit<T>` concept { #AssociatedUnit-concept }
-
-`AssociatedUnit` concept describes a unit with an associated quantity and is satisfied by:
-
-- All units derived from a `named_unit` class template instantiated with a unique symbol identifier
-  and a [`QuantitySpec`](#QuantitySpec-concept) of a quantity kind.
-- All units being a result of unit equations on other associated units.
-
-All units in the [@SI] have associated quantities. For example, `si::second` is specified to measure
-`isq::time`.
-
-Natural units typically do not have an associated quantity. For example, if we assume `c = 1`,
-a `natural::second` unit can be used to measure both `time` and `length`. In such case, `speed`
-would have a unit of `one`.
-
-_Note: If we decide not to support natural units in the initial release, this concept will not be
-needed for now._
-
-#### `PrefixableUnit<T>` concept { #PrefixableUnit-concept }
+#### `PrefixableUnit<T>` { #PrefixableUnit-concept }
 
 `PrefixableUnit` concept is satisfied by all units derived from a `named_unit` class template.
 Such units can be passed as an argument to a `prefixed_unit` class template.
@@ -6453,7 +5352,7 @@ Such units can be passed as an argument to a `prefixed_unit` class template.
 #### `UnitOf<T, V>` concept { #UnitOf-concept }
 
 `UnitOf` concept is satisfied for all units `T` for which an associated quantity spec is implicitly
-convertible to `V`.
+convertible to the provided `QuantitySpec` value..
 
 ### `Reference<T>` concept { #Reference-concept }
 
@@ -6462,7 +5361,7 @@ meta-information required to create a [`Quantity`](#Quantity-concept).
 
 A `Reference` can either be:
 
-- An [`AssociatedUnit`](#AssociatedUnit-concept).
+- A [`Unit`](#Unit-concept).
 - The instantiation of a `reference` class template with a [`QuantitySpec`](#QuantitySpec-concept)
   passed as the first template argument and a [`Unit`](#Unit-concept) passed as the second one.
 
@@ -6471,7 +5370,7 @@ A `Reference` can either be:
 `ReferenceOf` concept is satisfied by references `T` which have a quantity specification that
 satisfies [`QuantitySpecOf<V>`](#QuantitySpecOf-concept) concept.
 
-#### `RepresentationOf<T, Ch>` concept { #RepresentationOf-concept }
+### `RepresentationOf<T, V>` concept { #RepresentationOf-concept }
 
 `RepresentationOf` concept constraints a type of a number that stores the value of a quantity
 and is satisfied:
@@ -6572,7 +5471,6 @@ them is implicitly convertible to `isq::altitude`:
 `QuantityPoint` concept is satisfied by all types being either a specialization or derived from
 `quantity_point` class template.
 
-
 #### `QuantityPointOf<T, V>` concept { #QuantityPointOf-concept }
 
 `QuantityPointOf` concept is satisfied by all the quantity points `T` that match the following
@@ -6642,8 +5540,7 @@ This chapter provides some alternative names in `standard_case` for concepts.
 | `QuantitySpecOf`    | `quantity_spec_of`    |                       |                                                                                                    |
 | `UnitMagnitude`     | `unit_magnitude`      | `some_unit_magnitude` |                                                                                                    |
 | `Unit`              | `unit`                | `some_unit`           | "Alternative" allows renaming named_unit class template to unit                                    |
-| `AssociatedUnit`    | `associated_unit`     |                       |                                                                                                    |
-| `PrefixableUnit`    | `prefixable_unit`     | `some_prefixed_unit`  | The class template is called `prefixed_unit`.                                                      |
+| `PrefixableUnit`    | `prefixable_unit`     |                       |                                                                                                    |
 | `UnitOf`            | `unit_of`             |                       |                                                                                                    |
 | `Reference`         | `reference`           | `some_reference`      | Collides with `reference` class template, but we have some ideas how to remove the class template. |
 | `ReferenceOf`       | `reference_of`        |                       |                                                                                                    |
@@ -7027,7 +5924,7 @@ consteval bool operator==(reference<Q1, U1>, reference<Q2, U2>)
   return is_same_v<reference<Q1, U1>, reference<Q2, U2>>;
 }
 
-template<typename Q1, typename U1, AssociatedUnit U2>
+template<typename Q1, typename U1, Unit U2>
 consteval bool operator==(reference<Q1, U1>, U2 u2)
 {
   return Q1{} == get_quantity_spec(u2) && U1{} == u2;
@@ -7129,7 +6026,7 @@ This is why we discourage providing ordering operations for any of those entitie
 
 ### Arithmetics
 
-For consistency, we should also define arithmetic `operator+` and `operator-` for such entities
+For consistency, we could also define arithmetic `operator+` and `operator-` for such entities
 to resemble the operations performed on quantities. For example:
 
 ```cpp
@@ -7144,12 +6041,10 @@ returns:
 - `quantity<isq::displacement[cm], int>` for `q2`.
 
 Users may be interested to check what will be the result of performing such operations on
-ingredients of the quantity. This is why providing such operators for them seems to be a good
-idea:
+ingredients of the quantity. As we say that "addition of a radius and a distance should yield
+a length" it would be good to model this arithmetics on our symbolic constants as well:
 
 ```cpp
-static_assert(m + cm == cm);
-static_assert(km + mi == get_common_unit(km, mi));
 static_assert(isq::radius + isq::distance == isq::length);
 static_assert(isq::position_vector - isq::position_vector == isq::displacement);
 // constexpr auto qs = isq::position_vector + isq::position_vector;  // should not compile
@@ -7166,6 +6061,14 @@ static_assert(implicitly_convertible(vector_product(isq::position_vector, isq::f
 static_assert(implicitly_convertible(real(isq::complex_power), isq::active_power));
 static_assert(implicitly_convertible(imag(isq::complex_power), isq::reactive_power));
 static_assert(implicitly_convertible(modulus(isq::complex_power), isq::apparent_power));
+```
+
+Addition and subtractions on units is also possible, but it is more controverisal and less useful,
+so we do not propose them at this time:
+
+```cpp
+static_assert(m + cm == cm);
+static_assert(km + mi == get_common_unit(km, mi));
 ```
 
 
@@ -7253,220 +6156,75 @@ support from the library, and we do not propose it here either.
 
 ## Unit magnitudes
 
-A very common operation is to multiply an existing unit by a factor, creating a new, scaled unit.
-For example, the unit _foot_ can be multiplied by 3, producing the unit _yard_.
+Each unit is associated with a magnitude representing its scaling factor relative to other units of
+the same dimension. However, absolute magnitude values have no physical meaning—only the _ratio_
+between magnitudes matters. For example, once we assign magnitude $m_f$ to _foot_, we must assign
+$3m_f$ to _yard_ and $m_f/12$ to _inch_.
 
-The process also works in reverse; the ratio between any two units of the same dimension is
-a well-defined number.  For example, the ratio between one foot and one inch is 12.
+We make magnitude interfaces mostly _implementation-defined_, exposing only minimal public APIs for
+interoperability while leaving freedom to implementers.
 
-In principle, this scaling factor can be any positive real number.  In [@MP-UNITS] and [@AU], we
-have used the term "magnitude" to refer to this scaling factor.  (This should not be confused with
-other uses of the term, such as the logarithmic "magnitude" unit commonly used in astronomy).
+### Requirements beyond `std::ratio`
 
-In the library implementation, each unit is associated with a magnitude.  However, for most units,
-the magnitude is a fully encapsulated implementation detail, not a user-facing value.
+Magnitudes must support operations that units require: products and rational powers. Additionally,
+they must handle irrational ratios like $\frac{\pi}{180}$ between degrees and radians.
 
-This is because the notion of "the" magnitude of a unit is not generally meaningful: it has no
-physically observable consequence.  What _is_ meaningful is the _ratio_ of magnitudes between two
-units of the same quantity kind.  We could associate the _foot_, say, with any magnitude $m_f$ that
-we like --- but once we make that choice, we must assign $3m_f$ to the _yard_, and $m_f/12$ to the
-_inch_.  Separately and independently, we can assign any magnitude $m_s$ to the second, because it's
-an independent dimension --- but once we make that choice, it fixes the magnitude for derived units,
-and we must assign, say, $(5280 m_f) / (3600 m_s)$ to the _mile per hour_.
+`std::ratio` fails these requirements:
 
-Even when sometimes magnitudes are observable by the user, we've decided to make most of their
-interfaces _implementation-defined_. We expose only minimal public interfaces for interoperability,
-and we leave freedom to implementers on how they want to solve this problem in their libraries.
+- Integral types too small for eight SI prefixes
+- Not closed under rational powers (e.g., $\sqrt{2}$)
+- Cannot represent irrational factors like $\pi$
+- Vulnerable to overflow when raised to powers
 
-Below, we describe how magnitudes were implemented by [@MP-UNITS] and [@AU].
+### Vector space representation with prime factorization
 
-### Requirements and representation
+The solution uses prime factorization as a vector space basis. Each magnitude is a product of prime
+powers, with irrational constants (like $\pi$) added as additional basis elements when needed.
 
-A magnitude is a positive real number.  The best way to _represent_ it depends on how we will _use_
-it.
-
-To derive our requirements, note that magnitudes must support every operation which units do. Units
-are closed under _products_ and _rational powers_.  Therefore, our magnitude representation must
-support these operations natively and robustly; this is the most basic requirement. We must also
-support certain _irrational_ "ratios", such as the factor of $\frac{\pi}{180}$ between _degrees_ and
-_radians_.
-
-The usual approach, `std::ratio`, fails to satisfy these requirements in multiple ways.
-
-- Its integral types are too small to represent eight of SI prefixes.
-- It is not closed under rational powers (rather infamously, in the case of 2<sup>1/2</sup>).
-- It cannot represent irrational factors such as $\pi$.
-- It is too vulnerable to overflow when raised to powers.
-
-This motivates us to search for a better representation.
-
-#### Vector spaces, dimensions, and prime numbers
-
-The quickest way to find this better representation is via a quick detour.
-
-Consider the _dimensions_ of units, such as length, or speed.  All of the above requirements apply
-to dimensions, too --- but in this case, we already have a very good representation.  We start by
-singling out a set of dimensions to act as "base" dimensions: for example, the SI uses _length_,
-_mass_, _time_, _electric current_, _temperature_, _amount of substance_, and _luminous intensity_.
-Other dimensions are formed by taking products and rational powers of these.  Our choice of base
-dimensions must satisfy two properties: _spanning_ (i.e., every dimension can be expressed as _some_
-product-of-powers of base dimensions), and _independence_ (i.e., _no_ dimension can be expressed by
-_multiple_ products-of-powers of base dimensions).
-
-We call this scheme the "vector space" representation, because it satisfies all of the axioms of
-a vector space.  Choosing the base dimensions is equivalent to choosing a set of _basis vectors_.
-Multiplying dimensions is equivalent to _vector addition_.  And raising dimensions to rational
-powers is equivalent to _scalar multiplication_.
-
-| Dimension concept                | Corresponding vector space concept |
-|----------------------------------|------------------------------------|
-| Base dimensions                  | Basis vectors                      |
-| Multiplication                   | Vector addition                    |
-| Raising to rational power        | Scalar multiplication              |
-| Null dimension ("dimensionless") | Zero vector                        |
-
-This viewpoint lets us derive insights from our intuitions about vectors.  For example, just as
-we're free to make a _change of basis_, we could also choose a different set of _base dimensions_:
-an SI-like system could treat _charge_ as fundamental rather than _electrical current_, and would
-still produce all the same results.
-
-Returning to our magnitude representation problem, it should be clear that a vector space solution
-would meet all of our requirements --- _if_ we can find a suitable choice of basis.
-
-To begin our search, note that each magnitude must have a unique representation.  This means that
-every combination of our basis elements must produce a unique value.  Prime numbers have this
-property!  Take any arbitrarily large (but finite) collection of primes, raise each prime to some
-chosen exponent, and compute the product: the result can't be expressed by any other collection of
-exponents.
-
-Already, this lets us represent every positive real number which `std::ratio` can represent, by
-breaking the numerator and denominator into their prime factorizations.  But we can go further, and
-handle irrational factors such as $\pi$ by introducing them as new basis vectors.  $\pi$ cannot be
-represented by the product of powers of _any_ finite collection of primes, which means that it is
-"linearly independent" in the sense of our vector space representation.
-
-This completes our recipe for basis construction.  First, any prime number is automatically a basis
-element.  Next, any time we encounter a magnitude that can't be expressed in terms of the existing
-basis elements, then it is necessarily independent, which means we can simply add it as a _new_
-basis element.  It's true that, for reasons of real analysis, this approach can't rigorously
-represent every positive real number simultaneously.  However, it _does_ provide an approach that
-works in _practice_ for the finite set of magnitudes that we can use in real computer programs.
-
-On the C++ implementation side, we use variadic templates to define our magnitude.  Each element is
-a basis number raised to some rational power (which may be omitted or abbreviated as appropriate).
-
-### Advantages and disadvantages
-
-This representation has tradeoffs relative to other approaches, such as `std::ratio` and other
-related types.
-
-The core advantage is, of course, its ability to satisfy the requirements.  Several real-world
-operations that are impossible for `std::ratio` are effortless with vector space magnitudes.  Here
-are some examples, using Astronomical Units (au), meters (m), degrees (deg), and radians (rad).
+Examples using Astronomical Units (au), meters (m), degrees (deg), and radians (rad):
 
 <!-- markdownlint-disable MD013 -->
 
-| Unit ratio                                   | `std::ratio` representation   | vector space representation                                                                                             |
+| Unit ratio                                   | `std::ratio`                  | Vector space magnitude                                                                                                  |
 |----------------------------------------------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------|
 | $\left(\frac{\text{au}}{\text{m}}\right)$    | `std::ratio<149'597'870'700>` | `magnitude<power_v<2, 2>(), 3, power_v<5, 2>(), 73, 877, 7789>`                                                         |
-| $\left(\frac{\text{au}}{\text{m}}\right)^2$  | Unrepresentable (overflow)    | `magnitude<power_v<2, 4>(), power_v<3, 2>(), power_v<5, 4>(), power_v<73, 2>(), power_v<877, 2>(), power_v<7789, 2>()>` |
+| $\left(\frac{\text{au}}{\text{m}}\right)^2$  | Overflow                      | `magnitude<power_v<2, 4>(), power_v<3, 2>(), power_v<5, 4>(), power_v<73, 2>(), power_v<877, 2>(), power_v<7789, 2>()>` |
 | $\sqrt{\frac{\text{au}}{\text{m}}}$          | Unrepresentable               | `magnitude<2, power_v<3, 1, 2>(), 5, power_v<73, 1, 2>(), power_v<877, 1, 2>(), power_v<7789, 1, 2>()>`                 |
-| $\left(\frac{\text{rad}}{\text{deg}}\right)$ | Unrepresentable               | `magnitude<power_v<2, 2>(), power_v<3, 2>(), power_v<pi{}, -1>(), 5>`                                                   |
+| $\left(\frac{\text{rad}}{\text{deg}}\right)$ | Unrepresentable               | `magnitude<power_v<2, 2>(), power_v<3, 2>(), power_v<pi_c{}, -1>(), 5>`                                                 |
 
 <!-- markdownlint-enable MD013 -->
 
-One disadvantage of the vector space magnitudes is that the type names are more verbose.  As seen in
-the table above, users would have to perform arithmetic to decode which number is being represented.
-We expect that we can mitigate this with the same strategy we used to clean up the unit type names:
-hide them via opaque types with more human-friendly names.
+Trade-offs: more verbose type names (mitigated by opaque types) and dependency on compile-time
+prime factorization.
 
-The other disadvantage is that it incurs a dependency on the ability to compute prime factorizations
-at compile time, as we explore in the next section.
+### Compile-time factorization challenge
 
-### Compile-time factorization
+Users write `mag<149'597'870'700>`, which the library expands to its prime factorization. Large
+primes (e.g., 334,524,384,739 in the proton mass) cause compilers to assume infinite loops and
+terminate compilation when using trial division.
 
-End users don't construct magnitudes directly.  If they want to implement, say, the "astronomical
-unit" referenced above, they would write something like `mag<149'597'870'700>`.  The library would
-automatically expand this to `magnitude<power_v<2, 2>(), 3, power_v<5, 2>(), 73, 877, 7789>`.  To do
-so requires the ability to factor the number `149'597'870'700` at compile time.
-
-This turns out to be challenging in many practical cases.  For example, the proton mass involves
-a factor of $1,672,621,923,695$, which has a large prime factor: $334,524,384,739$.  The usual
-method of factorization, trial division, requires many iterations to discover that this factor is
-prime --- so many, in fact, that every major compiler will assume that it's an infinite loop, and
-will terminate the compilation!
-
-One of us wrote the paper [@P3133R0] to explore a possible solution to this problem: a new standard
-library function, `std::first_factor(uint64_t)`.  This function would be required to return a result
-at compile time for any 64-bit integer --- possibly with the help of compiler built-ins, if it could
-not be done any other way.  The feedback to this paper showed that this wasn't actually
-a hard-blocker: it turns out that every practical case we have could be satisfied by a fast
-primality checker.  Still, we plan to continue investigating this avenue, both because it would make
-the standard units library implementation much easier, and because this function would be widely
-useful in many other domains.
+[@P3133R0] explored `std::first_factor(uint64_t)` as a solution. Feedback showed a fast primality
+checker suffices for practical cases, though the function would still benefit the standard library
+and other domains.
 
 ### Common unit magnitude
 
-In our vector space representation, we can easily compute the magnitude of the common unit by taking
-the smallest exponent, across all participating magnitudes, for each individual basis vector --- as
-long as we remember to use the implicit "0" exponent for any basis vector that is omitted.
+Computing common magnitude: for each basis vector, take the minimum exponent across participating
+magnitudes (using implicit "0" for omitted vectors).
 
-The following example may help make this clear. If we use $\text{COM}\left[U_1, \cdots, U_n\right]$
-as notation to represent "the common unit of $U_1, \cdots, U_n$", and we show only the magnitudes
-for simplicity, here are the steps we would follow to find the magnitude of the common unit.
-
-<!-- markdownlint-disable MD013 -->
-
-$$
-\begin{align}
-\text{COM}\left[18, \frac{80}{3}\right] &= \text{COM}\left[(2 \cdot 3^2), (2^4 \cdot 3^{-1} \cdot 5)\right] \\
-&= \text{COM}\left[(2^1 \cdot 3^2 \cdot 5^0), (2^4 \cdot 3^{-1} \cdot 5^1)\right] \\
-&= 2^{\text{min}[1, 4]} \cdot 3^{\text{min}[2, -1]} \cdot 5^{\text{min}[0, 1]} \\
-&= 2^1 \cdot 3^{-1} \cdot 5^0 \\
-&= \frac{2}{3}
-\end{align}
-$$
-
-<!-- markdownlint-enable MD013 -->
-
-This procedure produces the unambiguous correct answer whenever it is well defined. It also
-produces an answer for irrational "ratios", where there is no uniquely defined result. This provides
-the practical benefit of making it easy to compare, say, an angle in degrees to one in radians, as
-long as at least one of them is represented in a floating point type.
-
+Example: $\text{COM}[18, \frac{80}{3}] = \text{COM}[(2 \cdot 3^2), (2^4 \cdot 3^{-1} \cdot 5)] = 2^{\min[1,4]} \cdot 3^{\min[2,-1]} \cdot 5^{\min[0,1]} = \frac{2}{3}$
 
 ## Physical constants
 
-In most libraries, physical constants are implemented as constant (possibly `constexpr`)
-quantity values. Such an approach has some disadvantages, often resulting in longer
-compilation times and a loss of precision.
+### Constants as units
 
-### Simplifying constants in an equation
+Physical constants are implemented as units rather than `constexpr` quantity values. Benefits:
 
-When dealing with equations involving physical constants, they often occur more than once
-in an expression. Such a constant may appear both in a numerator and denominator of a quantity
-equation. As we know from fundamental physics, we can simplify such an expression by simply
-striking a constant out of the equation. Supporting such behavior allows a faster runtime
-performance and often a better precision of the resulting value.
+- Constants in both numerator and denominator simplify at compile-time (like regular units)
+- Expensive multiplication/division delayed until user selects output unit
+- Enables simpler/faster representation types (e.g., integral instead of floating-point)
 
-### Physical constants as units
-
-The library allows and encourages implementing physical constants as regular units.
-With that, the constant's value is handled at compile-time, and under favorable circumstances,
-it can be simplified in the same way as all other repeated units do. If it is not simplified,
-the value is stored in a type, and the expensive multiplication or division operations can
-be delayed in time until a user selects a specific unit to represent/print the data.
-
-Such a feature often also allows the use of simpler or faster representation types in the equation.
-For example, instead of always multiplying a small integral value with a big floating-point
-constant number, we can just use the integral type all the way. Only in case a constant will not
-simplify in the equation, and the user will require a specific unit, such a multiplication will
-be lazily invoked, and the representation type will need to be expanded to facilitate that.
-With that, addition, subtractions, multiplications, and divisions will always be the fastest -
-compiled away or done on the fast arithmetic types or in out-of-order execution.
-
-To benefit from all of the above, constants (defined by SI or otherwise) are implemented as units
-in the following way:
+Example definitions:
 
 ```cpp
 namespace si {
@@ -7479,97 +6237,18 @@ inline constexpr struct speed_of_light_in_vacuum final :
 }  // namespace si2019
 
 inline constexpr struct magnetic_constant final :
-  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag<π> * mag_power<10, -7> * henry / metre> {} magnetic_constant;
+  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag_power<10, -7> * π * henry / metre> {} magnetic_constant;
 
 }  // namespace si
 ```
 
-### Physical constants usage examples
-
-With the above definitions, we can calculate vacuum permittivity as:
+Usage example (vacuum permittivity):
 
 ```cpp
 constexpr auto permeability_of_vacuum = 1. * si::magnetic_constant;
 constexpr auto speed_of_light_in_vacuum = 1 * si::si2019::speed_of_light_in_vacuum;
-
 QuantityOf<isq::permittivity_of_vacuum> auto q = 1 / (permeability_of_vacuum * pow<2>(speed_of_light_in_vacuum));
-
-std::cout << "permittivity of vacuum = " << q << " = " << q.in(F / m) << "\n";
-```
-
-The above first prints the following:
-
-```text
-permittivity of vacuum = 1  μ₀⁻¹ c⁻² = 8.85419e-12 F/m
-```
-
-As we can clearly see, all the calculations above were just about multiplying and dividing
-the number `1` with the rest of the information provided as a compile-time type. Only when
-a user wants a specific SI unit as a result, the unit ratios are lazily resolved.
-
-Another similar example can be an equation for total energy:
-
-```cpp
-QuantityOf<isq::mechanical_energy> auto total_energy(QuantityOf<isq::momentum> auto p,
-                                                     QuantityOf<isq::mass> auto m,
-                                                     QuantityOf<isq::speed> auto c)
-{
-  return isq::mechanical_energy(sqrt(pow<2>(p * c) + pow<2>(m * pow<2>(c))));
-}
-```
-
-<!-- TODO refactor to the vector representation type when the design is done -->
-
-```cpp
-constexpr Unit auto GeV = si::giga<si::electronvolt>;
-constexpr quantity c = 1. * si::si2019::speed_of_light_in_vacuum;
-constexpr quantity c2 = pow<2>(c);
-
-const quantity p1 = isq::momentum(4. * GeV / c);
-const QuantityOf<isq::mass> auto m1 = 3. * GeV / c2;
-const quantity E = total_energy(p1, m1, c);
-
-std::cout << "in `GeV` and `c`:\n"
-          << "p = " << p1 << "\n"
-          << "m = " << m1 << "\n"
-          << "E = " << E << "\n";
-
-const quantity p2 = p1.in(GeV / (m / s));
-const quantity m2 = m1.in(GeV / pow<2>(m / s));
-const quantity E2 = total_energy(p2, m2, c).in(GeV);
-
-std::cout << "\nin `GeV`:\n"
-          << "p = " << p2 << "\n"
-          << "m = " << m2 << "\n"
-          << "E = " << E2 << "\n";
-
-const quantity p3 = p1.in(kg * m / s);
-const quantity m3 = m1.in(kg);
-const quantity E3 = total_energy(p3, m3, c).in(J);
-
-std::cout << "\nin SI base units:\n"
-          << "p = " << p3 << "\n"
-          << "m = " << m3 << "\n"
-          << "E = " << E3 << "\n";
-```
-
-The above prints the following:
-
-```text
-in `GeV` and `c`:
-p = 4 GeV/c
-m = 3 GeV/c²
-E = 5 GeV
-
-in `GeV`:
-p = 1.33426e-08 GeV s/m
-m = 3.33795e-17 GeV s²/m²
-E = 5 GeV
-
-in SI base units:
-p = 2.13771e-18 kg m/s
-m = 5.34799e-27 kg
-E = 8.01088e-10 J
+std::cout << q << " = " << q.in(F / m) << "\n";  // prints: 1  μ₀⁻¹ c⁻² = 8.85419e-12 F/m
 ```
 
 ### Negative constants
@@ -7577,25 +6256,17 @@ E = 8.01088e-10 J
 Named units may not be enough to model all of the constants out there. It turns out that there are
 many negative constants. Some of them can be found in [CODATA](https://physics.nist.gov/cuu/Constants).
 One such constant is [_helion g factor_](https://physics.nist.gov/cgi-bin/cuu/Value?ghn).
-Trying to model this as below fails to compile:
+
+Trying to model this with `named_unit` fails to compile. The reason of the error is the fact that
+the conversion factors between units should be positive. This means that reusing `named_units` to
+define constants may not be the best idea and we probably need to introduce a dedicated class.
+
+This is why we need to introduce a new class template:
 
 ```cpp
 inline constexpr struct helion_g_factor :
-  named_unit<basic_symbol_text{"𝘨ₕ", "g_h"}, mag<-ratio{4'255'250'615, 1'000'000'000}> * one> {} helion_g_factor;
+  named_constant<basic_symbol_text{"𝘨ₕ", "g_h"}, mag<-ratio{4'255'250'615, 1'000'000'000}> * one> {} helion_g_factor;
 ```
-
-The reason of the error above is the fact that the conversion factors between units should be
-positive. This means that reusing `named_units` to define constants may not be the best idea and
-we probably need to introduce a dedicated class.
-
-One of the problems associated with a new class will be finding a good name for it. Naming is hard 😉.
-`std::constant` would be too generic for a C++ library. [@ISO80000] (part 1) §A.4 "Constants" names
-them as universal constants or fundamental physical constants. Based on that we could use one of
-the following names:
-
-- `universal_constant`,
-- `fundamental_constant`,
-- `physical_constant` (although, they are not limited only to physics).
 
 
 ## Quantity specifications
@@ -7613,8 +6284,9 @@ names for this abstraction:
 - `q_spec`,
 - `q_specification`,
 - `quantity_definition`,
-- `quantity_def`.
-
+- `quantity_def`,
+- `quantity_data`,
+- `q_data`.
 
 
 ## Quantity references
@@ -7657,8 +6329,7 @@ constexpr ReferenceOf<isq::speed> auto speed = distance / si::second;
 As a result we get a `reference<derived_quantity_spec<distance, per<time>>, derived_unit<metre, per<second>>>`
 type.
 
-Similarly to the [`AssociatedUnit`](#AssociatedUnit-concept), such a reference can be used to
-construct a quantity:
+Similarly to the [`Unit`](#Unit-concept), such a reference can be used to construct a quantity:
 
 ```cpp
 QuantityOf<isq::speed> auto s = 60 * speed;
@@ -7737,7 +6408,7 @@ with this have entire commutative property?
 
 ### Why don't we use UDLs to create quantities?
 
-[Constructing a quantity] chapter describes and explains why we introduced
+[Quantity construction] chapter describes and explains why we introduced
 the multiply syntax as a construction helper for quantities. Many people ask why we chose
 this approach over battle-proven User Defined Literals (UDLs) that work well for the
 `std::chrono` library.
@@ -7806,15 +6477,14 @@ The multiply syntax that we chose for this library does not have any of those is
 
 - `min()`,
 - `max()`,
-- `zero()`,
-- `one()`.
+- `zero()`.
 
 Also, similarly to `std::chrono::duration` those functions are implemented in terms of a type
 trait:
 
 ```cpp
 template<typename Rep>
-struct quantity_values : std::chrono::duration_values<Rep> {
+struct representation_values : std::chrono::duration_values<Rep> {
   static constexpr Rep one() noexcept
     requires std::constructible_from<Rep, int>
  {
@@ -7823,10 +6493,14 @@ struct quantity_values : std::chrono::duration_values<Rep> {
 };
 ```
 
-This is good for consistency but does not comply with the approach proposed in [@P1841R3].
-Should we be consistent with `std::chrono::duration` here?
+An additional the `one()` function in `representation_values` is provided for use with the multiply
+syntax when constructing quantities. Users can create a quantity with numerical value of one using:
+`representation_values<double>::one() * si::metre`. This function is not exposed as a static member
+of `quantity` because `one()` is not a true multiplicative identity for dimensional quantities—for
+example, `pow<2>(quantity<si::metre>::one())` would change the dimension from _length_ to _area_.
 
-Please also note that in C++26, `std::chrono::duration` is not a part of the freestanding library.
+Please also note that in C++26, `std::chrono::duration_values` is not a part of the freestanding
+library.
 
 
 ### Quantity arithmetics
@@ -7859,34 +6533,9 @@ Assuming that:
 
 here is the list of all the supported operators:
 
-- unary:
-    - `+q`
-    - `-q`
-    - `++q`
-    - `q++`
-    - `--q`
-    - `q--`
-- compound assignment:
-    - `q += qq`
-    - `q -= qq`
-    - `q %= qq`
-    - `q *= number`
-    - `q *= one`
-    - `q /= number`
-    - `q /= one`
-- binary:
-    - `q + kind`
-    - `q - kind`
-    - `q % kind`
-    - `q * q2`
-    - `q * number`
-    - `number * q`
-    - `q / q2`
-    - `q / number`
-    - `number / q`
-- ordering and comparison:
-    - `q == kind`
-    - `q <=> kind`
+|                      Unary                       |                                        Compound assignment                                        |                                                             Binary                                                             |    Ordering & comparison    |
+|:------------------------------------------------:|:-------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------:|:---------------------------:|
+| `+q`<br>`-q`<br>`++q`<br>`q++`<br>`--q`<br>`q--` | `q += qq`<br>`q -= qq`<br>`q %= qq`<br>`q *= number`<br>`q *= one`<br>`q /= number`<br>`q /= one` | `q + kind`<br>`q - kind`<br>`q % kind`<br>`q * q2`<br>`q * number`<br>`number * q`<br>`q / q2`<br>`q / number`<br>`number / q` | `q == kind`<br>`q <=> kind` |
 
 As we can see, there are plenty of operations one can do on a value of a `quantity` type. As most
 of them are obvious, in the following chapters, we will discuss only the most important or non-trivial
@@ -8139,145 +6788,38 @@ if(auto q = q1 / q2; q != q.zero())
 But that is a bit inconvenient, and inexperienced users could be unaware of this technique and its
 rationale.
 
-##### Named comparison functions
+For the above reasons, the library provides special support for comparisons against the
+literal `0`. Only this one value has elevated privileges and does not have to state the
+unit — the numerical value zero is common to all scaled units of any kind.
 
-For the above reasons, the [@MP-UNITS] library provides dedicated interfaces to compare against zero
-that follow the naming convention of
-[named comparison functions](https://en.cppreference.com/w/cpp/utility/compare/named_comparison_functions)
-in the C++ Standard Library:
-
-- `is_eq_zero`
-- `is_neq_zero`
-- `is_lt_zero`
-- `is_gt_zero`
-- `is_lteq_zero`
-- `is_gteq_zero`
-
-Thanks to them, to save typing and not pay for unneeded conversions, our check could be implemented
-as follows:
+Thanks to that, to save typing and not pay for unneeded conversions, our check could be
+implemented as follows:
 
 ```cpp
-if (is_neq_zero(q1 / q2))
+if (q1 / q2 != 0)
   // ...
 ```
 
-Those functions will work with any type `T` that exposes a `zero()` member function returning
-something comparable to `T`. Thanks to that, we can use them not only with quantities but also
-with `std::chrono::duration` or any other type that exposes such an interface.
+All six comparison operators support comparison against zero without specifying a unit.
+This works with any representation type `rep` for which `representation_values<rep>::zero()`
+is provided.
 
-_Note:_ If we do not feel that we have a need for such generic functions in the `std` namespace,
-we can make them hidden friends of the `quantity` which will limit their scope to just this library.
+Only a compile-time zero is accepted: an integer or floating-point literal that is zero
+(e.g., `0`, `0.`, `0.f`, `0LL`). Passing another literal or a runtime variable — even one
+whose value happens to be zero — is rejected at compile time.
 
-This approach has a downside, though: it produces a set of new APIs which users must learn.
-Nor are these six the only such functions that will need to exist: for example, `max` and `min` are
-perfectly reasonable to use with `0` regardless of the units, but supporting them under this
-strategy would require adding a new utility function for each --- and coming up with a name for
-those functions.
-
-It also introduces small opportunities for error and diffs that are harder to review, because we're replacing
-a pattern that uses an operator (say, `a > 0`) with a named function call (say, `is_gt_zero(a)`).
-
-These pitfalls motivate us to consider other approaches as well.
-
-##### `Zero` type
-
-The [@AU] library takes a different approach to this problem.  It provides an empty type, `Zero`, which
-represents a value of exactly `0` (in any units).  It also provides an instance `ZERO` of this type.
-Every quantity is implicitly constructible from `Zero`.
-
-Consider this example legacy (i.e., pre-units-library) code:
-
-```cpp
-if (speed_squared_m2ps2 > 0) { /* ... */ }
-```
-
-When users upgrade to a units library, they will replace the raw number `speed_squared_m2ps2` with
-a strongly typed quantity `speed_squared`.  Unfortunately, this replacement won't compile, because
-quantities can't be constructed from raw numeric values such as `0`.  They can fix this problem by
-using the instance, `ZERO`, which encodes its value in the type:
-
-```cpp
-if (speed_squared > ZERO) { /* ... */ }
-```
-
-This has significant advantages. It preserves the form of the code, making the transition less
-error prone than replacement with a function such as `is_gt_zero`. It also reduces the number of
-new comparison APIs a user must learn: `Zero` handles them all.
-
-`Zero` has one downside: it will not work when passed across generic quantity interfaces. `Zero`'s
-value comes in situations where the surrounding context makes it unambiguous which quantity type it
-should construct. While it converts to any specific quantity type, it is not itself a quantity.
-This could confuse users.
-
-This downside manifests in several different ways. Here are some examples:
-
-1. While refactoring the [@MP-UNITS] code to try out this approach, we found out a perfectly
-   reasonable place where we could not replace the numerical value `0` with `ZERO`:
-
-   ```cpp
-   msl_altitude alt = mean_sea_level + 0 * si::metre;  // OK
-   msl_altitude alt = mean_sea_level + ZERO;           // Compile-time error
-   ```
-
-   This would not work because the `mean_sea_level` is an absolute point origin that stores
-   the information about the quantity type but not its value or unit, which `msl_altitude` needs,
-   but none of which `ZERO` has.
-
-2. Callsites passing `ZERO` can add friction when refactoring a concrete interface to be more
-   generic.
-
-    ```cpp
-    namespace v1 { void foo(quantity<si::metre> q); }
-    namespace v2 { void foo(QuantityOf<isq::length> auto q); }
-
-    v1::foo(ZERO);   // OK
-    v2::foo(ZERO);   // Compile-time error
-    ```
-
-   In practice, this issue will be discovered at the point of refactoring, so it mainly affects
-   library authors, not their clients. They can handle this by adding an overload for `Zero`,
-   if appropriate. However, this wouldn't scale well for APIs with multiple parameters where users
-   would want to pass `Zero`.
-
-3. For completeness, we mention that `Zero` works for addition but not multiplication. When
-   multiplying, we do not know what units (or even what dimension!) is desired for the result.
-   However, this is not a problem in practice because users would not be motivated to write this
-   in the first place, as simple multiplication with `0` (including any necessary units, if the
-   result has a different dimension) would work.
-
-    ```cpp
-    quantity q1 = 1 * m / s;
-    quantity q2 = q1 + 0 * m / s;   // OK
-    quantity q3 = q1 * (0 * s);     // OK
-    ```
-
-    ```cpp
-    quantity q1 = 1 * m / s;
-    quantity q2 = q1 + ZERO;        // OK
-    quantity q3 = q1 * ZERO;        // Compile-time error
-    ```
-
-The main concern with the `Zero` feature is that novices might be tempted to replace every numeric
-value `0` with the instance `ZERO`, becoming confused when it doesn't work. We could address this
-with easy-to-read documentation that clarifies its use cases and mental models.
-
-##### Summary (comparison against zero)
-
-Overall, these two approaches --- special functions, and a `Zero` type --- represent two local
-optima in design space. Each has its strengths and weaknesses; each makes different tradeoffs.
-It's currently an open question as to which approach would be best suited for a quantity type
-in the standard library.
 
 #### Other maths
 
 This chapter scoped only on the `quantity` type's operators. However, there are many named math
 functions provided in the [@MP-UNITS] library. Among others, we can find there the following:
 
-- `pow()`, `sqrt()`, and `cbrt()`,
+- `pow()`, `sqrt()`, `cbrt()`,
 - `exp()`,
 - `abs()`,
 - `epsilon()`,
-- `fma()`, `fmod()`,
+- `fma()`, `fmod()`, `remainder()`,
+- `isfinite()`, `isinf()`, `isnan()`,
 - `floor()`, `ceil()`, `round()`,
 - `inverse()`,
 - `hypot()`,
@@ -8434,66 +6976,6 @@ of things. For example:
 Thanks to assigning strong names to such quantities, they can be used in the quantity equation of
 other quantities. For example, _rotational frequency_ is defined by `rotation / duration`.
 
-#### Convertibility from fundamental types
-
-As stated before, the division of two quantities of the same kind results in a quantity of
-dimension one. Even though it does not have a specific physical dimension it still uses units with
-various ratios such as `one`, `percent`, `radian`, `degree`, etc. It is essential to be explicit
-about which unit we want to use for such a quantity.
-
-However, in some cases, this might look like an overkill. For example:
-
-```cpp
-static_assert(10 * km / (5 * km) == 2 * one);
-```
-
-This is why we've added support for such feature. It was described in
-the [Superpowers of the unit `one`] chapter already. Such support has sense only for quantities
-with a unit `one`. In the case of all the other units, the specific unit should still be provided.
-We also need to use explicit units to create a quantity for some cases. For example,
-in the following code, `asin(-1)` would use the overload from the `<math>` header of
-the C++ standard library rather than the one for quantities provided in `<mp-units/math.h>`
-header file:
-
-```cpp
-REQUIRE_THAT(asin(-1 * one), AlmostEquals(-90. * deg));
-```
-
-We may also want to discuss convertibility rules in the LEWG. Here are the questions to ask:
-
-1. Should such a conversion be explicit or implicit?
-
-    We may be tempted to stay on the safe side and choose explicit conversions here. However, this
-    would make the following expression illegal or at least awkward:
-
-    ```cpp
-    static_assert(10 * km / (5 * km) + 1 == 3);
-    ```
-
-    It would be strange to support arithmetics against the raw value if the quantity type can't
-    be implicitly constructed from it.
-
-2. Should we support converting from the dimensionless quantity with unit `one` to the raw value?
-   If yes, should it be implicit or explicit?
-
-    It could probably be better to allow implicit conversions to work with legacy interfaces or
-    to benefit from regular math-related functions that work on fundamental types.
-    Otherwise, we will need to type something like this in our code:
-
-    ```cpp
-    auto res = sin(static_cast<double>(q));
-    ```
-
-    which really is not a great improvement over:
-
-    ```cpp
-    auto res = sin(q.numerical_value_in(one));
-    ```
-
-    However, this breaks `std::common_type_t<quantity<one>, double>`. It is why we've decided to
-    stay with an explicit conversion so far.
-
-
 #### Predefined units of the dimensionless quantity
 
 As we observed above, the most common unit for dimensionless quantities is `one`. It has the
@@ -8519,6 +7001,9 @@ inline constexpr struct percent final : named_unit<"%", mag_ratio<1, 100> * one>
 inline constexpr struct per_mille final : named_unit<{u8"‰", "%o"}, mag_ratio<1, 1000> * one> {} per_mille;
 inline constexpr struct parts_per_million final : named_unit<"ppm", mag_ratio<1, 1'000'000> * one> {} parts_per_million;
 inline constexpr auto ppm = parts_per_million;
+
+inline constexpr struct pi final : named_constant<symbol_text{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, mag<pi_c> * one> {} pi;
+inline constexpr auto π /* U+03C0 GREEK SMALL LETTER PI */ = pi;
 ```
 
 ##### Superpowers of the unit `one`
@@ -8584,11 +7069,11 @@ quantity rate_of_climb = -0.63657 * m / s;
 quantity glide_ratio = speed / -rate_of_climb;
 quantity glide_angle = angular::asin(1 / glide_ratio);
 
-std::println("Glide ratio: {::N[.1f]}\n", value_cast<one>(glide_ratio));
+std::println("Glide ratio: {::N[.1f]}", glide_ratio.in(one));
 std::println("Glide angle:");
-std::println(" - {::N[.4f]}\n", glide_angle);
-std::println(" - {::N[.2f]}\n", value_cast<angular::degree>(glide_angle));
-std::println(" - {::N[.2f]}\n", value_cast<angular::gradian>(glide_angle));
+std::println(" - {::N[.4f]}", glide_angle);
+std::println(" - {::N[.2f]}", glide_angle.in(angular::degree));
+std::println(" - {::N[.2f]}", glide_angle.in(angular::gradian));
 ```
 
 The above program prints:
@@ -8655,8 +7140,8 @@ quantity<dimensionless[one]> q2 = dimensionless(q1.in(one));
 
 ### Value conversions
 
-[Preventing truncation of data] and [Safe unit conversions] chapters describe the motivation,
-usage, and safety benefits of the `value_cast`, `in`, and `force_in` value conversion functions.
+[Truncation prevention] and [Unit safety] chapters describe the motivation, usage,
+and safety benefits of the `value_cast`, `in`, and `force_in` value conversion functions.
 
 #### `template` disambiguation concerns
 
@@ -8694,13 +7179,15 @@ Before we provide some alternatives it is good to mention that we also heve
 a `x.force_numerical_value_in(u)` to force a truncation while obtaining a numerical value of the
 quantity.
 
-[@AU] library uses `x.coerse_in(u)` for this operation. We could also consider different names.
+[@AU] library uses `x.coerce_in(u)` for this operation. We could also consider different names.
 Here are a few possbile alternatives:
 
 - `x.force_in(u)`, `x.force_numerical_value_in(u)`,
 - `x.forced_into(u)`, `x.forced_numerical_value_into(u)`,
-- `x.coerse_in(u)`, `x.coerse_numerical_value_in(u)`,
 - `x.unsafe_in(u)`, `x.unsafe_numerical_value_in(u)`,
+- `x.lossy_in(u)`, `x.lossy_numerical_value_in(u)`,
+- `x.unchecked_in(u)`, `x.unchecked_numerical_value_in(u)`,
+- `x.coerce_in(u)`, `x.coerce_numerical_value_in(u)`,
 - `x.cast_in(u)`, `x.cast_numerical_value_in(u)`,
 - `x.cast_to(u)`, `x.cast_numerical_value_to(u)`.
 
@@ -8725,10 +7212,10 @@ parameters. Implementing them in terms of implicit convertibility leads to inval
 types. Let's see the following example:
 
 ```cpp
-static_assert(std::convertible_to<quantity<isq::speed[m/s], int>, 
- quantity<(isq::length / isq::time)[m/s], double>>);
+static_assert(std::convertible_to<quantity<isq::speed[m/s], int>,
+                                  quantity<(isq::length / isq::time)[m/s], double>>);
 static_assert(!std::convertible_to<quantity<(isq::length / isq::time)[m/s], double>,
- quantity<isq::speed[m/s], int>>);
+                                   quantity<isq::speed[m/s], int>>);
 ```
 
 As we see above, `quantity<isq::speed[m/s], int>` converts to
@@ -8749,9 +7236,9 @@ are interconvertible:
 
 ```cpp
 static_assert(std::convertible_to<quantity<(isq::mass * pow<2>(isq::length / isq::time))[J], double>,
- quantity<isq::energy[kg*m2/s2], double>>);
+                                  quantity<isq::energy[kg*m2/s2], double>>);
 static_assert(std::convertible_to<quantity<isq::energy[kg*m2/s2], double>,
- quantity<(isq::mass * pow<2>(isq::length / isq::time))[J], double>>);
+                                  quantity<(isq::mass * pow<2>(isq::length / isq::time))[J], double>>);
 ```
 
 We could think that the problem is gone, and we can use implicit conversions. However,
@@ -9255,23 +7742,135 @@ the domain and non-C++ experts. Thanks to the user-friendly multiply syntax, sup
 excellent readability of generated types in compiler error messages, and simplicity of systems
 definitions, this library makes it easy to do the first steps in the dimensional analysis domain.
 
+## Prerequisites and target audience
+
+Students should have basic familiarity with:
+
+- C++ fundamentals (variables, functions, basic templates)
+- Basic physics concepts (_distance_, _time_, _speed_) for motivation
+
+The library is suitable for:
+
+- **Introductory programming courses** - teaches type safety early with intuitive physical examples
+- **Scientific computing courses** - provides practical dimensional analysis tools
+- **Software engineering courses** - demonstrates modern C++ library design and compile-time safety
+- **Physics/engineering courses** - replaces error-prone raw numeric computations
+
+No prior knowledge of template metaprogramming or dimensional analysis is required for basic usage.
+
+## Motivation through real-world disasters
+
+Starting with compelling examples helps students understand _why_ strong typing matters:
+
+- [@ARIANE] - Ariane 5 rocket destroyed due to unit conversion error ($370M loss)
+- [@MARS_ORBITER] - Lost due to pound-force vs. Newton confusion ($327M loss)
+- [@COLUMBUS] - Got Americas "wrong" due to distance unit misunderstandings
+
+These examples demonstrate that unit errors are costly, hard to spot in code review, and can slip
+through testing. A quick demonstration of untyped vs. typed code makes the value proposition clear:
+
+```cpp
+// Unsafe - compiles but crashes spacecraft
+double orbital_velocity(double radius, double period)
+{
+  return 2 * 3.14159 * radius / period;
+}
+auto v = orbital_velocity(400000, 5400);  // What units? Which one is length? Compiler can't tell!
+
+// Safe - units enforced at compile time
+quantity<si::metre / si::second> orbital_velocity(quantity<si::metre> auto radius,
+                                                  quantity<si::second> auto period)
+{
+  return 2 * pi * radius / period;
+}
+quantity v = orbital_velocity(400 * km, 90 * min);  // OK: 279 m/s
+```
+
+## Learning path for beginners
+
+### Step 1: Basic quantities
+
 If someone is new to the domain, a concise introduction of [Systems of units], the [@SI], and
 the US Customary System (and how it relates to SI) might be needed.
 
 After that, every new user, even a C++ newbie, should have no problems with understanding the topics
-of the [Unit-based quantities (simple mode)] chapter and should be able to start using the
+of the [Quantity construction] chapter and should be able to start using the
 library successfully. At least as long as they keep operating in the safety zone using
 floating-point representation types.
+
+Start with the multiply syntax for creating quantities:
+
+```cpp
+import std;
+
+int main()
+{
+  using namespace std::si::unit_symbols;
+  
+  quantity distance = 100.0 * m;
+  quantity time = 9.58 * s;
+  quantity speed = distance / time;
+  
+  std::println("Usain Bolt's speed: {::N[.2f]}", speed);  // 10.44 m/s
+}
+```
+
+Key teaching points:
+
+- Natural syntax: `100.0 * m` reads like physics notation
+- Automatic unit propagation: `m / s` derived from division
+- Type safety: Cannot accidentally add `distance + time`
+- CTAD eliminates verbose type spelling
+
+### Step 2: Unit conversions and safety
 
 Eventually, the library will stand in the way, disallowing "unsafe" conversions. This would be
 a perfect place to mention the importance of providing safe interfaces at compile-time and describe
 why narrowing conversions are unwelcome and what the side effects of those might be. After that,
 forced conversions in the library should be presented.
 
+Demonstrate safe conversions:
+
+```cpp
+quantity<m> race_distance = 100. * m;
+quantity<km> trip_distance = race_distance.in(km);  // Safe: 0.1 km
+
+quantity<m, int> d1 = 5 * m;          // OK
+quantity<m, int> d2 = 5.5 * m;        // Error: narrowing conversion
+quantity<m, int> d3 = (5.5 * m).force_in<int>();  // Explicit truncation
+
+quantity<km, int> d4 = 1500 * m;      // Error: truncation in conversion
+quantity<km, int> d5 = (1500 * m).force_in(km);   // Explicit: d5 == 1 km
+```
+
+This naturally introduces:
+
+- The `.in(unit)` member function for safe conversions
+- Why the library prevents narrowing (data loss, bugs)
+- Explicit `.force_in()` for intentional lossy conversions
+- Difference between representation narrowing and unit conversion narrowing
+
+### Step 3: Interacting with legacy code
+
 In case a target audience needs to interact with legacy interfaces that take raw numeric values,
-[Obtaining a numerical value of a quantity] chapter should be introduced. In such a case, it is
+[Safe quantity numerical value getters] chapter should be introduced. In such a case, it is
 important to warn students of why this operation is unsafe and what are the potential
 maintainability issues.
+
+```cpp
+// Legacy API
+void legacy_api(double distance_in_meters);
+
+// Modern code
+quantity dist = 5 * km;
+legacy_api(dist.numerical_value_in(m));  // Explicit: I know this is in meters
+```
+
+Emphasize the dangers: the compiler cannot verify that `distance_in_meters` actually expects
+meters rather than feet or kilometers. You must manually ensure the unit in `.numerical_value_in()`
+matches the legacy API's expectations, which may be undocumented or ambiguous.
+
+### Step 4: Custom units and extensions
 
 Next, we could show how easy extending the library with custom units is. A simple and funny
 example like the below could be a great exercise here:
@@ -9289,17 +7888,37 @@ int main()
 }
 ```
 
+This demonstrates that the library is extensible and students can define domain-specific units
+(e.g., furlongs per fortnight for astronomy, pixels for graphics).
+
+### Step 5: Temperature and affine spaces
+
 After a while, we can also introduce students to [The affine space] abstractions and discuss
 the [Temperature support].
 
+This introduces the distinction between differences (`quantity`) and absolute points
+(`quantity_point`), using temperature as the most intuitive example:
+
+```cpp
+quantity temp_diff = 20 * delta<deg_C>;     // Temperature difference
+quantity_point temp = 20 * point<deg_C>;    // Absolute temperature
+
+quantity diff = temp - point<deg_C>(0);     // OK: difference between points
+// auto sum = temp + point<deg_C>(10);      // Error: can't add points
+```
+
 With the above, we have learned enough for most users' needs and do not need to delve into
 more details. The library is intuitive and will prevent all errors at compile time.
+
+## Advanced topics
 
 For more advanced classes, groups, or use cases, we can introduce [Generic Interfaces] and
 [Systems of quantities] but we don't have to describe every detail and corner cases of quantity
 types design and their convertibility. It is good to start here with
 [Why do we need typed quantities?], followed by [Quantities of the same kind] and
 [System of quantities is not only about kinds].
+
+### Type system and quantity hierarchies
 
 According to our experience, the most common pitfall in using quantity types might be related to
 the names chosen for them by the [@ISO80000] (e.g., _length_). It might be good to describe what
@@ -9309,10 +7928,112 @@ us to the horizontal dimension only. This is how the ISQ is defined, and we shou
 However, we should present a way to define _horizontal length_ as presented in the
 [Comparing, adding, and subtracting quantities of the same kind] and describe its rationale.
 
+Advanced students can explore:
+
+- Generic programming with quantity concepts (`QuantityOf<isq::length>`)
+- Defining custom quantity types (e.g., `horizontal_length`, `gravitational_potential_energy`)
+- Interoperability with `std::chrono::duration` and other libraries
+- Vector and tensor quantities for mechanics and graphics
+
+## Compiler diagnostics and debugging
+
+One of the library's strongest teaching features is compiler error quality. When students make
+mistakes, they get readable messages:
+
+```cpp
+quantity d = 100 * m;
+quantity t = 50 * s;
+quantity wrong = d + t;  // Error
+```
+
+Type names in errors remain close to the source code:
+`quantity<si::metre, double>` rather than pages of template instantiation noise.
+
+Debugging is similarly friendly: quantity objects display naturally in debuggers showing
+both value and unit. Print formatting with `std::print` produces human-readable output
+without custom formatters.
+
+## Exercises and assessment
+
+Suggested exercises for different skill levels:
+
+**Beginner:**
+
+1. Convert recipe measurements between metric and imperial units
+2. Calculate _speed_ from _distance_ and _time_ (e.g., average speed for a road trip)
+3. Compute area and volume (rectangle, box) with mixed units
+
+**Intermediate:**
+
+1. Implement projectile motion calculator (initial _velocity_, _angle_, _range_, max _height_)
+2. Energy and power calculations (_kinetic energy_, _potential energy_, _power consumption_ over _time_)
+3. _Pressure_, _volume_, and _temperature_ conversions (ideal gas law scenarios)
+
+**Advanced:**
+
+1. Implement generic numeric algorithms (linear interpolation, integration) that work with quantities
+2. Design a domain-specific unit system (e.g., astronomical units, parsecs, light-years)
+3. Integrate existing strongly-typed wrappers with the library using `quantity_like_traits`
+
+## Common mistakes and misconceptions
+
+Based on teaching experience with [@MP-UNITS]:
+
+1. **Using integer representation types**: Leads to narrowing and overflow errors
+   - Example: `quantity d = 1500 * m; quantity km_val = d.in(km);` fails (truncation)
+   - Example: `quantity<nm, int> small = 5 * m;` fails (overflow on scaling factor)
+   - Solution: Use floating-point for most cases, explicit `.force_in()` when integer truncation is
+     intentional
+
+2. **Operator precedence with unit literals**: Forgetting parentheses in expressions
+   - Example: `quantity frequency = 1 / 2 * s;` gives `0.5 s`, not `0.5 Hz`
+   - Correct: `quantity frequency = 1 / (2 * s);` or
+     `quantity period = 2 * s; auto frequency = 1 / period;`
+   - Solution: Use parentheses or intermediate variables for clarity
+
+3. **Confusing `quantity` and `quantity_point`**: Attempting invalid affine space operations
+   - Example: `auto result = 20 * deg_C + 30 * deg_C;` - can't add absolute temperatures
+   - Solution: Understand difference between intervals (quantities) and points (quantity_points)
+
+4. **Forgetting namespace qualification**: Writing `42 * m` without importing unit symbols
+   - Solution: Add `using namespace std::si::unit_symbols;` or use qualified names
+
+5. **Overusing `.numerical_value_in()`**: Extracting raw values unnecessarily
+   - Problem: Defeats type safety, makes refactoring harder
+   - Solution: Keep quantities typed as long as possible, extract only at boundaries
+
+## Integration with curricula
+
+This library fits naturally into existing courses:
+
+**CS1/CS2 (Introductory Programming):**
+
+- Introduce alongside basic types as motivation for type safety
+- Use in physics-based programming exercises (projectile motion, etc.)
+- Teaches good habits early: explicit units, compile-time verification
+
+**Numerical Methods / Scientific Computing:**
+
+- Replace raw `double` arrays with typed quantities
+- Demonstrate that abstraction doesn't hurt performance
+- Real-world applications: simulation, data analysis
+
+**Software Engineering:**
+
+- Case study in modern C++ library design
+- Example of zero-overhead abstractions
+- Unit testing with dimensional analysis
+
+**Physics / Engineering Computation:**
+
+- Drop-in replacement for manual unit tracking
+- Focus on problems, not bookkeeping
+- Prevents entire categories of bugs
+
 
 # Acknowledgements
 
-Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting
+Special thanks and recognition goes to [The C++ Alliance](https://cppalliance.org) for supporting
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
 
 We would also like to thank Peter Sommerlad for providing valuable feedback that helped us shape
