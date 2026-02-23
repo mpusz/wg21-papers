@@ -38,6 +38,7 @@ toc-depth: 4
 - `AssociatedUnit` concept removed.
 - Missing `PrefixableUnit` concept added.
 - Direct comparison against literal `0` replaced the discussion of non-ideal alternatives
+- `named_constant` support added.
 - `pi` `mag_constant` renamed to `pi_c` to allow `π` be an identifier for a `named_constant`.
 - `quantity_values` trait renamed to `representation_values`.
 - `quantity::one()` static member function removed after LEWGI and SG6 feedback.
@@ -3085,19 +3086,19 @@ Constants:
 
 ```cpp
 inline constexpr struct hyperfine_structure_transition_frequency_of_cs final :
-  named_unit<{u8"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
+  named_constant<{u8"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
 inline constexpr struct speed_of_light_in_vacuum final :
-  named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
+  named_constant<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
 inline constexpr struct planck_constant final :
-  named_unit<"h", mag_ratio<662'607'015, 100'000'000> * mag_power<10, -34> * joule * second> {} planck_constant;
+  named_constant<"h", mag_ratio<662'607'015, 100'000'000> * mag_power<10, -34> * joule * second> {} planck_constant;
 inline constexpr struct elementary_charge final :
-  named_unit<"e", mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * coulomb> {} elementary_charge;
+  named_constant<"e", mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * coulomb> {} elementary_charge;
 inline constexpr struct boltzmann_constant final :
-  named_unit<"k", mag_ratio<1'380'649, 1'000'000> * mag_power<10, -23> * joule / kelvin> {} boltzmann_constant;
+  named_constant<"k", mag_ratio<1'380'649, 1'000'000> * mag_power<10, -23> * joule / kelvin> {} boltzmann_constant;
 inline constexpr struct avogadro_constant final :
-  named_unit<"N_A", mag_ratio<602'214'076, 100'000'000> * mag_power<10, 23> / mole> {} avogadro_constant;
+  named_constant<"N_A", mag_ratio<602'214'076, 100'000'000> * mag_power<10, 23> / mole> {} avogadro_constant;
 inline constexpr struct luminous_efficacy final :
-  named_unit<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
+  named_constant<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
 ```
 
 _Note: Two symbols always have to be provided if the primary symbol contains characters outside of
@@ -6232,12 +6233,12 @@ namespace si {
 namespace si2019 {
 
 inline constexpr struct speed_of_light_in_vacuum final :
-  named_unit<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
+  named_constant<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
 
 }  // namespace si2019
 
 inline constexpr struct magnetic_constant final :
-  named_unit<{u8"μ₀", "u_0"}, mag<4> * mag_power<10, -7> * π * henry / metre> {} magnetic_constant;
+  named_constant<{u8"μ₀", "u_0"}, mag<4> * mag_power<10, -7> * π * henry / metre> {} magnetic_constant;
 
 }  // namespace si
 ```
@@ -6258,7 +6259,7 @@ many negative constants. Some of them can be found in [CODATA](https://physics.n
 One such constant is [_helion g factor_](https://physics.nist.gov/cgi-bin/cuu/Value?ghn).
 
 Trying to model this with `named_unit` fails to compile. The reason of the error is the fact that
-the conversion factors between units should be positive. This means that reusing `named_units` to
+the conversion factors between units should be positive. This means that reusing `named_unit` to
 define constants may not be the best idea and we probably need to introduce a dedicated class.
 
 This is why we need to introduce a new class template:
@@ -6267,6 +6268,8 @@ This is why we need to introduce a new class template:
 inline constexpr struct helion_g_factor :
   named_constant<basic_symbol_text{"𝘨ₕ", "g_h"}, mag<-ratio{4'255'250'615, 1'000'000'000}> * one> {} helion_g_factor;
 ```
+
+Additionally, such a solution does not allow the constant to be prefixed or associated with a `quantity_spec`.
 
 
 ## Quantity specifications
@@ -6959,7 +6962,7 @@ units of length:
 
 ```cpp
 inline constexpr struct hubble_constant final :
-    named_unit<{u8"H₀", "H_0"}, mag_ratio<701, 10> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
+    named_constant<{u8"H₀", "H_0"}, mag_ratio<701, 10> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
 } hubble_constant;
 ```
 
