@@ -6690,10 +6690,13 @@ instantiated with a unique symbol identifier and a result of unit
 equation passed as an argument.</li>
 <li>Derived unnamed units being a result of a unit equations on other
 units.</li>
+<li>Physical constants defined by a user by inheriting from the
+<code class="sourceCode cpp">named_constant</code> class template
+instantiated with a unique symbol identifier and a product of
+multiplying another unit with some magnitude.</li>
 </ul>
 <p>All of the above units have to be marked as
 <code class="sourceCode cpp"><span class="kw">final</span></code>.</p>
-<p><em>Note: Physical constants are also implemented as units.</em></p>
 <h4 data-number="18.4.4.1" id="PrefixableUnit-concept"><span class="header-section-number">18.4.4.1</span> <code class="sourceCode cpp">PrefixableUnit<span class="op">&lt;</span>T<span class="op">&gt;</span></code><a href="#PrefixableUnit-concept" class="self-link"></a></h4>
 <p><code class="sourceCode cpp">PrefixableUnit</code> concept is
 satisfied by all units derived from a

@@ -5341,10 +5341,10 @@ _Note:_ Unit magnitude implementation is a private implementation detail of the 
 - Derived named units defined by a user by inheriting from the `named_unit` class template
   instantiated with a unique symbol identifier and a result of unit equation passed as an argument.
 - Derived unnamed units being a result of a unit equations on other units.
+- Physical constants defined by a user by inheriting from the `named_constant` class template instantiated
+  with a unique symbol identifier and a product of multiplying another unit with some magnitude.
 
 All of the above units have to be marked as `final`.
-
-_Note: Physical constants are also implemented as units._
 
 #### `PrefixableUnit<T>` { #PrefixableUnit-concept }
 
