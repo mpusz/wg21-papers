@@ -30,6 +30,7 @@ toc-depth: 4
 
 ## Changes since [@P3045R7]
 
+- Broken table in "Quantity specification" chapter fixed.
 
 ## Changes since [@P3045R6]
 
@@ -5185,20 +5186,21 @@ This is why the library introduces a quantity specification entity that stores:
 
 For example:
 
-| Quantity Specification | Dimension | Quantity Kind          | Character | Equation                           |
-|------------------------|-----------|------------------------|-----------|------------------------------------|
-| `isq::length`          | L         | `isq::length`          | scalar    | base quantity                      |
-| `isq::mass`            | M         | `isq::mass`            | scalar    | base quantity                      |
-| `isq::time`            | T         | `isq::time`            | scalar    | base quantity                      |
-| `isq::width`           | L         | `isq::length`          | scalar    | `isq::length`                      |
-| `isq::height`          | L         | `isq::length`          | scalar    | `isq::length`                      |
-| `isq::position_vector` | L         | `isq::length`          | vector    | `isq::length`                      |
-| `isq::area`            | L²        | `isq::area`            | scalar    | `isq::length²`                     |
-| `isq::speed`           | LT⁻¹      | `isq::speed`           | scalar    | `isq::length / isq::time`          |
-| `isq::velocity`        | LT⁻¹      | `isq::speed`           | vector    | `isq::position_vector / isq::time` |
-| `isq::acceleration`    | LT⁻²      | `isq::acceleration`    | scalar    | `isq::speed / isq::time`           |
-| `isq::force`           | LMT⁻²     | `isq::force`           | scalar    | `isq::mass * isq::acceleration`    |
-| `isq::moment_of_force` | L²MT⁻²    | `isq::moment_of_force` | scalar    | `isq::force * isq::length`         |
+| Quantity Specification | Dimension | Quantity Kind          | Character | Equation                            |
+|------------------------|-----------|------------------------|-----------|-------------------------------------|
+| `isq::duration`        | T         | `isq::duration`        | scalar    | base quantity                       |
+| `isq::length`          | L         | `isq::length`          | scalar    | base quantity                       |
+| `isq::mass`            | M         | `isq::mass`            | scalar    | base quantity                       |
+| `isq::width`           | L         | `isq::length`          | scalar    | `isq::length`                       |
+| `isq::height`          | L         | `isq::length`          | scalar    | `isq::length`                       |
+| `isq::position_vector` | L         | `isq::length`          | vector    | `isq::length`                       |
+| `isq::displacement`    | L         | `isq::length`          | vector    | `isq::length`                       |
+| `isq::area`            | L²        | `isq::area`            | scalar    | `isq::length²`                      |
+| `isq::speed`           | LT⁻¹      | `isq::speed`           | scalar    | `isq::length / isq::duration`       |
+| `isq::velocity`        | LT⁻¹      | `isq::speed`           | vector    | `isq::displacement / isq::duration` |
+| `isq::acceleration`    | LT⁻²      | `isq::acceleration`    | vector    | `isq::velocity / isq::duration`     |
+| `isq::force`           | LMT⁻²     | `isq::force`           | vector    | `isq::mass * isq::acceleration`     |
+| `isq::moment_of_force` | L²MT⁻²    | `isq::moment_of_force` | vector    | `isq::position_vector * isq::force` |
 
 ### Unit
 
