@@ -4274,12 +4274,12 @@ This library provides six distinct safety levels:
 3. **Representation Safety** - Protects against overflows and precision loss
 4. **Quantity Kind Safety** - Prevents arithmetic on quantities of different kinds (e.g., `Hz` vs `Bq`)
 5. **Quantity Safety** - Enforces correct quantity relationships and equation ingredients
-6. **Affine Space Safety** - Distinguishes points (absolute positions) from vectors (differences)
+6. **Mathematical Space Safety** - Distinguishes points (absolute positions) from vectors (differences)
 
 All major C++ units libraries provide dimension safety (level 1) and unit safety (level 2).
-Some provide representation safety (level 3) and affine space safety (level 6). However, [@MP-UNITS]
-is the only C++ library implementing quantity kind safety (level 4) and quantity safety (level 5),
-making it uniquely comprehensive in its safety guarantees.
+Some provide representation safety (level 3) and mathematical space safety (level 6). However,
+[@MP-UNITS] is the only C++ library implementing quantity kind safety (level 4) and quantity safety
+(level 5), making it uniquely comprehensive in its safety guarantees.
 
 ## Dimension safety
 
@@ -4642,11 +4642,11 @@ quantity<isq::reactive_power[var]> reactive = complex.imag();
 quantity<isq::apparent_power[V * A]> apparent = complex.modulus();
 ```
 
-## Affine space safety
+## Mathematical space safety
 
-Affine space safety distinguishes between **quantity points** (absolute positions) and **quantity
-vectors** (differences/displacements). `quantity` represents vectors; `quantity_point` represents
-points. This prevents nonsensical operations:
+Mathematical space safety distinguishes between **quantity points** (absolute positions) and
+**quantity vectors** (differences/displacements). `quantity` represents vectors; `quantity_point`
+represents points. This prevents nonsensical operations:
 
 **Forbidden operations:**
 
@@ -4683,9 +4683,9 @@ quantity total_change = temp_change + temp_change;  // OK: vector + vector = 20 
 // Error: cannot subtract point from vector (meaningless: what is 10 K - 20 °C?)
 ```
 
-Examples where affine space safety prevents errors: _temperature_ (cannot add 20 °C + 10 °C, but can
-compute difference), _time_ (cannot add two _timestamps_, but can subtract them), _position_ (cannot
-add GPS coordinates, but can compute _displacement_), _altitude_ (cannot add two _elevations_,
+Examples where mathematical space safety prevents errors: _temperature_ (cannot add 20 °C + 10 °C,
+but can compute difference), _time_ (cannot add two _timestamps_, but can subtract them), _position_
+(cannot add GPS coordinates, but can compute _displacement_), _altitude_ (cannot add two _elevations_,
 but can compute _height_ difference).
 
 ## Safety pitfalls
