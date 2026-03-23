@@ -31,6 +31,7 @@ toc-depth: 4
 ## Changes since [@P3045R7]
 
 - Broken table in "Quantity specification" chapter fixed.
+- `RepresentationOf` concept updated.
 
 ## Changes since [@P3045R6]
 
@@ -5377,10 +5378,22 @@ A `Reference` can either be:
 `ReferenceOf` concept is satisfied by references `T` which have a quantity specification that
 satisfies [`QuantitySpecOf<V>`](#QuantitySpecOf-concept) concept.
 
-### `RepresentationOf<T, V>` concept { #RepresentationOf-concept }
+### `RepresentationOf<T, V>` { #RepresentationOf }
 
-`RepresentationOf` concept constraints a type of a number that stores the value of a quantity
-and is satisfied:
+`RepresentationOf` concept constrains a type `T` of a number that stores the
+numerical value of a quantity.
+
+Every representation type must satisfy a common baseline:
+
+- **Weakly regular**: copyable and equality comparable (default-constructibility is not required).
+- **`MagnitudeScalable`**: the library must be able to apply a unit magnitude ratio to it
+  internally. Most standard types satisfy this
+  automatically; see [Representation Types] for details.
+- **Character-specific operations**: additional arithmetic operations required by the
+  quantity character (e.g. total ordering for real scalars, `real()`/`imag()`/`modulus()` CPOs
+  for complex scalars, `norm()`/`magnitude()` CPO for vectors).
+
+The second template argument `V` further constrains which characters are accepted:
 
 - if the type of `V` satisfies [`QuantitySpec`](#QuantitySpec-concept):
 
