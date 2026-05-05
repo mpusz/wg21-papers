@@ -1,5 +1,5 @@
 ---
-title: "A Mathematical Model for a Quantities and Units Library"
+title: "Completing the Mathematical Model for C++ Quantities and Units"
 document: P4185R0
 date: today
 audience:
@@ -39,25 +39,40 @@ and which zero-comparison strategy to standardize.
 
 # Introduction
 
-The C++ quantities and units library specified in [@P3045R7] models physical quantities using
-two class templates:
+[@P3045R7] is a significant achievement. It models physical quantities using two class
+templates —
 
 - `quantity` — represents a displacement vector in an affine space (a difference between
   two states), and
 - `quantity_point` — represents a point on a measurement scale, measured relative to an
   explicitly or implicitly defined origin.
 
-This model provides six levels of type-safety: dimensional analysis, unit checking,
-representation type safety, quantity kind safety, quantity type safety, and mathematical space
-safety.
-It prevents a large category of bugs at compile time, and the bulk of this paper does not
-revisit any of those guarantees.
+— and provides six levels of type-safety: dimensional analysis, unit checking, representation
+type safety, quantity kind safety, quantity type safety, and mathematical space safety. A large
+category of physically meaningless operations is rejected at compile time. The bulk of this
+paper does not revisit those guarantees; it asks what further structure becomes expressible when
+the mathematical model is completed.
 
-What real-world experience has revealed is a complementary set of gaps — places where the
-two-abstraction model is either _too coarse_ (forcing users to encode physical structure as
-runtime preconditions) or _too permissive_ (admitting operations the underlying physics
-forbids). [Motivation and scope](#motivation) discusses each gap in detail and links it to a
-proposed solution; in summary they are:
+The goal is a library where the ideal gas law
+
+```cpp
+quantity R_calc = P * V / (n * T);
+```
+
+compiles only when `T` is an absolute thermodynamic temperature — not a temperature difference
+or an offset-scale reading; where `mass` and `mass_loss` are distinct types the compiler
+prevents from being accidentally swapped; and where a function requiring a non-negative input
+carries that guarantee in its signature rather than as a runtime precondition buried in its
+body. That is the completed picture. The proposal describes the path from the current model to
+that destination.
+
+The following gaps — identified through implementation experience in **[@MP-UNITS]** and
+committee feedback — stand between the current model and that goal. In each case the
+pattern is the same: _the runtime check is the symptom; the missing type-system structure
+is the disease._ The two-abstraction model is either _too coarse_ (forcing users to encode
+physical structure as runtime preconditions) or _too permissive_ (admitting operations the
+underlying physics forbids). [Motivation and scope](#motivation) discusses each gap in
+detail; in summary they are:
 
 - the **temperature trap** caused by offset units interacting with the affine model
   ([§ The temperature trap](#temp-trap));
@@ -86,7 +101,22 @@ synthesizing both lines of work into a single proposal that puts the quantities 
 library on a firm mathematical foundation while remaining accessible to the broader C++
 community.
 
+Most proposed features are already implemented in **[@MP-UNITS]**. Two — absolute quantities
+(the three-way delta/absolute/point split) and affine space annotations within the ISQ
+hierarchy — are design-complete but not yet implemented; early SG6 review is sought to
+validate the design direction before committing to full implementation. Those features
+involve breaking changes to [@P3045R7] that cannot be introduced later without an API break,
+making early consensus essential. SG6 is free to adopt any subset of the proposed features
+independently — in particular, the non-negativity tag, range-validated points, and runtime
+frame projections do not depend on the absolute/delta split being resolved first.
+
 ## Design philosophy
+
+This paper works from mathematical structure outward to API design. The starting point is
+measurement-theoretic classification of quantity spaces (vector spaces, affine spaces, convex
+spaces); design choices follow from that classification, validated against implementation
+experience in **[@MP-UNITS]** and concrete user feedback. Mathematical completeness and
+practical usability are treated as complementary requirements, not opposing forces.
 
 This paper proposes extensions to [@P3045R7] at a time when committee feedback reveals
 divergent perspectives. Some reviewers — notably Oliver Rosten (BSI) and Tiago Freire (ANSI) —
@@ -149,6 +179,22 @@ middle ground:
 The goal is not to satisfy every theoretical desideratum, but to provide a library that is
 _usable_ by domain experts (physicists, engineers, control systems programmers) while
 remaining _learnable_ by C++ developers encountering quantities and units for the first time.
+
+No mainstream units library in any programming language — including F# Units of Measure,
+Haskell's _dimensional_ package, or Python's Pint — distinguishes absolute quantities,
+deltas, and points as three separate types in the type system. The closest prior art is
+Oliver Rosten's Sequoia C++ library [@SEQUOIA], which independently explores the same
+three-way split from a mathematical perspective. The convergence of two independent
+implementations on the same structural conclusions strengthens the case that this taxonomy
+reflects genuine mathematical structure rather than an arbitrary design choice. No
+production-scale validation of the full three-way split exists yet in any library; this
+paper closes that gap.
+
+::: note
+**Author disclosure.** The author is the creator and maintainer of the **[@MP-UNITS]**
+reference implementation cited throughout this paper as evidence for design decisions.
+Readers should weigh implementation citations with that context in mind.
+:::
 
 # Motivation and scope {#motivation}
 
@@ -1638,11 +1684,19 @@ auto J1 = (-Ek.delta()) / T;  // delta<kinetic_energy> / absolute<temperature> =
 auto J2 = -Ek / T;            // delta<kinetic_energy> / absolute<temperature> = delta<...>
 ```
 
-**Open question for SG6.** Which option is preferred? Option 2 is physically honest (a
-negated magnitude is a signed displacement, not a zero-anchored magnitude), is consistent
-with affine-space conventions, and eliminates an entire class of runtime failures at the
-cost of an implicit category change. Option 1 preserves the absolute category and makes the
-violation visible at the negation site, at the cost of an extra `.delta()` cast.
+**SG6 direction sought.** Option 2 is physically honest (a negated magnitude is a signed
+displacement, not a zero-anchored magnitude) and consistent with affine-space conventions,
+but silently changes the return type depending on whether the quantity spec happens to be
+`non_negative`. In generic code, `auto result = -x;` should either always compile with a
+consistent return type or fail loudly — a silent category change is harder to reason about
+in templates than a compile error that forces the caller to be explicit. Option 1 makes the
+violation visible at the negation site and requires only a minor syntactic change
+(`-Ek.delta()` instead of `-Ek`). The author's tentative preference is **Option 1**:
+preferring an explicit conversion over a silent semantic change in return type.
+
+Straw poll: _Negation of a `non_negative` absolute should be ill-formed (Option 1),
+requiring an explicit `.delta()` conversion, rather than silently yielding a delta
+(Option 2)._
 
 ### Multiplication by a negative scalar {#absolute-negation-scalar}
 
@@ -2013,13 +2067,12 @@ points, absolutes, and deltas, along with the accompanying arithmetic semantics 
 implemented. Actual implementation experience may yield minor refinements to the design presented
 here.
 
-It is important to present this proposal to SG6 now despite the incomplete implementation status.
-The C++29 feature-freeze is approaching rapidly, and early feedback is essential to ensure this
-foundational abstraction can be considered for the standard library alongside the rest of the
-quantities and units framework. The design has been carefully considered based on measurement
-theory, existing usage patterns in [@MP-UNITS], and the motivating problems documented in
-[Motivation and scope](#motivation), but committee input at this stage will help validate the
-approach before committing to a full implementation.
+Early SG6 review is sought despite the incomplete implementation status. The C++29
+feature-freeze constrains the timeline for foundational abstractions that cannot be added to
+[@P3045R7] after the initial API is locked. The design rests on measurement theory, existing
+usage patterns in **[@MP-UNITS]**, and the motivating problems documented in
+[Motivation and scope](#motivation); committee input at this stage will validate the approach
+before the implementation investment is made.
 
 
 # Affine spaces within quantity hierarchies {#affine-in-hierarchy}
@@ -3054,9 +3107,11 @@ from `double / double`, which always compiles — a generic template that divide
 values of the same type would silently break when `double` is replaced by an
 integer-backed `quantity`. The preferred remedy is therefore documentation and tooling
 guidance directing users toward `divide_in_common_unit`, not a restriction that undermines
-substitutability with
-other numeric types. SG6 is invited to weigh in on whether the stricter blocking approach
-is warranted despite this concern.
+substitutability with other numeric types.
+
+Straw poll: _Same-kind cross-unit integer division should be permitted (status quo, as in
+[@P3045R7]) rather than blocked at compile time with `unblock_int_div` as the explicit
+opt-out._
 
 # Comparison against zero {#zero-comparison}
 
@@ -3234,8 +3289,10 @@ constant that is genuinely unit-independent, and restricting the exception to ex
 literal `0` — not a variable, not a non-zero constant — keeps the special case narrow and
 auditable. The generic-code compatibility and zero migration cost are decisive advantages
 over Strategies 1 and 2 for a library whose primary users are domain experts porting
-existing `double`-based physics code. SG6 is invited to confirm or redirect this choice
-prior to finalization in [@P3045R7].
+existing `double`-based physics code.
+
+Straw poll: _Comparison against literal `0` should be permitted via hidden-friend operator
+overloads (Strategy 3) as the standard zero-comparison mechanism for `quantity`._
 
 
 # Summary {#summary}
@@ -3276,6 +3333,33 @@ range-validated points to implement automatic enforcement on `natural_point_orig
 both depend on absolute quantities providing the correct value abstraction. Only runtime
 frame projections can be introduced independently in a later standard.
 
+# Next steps
+
+If SG6 gives a favorable direction on the core abstractions (absolute quantities and the
+three-way delta/absolute/point split), the path forward is:
+
+1. **Implement the two unimplemented breaking changes** — absolute quantities and affine
+   space annotations — in the **[@MP-UNITS]** reference implementation. Actual
+   implementation experience may yield minor refinements to the arithmetic semantics and
+   hierarchy rules presented in this paper.
+
+2. **Validate against real-world use cases.** The existing **[@MP-UNITS]** user base will
+   exercise the new abstractions against production physics, embedded systems, and
+   financial code. Any design issues surface at this stage before standardization.
+
+3. **Merge the approved extensions into [@P3045R7].** The extensions proposed here are
+   designed as additions to and breaking changes within [@P3045R7]; they do not require a
+   separate paper. A future revision of [@P3045R7] will incorporate the agreed extensions
+   and remove the design alternatives not chosen by SG6.
+
+4. **Submit the merged paper to LEWG** for design review and approval.
+
+5. **Submit to LWG** for full wording review once LEWG has approved the design.
+
+Runtime frame projections (the "Later" feature in the summary table) follow a parallel
+track: they can be implemented and proposed independently once the core abstractions are
+stable, without blocking the initial standardization of [@P3045R7].
+
 # Acknowledgments
 
 Special thanks and recognition goes to [The C++ Alliance](https://cppalliance.org) for supporting
@@ -3306,6 +3390,11 @@ references:
   citation-label: Rosten2025
   author: "Oliver J. Rosten"
   title: "Thoughts on Quantities & Units — Putting P3045 on a firm foundation."
+- id: SEQUOIA
+  citation-label: Sequoia
+  author: "Oliver J. Rosten"
+  title: "Sequoia — a C++ library exploring mathematical foundations for quantities"
+  URL: <https://github.com/ojrosten/sequoia>
 - id: WILLIAMS2025
   citation-label: Williams2025
   author: "Anthony Williams"
