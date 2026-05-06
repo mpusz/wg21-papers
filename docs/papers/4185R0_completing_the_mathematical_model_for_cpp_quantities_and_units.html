@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2026-05-05" />
+  <meta name="dcterms.date" content="2026-05-06" />
   <title>Completing the Mathematical Model for C++ Quantities and
 Units</title>
   <style>
@@ -471,7 +471,7 @@ Model for C++ Quantities and Units</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2026-05-05</td>
+    <td>2026-05-06</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -773,17 +773,24 @@ hierarchy</strong>, <strong>range-validated quantity points</strong>,
 and <strong>runtime frame projections</strong>. It also resolves the
 <strong>text output</strong> problem for absolute quantities (the common
 case), discusses <strong>integer division safety</strong>, and surveys
-three candidate designs for <strong>comparison against zero</strong>.
-The proposal synthesizes insights from an independently developed model
-based on <em>convex spaces</em> <span class="citation" data-cites="ROSTEN2025"><a href="#ref-ROSTEN2025" role="doc-biblioref">[Rosten2025]</a></span> to arrive at a design that
-is both mathematically grounded and approachable for C++ users.</p>
-<p>SG6 is asked to review the proposed extensions, confirm the
-recommended design directions, and provide guidance on the open
-questions — specifically: whether absolute quantities should become the
-default meaning of
+three candidate designs for <strong>comparison against
+zero</strong>.</p>
+<p>This paper is the product of a WG21-requested convergence between two
+independently developed approaches: the <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong> reference
+implementation (Mateusz Pusz) and the Sequoia C++ library <span class="citation" data-cites="SEQUOIA"><a href="https://github.com/ojrosten/sequoia" role="doc-biblioref">[Sequoia]</a></span> (Oliver Rosten). SG6 asked
+both authors to work together toward a unified design rather than
+advance separate proposals. The mathematical framework of convex spaces
+<span class="citation" data-cites="ROSTEN2025"><a href="#ref-ROSTEN2025" role="doc-biblioref">[Rosten2025]</a></span> developed by Oliver Rosten
+provides the theoretical foundation; implementation experience from both
+<strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong> and <span class="citation" data-cites="SEQUOIA"><a href="https://github.com/ojrosten/sequoia" role="doc-biblioref">[Sequoia]</a></span> validates the structural
+conclusions. The two-axis extension described below is where their
+independent lines of work converge.</p>
+<p>SG6 is asked to confirm the direction — specifically: whether
+absolute quantities should become the default meaning of
 <code class="sourceCode cpp">quantity<span class="op">&lt;</span>R<span class="op">&gt;</span></code>
 , which integer division policy to adopt, and which zero-comparison
-strategy to standardize.</p>
+strategy to standardize. Final wording review follows
+implementation.</p>
 <h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
 <p><span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> is a significant achievement.
 It models physical quantities using two class templates —</p>
@@ -867,14 +874,18 @@ remaining accessible to the broader C++ community.</p>
 <p>Most proposed features are already implemented in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong>. Two — absolute
 quantities (the three-way delta/absolute/point split) and affine space
 annotations within the ISQ hierarchy — are design-complete but not yet
-implemented; early SG6 review is sought to validate the design direction
-before committing to full implementation. Those features involve
-breaking changes to <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> that cannot be introduced
-later without an API break, making early consensus essential. SG6 is
-free to adopt any subset of the proposed features independently — in
-particular, the non-negativity tag, range-validated points, and runtime
-frame projections do not depend on the absolute/delta split being
-resolved first.</p>
+implemented in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong>. The same structural
+model is, however, already implemented in Oliver Rosten’s Sequoia
+library <span class="citation" data-cites="SEQUOIA"><a href="https://github.com/ojrosten/sequoia" role="doc-biblioref">[Sequoia]</a></span> with a different API surface,
+so the theory is proven. Implementation in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong> is planned before
+the next WG21 meeting in Brazil, following favorable SG6 direction.
+Those features involve breaking changes to <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> that cannot be introduced
+later without an API break, which is why early directional consensus is
+sought now rather than after full implementation. SG6 is free to adopt
+any subset of the proposed features independently — in particular, the
+non-negativity tag, range-validated points, and runtime frame
+projections do not depend on the absolute/delta split being resolved
+first.</p>
 <h2 data-number="2.1" id="design-philosophy"><span class="header-section-number">2.1</span> Design philosophy<a href="#design-philosophy" class="self-link"></a></h2>
 <p>This paper works from mathematical structure outward to API design.
 The starting point is measurement-theoretic classification of quantity
@@ -883,7 +894,14 @@ follow from that classification, validated against implementation
 experience in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong> and concrete user
 feedback. Mathematical completeness and practical usability are treated
 as complementary requirements, not opposing forces.</p>
-<p>This paper proposes extensions to <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> at a time when committee
+<p><span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> achieved consensus at Croydon
+2026. This paper does not revisit that consensus — it extends it. The
+extensions proposed here are the natural next step that the consensus
+enables: completing the mathematical model that <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> begins, based on gaps
+identified through implementation experience and on WG21’s request that
+the two independent approaches be unified rather than advanced as
+competing proposals.</p>
+<p>That said, the paper proposes extensions to <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> at a time when committee
 feedback reveals divergent perspectives. Some reviewers — notably Oliver
 Rosten (BSI) and Tiago Freire (ANSI) — argue that the library is
 <em>insufficiently expressive</em> for real-world use cases, lacking the
@@ -1465,7 +1483,7 @@ inversion</strong>: converting between altitude (measured upward from
 sea level) and depth (measured downward from the ocean surface) requires
 negating the value, which cannot be expressed with
 <code class="sourceCode cpp">relative_point_origin</code>
-. As discussed in <a href="https://github.com/mpusz/mp-units/issues/782">#782</a>, one
+. As discussed in <a href="https://github.com/mpusz/mp-units/discussions/782">#782</a>, one
 quantity needs to become an inversion of another, and a user-provided
 projection function can encode such relationships.</p>
 <p>Two geographic coordinate examples illustrate when
@@ -2834,11 +2852,30 @@ or
 </tr>
 </tbody>
 </table>
-<p>Note:
+<div class="note">
+<p><span>[ <em>Note:</em> </span>
 <code class="sourceCode cpp">delta_from<span class="op">(</span>origin_or_qp<span class="op">)</span></code>
 replaces <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span>’s
 <code class="sourceCode cpp">delta_from<span class="op">()</span></code>
-.</p>
+.<span> — <em>end note</em> ]</span></p>
+</div>
+<div class="note">
+<p><span>[ <em>Note:</em> </span>The <strong>
+<code class="sourceCode cpp">absolute → delta</code>
+implicit conversion</strong> is a deliberate design choice. It makes
+common assignment and initialization convenient —
+<code class="sourceCode cpp">quantity<span class="op">&lt;</span>delta<span class="op">&lt;</span>m<span class="op">&gt;&gt;</span> x <span class="op">=</span> <span class="dv">40</span> <span class="op">*</span> m;</code>
+works without any explicit cast — and mirrors how absolute magnitudes
+are routinely used as signed differences in practice (e.g. passing a
+mass to a function that takes a mass change). The consequence is that
+code can silently pass an absolute where a delta is expected without any
+explicit marker at the call site, which is one of the sources of the
+residual argument-swapping risk shown in <a href="#mass-balance-revisited">Mass balance revisited</a>. SG6 may wish
+to consider whether this conversion should require an explicit
+<code class="sourceCode cpp"><span class="op">.</span>delta<span class="op">()</span></code>
+call or explicit construction (analogous to the explicit constructor
+used in the point case).<span> — <em>end note</em> ]</span></p>
+</div>
 <p>One might ask whether
 <code class="sourceCode cpp">delta → absolute</code>
 should be implicit when the target has no
@@ -3585,7 +3622,7 @@ would yield
 result back into a
 <code class="sourceCode cpp">reactive_power</code>
 variable without an explicit conversion.</p></li>
-<li><p><strong>It penalises strongly-typed operands over untyped
+<li><p><strong>It penalizes strongly-typed operands over untyped
 scalars.</strong> A raw C++ scalar can be negative at runtime, yet
 <code class="sourceCode cpp">Absolute × Scalar → Absolute</code>
 was never questioned. A
@@ -3910,6 +3947,24 @@ through the distinction between absolute and delta:</p>
 <span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a><span class="co">//   arg2: absolute → absolute param: ✓ identity</span></span>
 <span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a><span class="co">// Result: total_initial / total_initial = 1.0 (100%) — wrong answer, no diagnostic</span></span></code></pre></div>
 
+<p>The three-way split is a <strong>partial</strong> solution to the
+argument-swapping problem. It eliminates the most common category of
+mistakes — passing a delta where an absolute is required — but
+<code class="sourceCode cpp">moisture_loss<span class="op">(</span>total_initial, total_initial<span class="op">)</span></code>
+still compiles because the implicit
+<code class="sourceCode cpp">absolute → delta</code>
+conversion (see the <a href="#absolute-conversions">conversion note</a>)
+allows
+<code class="sourceCode cpp">total_initial</code>
+to satisfy the
+<code class="sourceCode cpp">delta<span class="op">&lt;</span>kg<span class="op">&gt;</span></code>
+first parameter silently. This is not a defect in the split; it is a
+consequence of a deliberate design decision. If SG6 decides to require
+an explicit
+<code class="sourceCode cpp"><span class="op">.</span>delta<span class="op">()</span></code>
+call for that conversion, the subtler mistake would also become a
+compile error. Until then, the residual argument-swap risk remains in
+the domain of naming conventions and code review.</p>
 <h2 data-number="5.10" id="absolute-impact"><span class="header-section-number">5.10</span> Impact on <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span><a href="#absolute-impact" class="self-link"></a></h2>
 <p>This is a <strong>breaking change</strong> to the initial
 proposal:</p>
@@ -3945,7 +4000,7 @@ or to call
 on the result to explicitly re-enter the absolute domain (potentially
 with a runtime contract check).</li>
 <li>
-<code class="sourceCode cpp">qp<span class="op">.</span>delta_from<span class="op">(</span>origin_or_qp<span class="op">)</span></code>
+<code class="sourceCode cpp">qp<span class="op">.</span>quantity_from<span class="op">(</span>origin_or_qp<span class="op">)</span></code>
 is renamed to
 <code class="sourceCode cpp">qp<span class="op">.</span>delta_from<span class="op">(</span>origin_or_qp<span class="op">)</span></code>
 to reflect that it computes a delta (displacement) rather than an
@@ -3973,16 +4028,22 @@ absolutes, with a runtime contract check protecting the invariant.</li>
 <p>The <strong>absolute quantities</strong> abstraction described in
 this chapter — the three-way split between points, absolutes, and
 deltas, along with the accompanying arithmetic semantics — is not yet
-implemented. Actual implementation experience may yield minor
-refinements to the design presented here.</p>
-<p>Early SG6 review is sought despite the incomplete implementation
-status. The C++29 feature-freeze constrains the timeline for
-foundational abstractions that cannot be added to <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> after the initial API is
-locked. The design rests on measurement theory, existing usage patterns
-in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong>, and the motivating
-problems documented in <a href="#motivation">Motivation and scope</a>;
-committee input at this stage will validate the approach before the
-implementation investment is made.</p>
+implemented in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong>. The mathematical
+model is, however, proven: Oliver Rosten’s Sequoia library <span class="citation" data-cites="SEQUOIA"><a href="https://github.com/ojrosten/sequoia" role="doc-biblioref">[Sequoia]</a></span> independently implements the
+same three-way structural split with a different API surface, confirming
+that the theoretical taxonomy is sound and implementable in C++. The two
+authors are working to reconcile their interface choices in this paper;
+implementation in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong> will follow
+favorable SG6 direction, with a target of completing it before the next
+WG21 meeting in Brazil.</p>
+<p>SG6 is not asked to approve final wording — only to confirm that the
+direction is worth pursuing. A favorable signal at this stage allows the
+implementation to validate the specific interface choices proposed here;
+the design will be refined by that experience before standardization.
+The breaking-change timeline constraint is real: these are changes that
+cannot be retrofitted into <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> after the initial API is
+locked, which is why early directional consensus is sought ahead of full
+implementation.</p>
 <h1 data-number="6" id="affine-in-hierarchy"><span class="header-section-number">6</span> Affine spaces within quantity
 hierarchies<a href="#affine-in-hierarchy" class="self-link"></a></h1>
 <h2 data-number="6.1" id="motivation-1"><span class="header-section-number">6.1</span> Motivation<a href="#motivation-1" class="self-link"></a></h2>
@@ -4529,11 +4590,17 @@ note</em> ]</span></p>
 <code class="sourceCode cpp">point_for<span class="op">&lt;&gt;</span></code>
 attribute, the associated quantity specification arithmetic, and the
 <code class="sourceCode cpp">quantity<span class="op">&lt;</span>point<span class="op">&lt;</span>R<span class="op">&gt;&gt;</span></code>
-unification described in this chapter are not yet implemented. Actual
-implementation experience may yield minor refinements, particularly in
-the interaction between
+unification described in this chapter are not yet implemented in
+<strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong>. Unlike the
+absolute/delta/point split, this is a novel approach with no prior
+implementation: it emerged directly from the challenges of representing
+ISQ position/displacement pairs correctly in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong>, and no other
+library has attempted it. Implementation in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong> will follow SG6’s
+directional consensus, with the same Brazil-meeting target. Refinements
+— particularly in the interaction between
 <code class="sourceCode cpp">point_for<span class="op">&lt;&gt;</span></code>
-annotations and the absolute/delta/point three-way split from <a href="#absolute">Absolute quantities</a>.</p>
+annotations and the absolute/delta/point three-way split — are possible
+from that implementation experience.</p>
 <h2 data-number="6.7" id="affine-standardization-plan"><span class="header-section-number">6.7</span> Standardization plan<a href="#affine-standardization-plan" class="self-link"></a></h2>
 <p>The two features proposed in this chapter have different
 standardization urgency.</p>

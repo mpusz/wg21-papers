@@ -27,14 +27,19 @@ abstraction anchored at a true zero, **affine space annotations within the ISQ h
 **range-validated quantity points**, and **runtime frame projections**. It also resolves the
 **text output** problem for absolute quantities (the common case), discusses **integer
 division safety**, and surveys three candidate designs for **comparison against zero**.
-The proposal synthesizes insights from an independently developed model based on
-_convex spaces_ [@ROSTEN2025] to arrive at a design that is both mathematically grounded and
-approachable for C++ users.
 
-SG6 is asked to review the proposed extensions, confirm the recommended design directions,
-and provide guidance on the open questions — specifically: whether absolute quantities
-should become the default meaning of `quantity<R>`, which integer division policy to adopt,
-and which zero-comparison strategy to standardize.
+This paper is the product of a WG21-requested convergence between two independently
+developed approaches: the **[@MP-UNITS]** reference implementation (Mateusz Pusz) and the
+Sequoia C++ library [@SEQUOIA] (Oliver Rosten). SG6 asked both authors to work together
+toward a unified design rather than advance separate proposals. The mathematical framework
+of convex spaces [@ROSTEN2025] developed by Oliver Rosten provides the theoretical
+foundation; implementation experience from both **[@MP-UNITS]** and [@SEQUOIA] validates the
+structural conclusions. The two-axis extension described below is where their independent
+lines of work converge.
+
+SG6 is asked to confirm the direction — specifically: whether absolute quantities should
+become the default meaning of `quantity<R>`, which integer division policy to adopt, and
+which zero-comparison strategy to standardize. Final wording review follows implementation.
 
 
 # Introduction
@@ -103,10 +108,13 @@ community.
 
 Most proposed features are already implemented in **[@MP-UNITS]**. Two — absolute quantities
 (the three-way delta/absolute/point split) and affine space annotations within the ISQ
-hierarchy — are design-complete but not yet implemented; early SG6 review is sought to
-validate the design direction before committing to full implementation. Those features
-involve breaking changes to [@P3045R7] that cannot be introduced later without an API break,
-making early consensus essential. SG6 is free to adopt any subset of the proposed features
+hierarchy — are design-complete but not yet implemented in **[@MP-UNITS]**. The same
+structural model is, however, already implemented in Oliver Rosten's Sequoia library
+[@SEQUOIA] with a different API surface, so the theory is proven. Implementation in
+**[@MP-UNITS]** is planned before the next WG21 meeting in Brazil, following favorable SG6
+direction. Those features involve breaking changes to [@P3045R7] that cannot be introduced
+later without an API break, which is why early directional consensus is sought now rather
+than after full implementation. SG6 is free to adopt any subset of the proposed features
 independently — in particular, the non-negativity tag, range-validated points, and runtime
 frame projections do not depend on the absolute/delta split being resolved first.
 
@@ -118,12 +126,18 @@ spaces); design choices follow from that classification, validated against imple
 experience in **[@MP-UNITS]** and concrete user feedback. Mathematical completeness and
 practical usability are treated as complementary requirements, not opposing forces.
 
-This paper proposes extensions to [@P3045R7] at a time when committee feedback reveals
-divergent perspectives. Some reviewers — notably Oliver Rosten (BSI) and Tiago Freire (ANSI) —
-argue that the library is _insufficiently expressive_ for real-world use cases, lacking
-the mathematical completeness needed for production engineering applications. Other members
-of WG21 have expressed concern that the library is _already too complex_, and have advocated
-for simplification.
+[@P3045R7] achieved consensus at Croydon 2026. This paper does not revisit that consensus —
+it extends it. The extensions proposed here are the natural next step that the consensus
+enables: completing the mathematical model that [@P3045R7] begins, based on gaps identified
+through implementation experience and on WG21's request that the two independent approaches
+be unified rather than advanced as competing proposals.
+
+That said, the paper proposes extensions to [@P3045R7] at a time when committee feedback
+reveals divergent perspectives. Some reviewers — notably Oliver Rosten (BSI) and Tiago
+Freire (ANSI) — argue that the library is _insufficiently expressive_ for real-world use
+cases, lacking the mathematical completeness needed for production engineering applications.
+Other members of WG21 have expressed concern that the library is _already too complex_, and
+have advocated for simplification.
 
 The tension reflects a genuine engineering trade-off: a library that is too simple fails
 to solve real problems; one that is too complex becomes harder to learn and teach, and may
@@ -560,7 +574,7 @@ at compile time or not.
 A simpler example of the same class of limitation is **axis inversion**: converting between
 altitude (measured upward from sea level) and depth (measured downward from the ocean surface)
 requires negating the value, which cannot be expressed with `relative_point_origin`. As discussed
-in [#782](https://github.com/mpusz/mp-units/issues/782), one quantity needs to become an
+in [#782](https://github.com/mpusz/mp-units/discussions/782), one quantity needs to become an
 inversion of another, and a user-provided projection function can encode such relationships.
 
 Two geographic coordinate examples illustrate when `relative_point_origin` is and is not
@@ -1373,7 +1387,21 @@ a scalar absolute from a vector quantity, take the norm: `norm(velocity)` → `s
 | **Absolute** |       Explicit ctor<br>using `natural_point_origin`       |                                                            Identity                                                             | Implicit construction;<br>.delta() |
 |    **Delta** |                  origin + delta → point                   |                         `.absolute()` (precondition: non-negative);<br>always safe: `abs()` or `norm()`                         |              Identity              |
 
-Note: `delta_from(origin_or_qp)` replaces [@P3045R7]'s `delta_from()`.
+::: note
+`delta_from(origin_or_qp)` replaces [@P3045R7]'s `delta_from()`.
+:::
+
+::: note
+The **`absolute → delta` implicit conversion** is a deliberate design choice. It makes
+common assignment and initialization convenient — `quantity<delta<m>> x = 40 * m;` works
+without any explicit cast — and mirrors how absolute magnitudes are routinely used as
+signed differences in practice (e.g. passing a mass to a function that takes a mass change).
+The consequence is that code can silently pass an absolute where a delta is expected without
+any explicit marker at the call site, which is one of the sources of the residual
+argument-swapping risk shown in [Mass balance revisited](#mass-balance-revisited). SG6 may
+wish to consider whether this conversion should require an explicit `.delta()` call or
+explicit construction (analogous to the explicit constructor used in the point case).
+:::
 
 One might ask whether `delta → absolute` should be implicit when the target has no
 `non_negative` constraint — after all, no check fires, so the conversion is always safe.
@@ -1774,7 +1802,7 @@ that. This was rejected for three reasons:
    stripping the quantity type and making it impossible to store the result back into a
    `reactive_power` variable without an explicit conversion.
 
-3. **It penalises strongly-typed operands over untyped scalars.** A raw C++ scalar can be
+3. **It penalizes strongly-typed operands over untyped scalars.** A raw C++ scalar can be
    negative at runtime, yet `Absolute × Scalar → Absolute` was never questioned. A `delta`
    is a stricter, more informative type than a raw scalar — yet the rejected rule would
    demote the result further than the weakly-typed case, with no principled justification.
@@ -2034,6 +2062,16 @@ quantity loss = moisture_loss(water_lost, total_initial); // Correct
 // Result: total_initial / total_initial = 1.0 (100%) — wrong answer, no diagnostic
 ```
 
+The three-way split is a **partial** solution to the argument-swapping problem. It eliminates
+the most common category of mistakes — passing a delta where an absolute is required — but
+`moisture_loss(total_initial, total_initial)` still compiles because the implicit
+`absolute → delta` conversion (see the [conversion note](#absolute-conversions)) allows
+`total_initial` to satisfy the `delta<kg>` first parameter silently. This is not a defect
+in the split; it is a consequence of a deliberate design decision. If SG6 decides to require
+an explicit `.delta()` call for that conversion, the subtler mistake would also become a
+compile error. Until then, the residual argument-swap risk remains in the domain of naming conventions
+and code review.
+
 ## Impact on [@P3045R7] {#absolute-impact}
 
 This is a **breaking change** to the initial proposal:
@@ -2048,7 +2086,7 @@ This is a **breaking change** to the initial proposal:
    Existing code that assigns such a result to an `absolute` variable will fail to compile;
    the fix is either to change the target type to `delta<R>` or to call `.absolute()` on the
    result to explicitly re-enter the absolute domain (potentially with a runtime contract check).
-5. `qp.delta_from(origin_or_qp)` is renamed to `qp.delta_from(origin_or_qp)` to reflect
+5. `qp.quantity_from(origin_or_qp)` is renamed to `qp.delta_from(origin_or_qp)` to reflect
    that it computes a delta (displacement) rather than an absolute quantity.
 
 However:
@@ -2064,15 +2102,19 @@ However:
 
 The **absolute quantities** abstraction described in this chapter — the three-way split between
 points, absolutes, and deltas, along with the accompanying arithmetic semantics — is not yet
-implemented. Actual implementation experience may yield minor refinements to the design presented
-here.
+implemented in **[@MP-UNITS]**. The mathematical model is, however, proven: Oliver Rosten's
+Sequoia library [@SEQUOIA] independently implements the same three-way structural split with
+a different API surface, confirming that the theoretical taxonomy is sound and implementable
+in C++. The two authors are working to reconcile their interface choices in this paper;
+implementation in **[@MP-UNITS]** will follow favorable SG6 direction, with a target of
+completing it before the next WG21 meeting in Brazil.
 
-Early SG6 review is sought despite the incomplete implementation status. The C++29
-feature-freeze constrains the timeline for foundational abstractions that cannot be added to
-[@P3045R7] after the initial API is locked. The design rests on measurement theory, existing
-usage patterns in **[@MP-UNITS]**, and the motivating problems documented in
-[Motivation and scope](#motivation); committee input at this stage will validate the approach
-before the implementation investment is made.
+SG6 is not asked to approve final wording — only to confirm that the direction is worth
+pursuing. A favorable signal at this stage allows the implementation to validate the specific
+interface choices proposed here; the design will be refined by that experience before
+standardization. The breaking-change timeline constraint is real: these are changes that
+cannot be retrofitted into [@P3045R7] after the initial API is locked, which is why early
+directional consensus is sought ahead of full implementation.
 
 
 # Affine spaces within quantity hierarchies {#affine-in-hierarchy}
@@ -2268,9 +2310,14 @@ while `qp.point_for(mean_sea_level)` _converts_ a point value to a different ori
 ## Implementation status {#affine-hierarchy-impl}
 
 The `point_for<>` attribute, the associated quantity specification arithmetic, and the
-`quantity<point<R>>` unification described in this chapter are not yet implemented. Actual
-implementation experience may yield minor refinements, particularly in the interaction between
-`point_for<>` annotations and the absolute/delta/point three-way split from [Absolute quantities](#absolute).
+`quantity<point<R>>` unification described in this chapter are not yet implemented in
+**[@MP-UNITS]**. Unlike the absolute/delta/point split, this is a novel approach with no
+prior implementation: it emerged directly from the challenges of representing ISQ
+position/displacement pairs correctly in **[@MP-UNITS]**, and no other library has attempted
+it. Implementation in **[@MP-UNITS]** will follow SG6's directional consensus, with the same
+Brazil-meeting target. Refinements — particularly in the interaction between `point_for<>`
+annotations and the absolute/delta/point three-way split — are possible from that
+implementation experience.
 
 
 ## Standardization plan {#affine-standardization-plan}
