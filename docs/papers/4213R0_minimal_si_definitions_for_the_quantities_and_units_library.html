@@ -787,22 +787,8 @@ namespace) — independent of any unit system:</strong></p>
 ,
 <code class="sourceCode cpp">luminous_intensity</code>
 ) corresponding to the 7 SI base units.</li>
-<li><strong>SI-relevant derived quantities</strong> — the small set of
-derived quantities required to correctly classify SI units:
-<code class="sourceCode cpp">angular_measure</code>
-,
-<code class="sourceCode cpp">solid_angular_measure</code>
-,
-<code class="sourceCode cpp">frequency</code>
-,
-<code class="sourceCode cpp">energy</code>
-,
-<code class="sourceCode cpp">activity</code>
-,
-<code class="sourceCode cpp">absorbed_dose</code>
-,
-<code class="sourceCode cpp">dose_equivalent</code>
-, and a few supporting geometry quantities (
+<li><strong>SI-relevant derived quantities</strong> — the derived
+quantities required to correctly classify all SI named units: geometry (
 <code class="sourceCode cpp">width</code>
 ,
 <code class="sourceCode cpp">radius</code>
@@ -812,6 +798,40 @@ derived quantities required to correctly classify SI units:
 <code class="sourceCode cpp">area</code>
 ,
 <code class="sourceCode cpp">period_duration</code>
+,
+<code class="sourceCode cpp">angular_measure</code>
+,
+<code class="sourceCode cpp">solid_angular_measure</code>
+,
+<code class="sourceCode cpp">frequency</code>
+), mechanics (
+<code class="sourceCode cpp">energy</code>
+,
+<code class="sourceCode cpp">force</code>
+,
+<code class="sourceCode cpp">pressure</code>
+), electromagnetism (
+<code class="sourceCode cpp">electric_potential</code>
+,
+<code class="sourceCode cpp">capacitance</code>
+,
+<code class="sourceCode cpp">impedance</code>
+,
+<code class="sourceCode cpp">admittance</code>
+,
+<code class="sourceCode cpp">magnetic_flux_density</code>
+), light and radiation (
+<code class="sourceCode cpp">luminous_flux</code>
+,
+<code class="sourceCode cpp">illuminance</code>
+), physical chemistry (
+<code class="sourceCode cpp">catalytic_activity</code>
+), and atomic/nuclear physics (
+<code class="sourceCode cpp">activity</code>
+,
+<code class="sourceCode cpp">absorbed_dose</code>
+,
+<code class="sourceCode cpp">dose_equivalent</code>
 ).</li>
 </ol>
 <p><strong>SI core (
@@ -1058,23 +1078,42 @@ to correctly classify all 22 SI named derived units:</p>
 <span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">// mechanics</span></span>
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> energy <span class="op">:</span> quantity_spec<span class="op">&lt;</span>mass <span class="op">*</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>length<span class="op">)</span> <span class="op">/</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>duration<span class="op">)</span>, non_negative<span class="op">&gt;</span> <span class="op">{}</span> energy;</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co">// physical chemistry</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> catalytic_activity <span class="op">:</span> quantity_spec<span class="op">&lt;</span>amount_of_substance <span class="op">/</span> duration, non_negative<span class="op">&gt;</span> <span class="op">{}</span> catalytic_activity;</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="co">// atomic and nuclear physics</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> activity <span class="op">:</span> quantity_spec<span class="op">&lt;</span>inverse<span class="op">(</span>duration<span class="op">)</span>, non_negative<span class="op">&gt;</span> <span class="op">{}</span> activity;</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> absorbed_dose <span class="op">:</span> quantity_spec<span class="op">&lt;</span>energy <span class="op">/</span> mass, non_negative<span class="op">&gt;</span> <span class="op">{}</span> absorbed_dose;</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> ionizing_radiation_quality_factor</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>dimensionless, non_negative<span class="op">&gt;</span> <span class="op">{}</span> ionizing_radiation_quality_factor;</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> dose_equivalent</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>absorbed_dose <span class="op">*</span> ionizing_radiation_quality_factor, non_negative<span class="op">&gt;</span> <span class="op">{}</span> dose_equivalent;</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace std::isq</span></span></code></pre></div>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> force <span class="op">:</span> quantity_spec<span class="op">&lt;</span>mass <span class="op">*</span> length <span class="op">/</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>duration<span class="op">)</span>, quantity_character<span class="op">::</span>vector<span class="op">&gt;</span> <span class="op">{}</span> force;</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> pressure <span class="op">:</span> quantity_spec<span class="op">&lt;</span>force <span class="op">/</span> area, quantity_character<span class="op">::</span>real_scalar<span class="op">&gt;</span> <span class="op">{}</span> pressure;</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="co">// electromagnetism</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> electric_potential</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>energy <span class="op">/</span> <span class="op">(</span>electric_current <span class="op">*</span> duration<span class="op">)</span>, quantity_character<span class="op">::</span>real_scalar<span class="op">&gt;</span> <span class="op">{}</span> electric_potential;</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> capacitance</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>electric_current <span class="op">*</span> duration <span class="op">/</span> electric_potential, non_negative<span class="op">&gt;</span> <span class="op">{}</span> capacitance;</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> impedance</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>electric_potential <span class="op">/</span> electric_current, quantity_character<span class="op">::</span>complex_scalar<span class="op">&gt;</span> <span class="op">{}</span> impedance;</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> admittance</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>inverse<span class="op">(</span>impedance<span class="op">)</span>, quantity_character<span class="op">::</span>complex_scalar<span class="op">&gt;</span> <span class="op">{}</span> admittance;</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> magnetic_flux_density</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>mass <span class="op">/</span> <span class="op">(</span>electric_current <span class="op">*</span> pow<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;(</span>duration<span class="op">))</span>, quantity_character<span class="op">::</span>vector<span class="op">&gt;</span> <span class="op">{}</span> magnetic_flux_density;</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="co">// light and radiation</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> luminous_flux</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>luminous_intensity <span class="op">*</span> solid_angular_measure, non_negative<span class="op">&gt;</span> <span class="op">{}</span> luminous_flux;</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> illuminance <span class="op">:</span> quantity_spec<span class="op">&lt;</span>luminous_flux <span class="op">/</span> area, non_negative<span class="op">&gt;</span> <span class="op">{}</span> illuminance;</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a><span class="co">// physical chemistry</span></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> catalytic_activity <span class="op">:</span> quantity_spec<span class="op">&lt;</span>amount_of_substance <span class="op">/</span> duration, non_negative<span class="op">&gt;</span> <span class="op">{}</span> catalytic_activity;</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="co">// atomic and nuclear physics</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> activity <span class="op">:</span> quantity_spec<span class="op">&lt;</span>inverse<span class="op">(</span>duration<span class="op">)</span>, non_negative<span class="op">&gt;</span> <span class="op">{}</span> activity;</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> absorbed_dose <span class="op">:</span> quantity_spec<span class="op">&lt;</span>energy <span class="op">/</span> mass, non_negative<span class="op">&gt;</span> <span class="op">{}</span> absorbed_dose;</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> ionizing_radiation_quality_factor</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>dimensionless, non_negative<span class="op">&gt;</span> <span class="op">{}</span> ionizing_radiation_quality_factor;</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> dose_equivalent</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> quantity_spec<span class="op">&lt;</span>absorbed_dose <span class="op">*</span> ionizing_radiation_quality_factor, non_negative<span class="op">&gt;</span> <span class="op">{}</span> dose_equivalent;</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace std::isq</span></span></code></pre></div>
 
-<p>This introduces <strong>17 names</strong> in
+<p>This introduces <strong>26 names</strong> in
 <code class="sourceCode cpp">std<span class="op">::</span>isq</code>
-(14 derived quantity types and 3 aliases:
+(23 derived quantity types and 3 aliases:
 <code class="sourceCode cpp">breadth</code>
 ,
 <code class="sourceCode cpp">arc_length</code>
@@ -1106,17 +1145,17 @@ alias)</td>
 </tr>
 <tr class="odd">
 <td>SI-relevant derived quantities (incl. aliases)</td>
-<td>17</td>
+<td>26</td>
 </tr>
 <tr class="even">
 <td><strong>Total</strong></td>
-<td><strong>32</strong></td>
+<td><strong>41</strong></td>
 </tr>
 </tbody>
 </table>
 <p>Straw poll: <em>We want
 <code class="sourceCode cpp"><span class="op">&lt;</span>isq_si_quantities<span class="op">&gt;</span></code>
-— the minimal ISQ subset (32 definitions) required by
+— the minimal ISQ subset (41 definitions) required by
 <code class="sourceCode cpp"><span class="op">&lt;</span>si_core<span class="op">&gt;</span></code>
 — to be standardized as part of the quantities and units
 library.</em></p>
@@ -2248,7 +2287,7 @@ alias)</td>
 <code class="sourceCode cpp"><span class="op">&lt;</span>isq_si_quantities<span class="op">&gt;</span></code>
 </td>
 <td style="text-align: center;">mandatory</td>
-<td style="text-align: center;">17</td>
+<td style="text-align: center;">26</td>
 </tr>
 <tr class="even">
 <td><strong>ISQ subtotal</strong></td>
@@ -2256,7 +2295,7 @@ alias)</td>
 <code class="sourceCode cpp"><span class="op">&lt;</span>isq_si_quantities<span class="op">&gt;</span></code>
 </strong></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"><strong>32</strong></td>
+<td style="text-align: center;"><strong>41</strong></td>
 </tr>
 <tr class="odd">
 <td>SI prefixes (class + variable templates)</td>
@@ -2294,7 +2333,7 @@ alias)</td>
 <td><strong>ISQ + SI core total</strong></td>
 <td style="text-align: center;"></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"><strong>113</strong></td>
+<td style="text-align: center;"><strong>122</strong></td>
 </tr>
 <tr class="even">
 <td>Non-SI units accepted for use with SI</td>
@@ -2363,7 +2402,7 @@ interoperability</td>
 <td><strong>Grand total</strong></td>
 <td style="text-align: center;"></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"><strong>~874+</strong></td>
+<td style="text-align: center;"><strong>~883+</strong></td>
 </tr>
 </tbody>
 </table>

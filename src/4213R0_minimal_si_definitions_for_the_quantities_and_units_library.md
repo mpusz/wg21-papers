@@ -98,10 +98,13 @@ The following components are covered by this paper, organized by namespace.
 2. **Base quantities** — the 7 base quantities (`length`, `mass`, `duration`,
    `electric_current`, `thermodynamic_temperature`, `amount_of_substance`,
    `luminous_intensity`) corresponding to the 7 SI base units.
-3. **SI-relevant derived quantities** — the small set of derived quantities required to
-   correctly classify SI units: `angular_measure`, `solid_angular_measure`, `frequency`,
-   `energy`, `activity`, `absorbed_dose`, `dose_equivalent`, and a few supporting geometry
-   quantities (`width`, `radius`, `path_length`, `area`, `period_duration`).
+3. **SI-relevant derived quantities** — the derived quantities required to correctly classify
+   all SI named units: geometry (`width`, `radius`, `path_length`, `area`, `period_duration`,
+   `angular_measure`, `solid_angular_measure`, `frequency`), mechanics (`energy`, `force`,
+   `pressure`), electromagnetism (`electric_potential`, `capacitance`, `impedance`,
+   `admittance`, `magnetic_flux_density`), light and radiation (`luminous_flux`,
+   `illuminance`), physical chemistry (`catalytic_activity`), and atomic/nuclear physics
+   (`activity`, `absorbed_dose`, `dose_equivalent`).
 
 **SI core (`std::si` namespace) — depends on ISQ:**
 
@@ -253,6 +256,25 @@ inline constexpr struct frequency : quantity_spec<inverse(period_duration), non_
 
 // mechanics
 inline constexpr struct energy : quantity_spec<mass * pow<2>(length) / pow<2>(duration), non_negative> {} energy;
+inline constexpr struct force : quantity_spec<mass * length / pow<2>(duration), quantity_character::vector> {} force;
+inline constexpr struct pressure : quantity_spec<force / area, quantity_character::real_scalar> {} pressure;
+
+// electromagnetism
+inline constexpr struct electric_potential
+    : quantity_spec<energy / (electric_current * duration), quantity_character::real_scalar> {} electric_potential;
+inline constexpr struct capacitance
+    : quantity_spec<electric_current * duration / electric_potential, non_negative> {} capacitance;
+inline constexpr struct impedance
+    : quantity_spec<electric_potential / electric_current, quantity_character::complex_scalar> {} impedance;
+inline constexpr struct admittance
+    : quantity_spec<inverse(impedance), quantity_character::complex_scalar> {} admittance;
+inline constexpr struct magnetic_flux_density
+    : quantity_spec<mass / (electric_current * pow<2>(duration)), quantity_character::vector> {} magnetic_flux_density;
+
+// light and radiation
+inline constexpr struct luminous_flux
+    : quantity_spec<luminous_intensity * solid_angular_measure, non_negative> {} luminous_flux;
+inline constexpr struct illuminance : quantity_spec<luminous_flux / area, non_negative> {} illuminance;
 
 // physical chemistry
 inline constexpr struct catalytic_activity : quantity_spec<amount_of_substance / duration, non_negative> {} catalytic_activity;
@@ -268,7 +290,7 @@ inline constexpr struct dose_equivalent
 } // namespace std::isq
 ```
 
-This introduces **17 names** in `std::isq` (14 derived quantity types and 3 aliases:
+This introduces **26 names** in `std::isq` (23 derived quantity types and 3 aliases:
 `breadth`, `arc_length`, and `period`).
 
 ### Summary of ISQ Definitions
@@ -277,10 +299,10 @@ This introduces **17 names** in `std::isq` (14 derived quantity types and 3 alia
 |------------------------------------------------|------------------|
 | Base dimensions                                | 7                |
 | Base quantities (incl. `time` alias)           | 8                |
-| SI-relevant derived quantities (incl. aliases) | 17               |
-| **Total**                                      | **32**           |
+| SI-relevant derived quantities (incl. aliases) | 26               |
+| **Total**                                      | **41**           |
 
-Straw poll: _We want `<isq_si_quantities>` — the minimal ISQ subset (32 definitions) required
+Straw poll: _We want `<isq_si_quantities>` — the minimal ISQ subset (41 definitions) required
 by `<si_core>` — to be standardized as part of the quantities and units library._
 
 # Core SI Definitions (`<si_core>`)
@@ -1019,13 +1041,13 @@ utility — to be included as part of the quantities and units library._
 |-----------------------------------------------|:-------------------------:|:-----------:|:-----------:|
 | ISQ base dimensions                           |   `<isq_si_quantities>`   |  mandatory  |      7      |
 | ISQ base quantities (incl. `time` alias)      |   `<isq_si_quantities>`   |  mandatory  |      8      |
-| ISQ derived quantities for SI (incl. aliases) |   `<isq_si_quantities>`   |  mandatory  |     17      |
-| **ISQ subtotal**                              | **`<isq_si_quantities>`** |             |   **32**    |
+| ISQ derived quantities for SI (incl. aliases) |   `<isq_si_quantities>`   |  mandatory  |     26      |
+| **ISQ subtotal**                              | **`<isq_si_quantities>`** |             |   **41**    |
 | SI prefixes (class + variable templates)      |        `<si_core>`        |  mandatory  |     48      |
 | SI base units                                 |        `<si_core>`        |  mandatory  |      8      |
 | SI named derived units and origins            |        `<si_core>`        |  mandatory  |     25      |
 | **SI core subtotal**                          |      **`<si_core>`**      |             |   **81**    |
-| **ISQ + SI core total**                       |                           |             |   **113**   |
+| **ISQ + SI core total**                       |                           |             |   **122**   |
 | Non-SI units accepted for use with SI         |    `<si_non_si_units>`    |  optional   |     13      |
 | Customization point specializations           |    `<si_non_si_units>`    |  optional   |      3      |
 | SI-defining constants (si2019 + derived)      |     `<si_constants>`      |  optional   |     10      |
@@ -1034,7 +1056,7 @@ utility — to be included as part of the quantities and units library._
 | Trigonometric math functions                  |        `<si_math>`        | hosted only |      7      |
 | Prefix auto-selection utility                 |    `<si_prefix_utils>`    | hosted only |      2      |
 | **Optional subtotal**                         |                           |             |  **~761+**  |
-| **Grand total**                               |                           |             |  **~874+**  |
+| **Grand total**                               |                           |             |  **~883+**  |
 
 
 # Acknowledgements
