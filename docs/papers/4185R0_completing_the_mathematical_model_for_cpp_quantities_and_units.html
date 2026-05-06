@@ -1205,11 +1205,11 @@ duration are inherently amounts, not differences:</p>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> power <span class="op">*</span> duration;</span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 
-<p>These precondition checks are:</p>
+<p>These precondition checks present several problems:</p>
 <ul>
-<li><strong>Repetitive</strong>: every function must validate its own
+<li><strong>Repetition</strong>: every function must validate its own
 inputs.</li>
-<li><strong>Error-prone</strong>: easy to forget or apply
+<li><strong>Fragility</strong>: easy to forget or apply
 inconsistently.</li>
 <li><strong>Runtime overhead</strong>: checks execute even when inputs
 are known to be valid at the call site, and they accumulate across every
@@ -2147,7 +2147,8 @@ is never
 <code class="sourceCode cpp">non_negative</code>
 regardless of
 <code class="sourceCode cpp">Q</code>
-, because a delta is a vector-space element with no privileged zero.</p>
+, because a delta is a vector-space element with no fixed physical
+origin — it measures change, not amount from a true physical zero.</p>
 <p>A
 <code class="sourceCode cpp">point<span class="op">&lt;</span>Q<span class="op">&gt;</span></code>
 value (i.e.,
@@ -2437,8 +2438,8 @@ abstraction</strong> of an unanchored value:</p>
 <li>A
 <code class="sourceCode cpp">quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;</span></code>
 in <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> is a <em>delta</em> — it acts
-like a vector, can be negated freely, and its arithmetic operators have
-no privileged zero.</li>
+like a vector, can be negated freely, and the type carries no concept of
+a physically meaningful zero anchor.</li>
 <li>Two such quantities can be added, subtracted, multiplied, or divided
 without restriction; the type system has no way to express that the
 <em>physical</em> domain is the half-line <span class="math inline">\([0, +\infty)\)</span> for a value that is not a
@@ -6101,6 +6102,38 @@ a compile-time constant that is exactly
 <code class="sourceCode cpp"><span class="dv">0</span><span class="bu">LL</span></code>
 , etc. A runtime variable, or a non-zero literal, is rejected at compile
 time.</p>
+<p>Internally, this strategy uses Strategy 2’s
+<code class="sourceCode cpp">zero</code>
+tag type under the hood: the hidden-friend operator accepts a
+<code class="sourceCode cpp">zero</code>
+parameter, and
+<code class="sourceCode cpp">zero</code>
+has a
+<code class="sourceCode cpp"><span class="kw">consteval</span></code>
+constructor that accepts any scalar value but rejects non-zero values at
+compile time. This is how writing
+<code class="sourceCode cpp">q <span class="op">&gt;</span> <span class="dv">0</span></code>
+in user code triggers the guard — the literal
+<code class="sourceCode cpp"><span class="dv">0</span></code>
+implicitly constructs
+<code class="sourceCode cpp">zero</code>
+via the
+<code class="sourceCode cpp"><span class="kw">consteval</span></code>
+constructor, and any non-zero literal or runtime value causes a compile
+error at that constructor. A simplified sketch of the implementation in
+<strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong>:</p>
+
+<div class="sourceCode" id="cb88"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> zero <span class="op">{</span></span>
+<span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb88-3"><a href="#cb88-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">consteval</span> zero<span class="op">(</span>T v<span class="op">)</span> <span class="op">{</span> <span class="cf">if</span> <span class="op">(</span>v <span class="op">!=</span> T<span class="op">{})</span> <span class="cf">throw</span> <span class="st">&quot;only literal zero is accepted&quot;</span>; <span class="op">}</span></span>
+<span id="cb88-4"><a href="#cb88-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb88-5"><a href="#cb88-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb88-6"><a href="#cb88-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Hidden friend inside quantity&lt;R, Rep&gt;:</span></span>
+<span id="cb88-7"><a href="#cb88-7" aria-hidden="true" tabindex="-1"></a><span class="op">[[</span><span class="at">nodiscard</span><span class="op">]]</span> <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> quantity<span class="op">&amp;</span> lhs, zero<span class="op">)</span></span>
+<span id="cb88-8"><a href="#cb88-8" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb88-9"><a href="#cb88-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> lhs<span class="op">.</span>numerical_value_ref_in<span class="op">(</span>get_unit<span class="op">(</span>R<span class="op">))</span> <span class="op">==</span> representation_values<span class="op">&lt;</span>Rep<span class="op">&gt;::</span>zero<span class="op">()</span>;</span>
+<span id="cb88-10"><a href="#cb88-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+
 <p><strong>Advantages:</strong></p>
 <ul>
 <li>Preserves natural operator syntax with no new user-facing

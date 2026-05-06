@@ -375,10 +375,10 @@ quantity_of<isq::energy> auto electrical_energy(quantity_of<isq::power> auto pow
 }
 ```
 
-These precondition checks are:
+These precondition checks present several problems:
 
-- **Repetitive**: every function must validate its own inputs.
-- **Error-prone**: easy to forget or apply inconsistently.
+- **Repetition**: every function must validate its own inputs.
+- **Fragility**: easy to forget or apply inconsistently.
 - **Runtime overhead**: checks execute even when inputs are known to be valid at the call
   site, and they accumulate across every function in a call chain.
 - **Hidden rescaling cost**: the `0 * unit` check silently introduces a unit conversion
@@ -1037,7 +1037,8 @@ in [§ Absolute quantities — Syntax](#absolute-syntax) and
 :::
 
 Similarly, `delta<Q>` is never `non_negative` regardless of `Q`, because a delta is a
-vector-space element with no privileged zero.
+vector-space element with no fixed physical origin — it measures change, not amount from
+a true physical zero.
 
 A `point<Q>` value (i.e., `quantity<point<Q>[u]>`, replacing the old `quantity_point`)
 carries the `non_negative` constraint **only** when `Q` is `non_negative` and the point is
@@ -1237,7 +1238,7 @@ abstractions (points and deltas). They do not, however, change the **arithmetic 
 of an unanchored value:
 
 - A `quantity<isq::mass[kg]>` in [@P3045R7] is a _delta_ — it acts like a vector, can be
-  negated freely, and its arithmetic operators have no privileged zero.
+  negated freely, and the type carries no concept of a physically meaningful zero anchor.
 - Two such quantities can be added, subtracted, multiplied, or divided without restriction;
   the type system has no way to express that the _physical_ domain is the half-line
   $[0, +\infty)$ for a value that is not a quantity point.
@@ -3297,6 +3298,26 @@ if (q1 / q2 != 0)
 
 Only a compile-time literal that evaluates to zero is accepted: `0`, `0.`, `0.f`, `0LL`,
 etc. A runtime variable, or a non-zero literal, is rejected at compile time.
+
+Internally, this strategy uses Strategy 2's `zero` tag type under the hood: the hidden-friend
+operator accepts a `zero` parameter, and `zero` has a `consteval` constructor that accepts
+any scalar value but rejects non-zero values at compile time. This is how writing `q > 0`
+in user code triggers the guard — the literal `0` implicitly constructs `zero` via the
+`consteval` constructor, and any non-zero literal or runtime value causes a compile error
+at that constructor. A simplified sketch of the implementation in **[@MP-UNITS]**:
+
+```cpp
+struct zero {
+  template<typename T>
+  consteval zero(T v) { if (v != T{}) throw "only literal zero is accepted"; }
+};
+
+// Hidden friend inside quantity<R, Rep>:
+[[nodiscard]] friend constexpr bool operator==(const quantity& lhs, zero)
+{
+  return lhs.numerical_value_ref_in(get_unit(R)) == representation_values<Rep>::zero();
+}
+```
 
 **Advantages:**
 
