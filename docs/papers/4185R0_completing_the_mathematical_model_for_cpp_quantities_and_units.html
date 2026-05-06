@@ -1777,11 +1777,11 @@ hierarchy, matching the natural ISQ structure:</p>
 correctly determines the magnitude of each vector quantity. In the
 library, the magnitude of a vector quantity is its first scalar ancestor
 in the tree. Here,
-<code class="sourceCode cpp">magnitude<span class="op">(</span>position_vector<span class="op">)</span></code>
+<code class="sourceCode cpp">norm<span class="op">(</span>position_vector<span class="op">)</span></code>
 is
 <code class="sourceCode cpp">radial_distance</code>
 and
-<code class="sourceCode cpp">magnitude<span class="op">(</span>displacement<span class="op">)</span></code>
+<code class="sourceCode cpp">norm<span class="op">(</span>displacement<span class="op">)</span></code>
 is
 <code class="sourceCode cpp">distance</code>
 . In Options 1 and 2, both vector quantities share a single parent
@@ -2846,8 +2846,10 @@ to change representation</td>
 <code class="sourceCode cpp"><span class="op">.</span>absolute<span class="op">()</span></code>
 (precondition: non-negative);<br>always safe:
 <code class="sourceCode cpp">abs<span class="op">()</span></code>
-or
+,
 <code class="sourceCode cpp">norm<span class="op">()</span></code>
+, or
+<code class="sourceCode cpp">modulus<span class="op">()</span></code>
 </td>
 <td style="text-align: center;">Identity</td>
 </tr>
@@ -3093,9 +3095,9 @@ explicit conversion:</p>
 <h3 data-number="5.6.3" id="multiplication-and-division"><span class="header-section-number">5.6.3</span> Multiplication and division<a href="#multiplication-and-division" class="self-link"></a></h3>
 <table>
 <colgroup>
-<col style="width: 18%" />
+<col style="width: 21%" />
 <col style="width: 8%" />
-<col style="width: 72%" />
+<col style="width: 69%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -3167,12 +3169,19 @@ reference</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">
-<code class="sourceCode cpp">abs<span class="op">(</span>delta_scalar<span class="op">)</span></code>
+<code class="sourceCode cpp">abs<span class="op">(</span>delta_real_scalar<span class="op">)</span></code>
 </td>
 <td style="text-align: left;">Absolute</td>
 <td style="text-align: left;">Magnitude of a scalar delta</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;">
+<code class="sourceCode cpp">modulus<span class="op">(</span>complex_scalar<span class="op">)</span></code>
+</td>
+<td style="text-align: left;">Absolute</td>
+<td style="text-align: left;">Modulus of a complex number</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">
 <code class="sourceCode cpp">norm<span class="op">(</span>delta_vector<span class="op">)</span></code>
 </td>
@@ -6226,10 +6235,10 @@ the standard zero-comparison mechanism for
 relationship to <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span>:</p>
 <table>
 <colgroup>
-<col style="width: 23%" />
-<col style="width: 37%" />
+<col style="width: 22%" />
+<col style="width: 36%" />
 <col style="width: 7%" />
-<col style="width: 31%" />
+<col style="width: 34%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -6258,7 +6267,7 @@ relationship to <span class="citation" data-cites="P3045R7"><a href="https://wg2
 <td style="text-align: left;">Absolute quantities</td>
 <td style="text-align: left;">Breaking change (default)</td>
 <td style="text-align: left;">First</td>
-<td style="text-align: left;">Not yet implemented</td>
+<td style="text-align: left;">Not in <span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span>; proven in <span class="citation" data-cites="SEQUOIA"><a href="https://github.com/ojrosten/sequoia" role="doc-biblioref">[Sequoia]</a></span></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Affine space annotations</td>

@@ -791,8 +791,8 @@ length[m]
 
 This layout has a unique advantage over the other options: it correctly determines
 the magnitude of each vector quantity. In the library, the magnitude of a vector quantity is
-its first scalar ancestor in the tree. Here, `magnitude(position_vector)` is
-`radial_distance` and `magnitude(displacement)` is `distance`. In Options 1 and 2, both
+its first scalar ancestor in the tree. Here, `norm(position_vector)` is
+`radial_distance` and `norm(displacement)` is `distance`. In Options 1 and 2, both
 vector quantities share a single parent branch, so the magnitude of `position_vector`
 degenerates to `length` (or `displacement`'s scalar parent), losing the specific scalar
 quantity in the ISQ hierarchy. Option 3 eliminates the distinction entirely, and Option
@@ -1386,7 +1386,7 @@ a scalar absolute from a vector quantity, take the norm: `norm(velocity)` → `s
 |-------------:|:---------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------:|
 |    **Point** | Identity;<br>`point_for(origin)` to change representation | `.absolute()` (if not offset unit and the origin is `natural_point_origin`);<br>otherwise `delta_from(origin_or_qp).absolute()` |     `delta_from(origin_or_qp)`     |
 | **Absolute** |       Explicit ctor<br>using `natural_point_origin`       |                                                            Identity                                                             | Implicit construction;<br>.delta() |
-|    **Delta** |                  origin + delta → point                   |                         `.absolute()` (precondition: non-negative);<br>always safe: `abs()` or `norm()`                         |              Identity              |
+|    **Delta** |                  origin + delta → point                   |                  `.absolute()` (precondition: non-negative);<br>always safe: `abs()`, `norm()`, or `modulus()`                  |              Identity              |
 
 ::: note
 `delta_from(origin_or_qp)` replaces [@P3045R7]'s `delta_from()`.
@@ -1524,19 +1524,20 @@ quantity transferred = (before - after).absolute();  // quantity<isq::mass[kg]>:
 
 ### Multiplication and division
 
-| Operation            | Result   | Physical Meaning                                                                     |
-|:---------------------|:---------|:-------------------------------------------------------------------------------------|
-| Absolute × Absolute  | Absolute | A product of two absolute quantities (energy = power × time)                         |
-| Absolute × Scalar    | Absolute | Rescaling by a dimensionless factor (2 × mass stays absolute mass)                   |
-| Absolute × Delta     | Delta    | Absolute scaled by a displacement is a displacement (e.g., area × Δheight → Δvolume) |
-| Absolute / Absolute  | Absolute | A physical ratio (efficiency, density, strain)                                       |
-| Absolute / Delta     | Delta    | Rate of an absolute w.r.t. a signed step                                             |
-| Delta × Absolute     | Delta    | (same as Absolute × Delta — multiplication is commutative)                           |
-| Delta × Scalar       | Delta    | Rescaling a signed difference (factor preserves delta category)                      |
-| Delta / Absolute     | Delta    | A change scaled by a fixed absolute reference                                        |
-| Delta / Delta        | Delta    | A rate of change (velocity = displacement / duration)                                |
-| `abs(delta_scalar)`  | Absolute | Magnitude of a scalar delta                                                          |
-| `norm(delta_vector)` | Absolute | Magnitude of a vector delta (speed = norm(velocity))                                 |
+| Operation                 | Result   | Physical Meaning                                                                     |
+|:--------------------------|:---------|:-------------------------------------------------------------------------------------|
+| Absolute × Absolute       | Absolute | A product of two absolute quantities (energy = power × time)                         |
+| Absolute × Scalar         | Absolute | Rescaling by a dimensionless factor (2 × mass stays absolute mass)                   |
+| Absolute × Delta          | Delta    | Absolute scaled by a displacement is a displacement (e.g., area × Δheight → Δvolume) |
+| Absolute / Absolute       | Absolute | A physical ratio (efficiency, density, strain)                                       |
+| Absolute / Delta          | Delta    | Rate of an absolute w.r.t. a signed step                                             |
+| Delta × Absolute          | Delta    | (same as Absolute × Delta — multiplication is commutative)                           |
+| Delta × Scalar            | Delta    | Rescaling a signed difference (factor preserves delta category)                      |
+| Delta / Absolute          | Delta    | A change scaled by a fixed absolute reference                                        |
+| Delta / Delta             | Delta    | A rate of change (velocity = displacement / duration)                                |
+| `abs(delta_real_scalar)`  | Absolute | Magnitude of a scalar delta                                                          |
+| `modulus(complex_scalar)` | Absolute | Modulus of a complex number                                                          |
+| `norm(delta_vector)`      | Absolute | Magnitude of a vector delta (speed = norm(velocity))                                 |
 
 "Scalar" in this table means a raw C++ numeric type (`double`, `int`, etc.) treated as a
 multiplicative factor without an absolute/delta annotation. For **category propagation** the
@@ -3367,16 +3368,16 @@ overloads (Strategy 3) as the standard zero-comparison mechanism for `quantity`.
 
 The following table summarizes the proposed additions and their relationship to [@P3045R7]:
 
-| Feature                   | Impact on [@P3045R7]                       | Release | Status                              |
-|:--------------------------|:-------------------------------------------|:--------|:------------------------------------|
-| Non-negative quantities   | Pure addition (ISQ spec definitions)       | First   | Implemented in [@MP-UNITS]          |
-| Absolute quantities       | Breaking change (default)                  | First   | Not yet implemented                 |
-| Affine space annotations  | Breaking change (unifies `quantity_point`) | First   | Not yet implemented                 |
-| Range-validated points    | Pure addition                              | First   | Implemented in [@MP-UNITS]          |
-| Runtime frame projections | Pure addition                              | Later   | Not yet implemented                 |
-| Text output for points    | Resolved by absolutes                      | First   | Indirect resolution                 |
-| Integer division safety   | Breaking change (guard)                    | First   | Implemented - open for SG6 decision |
-| Comparison against zero   | Design choice (open)                       | First   | Implemented - open for SG6 decision |
+| Feature                   | Impact on [@P3045R7]                       | Release | Status                                   |
+|:--------------------------|:-------------------------------------------|:--------|:-----------------------------------------|
+| Non-negative quantities   | Pure addition (ISQ spec definitions)       | First   | Implemented in [@MP-UNITS]               |
+| Absolute quantities       | Breaking change (default)                  | First   | Not in [@MP-UNITS]; proven in [@SEQUOIA] |
+| Affine space annotations  | Breaking change (unifies `quantity_point`) | First   | Not yet implemented                      |
+| Range-validated points    | Pure addition                              | First   | Implemented in [@MP-UNITS]               |
+| Runtime frame projections | Pure addition                              | Later   | Not yet implemented                      |
+| Text output for points    | Resolved by absolutes                      | First   | Indirect resolution                      |
+| Integer division safety   | Breaking change (guard)                    | First   | Implemented - open for SG6 decision      |
+| Comparison against zero   | Design choice (open)                       | First   | Implemented - open for SG6 decision      |
 
 The **Release** column classifies each feature as:
 
