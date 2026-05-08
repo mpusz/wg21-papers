@@ -10,12 +10,49 @@ author:
 toc-depth: 3
 ---
 
-# Introduction
-
 This paper is a companion to [@P3045R8_PRE] (Quantities and Units Library). Its purpose is to
 present to LEWG a complete, structured reference of all definitions required to implement the
 International System of Units (SI) within a `std::` quantities library, so that LEWG can make
-informed decisions about scope, phasing, and feasibility of standardization.
+informed decisions about scope, phasing, and feasibility of standardization. The synopses are
+not final interfaces — they reflect the current state of [@P3045R8_PRE] and [@P4185R0_PRE] and
+will evolve as those papers progress. The definitions are organized as a mandatory core
+(41 ISQ + 81 SI = 122 names) plus six independently-votable optional chapters (~756 additional
+names), totalling ~878 names across `std::isq` and `std::si`.
+
+# Introduction
+
+## Motivation
+
+### The Content Gap
+
+[@P3045R8_PRE] supplies the type system. It does not supply the SI. A user who includes the
+framework gets `quantity`, `unit`, `quantity_spec`, `prefix` — but no `metre`, no `kilogram`,
+no `second`. The framework is deliberately content-agnostic: it supports arbitrary systems of
+quantities and units. Shipping the framework without SI content would be like shipping
+`<algorithm>` without `<vector>` — or the coroutine framework without `std::task`.
+
+### Why a Separate Paper
+
+The separation between framework and content is deliberate. [@P3045R8_PRE] defines the
+machinery — quantity types, unit types, representation, concepts, text output. This paper
+defines the domain content — the ISQ quantities needed to classify SI units, the SI units
+themselves, the prefixes, and the unit symbols — that populates `std::si` and `std::isq`
+when a user writes `#include <si_core>`.
+
+Separating content from framework enables independent review velocity — LEWG can poll SI
+definitions without re-reading the type system, and revisions to either paper do not block
+the other. It also reflects a broader
+roadmap: SI is the most important system of units but not the only one. Additional papers may
+follow covering further unit systems and ISQ parts. A paper on mathematical functions for
+quantities is anticipated, and other library extensions may follow. Each is an independent
+building block, deliverable whenever [@P3045R8_PRE] is accepted, without blocking or being
+blocked by the others.
+
+### Why Modular
+
+Not every user needs 715+ unit symbols. Not every embedded target wants trigonometric
+overloads. Not every codebase interoperates with `std::chrono`. The six optional chapters are
+independently useful, independently testable, and independently votable.
 
 ::: note
 All synopses in this paper are derived from the open-source
@@ -130,42 +167,48 @@ The following components are covered by this paper, organized by namespace.
 6. **Prefix utilities** — an `invoke_with_prefixed` facility for automatically selecting the
    most appropriate SI prefix when formatting a quantity for display.
 
-## Proposed Standardization Approach
-
-The components above are organized into three groups:
-
-- **ISQ** (`<isq_si_quantities>`): The minimal ISQ subset required to define SI — base
-  dimensions, base quantities, and the derived quantities needed to classify all 22 SI
-  named units. `<si_core>` depends directly on `<isq_si_quantities>`. The `<isq>` header
-  is an aggregate that will grow to cover the full ISO/IEC 80000 series as more parts are
-  standardized; `<si_core>` does not depend on it.
-
-- **SI core** (`<si_core>`): The minimum needed to express any SI quantity — prefixes, base
-  units, and derived units. Depends on `<isq_si_quantities>`. All SI optional components
-  depend on this.
-
-- **SI optional** (separate headers): Each additional feature is placed in its own header and
-  constitutes an independently reviewable and votable chapter of this paper. Optional headers
-  are further classified as freestanding-compatible or hosted-only (the latter require
-  `<chrono>` or `<cmath>`); see the header summary table for the complete classification.
+## Design Overview
 
 ### Header Naming
 
-Header names follow a flat, underscore-separated convention — for example `<si_core>`,
+Headers use a flat, underscore-separated naming convention — for example `<si_core>`,
 `<si_constants>`, `<isq>` — rather than a slash-based hierarchy. A slash-based scheme would
 require both a file named `si` (for an aggregate header) and a directory named `si/` (for
 sub-headers) to coexist, which is impossible on POSIX filesystems when header names map
 directly to file paths.
 
-Three headers are relevant to the entire scope:
+Three aggregate headers span the full scope:
 
 - `<isq_si_quantities>` — the minimal ISQ subset for SI; lives in `std::isq` and is
   independent of any unit system. Other unit systems may depend on it without taking a
   dependency on `<si_core>`.
 - `<isq>` — aggregate of all ISQ headers; will grow as ISO/IEC 80000 parts are
   standardized. `<si_core>` does not depend on it.
-- `<si>` — includes all SI headers: `<si_core>`, `<si_non_si_units>`, `<si_constants>`,
+- `<si>` — includes all SI headers: `<si_core>`, `<si_accepted_units>`, `<si_constants>`,
   `<si_unit_symbols>`, `<si_chrono>`, `<si_math>`, and `<si_prefix_utils>`.
+
+### Dependency Graph
+
+The header dependency structure is a simple tree rooted at the P3045 framework:
+
+```text
+P3045 (Quantities and Units Library framework)
+└── <isq_si_quantities>          mandatory · freestanding · 41 names
+    └── <si_core>                mandatory · freestanding · 81 names
+        ├── <si_accepted_units>  optional  · freestanding
+        ├── <si_constants>       optional  · freestanding
+        ├── <si_unit_symbols>    optional  · freestanding
+        ├── <si_chrono>          optional  · hosted (requires <chrono>)
+        ├── <si_math>            optional  · hosted (requires <cmath>)
+        └── <si_prefix_utils>   optional  · hosted (requires <cmath>)
+
+Convenience aggregates (each includes all headers in its subtree):
+  <isq>  → <isq_si_quantities> and future ISQ part headers
+  <si>   → <si_core> and all optional SI headers above
+```
+
+Every optional header depends directly on `<si_core>`. No optional header depends on another
+optional header.
 
 LEWG should consider voting on `<isq_si_quantities>` (§2), `<si_core>` (§3), and each
 optional chapter (§4–§9) separately.
@@ -418,7 +461,7 @@ inline constexpr struct hertz   : named_unit<"Hz",  one / second, kind_of<isq::f
 inline constexpr struct newton  : named_unit<"N",   kilogram * metre / square(second), kind_of<isq::force>> {} newton;
 inline constexpr struct pascal  : named_unit<"Pa",  newton / square(metre), kind_of<isq::pressure>> {} pascal;
 inline constexpr struct joule   : named_unit<"J",   newton * metre, kind_of<isq::energy>> {} joule;
-// No kind_of: W is shared by isq::power, isq::heat_flow_rate, isq::active_power, isq::radiant_flux, etc.
+// No kind_of: W is shared by isq::power, isq::heat_flow_rate, isq::radiant_flux, etc.
 inline constexpr struct watt    : named_unit<"W",   joule / second> {} watt;
 // No kind_of: C is shared by isq::electric_charge and isq::electric_flux (different ISQ hierarchies).
 inline constexpr struct coulomb : named_unit<"C",   ampere * second> {} coulomb;
@@ -483,7 +526,7 @@ is the unit for quantities anchored at `ice_point`.
 Straw poll: _We want `<si_core>` — 81 SI definitions including 24 prefixes, 8 base units, and
 25 derived units and origins — to be standardized as part of the quantities and units library._
 
-# Optional: Non-SI Units Accepted for Use with SI (`<si_non_si_units>`)
+# Optional: Non-SI Units Accepted for Use with SI (`<si_accepted_units>`)
 
 The SI Brochure recognizes a number of units outside SI proper that are accepted for use
 alongside it. These are placed in a dedicated namespace and re-exported into `std::si` for
@@ -534,6 +577,12 @@ template<> inline constexpr bool space_before_unit_symbol<non_si::arcminute> = f
 template<> inline constexpr bool space_before_unit_symbol<non_si::arcsecond> = false;
 ```
 
+| Category                            | Count  |
+|-------------------------------------|--------|
+| Named units                         | 13     |
+| Customization point specializations | 3      |
+| **Total**                           | **16** |
+
 This introduces **13 names** in `std::non_si` and **3 customization point specializations**.
 
 ## Why This Is a Separate Chapter
@@ -544,7 +593,7 @@ chapter lets LEWG decide on their inclusion independently of the core, and also 
 namespace naming question (`non_si` or another name) to be resolved on its own schedule without
 blocking the mandatory definitions.
 
-Straw poll: _We want `<si_non_si_units>` — non-SI units accepted for use with SI — to be
+Straw poll: _We want `<si_accepted_units>` — non-SI units accepted for use with SI — to be
 included as part of the quantities and units library._
 
 # Optional: SI-Defining Constants (`<si_constants>`)
@@ -613,6 +662,12 @@ inline constexpr struct magnetic_constant
 
 } // namespace std::si
 ```
+
+| Category                         | Count  |
+|----------------------------------|--------|
+| SI-defining constants (`si2019`) | 7      |
+| Derived physical constants       | 3      |
+| **Total**                        | **10** |
 
 This introduces **10 names** in `std::si`: the 7 SI-defining constants (within `si2019`) plus
 3 additional constants (`standard_gravity`, `reduced_planck_constant`, `magnetic_constant`).
@@ -743,12 +798,22 @@ namespace std::si::unit_symbols {
 
 ## Symbol Count
 
-This is deliberately the largest component: for each of the 29 named SI units (7 base +
-22 derived), up to 26 prefixed aliases are defined (25 prefixes plus the base symbol itself),
-plus additional Unicode aliases where the standard unit symbol contains a non-ASCII character
-(Ω/ohm, µ/u). The 14 non-SI unit symbols are comparatively modest.
+| Category                                    | Count     |
+|---------------------------------------------|-----------|
+| Base unit symbols (m, kg, s, A, K, mol, cd) | 7         |
+| Named derived unit symbols                  | 22        |
+| Prefixed base unit symbols (24 x 7)         | 168       |
+| Prefixed derived unit symbols (24 x 21)     | 504+      |
+| Non-SI unit symbols                         | 14        |
+| **Total**                                   | **~715+** |
 
-The result is approximately **720+ named constants** in total.
+This is deliberately the largest component. For 21 of the 22 named derived SI units, all
+24 SI prefixes are defined; `degree_Celsius` is excluded because prefixed Celsius temperatures
+have no physical meaning for an offset scale (21 × 24 = 504). Units with non-ASCII symbols —
+`Ω` for ohm and `µ` for the micro prefix — additionally provide Unicode aliases, bringing the
+total above 504. The 14 non-SI unit symbols are comparatively modest.
+
+The result is approximately **715+ named constants** in total.
 
 This scale is an inherent property of SI: the standard explicitly sanctions every combination
 of its 24 prefixes with every base and derived unit. These names must exist for code such as
@@ -758,7 +823,7 @@ symbols chapter.
 
 ## Why This Is a Separate Chapter
 
-Unit symbols are a large, self-contained convenience layer. With ~720 short names they
+Unit symbols are a large, self-contained convenience layer. With ~715 short names they
 introduce distinct concerns — namespace pollution, compilation cost, and naming conflicts (e.g.,
 `F`, `T`, `s`) — that merit independent consideration. LEWG may wish to accept the core unit
 definitions while deferring or declining this chapter.
@@ -775,7 +840,7 @@ long-form names (`si::kilo<si::metre>`, `si::hertz`, etc.), as `using`-directive
 are generally unwelcome. Projects that use only a handful of symbols may also be better served
 by defining them locally, e.g., `inline constexpr auto km = si::kilo<si::metre>;`.
 
-Straw poll: _We want `<si_unit_symbols>` — the ~720+ short-form unit symbol aliases — to be
+Straw poll: _We want `<si_unit_symbols>` — the ~715+ short-form unit symbol aliases — to be
 included as part of the quantities and units library._
 
 # Optional: `std::chrono` Interoperability (`<si_chrono>`)
@@ -875,6 +940,14 @@ auto tp = to_chrono_time_point(qty_point);
 `chrono_point_origin_`, enforcing at compile time that the point is anchored to a clock epoch
 and not to an arbitrary physical reference.
 
+| Category                                  | Count |
+|-------------------------------------------|-------|
+| Customization point specializations       | 2     |
+| Struct templates (`chrono_point_origin_`) | 1     |
+| Variable template (`chrono_point_origin`) | 1     |
+| Function templates (to_chrono_*)          | 2     |
+| **Total**                                 | **6** |
+
 This introduces **2 struct templates**, **1 variable template**, **2 function templates**, and
 **2 specializations** of library customization points.
 
@@ -949,6 +1022,13 @@ template<auto R1, typename Rep1, auto R2, typename Rep2>
 } // namespace std::si
 ```
 
+| Category                        | Count |
+|---------------------------------|-------|
+| Forward trig (sin, cos, tan)    | 3     |
+| Inverse trig (asin, acos, atan) | 3     |
+| Two-argument (atan2)            | 1     |
+| **Total**                       | **7** |
+
 This introduces **7 function templates** in `std::si`.
 
 ## Why This Is a Separate Chapter
@@ -1020,6 +1100,12 @@ invoke_with_prefixed([](auto q){ std::print("{}", q); }, 42 * km, metre, prefix_
 // prints "42 km"  (at least 2 integral digits requested)
 ```
 
+| Category                                   | Count |
+|--------------------------------------------|-------|
+| Scoped enumeration (`prefix_range`)        | 1     |
+| Function template (`invoke_with_prefixed`) | 1     |
+| **Total**                                  | **2** |
+
 This introduces **1 scoped enumeration** and **1 function template** in `std::si`.
 
 ## Why This Is a Separate Chapter
@@ -1048,16 +1134,52 @@ utility — to be included as part of the quantities and units library._
 | SI named derived units and origins            |        `<si_core>`        |  mandatory  |     25      |
 | **SI core subtotal**                          |      **`<si_core>`**      |             |   **81**    |
 | **ISQ + SI core total**                       |                           |             |   **122**   |
-| Non-SI units accepted for use with SI         |    `<si_non_si_units>`    |  optional   |     13      |
-| Customization point specializations           |    `<si_non_si_units>`    |  optional   |      3      |
+| Non-SI units accepted for use with SI         |   `<si_accepted_units>`   |  optional   |     13      |
+| Customization point specializations           |   `<si_accepted_units>`   |  optional   |      3      |
 | SI-defining constants (si2019 + derived)      |     `<si_constants>`      |  optional   |     10      |
-| Unit symbols (SI + non-SI)                    |    `<si_unit_symbols>`    |  optional   |    ~720+    |
+| Unit symbols (SI + non-SI)                    |    `<si_unit_symbols>`    |  optional   |    ~715+    |
 | `std::chrono` interoperability                |       `<si_chrono>`       | hosted only |     ~6      |
 | Trigonometric math functions                  |        `<si_math>`        | hosted only |      7      |
 | Prefix auto-selection utility                 |    `<si_prefix_utils>`    | hosted only |      2      |
-| **Optional subtotal**                         |                           |             |  **~761+**  |
-| **Grand total**                               |                           |             |  **~883+**  |
+| **Optional subtotal**                         |                           |             |  **~756+**  |
+| **Grand total**                               |                           |             |  **~878+**  |
 
+
+# Consolidated Straw Polls
+
+**Poll 1** (`<isq_si_quantities>`): _We want `<isq_si_quantities>` — the minimal ISQ subset
+(41 definitions) required by `<si_core>` — to be standardized as part of the quantities and
+units library._
+
+**Poll 2** (`<si_core>`): _We want `<si_core>` — 81 SI definitions including 24 prefixes,
+8 base units, and 25 derived units and origins — to be standardized as part of the quantities
+and units library._
+
+**Poll 3** (`<si_accepted_units>`): _We want `<si_accepted_units>` — non-SI units accepted for
+use with SI — to be included as part of the quantities and units library._
+
+**Poll 4a** (`<si_constants>`, defining): _We want the seven SI-defining constants (`si2019`
+namespace) to be included as part of the quantities and units library._
+
+**Poll 4b** (`<si_constants>`, derived): _We want a selected set of derived physical constants
+to be included as part of the quantities and units library._
+
+**Poll 5** (`<si_unit_symbols>`): _We want `<si_unit_symbols>` — the ~720+ short-form unit
+symbol aliases — to be included as part of the quantities and units library._
+
+**Poll 6a** (`<si_chrono>`, traits): _We want the `std::chrono` interoperability type traits
+(`quantity_like_traits`, `quantity_point_like_traits`, `chrono_point_origin_`) to be included
+as part of the quantities and units library._
+
+**Poll 6b** (`<si_chrono>`, helpers): _We want the explicit `to_chrono_duration` and
+`to_chrono_time_point` conversion helpers to be included as part of the quantities and units
+library._
+
+**Poll 7** (`<si_math>`): _We want `<si_math>` — trigonometric function overloads for SI
+angular quantities — to be included as part of the quantities and units library._
+
+**Poll 8** (`<si_prefix_utils>`): _We want `<si_prefix_utils>` — the `invoke_with_prefixed`
+auto-prefix selection utility — to be included as part of the quantities and units library._
 
 # Acknowledgements
 
