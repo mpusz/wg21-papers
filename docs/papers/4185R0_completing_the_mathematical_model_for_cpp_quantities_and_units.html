@@ -780,7 +780,7 @@ independently developed approaches: the <strong><span class="citation" data-cite
 implementation (Mateusz Pusz) and the Sequoia C++ library <span class="citation" data-cites="SEQUOIA"><a href="https://github.com/ojrosten/sequoia" role="doc-biblioref">[Sequoia]</a></span> (Oliver Rosten). SG6 asked
 both authors to work together toward a unified design rather than
 advance separate proposals. The mathematical framework of convex spaces
-<span class="citation" data-cites="ROSTEN2025"><a href="#ref-ROSTEN2025" role="doc-biblioref">[Rosten2025]</a></span> developed by Oliver Rosten
+<span class="citation" data-cites="ROSTEN2025"><a href="https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing" role="doc-biblioref">[Rosten2025]</a></span> developed by Oliver Rosten
 provides the theoretical foundation; implementation experience from both
 <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong> and <span class="citation" data-cites="SEQUOIA"><a href="https://github.com/ojrosten/sequoia" role="doc-biblioref">[Sequoia]</a></span> validates the structural
 conclusions. The two-axis extension described below is where their
@@ -867,10 +867,10 @@ zero</a>).</li>
 </ul>
 <p>The remainder of the paper proposes solutions to each gap, drawing on
 the mathematical insights of an independently developed model based on
-<em>convex spaces</em> <span class="citation" data-cites="ROSTEN2025"><a href="#ref-ROSTEN2025" role="doc-biblioref">[Rosten2025]</a></span> and
-synthesizing both lines of work into a single proposal that puts the
-quantities and units library on a firm mathematical foundation while
-remaining accessible to the broader C++ community.</p>
+<em>convex spaces</em> <span class="citation" data-cites="ROSTEN2025"><a href="https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing" role="doc-biblioref">[Rosten2025]</a></span> and synthesizing both lines
+of work into a single proposal that puts the quantities and units
+library on a firm mathematical foundation while remaining accessible to
+the broader C++ community.</p>
 <p>Most proposed features are already implemented in <strong><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units" role="doc-biblioref">[mp-units]</a></span></strong>. Two — absolute
 quantities (the three-way delta/absolute/point split) and affine space
 annotations within the ISQ hierarchy — are design-complete but not yet
@@ -1094,12 +1094,12 @@ point measured in Kelvin and extracting the displacement from absolute
 zero:</p>
 
 <div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> temp <span class="op">=</span> point<span class="op">&lt;</span>deg_C<span class="op">&gt;(</span><span class="fl">28.</span><span class="op">)</span>;</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> T <span class="op">=</span> temp<span class="op">.</span>in<span class="op">(</span>K<span class="op">).</span>quantity_from_zero<span class="op">()</span>;    <span class="co">// 301.15 K — correct but cumbersome</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> T <span class="op">=</span> temp<span class="op">.</span>in<span class="op">(</span>K<span class="op">).</span>quantity_from_unit_zero<span class="op">()</span>;    <span class="co">// 301.15 K — correct but cumbersome</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> R_calc <span class="op">=</span> P <span class="op">*</span> V <span class="op">/</span> <span class="op">(</span>n <span class="op">*</span> T<span class="op">)</span>;</span></code></pre></div>
 
 <p>While the affine space model <em>can</em> handle this case, the
 ergonomics are poor:
-<code class="sourceCode cpp">point<span class="op">&lt;</span>deg_C<span class="op">&gt;(</span><span class="fl">28.</span><span class="op">).</span>in<span class="op">(</span>K<span class="op">).</span>quantity_from_zero<span class="op">()</span></code>
+<code class="sourceCode cpp">point<span class="op">&lt;</span>deg_C<span class="op">&gt;(</span><span class="fl">28.</span><span class="op">).</span>in<span class="op">(</span>K<span class="op">).</span>quantity_from_unit_zero<span class="op">()</span></code>
 is a far cry from what a domain expert would consider natural. The need
 to go through a point, convert units, and then extract the displacement
 from zero is a significant usability burden that discourages correct
@@ -1157,7 +1157,7 @@ same algebraic structure: their physical domain is the
 <strong>convex cone</strong>, closed under addition and under
 non-negative scalar multiplication, but <strong>not</strong> under
 negation. Independent work on convex-space foundations for measurement
-<span class="citation" data-cites="ROSTEN2025"><a href="#ref-ROSTEN2025" role="doc-biblioref">[Rosten2025]</a></span> reaches the same
+<span class="citation" data-cites="ROSTEN2025"><a href="https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing" role="doc-biblioref">[Rosten2025]</a></span> reaches the same
 conclusion: a
 <code class="sourceCode cpp">quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;</span></code>
 is mathematically <em>not</em> an element of a vector space, and
@@ -1945,8 +1945,8 @@ metrological clarity. There is no obviously correct answer. The
 alternatives and their trade-offs are analysed in <a href="#zero-comparison">Comparison against zero</a>.</p>
 <h1 data-number="4" id="non-negativity"><span class="header-section-number">4</span> Non-negative quantities<a href="#non-negativity" class="self-link"></a></h1>
 <h2 data-number="4.1" id="overview"><span class="header-section-number">4.1</span> Overview<a href="#overview" class="self-link"></a></h2>
-<p>Oliver Rosten (BSI) <span class="citation" data-cites="ROSTEN2025"><a href="#ref-ROSTEN2025" role="doc-biblioref">[Rosten2025]</a></span>
-raised non-negativity as an important property that the current <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> design lacks entirely: many
+<p>Oliver Rosten (BSI) <span class="citation" data-cites="ROSTEN2025"><a href="https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing" role="doc-biblioref">[Rosten2025]</a></span> raised non-negativity as an
+important property that the current <span class="citation" data-cites="P3045R7"><a href="https://wg21.link/p3045r7" role="doc-biblioref">[P3045R7]</a></span> design lacks entirely: many
 physical quantities — length, mass, duration, thermodynamic temperature,
 amount of substance, luminous intensity — are inherently non-negative,
 and a library that cannot express this is forced to scatter manual
@@ -2538,7 +2538,7 @@ subtraction, multiplication, and division are all well-defined. They can
 be printed. They cannot use offset units (because they must remain
 anchored to absolute zero, not a conventional origin).</p>
 <p>This three-way split mirrors the hierarchy found in measurement
-theory and physics <span class="citation" data-cites="ROSTEN2025"><a href="#ref-ROSTEN2025" role="doc-biblioref">[Rosten2025]</a></span>:</p>
+theory and physics <span class="citation" data-cites="ROSTEN2025"><a href="https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing" role="doc-biblioref">[Rosten2025]</a></span>:</p>
 <table>
 <colgroup>
 <col style="width: 18%" />
@@ -2595,7 +2595,7 @@ physically meaningful</td>
 </tbody>
 </table>
 <p>Points on a scale with a non-trivial lower bound but <em>no</em>
-distinguished absolute origin occupy a fourth category in <span class="citation" data-cites="ROSTEN2025"><a href="#ref-ROSTEN2025" role="doc-biblioref">[Rosten2025]</a></span>: the <strong>convex
+distinguished absolute origin occupy a fourth category in <span class="citation" data-cites="ROSTEN2025"><a href="https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing" role="doc-biblioref">[Rosten2025]</a></span>: the <strong>convex
 space</strong> — a half-line whose lower bound is fixed but not zero. In
 the library, the Celsius scale is the canonical example:
 <code class="sourceCode cpp">ice_point</code>
@@ -3868,8 +3868,8 @@ is defined as an offset in millikelvin from the natural zero:</p>
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> absolute_zero <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>point<span class="op">&lt;</span>kelvin<span class="op">&gt;(</span><span class="dv">0</span><span class="op">)&gt;</span> <span class="op">{}</span> absolute_zero;</span>
 <span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Celsius chain — offset value 273.150 K unchanged</span></span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> ice_point <span class="kw">final</span> <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>point<span class="op">&lt;</span>milli<span class="op">&lt;</span>kelvin<span class="op">&gt;&gt;(</span><span class="dv">273&#39;150</span><span class="op">)&gt;</span> <span class="op">{}</span> ice_point;</span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> degree_Celsius <span class="kw">final</span> <span class="op">:</span> named_unit<span class="op">&lt;</span>symbol_text<span class="op">{</span><span class="st">u8&quot;℃&quot;</span>, <span class="st">&quot;`C&quot;</span><span class="op">}</span>, kelvin, ice_point<span class="op">&gt;</span> <span class="op">{}</span> degree_Celsius;</span></code></pre></div>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> ice_point <span class="op">:</span> relative_point_origin<span class="op">&lt;</span>point<span class="op">&lt;</span>milli<span class="op">&lt;</span>kelvin<span class="op">&gt;&gt;(</span><span class="dv">273&#39;150</span><span class="op">)&gt;</span> <span class="op">{}</span> ice_point;</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> <span class="kw">struct</span> degree_Celsius <span class="op">:</span> named_unit<span class="op">&lt;</span>symbol_text<span class="op">{</span><span class="st">u8&quot;℃&quot;</span>, <span class="st">&quot;`C&quot;</span><span class="op">}</span>, kelvin, ice_point<span class="op">&gt;</span> <span class="op">{}</span> degree_Celsius;</span></code></pre></div>
 
 <p>With this definition,
 <code class="sourceCode cpp"><span class="dv">28</span> <span class="op">*</span> K</code>
@@ -6385,7 +6385,7 @@ the initial standardization of <span class="citation" data-cites="P3045R7"><a hr
 Mateusz’s membership in the ISO C++ Committee and the production of this
 proposal.</p>
 <p>The author also thanks <strong>Oliver Rosten</strong> for
-independently developing the convex-space model <span class="citation" data-cites="ROSTEN2025"><a href="#ref-ROSTEN2025" role="doc-biblioref">[Rosten2025]</a></span> that contributed the
+independently developing the convex-space model <span class="citation" data-cites="ROSTEN2025"><a href="https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing" role="doc-biblioref">[Rosten2025]</a></span> that contributed the
 four-space taxonomy and several key design insights used throughout this
 paper; <strong>Tiago Freire</strong> for the ideal gas law demonstration
 that motivated the temperature trap analysis and for detailed ANSI
@@ -6422,7 +6422,7 @@ non-type template parameters. <a href="https://wg21.link/p3380r1"><div class="cs
 </div>
 <div id="ref-ROSTEN2025" class="csl-entry" role="doc-biblioentry">
 [Rosten2025] Oliver J. Rosten. Thoughts on Quantities &amp; Units —
-Putting P3045 on a firm foundation.
+Putting P3045 on a firm foundation. <a href="https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing"><div class="csl-block">https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing</div></a>
 </div>
 <div id="ref-SEQUOIA" class="csl-entry" role="doc-biblioentry">
 [Sequoia] Oliver J. Rosten. Sequoia — a C++ library exploring

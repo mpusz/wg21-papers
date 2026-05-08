@@ -283,12 +283,12 @@ and extracting the displacement from absolute zero:
 
 ```cpp
 auto temp = point<deg_C>(28.);
-auto T = temp.in(K).quantity_from_zero();    // 301.15 K — correct but cumbersome
+auto T = temp.in(K).quantity_from_unit_zero();    // 301.15 K — correct but cumbersome
 auto R_calc = P * V / (n * T);
 ```
 
 While the affine space model _can_ handle this case, the ergonomics are poor:
-`point<deg_C>(28.).in(K).quantity_from_zero()` is a far cry from what a domain expert
+`point<deg_C>(28.).in(K).quantity_from_unit_zero()` is a far cry from what a domain expert
 would consider natural. The need to go through a point, convert units, and then extract
 the displacement from zero is a significant usability burden that discourages correct usage.
 
@@ -1977,8 +1977,8 @@ inline constexpr struct kelvin : named_unit<"K", kind_of<isq::thermodynamic_temp
 inline constexpr struct absolute_zero : relative_point_origin<point<kelvin>(0)> {} absolute_zero;
 
 // Celsius chain — offset value 273.150 K unchanged
-inline constexpr struct ice_point final : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
-inline constexpr struct degree_Celsius final : named_unit<symbol_text{u8"℃", "`C"}, kelvin, ice_point> {} degree_Celsius;
+inline constexpr struct ice_point : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
+inline constexpr struct degree_Celsius : named_unit<symbol_text{u8"℃", "`C"}, kelvin, ice_point> {} degree_Celsius;
 ```
 
 With this definition, `28 * K` now creates an absolute thermodynamic temperature directly — no conversion
@@ -3459,6 +3459,7 @@ references:
   citation-label: Rosten2025
   author: "Oliver J. Rosten"
   title: "Thoughts on Quantities & Units — Putting P3045 on a firm foundation."
+  URL: <https://docs.google.com/presentation/d/1qjw0SURoJtX_DhaFUr62F-BXtQJjdQRqzMUHvQ6h3-E/edit?usp=sharing>
 - id: SEQUOIA
   citation-label: Sequoia
   author: "Oliver J. Rosten"
