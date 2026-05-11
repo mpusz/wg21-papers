@@ -179,12 +179,12 @@ middle ground:
   the non-negativity machinery to handle bounded domains (Celsius, bearing, opacity) with
   the same first-class status as the current half-line abstraction. Logarithmic quantities
   and units — decibels (dB), neper (Np), pH, stellar magnitude — are another natural
-  extension point: they require a distinct arithmetic structure (addition of log-domain
-  values corresponds to multiplication of the underlying linear quantities, and a reference
-  level acts as an origin), but they fit naturally into the reference-wrapper model as a
-  future `log<R, Ref>` specialization without any change to the core `quantity` class
-  template. A complementary model proposed by Anthony Williams [@WILLIAMS2025] treats every
-  measurement as carrying an explicit **anchor point** as part of its unit, deriving
+  extension point: they require a distinct arithmetic structure, but fit naturally into the
+  reference-wrapper model as a future `log<QS>` quantity spec specialization, where the
+  reference level, logarithmic base, and scale multiplier are encoded in the named unit
+  (e.g., `dBm`, `dBW`, `Np`), without any change to the core `quantity` class template.
+  A complementary model proposed by Anthony Williams [@WILLIAMS2025] treats
+  every measurement as carrying an explicit **anchor point** as part of its unit, deriving
   arithmetic compatibility from whether anchor points are compatible. That approach maps
   naturally onto the same extension mechanism: a future `quantity<anchored<R, Anchor>>`
   reference wrapper could express Williams' anchored quantities without any change to the
@@ -432,7 +432,7 @@ adequately representing it requires meeting requirements that a wrapper cannot s
   possibly-negative thermodynamic potentials. Any propagation mechanism must therefore require
   an explicit annotation at every named root derived spec.
 - _Correct arithmetic abstraction._ On the half-line, addition and non-negative scaling
-  are total operations, but unary negation is not. Treating `mass`, `duration`,
+  are closed operations (the result always stays on the half-line), but unary negation is not. Treating `mass`, `duration`,
   `kinetic_energy` as displacement vectors makes `-m` type-check silently, even though a
   negative absolute mass has no physical meaning. Even the
   seemingly reasonable `mass_a - mass_b` is problematic: the result can be negative, yet
@@ -484,14 +484,18 @@ legitimate computation `total_initial - total_dried` yields an `isq::mass` resul
 The workaround thus introduces friction for every correct call site, not just the incorrect
 ones.
 
-However, the distinction here is not between different _specializations_ of mass — both
-`water_lost` and `total` are ordinary masses measured in the same way with the same
-instruments. The difference is in their _role_: one is a signed difference (delta) and the
-other is an absolute amount measured from true zero. Encoding every such role as a separate
-quantity in the hierarchy would cause the quantity tree to proliferate with domain-specific
-entries that have no basis in measurement science (ISO 80000 does not distinguish "total mass"
-from "mass loss" — they are both simply _mass_). Every domain would need its own set of
-role-based quantity specializations, and the hierarchy would grow without bound.
+However, the distinction here is not between different _specializations_ of mass. Both
+`water_lost` and `total` may even be measured with the same instrument, but the
+_measurement setup_ is fundamentally different: `total` is a direct ratio-scale reading
+anchored at true zero (put the wet material on the scale and read the mass), while
+`water_lost` is derived as the difference between two such readings. The same scale, a
+completely different kind of measurement. The difference is in their _role_: one is a
+signed difference (delta) and the other is an absolute amount measured from true zero.
+Encoding every such role as a separate quantity in the hierarchy would cause the quantity tree to
+proliferate with domain-specific entries that have no basis in measurement science
+(ISO 80000 does not distinguish "total mass" from "mass loss" — they are both simply _mass_).
+Every domain would need its own set of role-based quantity specializations, and the hierarchy
+would grow without bound.
 
 If instead the library distinguished absolute quantities (amounts measured from a true zero)
 from deltas (signed differences), the function signature alone would enforce the correct usage
@@ -1264,7 +1268,7 @@ between deltas and points in the type hierarchy:
 | Addition (A + A)          |                  ✗                  |           ✓           |   ✓   |
 | Subtraction (A − A)       |                  ✓                  |           ✓           |   ✓   |
 | May be non-negative       |                  ✓                  |           ✓           |   ✗   |
-| Zero reference            | Point origin (explicit or implicit) | Anchored at true zero |  N/A  |
+| Physical origin           | Point origin (explicit or implicit) | Anchored at true zero |  N/A  |
 | Can use offset units      |                  ✓                  |           ✗           |   ✓   |
 | Text output               |                  ✗                  |           ✓           |   ✓   |
 
@@ -1273,15 +1277,24 @@ They participate fully in arithmetic: addition, subtraction, multiplication, and
 all well-defined. They can be printed. They cannot use offset units (because they must remain
 anchored to absolute zero, not a conventional origin).
 
+::: note
+An any-sign absolute and a delta share the same mathematical structure: both are vector spaces
+with a distinguished zero element. The type distinction exists to encode physical
+interpretation — an absolute is a ratio-scale measurement anchored at true physical zero; a
+delta is a displacement with no physical zero anchor. The `non_negative` absolute is where
+the two genuinely diverge in mathematical structure: it forms a convex cone `[0, +∞)`, which
+is closed under addition but not under negation, and is therefore not a vector space.
+:::
+
 This three-way split mirrors the hierarchy found in measurement theory and physics
 [@ROSTEN2025]:
 
-| Concept                           | Measurement Scale | Mathematical Structure                                                       | Physical Meaning                                          |
-|:----------------------------------|:------------------|:-----------------------------------------------------------------------------|:----------------------------------------------------------|
-| **Point**                         | Interval Scale    | Affine Space                                                                 | A location on a scale or in space                         |
-| **Absolute** (any sign permitted) | Ratio Scale       | Real line with fixed origin                                                  | A quantity measured from true zero                        |
-| **Absolute** (`non_negative`)     | Ratio Scale       | Absolute Convex Space — convex cone $[0, +\infty)$ with distinguished origin | A non-negative amount; true zero is physically meaningful |
-| **Delta**                         | —                 | Vector Space                                                                 | A change, displacement, or interval                       |
+| Concept                           | Measurement Scale | Mathematical Structure                                                       | Physical Meaning                                                                           |
+|:----------------------------------|:------------------|:-----------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
+| **Point**                         | Interval Scale    | Affine Space                                                                 | A reading relative to an explicit origin (e.g., 20 °C, altitude above sea level)           |
+| **Absolute** (any sign permitted) | Ratio Scale       | Vector Space (real line); zero = true physical zero                          | A ratio-scale quantity whose sign is unconstrained (e.g., electric charge, reactive power) |
+| **Absolute** (`non_negative`)     | Ratio Scale       | Absolute Convex Space — convex cone $[0, +\infty)$ with distinguished origin | A non-negative amount; true zero is physically meaningful                                  |
+| **Delta**                         | —                 | Vector Space                                                                 | A change, displacement, or interval                                                        |
 
 Points on a scale with a non-trivial lower bound but _no_ distinguished absolute origin
 occupy a fourth category in [@ROSTEN2025]: the **convex space** — a half-line whose lower
@@ -1366,7 +1379,8 @@ epoch, the freezing point of water) carries no such meaning.
 Absolute quantities are always **scalar**: they are ratio-scale magnitudes anchored at a
 physically meaningful true zero, and the concept of direction — which would require an
 orientation relative to a reference frame, not just a reference zero — has no place in the
-model. Vector quantities have no natural zero-anchor in the absolute sense; they are
+model. Vector quantities live in a vector space: they have a mathematical zero (the zero vector,
+representing no displacement), but not a ratio-scale physical anchor; they represent
 displacements from a reference and therefore always fall in the **delta** category. Points
 carry a concrete origin and may be scalar or vector depending on the space they inhabit.
 
@@ -1377,16 +1391,17 @@ carry a concrete origin and may be scalar or vector depending on the space they 
 | **Absolute** | `duration`, `height`, `mass`       | _(none — use `norm()` to obtain scalar absolute)_ |
 
 Named vector quantities such as `displacement` and `velocity` are displacements in a vector
-space; they carry no zero-anchor and belong to the delta category by construction. To obtain
+space; their zero is the zero vector (no displacement), not a ratio-scale physical anchor,
+and they belong to the delta category by construction. To obtain
 a scalar absolute from a vector quantity, take the norm: `norm(velocity)` → `speed`.
 
 ## Conversions between abstractions {#absolute-conversions}
 
-|     From\\To |                           Point                           |                                                            Absolute                                                             |               Delta                |
-|-------------:|:---------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------:|
-|    **Point** | Identity;<br>`point_for(origin)` to change representation | `.absolute()` (if not offset unit and the origin is `natural_point_origin`);<br>otherwise `delta_from(origin_or_qp).absolute()` |     `delta_from(origin_or_qp)`     |
-| **Absolute** |       Explicit ctor<br>using `natural_point_origin`       |                                                            Identity                                                             | Implicit construction;<br>.delta() |
-|    **Delta** |                  origin + delta → point                   |                  `.absolute()` (precondition: non-negative);<br>always safe: `abs()`, `norm()`, or `modulus()`                  |              Identity              |
+|     From\\To |                           Point                           |                                                           Absolute                                                            |                         Delta                         |
+|-------------:|:---------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------:|
+|    **Point** | Identity;<br>`point_for(origin)` to change representation | `.absolute()` (if not offset unit and the origin is `natural_point_origin`);<br>otherwise `(point - origin_or_qp).absolute()` | `point - origin_or_qp`;<br>`delta_from(origin_or_qp)` |
+| **Absolute** |       Explicit ctor<br>using `natural_point_origin`       |                                                           Identity                                                            |          Implicit construction;<br>.delta()           |
+|    **Delta** |                  origin + delta → point                   |                 `.absolute()` (precondition: non-negative);<br>always safe: `abs()`, `norm()`, or `modulus()`                 |                       Identity                        |
 
 ::: note
 `delta_from(origin_or_qp)` replaces [@P3045R7]'s `delta_from()`.
@@ -1403,6 +1418,41 @@ argument-swapping risk shown in [Mass balance revisited](#mass-balance-revisited
 wish to consider whether this conversion should require an explicit `.delta()` call or
 explicit construction (analogous to the explicit constructor used in the point case).
 :::
+
+The following examples demonstrate the explicit and implicit casts between all three abstractions:
+
+```cpp
+// ── From Absolute ──────────────────────────────────────────────────────────────────────
+quantity<isq::mass[kg]> total{5 * kg};
+
+// Absolute → Delta: implicit (no notation at call site) or explicit .delta()
+quantity<delta<isq::mass[kg]>> d1 = total;         // implicit
+quantity<delta<isq::mass[kg]>> d2 = total.delta(); // explicit
+
+// Absolute → Point: explicit construction only (attaches natural_point_origin)
+quantity<point<isq::mass[kg]>> p{total};           // explicit ctor
+
+// ── From Delta ─────────────────────────────────────────────────────────────────────────
+quantity<delta<isq::mass[kg]>> change{3 * kg};
+
+// Delta → Absolute: explicit .absolute(); fires contract assertion if change < 0
+quantity<isq::mass[kg]> amount = change.absolute();
+quantity<isq::mass[kg]> safe   = abs(change);      // always safe: |change|
+
+// Delta → Point: origin + delta
+quantity<point<isq::length[m]>> pos =
+    natural_point_origin<isq::length> + delta<isq::length[m]>(3);
+
+// ── From Point ─────────────────────────────────────────────────────────────────────────
+quantity<point<isq::thermodynamic_temperature[K]>> boiling{373.15 * K};
+
+// Point → Delta: subtract a reference origin or another point
+quantity<delta<isq::thermodynamic_temperature[K]>> above_zero =
+    boiling.delta_from(natural_point_origin<isq::thermodynamic_temperature>);
+
+// Point → Absolute: only valid when the point's origin is natural_point_origin
+quantity<isq::thermodynamic_temperature[K]> t_abs = boiling.absolute();
+```
 
 One might ask whether `delta → absolute` should be implicit when the target has no
 `non_negative` constraint — after all, no check fires, so the conversion is always safe.
@@ -2017,6 +2067,17 @@ direct name that reflects the mathematical intent.
 Offset units (°C, °F) remain point-only because they carry an explicit non-zero point origin.
 A point on the Celsius scale is not an absolute temperature — it must be converted explicitly.
 
+::: note
+The `point` abstraction in this library generalizes beyond pure affine spaces. A pure affine
+space is unbounded — no origin, no bounds — and is the right model for, e.g., spatial
+position. The Celsius scale is a **convex space** in the taxonomy of [@ROSTEN2025]: it is
+bounded below at −273.15 °C (the 0 K boundary expressed in Celsius units) but has no
+ratio-scale physical anchor of its own. The `point` type covers both: unbounded interval
+scales (affine spaces) and bounded scales (convex spaces). What they share is the absence of
+a ratio-scale anchor — they are locations relative to a chosen reference, not amounts
+measured from true physical zero.
+:::
+
 This distinction has a precise measurement-theory interpretation. Kelvin quantities live in an
 **absolute convex space**: the domain is the half-line $[0, +\infty)$ with a physically
 distinguished origin (absolute zero), and addition of two Kelvin values is well-defined because
@@ -2027,8 +2088,8 @@ origin but a direct consequence of that translation — the same 0 K boundary ex
 Celsius units. Adding two Celsius temperatures is ill-formed for the same reason as any affine
 point addition: a Celsius point is a location on the scale, not an amount measured from true
 zero. The `.in(K).absolute()` call is precisely the operation that transports a value from the
-affine (Celsius) domain into the absolute convex (Kelvin) domain by making the true-zero anchor
-explicit.
+convex-space (Celsius) domain into the absolute convex (Kelvin) domain by making the
+true-zero anchor explicit.
 
 This design preserves the type-safety that prevents accidental use of offset unit values in
 thermodynamic equations while providing a natural syntax for the common case (working in Kelvin
@@ -2109,7 +2170,7 @@ Sequoia library [@SEQUOIA] independently implements the same three-way structura
 a different API surface, confirming that the theoretical taxonomy is sound and implementable
 in C++. The two authors are working to reconcile their interface choices in this paper;
 implementation in **[@MP-UNITS]** will follow favorable SG6 direction, with a target of
-completing it before the next WG21 meeting in Brazil.
+completing it before the WG21 meeting in Brazil.
 
 SG6 is not asked to approve final wording — only to confirm that the direction is worth
 pursuing. A favorable signal at this stage allows the implementation to validate the specific
@@ -2363,18 +2424,33 @@ proposal.
 
 ## Design rationale
 
-### Bounds live on the origin, not on the type
+### Constraints belong to the measurement space, not to enforcement parameters
 
-A validation policy constrains the _representation_ of a measurement, not the mathematical
-space the quantity inhabits. Two measurements of the same mass — one with bounds checking,
-one without — are values in the same convex space and must be freely convertible to each other without
-any change of physical meaning. Embedding the policy in the quantity _type_ would conflate the
-mathematical structure with the measurement instrument: it would make `quantity<mass[kg],
-check_non_negative>` and `quantity<mass[kg]>` incompatible types even though both hold the
-same kind of value. This is the quantities-and-units equivalent of `std::vector<int, A1>` vs.
-`std::vector<int, A2>` — the allocator policy changes the type, forcing explicit conversions
-at every boundary and making generic code painful to write. The design avoids this by
-attaching the policy to the _origin_ rather than the quantity type.
+A physical domain constraint is a property of the _measurement space_, not of the
+_enforcement mechanism_. The non-negativity of mass is a physical law; whether a violation
+triggers an assertion, clamps the value to zero, or records it for later reporting is a
+separate, orthogonal concern handled by the contract violation mechanism (or a custom
+representation type). Embedding the constraint as a quantity _type parameter_ would conflate
+the mathematical structure with the enforcement policy: it would make
+`quantity<mass[kg], check_non_negative>` and `quantity<mass[kg]>` incompatible types even
+though both hold the same kind of value, making generic code painful to write.
+
+The design handles the two abstractions differently:
+
+- For **absolute quantities**, non-negativity is expressed as an attribute of the quantity
+  spec itself (the `non_negative` specification). Enforcement is a precondition check at the
+  single boundary where a delta scalar converts to an absolute; downstream arithmetic on an
+  already-validated absolute requires no further checks.
+- For **point quantities**, bounds are attached to the _origin_ rather than the quantity
+  type. Different origins for the same quantity can carry different bounds (e.g., AGL vs. MSL
+  altitude), and converting between origins validates against the target's bounds automatically.
+
+::: note
+A `constrained<Rep, Policy>` representation type — where `Policy` governs the enforcement
+strategy (clamp, throw, report) — is a natural complement at the representation layer and
+would produce distinct types intentionally, since distinct enforcement semantics warrant
+distinct types. That concern is orthogonal to the physical-domain bounds modeled here.
+:::
 
 Beyond this mathematical argument, the design choice also follows from the physics: the valid
 range of a point depends on _which reference frame you are measuring from_, not on the
@@ -2554,6 +2630,13 @@ are specialised half-line bounds that enforce `[0, ∞)` — they are particular
 that are inherently non-negative but may temporarily violate this constraint due to floating-point
 rounding errors or user input.
 
+This set of six policies is proposed as the initial, minimal vocabulary, intended to be
+extended as experience accumulates. The [@MP-UNITS] library already prototypes a
+`constraint_violation_handler<Rep>` customization point and a `constrained<T, ErrorPolicy>`
+wrapper that together enable always-on, build-mode-independent enforcement as a non-breaking
+extension on top of these policies; see
+[§ Always-on enforcement with `constraint_violation_handler<Rep>`](#constrained-rep).
+
 ## Automatic bounds for non-negative quantity specifications
 
 When a quantity specification is marked `non_negative`, the library automatically applies
@@ -2613,24 +2696,51 @@ have bounds, the bounds of `B` (translated into `A`'s reference frame) must be a
 bounds of `A`. This is checked via `static_assert` during constant evaluation of the origin
 definition.
 
-## Always-on enforcement with `constrained<T, ErrorPolicy>` {#constrained-rep}
+## Always-on enforcement with `constraint_violation_handler<Rep>` {#constrained-rep}
 
 ::: note
-`constrained<T, ErrorPolicy>` and `constraint_violation_handler<Rep>` are **not proposed for
-C++29**. They are provided by the [@MP-UNITS] library as a portable pattern for always-on
-enforcement; they are described here to document the complete design space.
+`constraint_violation_handler<Rep>` is under consideration for proposal based on committee
+feedback requesting a mechanism for wide-contract, always-on enforcement.
+`constrained<T, ErrorPolicy>` is **not proposed for C++29**; it is shown here as an illustrative
+usage pattern built on top of the customization point.
 :::
 
 Bounds policies on origins route violations through contract preconditions by default, which can
 be compiled away in release builds. For domains that require guaranteed, build-mode-independent
 enforcement — safety-critical systems, input validation at system boundaries, financial
-calculations — [@MP-UNITS] provides `constrained<T, ErrorPolicy>` (`<mp-units/constrained.h>`):
-a transparent wrapper around a representation type that routes bounds violations through a custom
-error policy (`throw_policy`, `terminate_policy`, or a user-defined type) regardless of whether
-C++ Contracts are enabled. When used as the representation type of a bounded point quantity,
-every construction or mutation that violates the origin's bounds policy unconditionally invokes
-the policy rather than a contract assertion. See the [@MP-UNITS] documentation for API details
-and examples.
+calculations — the library proposes `constraint_violation_handler<Rep>`: a customization point
+that any representation type can specialize to register its own violation handler. When a
+checking policy (`check_in_range`, `check_non_negative`) detects a violation, it queries this
+handler for the active `Rep`; if a specialization exists, it is called unconditionally in place
+of the contract assertion, regardless of build mode:
+
+```cpp
+// Opt any Rep type into always-on enforcement by specializing the handler
+class my_safe_double { /* ... */ };
+
+template<>
+struct mp_units::constraint_violation_handler<my_safe_double> {
+  static void on_violation(std::string_view msg) {
+    throw std::domain_error(std::string(msg));
+  }
+};
+```
+
+The [@MP-UNITS] library additionally provides `constrained<T, ErrorPolicy>` as a convenience
+wrapper that automates this pattern — it pre-registers a `constraint_violation_handler` for
+`constrained<T, ErrorPolicy>` automatically, with built-in policies `throw_policy` and
+`terminate_policy`. It is a library convenience, not a new primitive, and could be proposed
+separately once the customization point is standardized:
+
+```cpp
+using safe_double = mp_units::constrained<double, mp_units::throw_policy>;
+
+// Front-end: always-on enforcement via constrained<> Rep
+using checked_mass = quantity<point<isq::mass[kg]>, safe_double>;
+
+// Back-end: precondition only — check can be elided for performance
+using fast_mass = quantity<point<isq::mass[kg]>, double>;
+```
 
 ## Interaction with `std::numeric_limits`
 
