@@ -54,6 +54,7 @@ to this activity.
 - [P3045R5: Quantities and units library](papers/3045R5_quantities_and_units_library.html)
 - [P3045R6: Quantities and units library](papers/3045R6_quantities_and_units_library.html)
 - [P3045R7: Quantities and units library](papers/3045R7_quantities_and_units_library.html)
+- [P3045R8: Quantities and units library](papers/3045R8_quantities_and_units_library.html)
 - [P3094R0: `std::basic_fixed_string`](papers/3094R0_std_basic_fixed_string.html)
 - [P3094R1: `std::basic_fixed_string`](papers/3094R1_std_basic_fixed_string.html)
 - [P3094R2: `std::basic_fixed_string`](papers/3094R2_std_basic_fixed_string.html)
@@ -62,12 +63,11 @@ to this activity.
 - [P3094R5: `std::basic_fixed_string`](papers/3094R5_std_basic_fixed_string.html)
 - [P3094R6: `std::basic_fixed_string`](papers/3094R6_std_basic_fixed_string.html)
 - [P3788R0: Fixing `std::complex` binary operators](papers/3788R0_fixing_std_complex_binary_operators.html)
+- [P4185R0: Completing the Mathematical Model for C++ Quantities and Units](papers/4185R0_completing_the_mathematical_model_for_cpp_quantities_and_units.html)
+- [P4213R0: Minimal SI: Defining the International System of Units for the C++ Standard Library](papers/4213R0_minimal_si_definitions_for_the_quantities_and_units_library.html)
 
 ### Under Development
 
-- [P3045R8: Quantities and units library](papers/3045R8_quantities_and_units_library.html)
-- [P4185R0: Completing the Mathematical Model for C++ Quantities and Units](papers/4185R0_completing_the_mathematical_model_for_cpp_quantities_and_units.html)
-- [P4213R0: Minimal SI: Defining the International System of Units for the C++ Standard Library](papers/4213R0_minimal_si_definitions_for_the_quantities_and_units_library.html)
 
 ## More Papers
 
