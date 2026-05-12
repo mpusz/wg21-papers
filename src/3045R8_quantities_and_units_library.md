@@ -30,8 +30,26 @@ toc-depth: 4
 
 ## Changes since [@P3045R7]
 
-- Broken table in "Quantity specification" chapter fixed.
+- New [Navigating this proposal] section added to orient readers of different backgrounds.
+- [WG21 wants it] chapter updated with Croydon 2026 LEWG polls showing strong consensus support
+- [Dependencies on other proposals] table updated.
+- Broken table in [Quantity specification] chapter fixed.
 - `RepresentationOf` concept updated.
+- `quantity_from_zero()` renamed to `quantity_from_unit_zero()`, and `zeroth_point_origin<QS>`
+  renamed to `natural_point_origin<QS>`.
+- `final` keyword removed from all symbolic-expression type definitions throughout code examples.
+- [Representation Types] chapter added.
+- New [Hello units] chapter added between [Representation Types] and [Usage examples],
+  tracing the Smoot example top-down through all framework layers.
+- "Hello units" section in [Usage examples] renamed to "mp-units showcase" to avoid a name
+  conflict with the new chapter.
+- [Library namespace] chapter significantly extended.
+- Quantity kind diagrams improved: `is_kind` connections in `quantities_of_dimensionless.svg`
+  now use dotted lines.
+- "Magnitude" terminology normalized.
+- Audience tables added to [Teachability] chapter following [@P1700R0] recommendations.
+- [Teaching impact beyond C++] section added to [Teachability] chapter to highlight the library's
+  broader pedagogical value for interdisciplinary education.
 
 ## Changes since [@P3045R6]
 
@@ -217,6 +235,21 @@ _Note: This paper is incomplete and many chapters are still missing. It is publi
 early feedback and possibly get acceptance for the major design decisions of the library.
 More details will arrive in the next revisions of this paper._
 
+## Navigating this proposal
+
+This proposal is designed to serve multiple audiences, from beginners learning type-safe
+programming to framework developers extending the library's core. The [Teachability] chapter
+includes audience tables (following [@P1700R0]) that map library features to four distinct user
+populations: Application Developers (millions), Unit Authors (tens of thousands),
+Domain Modelers (thousands), and Deep Integrators (hundreds).
+
+Most readers—whether evaluating the proposal for standardization or planning to use the
+library—need only understand the core usage patterns described in [API overview] and
+[Usage examples]. The vast majority of users will interact solely with predefined units from
+standard systems (SI, CGS, etc.) using intuitive multiply syntax and automatic unit conversions.
+More advanced topics like custom quantity hierarchies, affine space abstractions, and framework
+extension points are clearly marked and can be deferred or skipped entirely by casual users.
+
 
 # Scope of this proposal
 
@@ -272,18 +305,20 @@ in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                               | Priority |         Papers         | Description                                                                                                |
-|---------------------------------------|:--------:|:----------------------:|------------------------------------------------------------------------------------------------------------|
-| `std::basic_fixed_string`             |    1     |       [@P3094R6]       | String-like structural type with inline storage (can be used as an NTTP).                                  |
-| Extending NTTPs                       |    2     |       [@P3380R1]       | Avoiding public members in classes.                                                                        |
-| User control of associated entities   |    2     |       [@P2822R2]       | ADL for NTTP parameters.                                                                                   |
-| Preventing value truncation           |    2     | [@P0870R5], [@P2509R1] | Type traits stating if the conversion from one type to another is narrowing/value preserving or not.       |
-| Standardized constexpr type ordering  |    2     |      [@P2830R10]       | Ordering of symbolic expressions.                                                                          |
-| Nested entities formatting            |    2     |          ???           | Possibility to override the format string in the parse and format contexts.                                |
-| Grouping numbers in `std-format-spec` |    2     |          ???           | [Extensions to `std-format-spec`].                                                                         |
-| Number concepts                       |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
-| Compile-time prime numbers            |    3     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
-| Constrained Numbers                   |    3     |       [@P2993R0]       | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
+| Feature                                            | Priority |         Papers         | Description                                                                                                |
+|----------------------------------------------------|:--------:|:----------------------:|------------------------------------------------------------------------------------------------------------|
+| `std::basic_fixed_string`                          |    1     |       [@P3094R6]       | String-like structural type with inline storage (can be used as an NTTP).                                  |
+| Extending NTTPs                                    |    2     |       [@P3380R1]       | Avoiding public members in classes.                                                                        |
+| User control of associated entities                |    2     |       [@P2822R2]       | ADL for NTTP parameters.                                                                                   |
+| `template = delete`                                |    2     |       [@P2041R1]       | Deleting primary variable templates for customization points.                                              |
+| Preventing value truncation                        |    2     | [@P0870R5], [@P2509R1] | Type traits stating if the conversion from one type to another is narrowing/value preserving or not.       |
+| Format context rebind                              |    2     |          ???           | Possibility to override the format string in the parse and format contexts.                                |
+| Grouping numbers in `std-format-spec`              |    2     |          ???           | [Extensions to `std-format-spec`].                                                                         |
+| Number concepts                                    |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
+| SFINAEable constexpr exceptions                    |    3     |       [@P3679R0]       | Much improved error messages.                                                                              |
+| A Simple Approach to Universal Template Parameters |    3     |       [@P2989R2]       | Uniform handling of types and NTTPs in the generic interfaces.                                             |
+| Compile-time prime numbers                         |    3     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
+| Constrained Numbers                                |    3     |       [@P2993R0]       | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -291,7 +326,7 @@ Priorities used above:
 
 1. Mandatory to implement the library or exposed in its public interfaces.
 2. Functional extension/improvement to the framework design but worse alternatives are currently available.
-3. Not needed for the library's implementation but improves its use cases.
+3. Not exposed in the official library's interfaces but improves its use cases and internal implementation.
 
 
 # About authors
@@ -508,8 +543,8 @@ Parameters (NTTP). For example, the following code presents how second (a unit o
 and hertz (a unit of frequency in the [@SI]) can be defined:
 
 ```cpp
-inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
-inline constexpr struct hertz final : named_unit<"Hz", 1 / second, kind_of<isq::frequency>> {} hertz;
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct hertz : named_unit<"Hz", 1 / second, kind_of<isq::frequency>> {} hertz;
 ```
 
 ## Broad industry value
@@ -583,27 +618,88 @@ hoping that the ISO C++ Committee will be willing to include such a feature in t
 
 In Belfast 2019 the following polls were taken for [@P1935R0] in LEWG:
 
-> POLL: We should promise more committee time to pursuing adding common units (such as SI,
->       customary, etc) to the standard library, knowing that our time is scarce and this will
->       leave less time for other work.
->
-> | SF | WF | N | WA | SA |
-> |:--:|:--:|:-:|:--:|:--:|
-> | 11 | 7  | 4 | 2  | 0  |
+**POLL:** _We should promise more committee time to pursuing adding common units (such as SI,
+customary, etc) to the standard library, knowing that our time is scarce and this will
+leave less time for other work._
 
-> POLL: We should promise more committee time to pursuing a standard library framework for user
->       defined units and unit systems, knowing that our time is scarce and this will leave less
->       time for other work.
->
-> | SF | WF | N | WA | SA |
-> |:--:|:--:|:-:|:--:|:--:|
-> | 10 | 8  | 4 | 1  | 1  |
+| SF | WF | N | WA | SA |
+|:--:|:--:|:-:|:--:|:--:|
+| 11 | 7  | 4 | 2  | 0  |
+
+**POLL:** _We should promise more committee time to pursuing a standard library framework for user
+defined units and unit systems, knowing that our time is scarce and this will leave less
+time for other work._
+
+| SF | WF | N | WA | SA |
+|:--:|:--:|:-:|:--:|:--:|
+| 10 | 8  | 4 | 1  | 1  |
 
 As a result of the above polls, Mateusz approached authors of all other popular actively maintained
 libraries. We formed a working group of experts and worked on a common unified proposal for a few
 years. This paper and the current implementation of the [@MP-UNITS] library is the result of those
 actions.
 
+In Croydon 2026, this paper was reviewed by both SG18 (LEWG Incubator) and LEWG. LEWG took the
+following polls:
+
+**POLL:** _We acknowledge the complexity inherent to the domain of quantities and units and think this
+is a problem worth solving thoroughly in the standard library, following the direction
+presented in P3045R7._
+
+| SF | F  | N | A | SA |
+|:--:|:--:|:-:|:-:|:--:|
+| 22 | 13 | 1 | 0 | 0  |
+
+**Outcome: Strong consensus in favour**
+
+**POLL:** _We support the direction presented as a technical solution (instantiating quantities with
+units, creating the hierarchy of kinds)._
+
+| SF | F  | N | A | SA |
+|:--:|:--:|:-:|:-:|:--:|
+| 16 | 22 | 0 | 0 | 0  |
+
+**Outcome: Strong consensus in favour**
+
+**POLL:** _We see the value in covering use cases in fine granularity (different quantities of the same
+kind, such as width and height, or difference between kinetic and potential energy)._
+
+| SF | F  | N | A | SA |
+|:--:|:--:|:-:|:-:|:--:|
+| 22 | 12 | 3 | 0 | 0  |
+
+**Outcome: Strong consensus in favour**
+
+**POLL:** _We see the value of standardizing these parts of the framework: Core library (quantity,
+symbolic expressions, dimensions, units, references and concepts), Quantity kinds (support
+quantities of the same dimension), Quantities of the same kind (width, height, etc.)._
+ 
+| SF | F | N | A | SA |
+|:--:|:-:|:-:|:-:|:--:|
+| 27 | 9 | 0 | 0 | 0  |
+
+**Outcome: Strong consensus in favour**
+
+**POLL:** _We see the value of standardizing Affine space (quantity_point, point origin, and concepts
+for them)._
+
+| SF | F | N | A | SA |
+|:--:|:-:|:-:|:-:|:--:|
+| 24 | 8 | 1 | 0 | 0  |
+
+**Outcome: Strong consensus in favor**
+
+**POLL:** _We see the value of standardizing Text output (for quantity, units, and dimensions)._
+
+| SF | F  | N | A | SA |
+|:--:|:--:|:-:|:-:|:--:|
+| 15 | 14 | 5 | 0 | 0  |
+
+**Outcome: Strong consensus in favour**
+
+These results demonstrate strong committee support for the comprehensive approach to quantities and
+units presented in this paper, including the more advanced features like affine space abstractions
+and fine-grained quantity specifications.
 
 # Common smells when there is no library for quantities and units
 
@@ -791,9 +887,11 @@ More information on this subject can be found in [Safety features].
 
 ## Performance
 
-The library should be as fast or even faster than working with fundamental types. The should
+The library should be as fast or even faster than working with fundamental types. There should
 be no runtime overhead, and no space size overhead should be needed to implement higher-level
-abstractions.
+abstractions. In practice, the [@MP-UNITS] implementation compiles to identical or faster assembly
+as equivalent code using raw `double` arithmetic — this can be verified via the Compiler Explorer
+links provided in the [Usage examples] chapter.
 
 ## Great user experience
 
@@ -961,6 +1059,11 @@ This chapter presents the library's core abstractions and design choices. The `q
 template represents displacement vectors in an affine space, while `quantity_point` represents
 points. Generic interfaces enable efficient, type-safe code without unit-specific functions.
 
+_Note for readers: Most application developers need only understand [Quantity construction] and
+basic operations (arithmetic, conversions, formatting). [Generic interfaces] are primarily for
+library developers designing reusable libraries. More advanced topics like affine space and
+quantity specifications are covered later for domain specialists and framework developers._
+
 More details about the design, rationale for it, and alternative syntaxes discussions can be found in
 the [Design details and rationale] chapter.
 
@@ -973,6 +1076,19 @@ template<Reference auto R,
          RepresentationOf<get_quantity_spec(R)> Rep = double>
 class quantity;
 ```
+
+`quantity` is best understood as a **numerical strong type wrapper**: it takes any number-like
+representation type and enriches it with compile-time metadata — a quantity specification
+and a measurement unit — collectively called the **quantity reference** — that the type
+system uses to enforce correctness. The runtime cost is zero; all safety guarantees are resolved
+at compile time.
+
+This design is not limited to physical computation. Any countable or measurable domain is a
+valid target: file sizes, pixel counts, angular positions, currency amounts, database row
+counts, audio sample offsets, and more. If a value can be added to another value of the same
+kind, multiplied by a dimensionless factor, or meaningfully converted to a different scale,
+`quantity` can model it. The library is a general-purpose compile-time safety layer for
+numeric domain modelling, of which SI units are simply the most prominent example.
 
 If we want to set a value for a quantity, we always have to provide a number and a unit:
 
@@ -1173,7 +1289,7 @@ class quantity_point;
 The `PO` parameter specifies the measurement origin. By default, `default_point_origin(R)` provides:
 
 - The unit's defined origin (e.g., for °C, °F), or
-- `zeroth_point_origin<QuantitySpec>` for other quantities.
+- `natural_point_origin<QuantitySpec>` for other quantities.
 
 Construction requires explicit conversion or the `point` helper:
 
@@ -1185,9 +1301,9 @@ quantity_point qp3 = point<deg_C>(21);   // temperature point
 
 Multiply syntax is disabled to prevent confusion between vectors and points.
 
-#### `zeroth_point_origin<QuantitySpec>`
+#### `natural_point_origin<QuantitySpec>`
 
-`zeroth_point_origin<QuantitySpec>` provides a default origin for domains with a well-established,
+`natural_point_origin<QuantitySpec>` provides a default origin for domains with a well-established,
 unique zeroth point, eliminating boilerplate:
 
 <img src="img/affine_space_1.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
@@ -1197,7 +1313,7 @@ quantity_point<isq::distance[si::metre]> qp1(100 * m);
 quantity_point<isq::distance[si::metre]> qp2 = point<m>(120);
 
 assert(qp2 - qp1 == 20 * m);
-assert(qp1.quantity_from_zero() == 100 * m);
+assert(qp1.quantity_from_unit_zero() == 100 * m);
 // auto res = qp1 + qp2;   // Compile-time error
 ```
 
@@ -1206,7 +1322,7 @@ Key design considerations:
 - Points can be explicitly constructed from quantities when using `zeroth_point_origin`.
 - A point has no inherent value—it's a position expressible with different displacement vectors
   from different origins.
-- **Safety trade-off**: `zeroth_point_origin` makes quantity points compatible when their quantity
+- **Safety trade-off**: `natural_point_origin` makes quantity points compatible when their quantity
   types are compatible (e.g., `isq::distance` and `isq::height` points can be subtracted), which
   may be surprising but enables ergonomic usage for common cases.
 
@@ -1218,7 +1334,7 @@ with the same quantity type:
 <img src="img/affine_space_2.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-inline constexpr struct origin final : absolute_point_origin<isq::distance> {} origin;
+inline constexpr struct origin : absolute_point_origin<isq::distance> {} origin;
 
 // quantity_point<si::metre, origin> qp1{100 * m};        // Compile-time error
 quantity_point<si::metre, origin> qp1 = origin + 100 * m;
@@ -1242,8 +1358,8 @@ Absolute point origins enable multiple independent coordinate systems within the
 <img src="img/affine_space_3.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-inline constexpr struct origin1 final : absolute_point_origin<isq::distance> {} origin1;
-inline constexpr struct origin2 final : absolute_point_origin<isq::distance> {} origin2;
+inline constexpr struct origin1 : absolute_point_origin<isq::distance> {} origin1;
+inline constexpr struct origin2 : absolute_point_origin<isq::distance> {} origin2;
 
 quantity_point qp1 = origin1 + 100 * m;
 quantity_point qp2 = origin2 + 120 * m;
@@ -1261,10 +1377,10 @@ Relative point origins support common scales with multiple reference points that
 <img src="img/affine_space_4.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-inline constexpr struct A final : absolute_point_origin<isq::distance> {} A;
-inline constexpr struct B final : relative_point_origin<A + 10 * m> {} B;
-inline constexpr struct C final : relative_point_origin<B + 10 * m> {} C;
-inline constexpr struct D final : relative_point_origin<A + 30 * m> {} D;
+inline constexpr struct A : absolute_point_origin<isq::distance> {} A;
+inline constexpr struct B : relative_point_origin<A + 10 * m> {} B;
+inline constexpr struct C : relative_point_origin<B + 10 * m> {} C;
+inline constexpr struct D : relative_point_origin<A + 30 * m> {} D;
 
 quantity_point qp1 = C + 100 * m;
 quantity_point qp2 = D + 120 * m;
@@ -1305,14 +1421,14 @@ _Temperature_ is a canonical example of relative point origins with stacked hier
 ```cpp
 namespace si {
 
-inline constexpr struct absolute_zero final : absolute_point_origin<isq::thermodynamic_temperature> {} absolute_zero;
-inline constexpr struct ice_point final : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
+inline constexpr struct absolute_zero : absolute_point_origin<isq::thermodynamic_temperature> {} absolute_zero;
+inline constexpr struct ice_point : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
 
 }
 
 namespace usc {
 
-inline constexpr struct zeroth_degree_Fahrenheit final :
+inline constexpr struct zeroth_degree_Fahrenheit :
   relative_point_origin<point<mag_ratio<5, 9> * si::degree_Celsius>(-32)> {} zeroth_degree_Fahrenheit;
 
 }
@@ -1324,8 +1440,8 @@ origins:
 ```cpp
 namespace si {
 
-inline constexpr struct kelvin final : named_unit<"K", kind_of<isq::thermodynamic_temperature>, zeroth_kelvin> {} kelvin;
-inline constexpr struct degree_Celsius final : named_unit<{u8"℃", "`C"}, kelvin, zeroth_degree_Celsius> {} degree_Celsius;
+inline constexpr struct kelvin : named_unit<"K", kind_of<isq::thermodynamic_temperature>, zeroth_kelvin> {} kelvin;
+inline constexpr struct degree_Celsius : named_unit<{u8"℃", "`C"}, kelvin, zeroth_degree_Celsius> {} degree_Celsius;
 
 }
 ```
@@ -1343,7 +1459,7 @@ Custom temperature references enable domain-specific applications:
 <img src="img/affine_space_6.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-constexpr struct room_reference_temp final : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
+constexpr struct room_reference_temp : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
 using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
 
 constexpr auto step_delta = delta<isq::Celsius_temperature[deg_C]>(0.5);
@@ -1354,9 +1470,9 @@ room_temp room_low = room_ref - number_of_steps * step_delta;
 room_temp room_high = room_ref + number_of_steps * step_delta;
 
 std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
-             room_ref.quantity_from_zero(),
-             room_ref.in(deg_F).quantity_from_zero(),
-             room_ref.in(K).quantity_from_zero());
+             room_ref.quantity_from_unit_zero(),
+             room_ref.in(deg_F).quantity_from_unit_zero(),
+             room_ref.in(K).quantity_from_unit_zero());
 
 std::println("| {:<18} | {:^18} | {:^18} | {:^18} |",
              "Temperature delta", "Room reference", "Ice point", "Absolute zero");
@@ -1397,17 +1513,775 @@ The library should work with any representation type for:
 
 By default, floating-point and integral types (except `bool`) are treated as real scalars.
 
+
+# Representation Types
+
+Every `quantity` has a **representation type** that stores the numerical value.
+The library works seamlessly with fundamental arithmetic types (except `bool`) and
+`std::complex`, but custom representation types can also be used to model domain-specific
+requirements—such as range-validated values, vectors, or specialized numeric types.
+
+The representation type determines what mathematical operations are available and how the
+quantity behaves in calculations. The library verifies at compile time that the
+representation type has the capabilities required for the quantity's character.
+
+
+## Representation Requirements
+
+To be used as a representation type, a type must satisfy the `RepresentationOf` concept.
+The library supports different types of representations corresponding to different quantity
+characters.
+
+**Why verify representation capabilities?** The same unit can represent fundamentally
+different physical concepts requiring different mathematical operations. For example:
+
+- _speed_ (scalar, magnitude only) vs. _velocity_ (vector, magnitude and direction) both
+  use m/s,
+- _mass_ (scalar) uses kg while _weight force_ (vector, pointing downward) uses N.
+
+The library tracks **character in the quantity specification** (what the quantity represents)
+and verifies that the **representation type provides the required capabilities**. This dual
+approach provides **compile-time type safety** for the mathematical nature of physical
+quantities—preventing, for example, using a scalar type where vector operations like cross
+product are needed.
+
+The following table summarizes the requirements for different representation characters:
+
+<!-- markdownlint-disable MD013 MD060 -->
+| Requirement                                |          Real Scalar           |                        Complex Scalar                         |                             Vector                             |                          Tensor                          |
+|--------------------------------------------|:------------------------------:|:-------------------------------------------------------------:|:--------------------------------------------------------------:|:--------------------------------------------------------:|
+| Copyable                                   |               ✅                |                               ✅                               |                               ✅                                |                            ✅                             |
+| Addition/subtraction (`+`, `-`, unary `-`) |               ✅                |                               ✅                               |                               ✅                                |                            ✅                             |
+| `MagnitudeScalable` (unit-conversion)      |               ✅                |                               ✅                               |                               ✅                                |                            ✅                             |
+| Self-scalable (`T * T`, `T / T`)           |               ✅                |                               ✅                               |                               -                                |                            -                             |
+| Equality comparable (`==`)                 |               ✅                |                               ✅                               |                               ✅                                |                            ✅                             |
+| Totally ordered (`<`, `>`, `<=`, `>=`)     |               ✅                |                               -                               |                               -                                |                            -                             |
+| Not a quantity type itself                 |               ✅                |                               ✅                               |                               ✅                                |                            ✅                             |
+| **Construction**                           |               -                |                        `T{real, imag}`                        |                               -                                |                            -                             |
+| **Required CPOs**                          |               -                | `mp_units::real()`, `mp_units::imag()`, `mp_units::modulus()` |                       `mp_units::norm()`                       |                    `mp_units::norm()`                    |
+| **Opt-out mechanism**                      |       `disable_real<T>`        |                               -                               |                               -                                |                            -                             |
+| **Examples**                               | `int`, `double`, `long double` |                    `std::complex<double>`                     | `Eigen::Vector3d`, `cartesian_vector<double>`, `int`, `double` | `Eigen::Matrix3d`, `int`, `double` (for scalar measures) |
+<!-- markdownlint-enable MD013 MD060 -->
+
+All representation types must be **weakly regular**, which means they satisfy the
+`std::regular` concept except for the default-constructibility requirement. Specifically,
+they must be:
+
+- **Copyable** (`std::copyable`)
+- **Equality comparable** (`std::equality_comparable`)
+
+This ensures that representation types have value semantics suitable for use in
+quantities. Default construction is not required, allowing types like range-validated
+representations that may not have a meaningful default value.
+
+**Construction**
+
+Complex scalars **must** be constructible from real and imaginary parts:
+`T{real_value, imag_value}`. This is essential for operations that combine
+real-valued quantities into complex results. For example, combining _active power_
+and _reactive power_ into _complex power_:
+
+```cpp
+quantity active = isq::active_power(100.0 * W);
+quantity reactive = isq::reactive_power(50.0 * W);
+// Library needs to construct: std::complex<double>{active.numerical_value(),
+//                                                  reactive.numerical_value()}
+```
+
+**Total Ordering**
+
+Well-designed complex-like types do not provide total ordering (`operator<`, etc.)
+since there is no natural ordering for complex numbers. If a complex-like type does
+provide ordering operators (e.g., for use in containers), use the `disable_real`
+opt-out mechanism:
+
+```cpp
+template<>
+constexpr bool mp_units::disable_real<my_complex_type> = true;
+```
+
+Alternatively, the library could explicitly check for the absence of `mp_units::real()`
+and `mp_units::imag()` to distinguish real from complex scalars — a design choice that
+may be refined based on standardization discussions.
+
+The different names reflect domain conventions: `modulus()` is traditional complex
+analysis terminology, while `norm()` is standard linear algebra terminology used across
+industry (Eigen, NumPy, MATLAB, Armadillo). The library follows these established
+conventions rather than imposing a single unified name (e.g., `abs()`). Additionally,
+`magnitude()` is provided as an alias for `norm()` for compatibility with physics
+terminology.
+
+Arithmetic types like `int` and `double` intentionally satisfy requirements for multiple
+characters — real scalar (primary use), 1-dimensional vector, and scalar tensor measures
+like von Mises stress. Type safety comes from `quantity_character` matching in the quantity
+specification, not from mutually exclusive representation concepts:
+
+```cpp
+// All valid uses of double:
+quantity m = isq::mass(5.0 * kg);           // Scalar
+quantity v = isq::velocity(10.0 * m/s);     // 1D vector
+quantity sigma = isq::stress(100.0 * Pa);   // Scalar tensor measure
+```
+
+Most engineering extracts scalar measures from tensor fields rather than working with
+full 3×3 matrix representations — von Mises stress, principal stresses, shear components,
+hydrostatic stress — which is why arithmetic types cover the tensor character in practice.
+
+
+## Customization Points
+
+The library provides several customization mechanisms for representation types. These fall
+into two categories: **Character determination** (what kind of representation type you
+have) and **Behavior and values** (how the library interacts with your type).
+
+### Character Determination
+
+#### Customization Point Objects (CPOs)
+
+The library uses several CPOs to support different representation types. Providing these
+CPOs determines the **character** of the representation type. Each CPO checks for
+implementations in the following priority order:
+
+**`mp_units::real(c)`** - Returns the real part of a complex number:
+
+1. `c.real()` member function
+2. `real(c)` free function found via ADL
+
+**`mp_units::imag(c)`** - Returns the imaginary part of a complex number:
+
+1. `c.imag()` member function
+2. `imag(c)` free function found via ADL
+
+**`mp_units::modulus(c)`** - Returns the magnitude of a complex number:
+
+1. `c.modulus()` member function
+2. `modulus(c)` free function found via ADL
+3. `c.abs()` member function
+4. `abs(c)` free function found via ADL
+
+**`mp_units::norm(v)`** - Returns the norm (magnitude) of a vector or tensor as a scalar:
+
+1. `v.norm()` member function
+2. `norm(v)` free function found via ADL
+3. For arithmetic types: `std::abs(v)`
+4. For real scalar types: `v.abs()` member function
+5. For real scalar types: `abs(v)` free function found via ADL
+
+**`mp_units::magnitude(v)`** - Returns the magnitude of a vector as a scalar:
+
+1. Delegates to `mp_units::norm(v)` (provided for compatibility with physics terminology)
+
+For `modulus()`, `abs()` is checked as a fallback for compatibility with `std::complex`
+and similar types that use that name. For `norm()`, `abs()` enables arithmetic types
+to serve as 1-dimensional vectors and scalar tensor measures, which accurately reflects
+engineering practice where most calculations use scalar values rather than full
+vector/tensor representations.
+---
+
+#### `disable_real<T>`
+
+A specializable variable template to opt out a type from being treated as a real scalar:
+
+```cpp
+template<typename T>
+constexpr bool mp_units::disable_real = false;
+```
+
+Specializing to `true` prevents a type from being classified as real scalar character
+even if it satisfies all syntactic requirements. The library uses this internally to
+exclude `bool`, which is totally ordered and arithmetic but meaningless as a quantity:
+
+```cpp
+template<>
+constexpr bool mp_units::disable_real<my_type> = true;
+```
+
+---
+
+### Behavior and Values
+
+#### `representation_underlying_type<T>` { #representation_underlying_type }
+
+`representation_underlying_type<T>` is the extension point for exposing the underlying
+arithmetic or element type of a representation to the library. It drives the scaling
+factor type and the `treat_as_floating_point` check:
+
+```cpp
+template<typename T>
+struct mp_units::representation_underlying_type;  // primary — empty
+
+template<typename T>
+using mp_units::representation_underlying_type_t = representation_underlying_type<T>::type;
+```
+
+The library provides partial specializations that detect the underlying type in order:
+
+1. `T::value_type` or `T::element_type` member type (cv-qualification stripped)
+2. `std::underlying_type_t<T>` for scoped enumerations (unscoped enumerations are
+   excluded — they already implicitly convert to their underlying type)
+3. `T` itself as a fallback
+
+If both `value_type` and `element_type` are present with differing underlying types, the
+trait is empty and the library treats `T` as a leaf — provide only `value_type` unless
+there is a specific reason to expose both (e.g., satisfying iterator concepts), in which
+case ensure they name the same underlying type.
+
+A `value_type` member is the preferred form for types under the user's control:
+
+```cpp
+template<typename T>
+class my_wrapper {
+public:
+  using value_type = T;
+  // ...
+};
+```
+
+When the source of a type cannot be modified, the trait may be specialized directly:
+
+```cpp
+// MyFloat wraps long double internally
+template<>
+struct mp_units::representation_underlying_type<MyFloat> {
+  using type = long double;
+};
+```
+
+::: note
+`std::indirectly_readable_traits` was intentionally not reused: that standard trait
+answers "what does `*t` yield?" and is the extension point for iterators and smart
+pointers — specializing it for a non-iterator type is a semantic misuse.
+:::
+
+---
+
+#### Scaling operators { #scaling-operators }
+
+The library scales a representation value by calling `value * factor` and `value / factor`,
+where `factor` is of type `representation_underlying_type_t<T>` (or a wider integer type
+for the rational integer path — see [How Scaling Works?] for details). A type may
+additionally provide `operator*(T, UnitMagnitude)` to receive the full compile-time unit
+magnitude; when present, this operator is called **first** and the factor-based operators
+serve as a fallback. The magnitude-aware operator may return a **different type** — see
+[Magnitude-aware scaling] for the full pattern.
+
+These operators are found via ADL. Hidden friends are the preferred form for types under
+the user's control; non-member operators placed in the type's namespace serve the same
+role for third-party types:
+
+```cpp
+template<typename T>
+class my_wrapper {
+  T value_;
+public:
+  using value_type = T;
+
+  friend constexpr my_wrapper operator*(my_wrapper v, T factor) { return my_wrapper{v.value_ * factor}; }
+  friend constexpr my_wrapper operator/(my_wrapper v, T factor) { return my_wrapper{v.value_ / factor}; }
+
+  // Optional: magnitude-aware scaling (return type may differ from my_wrapper)
+  // template<mp_units::UnitMagnitude M>
+  // friend constexpr auto operator*(const my_wrapper& v, M m) { /* ... */ }
+};
+```
+
+---
+
+#### `treat_as_floating_point<Rep>` { #treat_as_floating_point }
+
+A specializable variable template that tells the library whether a type should be treated
+as floating-point for the purpose of allowing implicit conversions:
+
+```cpp
+template<typename Rep>
+constexpr bool mp_units::treat_as_floating_point = /* implementation-defined */;
+```
+
+By default, the value is determined by applying `std::chrono::treat_as_floating_point_v`
+(hosted) or `std::is_floating_point_v` (freestanding) to the recursively-unwrapped
+underlying type of `Rep`. When `true`, implicit conversions are enabled; otherwise an
+explicit `value_cast` is required (see [Value conversions]). A specialization is needed
+when automatic detection yields an incorrect result:
+
+```cpp
+template<>
+constexpr bool mp_units::treat_as_floating_point<my_fixed_point_type> = true;
+```
+
+---
+
+#### `implicitly_scalable<FromUnit, FromRep, ToUnit, ToRep>` { #implicitly_scalable }
+
+A specializable variable template that controls **whether** a conversion from
+`quantity<FromUnit, FromRep>` to `quantity<ToUnit, ToRep>` is implicit or requires an
+explicit cast via `value_cast`/`force_in`. It is the policy layer built on top of
+`treat_as_floating_point`: the default formula derives the implicit-conversion decision
+from it, and a specialization overrides that decision for types where the derived rule
+is incorrect:
+
+```cpp
+template<auto FromUnit, typename FromRep, auto ToUnit, typename ToRep>
+constexpr bool mp_units::implicitly_scalable =
+  treat_as_floating_point<ToRep> ||
+  (!treat_as_floating_point<FromRep> && is_integral_scaling(FromUnit, ToUnit));
+```
+
+`mp_units::is_integral_scaling(from, to)` is a `consteval` predicate that can also be
+used in user specializations to distinguish the integral-factor case (e.g. `m → mm`
+(×1000)) from fractional ones (e.g. `mm → m` (÷1000), `ft → m`, `deg → rad`).
+
+The default follows the precedent of `std::chrono::duration`: conversions to a
+floating-point representation are always implicit, conversions between integer
+representations are implicit only when the unit ratio is an integer multiplier (exact,
+no truncation), and all other cases require an explicit cast.
+
+For example, a decimal fixed-point type that represents fractional ratios exactly can
+permit all unit conversions implicitly:
+
+```cpp
+template<auto FromUnit, auto ToUnit>
+constexpr bool mp_units::implicitly_scalable<FromUnit, safe_decimal, ToUnit, safe_decimal> = true;
+```
+
+When precision is asymmetric between two types, the specialization can be directional:
+
+```cpp
+template<auto FromUnit, auto ToUnit>
+constexpr bool mp_units::implicitly_scalable<FromUnit, double, ToUnit, my_decimal> = true;
+
+template<auto FromUnit, auto ToUnit>
+constexpr bool mp_units::implicitly_scalable<FromUnit, my_decimal, ToUnit, double> = false;
+```
+
+`mp_units::is_integral_scaling` may be reused in a specialization to distinguish integral
+from fractional unit ratios. See [Value conversions] for details.
+
+---
+
+#### `representation_values<Rep>` { #representation_values }
+
+A specializable class template that provides the special values used by `quantity::zero()`,
+`quantity::min()`, `quantity::max()`, mathematical rounding operations, and
+division-by-zero checks:
+
+```cpp
+template<typename Rep>
+struct mp_units::representation_values {
+  static constexpr Rep zero() noexcept;
+  static constexpr Rep one() noexcept;
+  static constexpr Rep min() noexcept;
+  static constexpr Rep max() noexcept;
+};
+```
+
+In hosted environments the primary specialization inherits `zero()`, `min()`, and `max()`
+from `std::chrono::duration_values<Rep>`; `one()` is always defined in the struct itself,
+constrained to `std::constructible_from<Rep, int>`. In freestanding environments all four
+methods are defined directly, each guarded by its own `requires` clause: `zero()` and
+`one()` require `std::constructible_from<Rep, int>`; `min()` requires
+`std::numeric_limits<Rep>::is_specialized` and that `std::numeric_limits<Rep>::lowest()`
+returns `Rep`; `max()` requires the same plus `std::numeric_limits<Rep>::max()` returning
+`Rep`. An explicit specialization is required for types that cannot satisfy those
+constraints or that need non-standard special values:
+
+```cpp
+template<typename T>
+struct mp_units::representation_values<my_custom_type<T>> {
+  static constexpr my_custom_type<T> zero() noexcept
+  { return my_custom_type<T>{T{0}}; }
+
+  static constexpr my_custom_type<T> one() noexcept
+  { return my_custom_type<T>{T{1}}; }
+
+  static constexpr my_custom_type<T> min() noexcept
+  { return my_custom_type<T>{std::numeric_limits<T>::lowest()}; }
+
+  static constexpr my_custom_type<T> max() noexcept
+  { return my_custom_type<T>{std::numeric_limits<T>::max()}; }
+};
+```
+
+
+## How Scaling Works
+
+Every representation type must be **unit-conversion scalable** — the library must be able
+to apply a unit magnitude ratio to it internally. This is captured by the `MagnitudeScalable`
+concept, which directly names the three built-in scaling paths:
+
+```cpp
+concept MagnitudeScalable =
+  WeaklyRegular<T> && (UsesMagnitudeAwareScaling<T> || UsesFloatingPointScaling<T> || UsesIntegerScaling<T>);
+```
+
+`UsesMagnitudeAwareScaling` is satisfied by any type that provides
+`operator*(T, UnitMagnitude)` — checked first by the scaling engine, before the two
+built-in numeric paths. The full pattern is described in [Magnitude-aware scaling]:
+
+```cpp
+concept UsesMagnitudeAwareScaling = requires(const T& v) { v * mag<1>; };
+```
+
+`UsesFloatingPointScaling` matches any type — or container thereof — whose underlying
+type satisfies `treat_as_floating_point`, is constructible from `long double` (the
+precision at which magnitude constants are evaluated), and supports `operator*` and
+`operator/` with that underlying type, returning a weakly-regular result:
+
+```cpp
+concept UsesFloatingPointScaling =
+  (treat_as_floating_point<T> || treat_as_floating_point<representation_underlying_type_t<T>>) &&
+  std::constructible_from<representation_underlying_type_t<T>, long double> &&
+  requires(T value, representation_underlying_type_t<T> f) {
+    { value * f } -> WeaklyRegular;
+    { value / f } -> WeaklyRegular;
+  };
+```
+
+`UsesIntegerScaling` matches any type whose underlying type satisfies `detail::integral`
+(the scaling engine uses `get_value<wider_t>`, `wider_int_for<element_t>`, and
+`fixed_point<element_t>` internally, all of which require an integer element type).
+Scaling is routed through the type's own `operator*` and `operator/`, so wrappers can
+check for overflow and containers can scale element-wise. The factor type is
+`wider_int_for<element_t>` — a wider integer of matching sign (e.g. `int64_t` for
+`int16_t`, `uint64_t` for `uint16_t`) — to prevent intermediate overflow in
+rational-magnitude conversions:
+
+```cpp
+concept UsesIntegerScaling =
+  detail::integral<representation_underlying_type_t<T>> &&
+  requires(T value, wider_int_for<representation_underlying_type_t<T>> wf) {
+    { value * wf };
+    { value / wf };
+  };
+```
+
+::: note
+`detail::integral` is used rather than `std::integral` because on GCC in strict mode
+(`-std=c++20`) `std::integral<__int128>` is `false` — the standard traits are not
+specialized for `__int128` outside GNU extensions. When the platform lacks
+`__SIZEOF_INT128__` entirely, `int128_t` and `uint128_t` are software-emulation types
+that also do not satisfy `std::integral`. `detail::integral` patches both gaps:
+
+```cpp
+template<typename T>
+concept detail::integral =
+  std::integral<T> ||
+  std::same_as<std::remove_cv_t<T>, int128_t> ||
+  std::same_as<std::remove_cv_t<T>, uint128_t>;
+```
+
+The scaling engine internals (`get_value`, `wider_int_for`, `fixed_point`) are all
+specialized for `int128_t` / `uint128_t`, ensuring the full integer scaling pipeline
+works correctly for 128-bit element types on all supported compilers.
+:::
+
+Most standard types satisfy `MagnitudeScalable` automatically. See [Scaling operators]
+for how to provide `operator*` and `operator/` for custom types.
+
+### Built-in scaling algorithm
+
+When two quantities of convertible units are combined or converted, the library applies the
+unit magnitude `M` to the representation value via `scale<To>(M, value)`. The built-in
+decision tree is:
+
+![](img/scaling_algorithm.svg)
+
+The magnitude-aware path (`operator*(T, UnitMagnitude)`) is checked first — before any of
+the built-in paths. If a representation type provides this operator, it has full control
+over how scaling is performed and what type is returned. The built-in paths are only used
+as a fallback.
+
+The integer path (`UsesIntegerScaling`) never promotes values to floating-point, even for
+the rational and irrational sub-paths. This is intentional: the user explicitly chose an
+integer representation type, opting out of floating-point arithmetic. The platform may
+lack FP hardware (embedded systems, DSPs), rely on software-emulated FP, or enforce a
+no-FP policy. The library respects that choice throughout unit conversion.
+
+The design preference order is **exact integer > exact rational > approximate irrational**:
+integer multiplication keeps lossless conversions exact (`42 * m` → `42000 * mm` without
+floating-point rounding); rational factors are applied as numerator × value ÷ denominator
+entirely in integer arithmetic; and irrational factors (π/180, √2, …) fall back to a
+`long double` approximation rounded to the target integer type.
+
+The rational path computes `value * numerator / denominator` entirely in integer
+arithmetic using widened types to prevent intermediate overflow — for example, converting
+feet to metres multiplies by 3048 before dividing by 10000, which would overflow a 64-bit
+integer for values above ~3×10¹⁵ without extra width:
+
+| Source type                           | Widened to                                 |
+|---------------------------------------|--------------------------------------------|
+| Signed ≤ 32 bits (`int8_t`…`int32_t`) | `int64_t`                                  |
+| Unsigned ≤ 32 bits                    | `uint64_t`                                 |
+| `int64_t`                             | `__int128` or equivalent signed 128-bit    |
+| `uint64_t`                            | `unsigned __int128` or equivalent unsigned |
+
+Using `long double` instead would violate the no-FP principle and introduce rounding
+(`0.3048` is not exactly representable in binary floating-point); on ARM / Apple Silicon
+`long double == double` anyway, giving no extra range.
+
+Double-width arithmetic avoids most UB during intermediate scaling, but cannot prevent
+overflow in the final result when that result doesn't fit in the target type. Runtime
+overflow detection requires a representation type that checks arithmetic operations —
+a checked-integer wrapper (e.g., `safe_int<T>` from mp-units) satisfies `UsesIntegerScaling`
+and will trap overflows in the final result.
+
+Aggregate representation types that store multiple independently-scaled fields (e.g.,
+`uncertainty<T>` holding a central value and an error bound) implement `operator*` and
+`operator/` to distribute scaling across all internal fields; the built-in integer and
+floating-point paths invoke those operators on the aggregate as a unit.
+
+#### Floating-point precision
+
+For floating-point representation types (`UsesFloatingPointScaling`), the unit magnitude is
+reduced to a single `constexpr` scalar (a `double` or `long double` value representing the
+exact mathematical ratio) and applied as a single multiplication: `value * factor`. This
+matches what equivalent hand-written code would do. The library makes no stronger precision
+guarantee than the underlying floating-point operations provide — in particular, it does not
+mandate any specific ULP bound. This is consistent with the rest of the C++ standard
+library, including `std::chrono::duration`, which likewise leaves floating-point conversion
+precision to the quality of the implementation.
+
+The concern raised that lazy evaluation could produce results differing from hand-written
+code by more than a few ULPs does not apply here: the magnitude is always a single
+compile-time constant representing the full unit ratio, never a chain of intermediate
+multiplications. Overflow to `+inf` would therefore only occur for values that would also
+overflow the equivalent hand-written multiplication, which is a property of the value, not
+the library.
+
+For integer types, widened arithmetic (as described above) prevents intermediate overflow.
+For floating-point types, implementations are encouraged to choose a representation of the
+conversion factor that minimises precision loss, but this is a quality-of-implementation
+concern, not a normative requirement.
+
+### Magnitude-aware scaling { #magnitude-aware-scaling }
+
+A type satisfies `UsesMagnitudeAwareScaling` (see [How Scaling Works]) by providing
+`operator*(T, UnitMagnitude)` as a hidden friend. Unlike the built-in numeric paths, this
+operator receives the full compile-time unit magnitude and may return a **different type**
+— for example, a range-validated representation can adjust its bounds during conversion:
+constraining values to [-180, 180] in degrees should produce a type constrained to [-π, π]
+when converted to radians, otherwise the bounds would be meaningless in the target unit:
+
+```cpp
+// Example custom type (not provided by the library)
+template<std::treat_as_floating_point T, auto Min, auto Max, typename Policy>
+class bounded_value : /* ... */ {
+public:
+  template<std::UnitMagnitude M>
+  [[nodiscard]] friend constexpr auto operator*(const bounded_value& val, M m)
+  {
+    constexpr T new_lo = std::scale<T>(M{}, T{Min});
+    constexpr T new_hi = std::scale<T>(M{}, T{Max});
+
+    const T scaled = std::scale<T>(m, val.value());
+
+    if constexpr (new_lo <= new_hi)
+      return bounded_value<T, new_lo, new_hi, Policy>(scaled);
+    else
+      return bounded_value<T, new_hi, new_lo, Policy>(scaled);
+  }
+};
+```
+
+The `scale` function handles precision optimization automatically — when the magnitude's
+inverse is integral (e.g. degree-to-radian with π/180), it divides by the inverse instead
+of multiplying, avoiding FP rounding errors.
+
+The library calls `value * M{}` in `scale()` before trying the built-in paths.
+Because the return type may differ from the input, `quantity::in(unit)` propagates the
+new representation type through `sudo_cast`, and the resulting `quantity` (or
+`quantity_point`) automatically uses the scaled-bounds representation.
+
 ## Complex quantities and units
 
-TBD
+TODO
 
 ## Vector and tensor quantities
 
-TBD
+TODO
 
 ## Logarithmic quantities and units
 
-TBD
+TODO
+
+# Hello units
+
+This chapter traces a complete, minimal example from user-facing code down through the library's
+layers, showing how each piece fits together. The goal is to build an intuition for the design
+before reading the detailed specifications that follow.
+
+## The example
+
+A _smoot_ is a unit of length equal to the height of Oliver Smoot (five feet and seven inches),
+famously used to measure the Harvard Bridge in 1958. Adding it to the library takes exactly one
+line:
+
+```cpp
+import std;
+
+inline constexpr struct smoot : std::named_unit<"smoot", std::mag<67> * std::usc::inch> {} smoot;
+
+int main()
+{
+  constexpr std::quantity dist = 364.4 * smoot;
+  std::println("Harvard Bridge length = {::N[.1f]} ({::N[.1f]}, {::N[.2f]}) ± 1 εar",
+               dist, dist.in(std::usc::foot), dist.in(std::si::metre));
+}
+```
+
+Output:
+
+```txt
+Harvard Bridge length = 364.4 smoot (2034.6 ft, 620.14 m) ± 1 εar
+```
+
+Three things happen here: a unit is defined, a quantity is created, and the quantity is
+converted. Each layer is examined below.
+
+## Layer 1: Units — a chain to a base
+
+Every unit ultimately traces back to a _base unit_ — a unit associated directly with a quantity
+kind rather than being defined relative to another unit. The `named_unit<Symbol, kind_of<QS>>`
+form is used for these coherent base units:
+
+```cpp
+// base unit — anchored to the length quantity kind
+struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
+```
+
+From there, US customary units are defined as a chain of scaled aliases using the
+`named_unit<Symbol, Scale>` form, each expressed in terms of the one above:
+
+```cpp
+struct yard : named_unit<"yd", mag_ratio<9144, 10000> * si::metre> {} yard;  // 0.9144 m
+struct foot : named_unit<"ft", mag_ratio<1, 3>        * yard>      {} foot;  // 1/3 yd
+struct inch : named_unit<"in", mag_ratio<1, 12>       * foot>      {} inch;  // 1/12 ft
+```
+
+Both forms assign a name and symbol to the unit and automatically propagate the quantity kind
+down the chain — `inch` is a unit of _length_ with no extra annotation.
+
+## Layer 2: Magnitudes — exact compile-time rationals
+
+The scaling factors `mag_ratio<N, D>` and `mag<N>` are compile-time rational numbers stored
+as products of prime powers. No floating-point arithmetic occurs in the type system. When the
+library traverses the chain from `inch` to `metre`, it multiplies the accumulated factors:
+
+```text
+1 inch = (1/12) × (1/3) × (9144/10000) m  =  127/5000 m  =  0.0254 m  (exact)
+```
+
+The conversion factor from `smoot` to `metre` is therefore:
+
+```text
+1 smoot = 67 × (127/5000) m  =  8509/5000 m  (exact rational)
+```
+
+This ratio is available entirely at compile time and applied to the stored value only at the
+point of an explicit conversion.
+
+## Layer 3: Naming a unit — `named_unit<"smoot", mag<67> * usc::inch>`
+
+The expression `mag<67> * usc::inch` produces a `scaled_unit<mag<67>, inch>`.
+Wrapping it in `named_unit`:
+
+```cpp
+struct smoot : named_unit<"smoot", mag<67> * usc::inch> {} smoot;
+```
+
+does three things simultaneously:
+
+1. Records the symbol `"smoot"` for use in text output.
+2. Inherits the `_base_type_` of the scaled unit, making `smoot` a unit of _length_.
+3. Records the scaling so that `get_canonical_unit(smoot)` can recover the exact magnitude
+   relative to `metre` without any additional bookkeeping.
+
+## Layer 4: The `quantity` type
+
+The central type of the library is:
+
+```cpp
+template<Reference auto R, RepresentationOf<get_quantity_spec(R)> Rep = double>
+class quantity {
+public:
+  Rep numerical_value_is_an_implementation_detail_;  // the only runtime datum
+
+  static constexpr Reference auto reference        = R;
+  static constexpr QuantitySpec auto quantity_spec = get_quantity_spec(R);    // isq::length
+  static constexpr Dimension auto dimension        = quantity_spec.dimension; // dim_length
+  static constexpr Unit auto unit                  = get_unit(R);             // smoot
+  using rep = Rep;
+};
+```
+
+The unit, quantity specification, and dimension are part of the **type** — they consume no
+storage and carry zero runtime overhead. Only the numerical value is stored.
+
+A bare unit such as `smoot` also satisfies the `Reference` concept (since the quantity
+specification can be recovered from it via `get_quantity_spec`), so it can serve directly as the
+reference template argument.
+
+## Layer 5: Creating a quantity — `364.4 * smoot`
+
+The expression `364.4 * smoot` invokes:
+
+```cpp
+template<typename FwdRep, Reference R, ...>
+  requires(!OffsetUnit<get_unit(R{})>)
+constexpr quantity<R{}, Rep> operator*(FwdRep&& lhs, R) { return quantity{std::forward<FwdRep>(lhs), R{}}; }
+```
+
+The result is `quantity<smoot{}, double>` — a type that encodes `smoot` and `double` as
+compile-time template arguments and stores only `364.4` at runtime.
+
+## Layer 6: Unit conversion — `dist.in(si::metre)`
+
+`.in(ToU)` checks at compile time that `ToU` is a valid unit for the same quantity
+specification, then applies the conversion:
+
+```cpp
+template<UnitOf<quantity_spec> ToU>
+  requires ImplicitScaling<unit, ToU{}, rep>
+constexpr QuantityOf<quantity_spec> auto in(ToU) const;
+```
+
+Internally, the conversion ratio is computed entirely at compile time:
+
+```cpp
+constexpr UnitMagnitude auto c_mag = get_canonical_unit(From::unit).mag / get_canonical_unit(To::unit).mag;
+```
+
+The exact rational `8509/5000` is then applied to the stored value at runtime. The fraction
+is converted to a `long double` constant **at compile time**, so the actual runtime operation
+for a `double` representation is a single multiplication:
+
+```text
+364.4 × 1.7018L ≈ 620.14
+```
+
+Scaling behaviour for other representation types (integers, fixed-point, custom types) is
+discussed in [How Scaling Works?].
+
+The return type is `quantity<si::metre{}, double>` holding `620.14`. Attempting to convert to
+an incompatible unit — for example `si::second` — is a compile-time error because `si::second`
+does not satisfy `UnitOf<isq::length>`.
+
+## Layer 7: Formatting — `{::N[.1f]}`
+
+The library provides a `std::formatter` specialization for `quantity`. The format-specification
+grammar (described fully in [Text output]) gives independent control over the numerical part
+and the unit symbol. For `dist.in(si::metre)` formatted with `{::N[.2f]}`, the `N[.2f]`
+sub-spec is forwarded to the `Rep` formatter (producing `"620.14"`), after which the formatter
+appends the unit symbol `"m"` — yielding `"620.14 m"`.
+
+---
+
+That is the full path from user code to bits: one stored `double`, with the unit, quantity kind,
+dimension, and conversion factor living entirely in the C++ type system.
+
+This is intentionally a minimal example. Many library features — quantity convertibility, generic
+interfaces and concepts, the affine space, representation type constraints, mixed-unit
+arithmetic, value casts, and more — are not used here and therefore not described. They are
+covered in the chapters that follow.
 
 
 # Usage examples
@@ -1445,7 +2319,7 @@ static_assert(1000 / (1 * s) == 1 * kHz);
 
 Try it in [the Compiler Explorer](https://godbolt.org/z/xKE7b81Yb).
 
-## Hello units
+## mp-units showcase
 
 The next example serves as a showcase of various features available in the [@MP-UNITS] library.
 
@@ -1501,11 +2375,11 @@ namespace {
 using namespace std::si::unit_symbols;
 
 // add a custom quantity type of kind isq::length
-inline constexpr struct horizontal_length final : std::quantity_spec<std::isq::length> {} horizontal_length;
+inline constexpr struct horizontal_length : std::quantity_spec<std::isq::length> {} horizontal_length;
 
 // add a custom derived quantity type of kind isq::area
 // with a constrained quantity equation
-inline constexpr struct horizontal_area final : std::quantity_spec<horizontal_length * std::isq::width> {} horizontal_area;
+inline constexpr struct horizontal_area : std::quantity_spec<horizontal_length * std::isq::width> {} horizontal_area;
 
 inline constexpr auto g = 1 * std::si::standard_gravity;
 inline constexpr auto air_density = std::isq::mass_density(1.225 * kg / m3);
@@ -1618,10 +2492,10 @@ import std;
 
 using namespace std::si::unit_symbols;
 
-inline constexpr struct amsterdam_sea_level final : std::absolute_point_origin<isq::altitude> {
+inline constexpr struct amsterdam_sea_level : std::absolute_point_origin<isq::altitude> {
 } amsterdam_sea_level;
 
-inline constexpr struct mediterranean_sea_level final : std::relative_point_origin<amsterdam_sea_level - 27 * cm> {
+inline constexpr struct mediterranean_sea_level : std::relative_point_origin<amsterdam_sea_level - 27 * cm> {
 } mediterranean_sea_level;
 
 using altitude_DE = std::quantity_point<std::isq::altitude[m], amsterdam_sea_level>;
@@ -1742,10 +2616,10 @@ inline constexpr voltage_hw_t voltage_hw_max = voltage_hw_error - 1;
 inline constexpr voltage_hw_t voltage_hw_range = voltage_hw_max - voltage_hw_min;
 inline constexpr voltage_hw_t voltage_hw_zero = voltage_hw_range / 2;
 
-inline constexpr struct hw_voltage_origin final :
+inline constexpr struct hw_voltage_origin :
   std::relative_point_origin<std::point<std::si::volt>(min_voltage)> {} hw_voltage_origin;
 
-inline constexpr struct hw_voltage_unit final :
+inline constexpr struct hw_voltage_unit :
   std::named_unit<"hwV", std::mag_ratio<voltage_range, voltage_hw_range> * std::si::volt, hw_voltage_origin> {} hw_voltage_unit;
 
 using hw_voltage_quantity_point = std::quantity_point<hw_voltage_unit, hw_voltage_origin, voltage_hw_t>;
@@ -1762,8 +2636,8 @@ std::optional<hw_voltage_quantity_point> read_hw_voltage()
 
 void print(std::QuantityPoint auto qp)
 {
-  std::println("{:10} ({:5})", qp.quantity_from_zero(),
-               std::value_cast<double, si::volt>(qp).quantity_from_zero());
+  std::println("{:10} ({:5})", qp.quantity_from_unit_zero(),
+               std::value_cast<double, si::volt>(qp).quantity_from_unit_zero());
 }
 
 int main()
@@ -1805,40 +2679,40 @@ import std;
 namespace ni {
 
 // quantities
-inline constexpr struct SampleCount final : std::quantity_spec<std::dimensionless, std::is_kind> {} SampleCount;
-inline constexpr struct SampleDuration final : std::quantity_spec<std::isq::period_duration> {} SampleDuration;
-inline constexpr struct SamplingRate final : std::quantity_spec<std::isq::frequency, SampleCount / SampleDuration> {} SamplingRate;
+inline constexpr struct SampleCount : std::quantity_spec<std::dimensionless, std::is_kind> {} SampleCount;
+inline constexpr struct SampleDuration : std::quantity_spec<std::isq::period_duration> {} SampleDuration;
+inline constexpr struct SamplingRate : std::quantity_spec<std::isq::frequency, SampleCount / SampleDuration> {} SamplingRate;
 
-inline constexpr struct UnitSampleAmount final : std::quantity_spec<std::dimensionless, std::is_kind> {} UnitSampleAmount;
+inline constexpr struct UnitSampleAmount : std::quantity_spec<std::dimensionless, std::is_kind> {} UnitSampleAmount;
 inline constexpr auto Amplitude = UnitSampleAmount;
 inline constexpr auto Level = UnitSampleAmount;
-inline constexpr struct Power final : std::quantity_spec<Level * Level> {} Power;
+inline constexpr struct Power : std::quantity_spec<Level * Level> {} Power;
 
-inline constexpr struct MIDIClock final : std::quantity_spec<std::dimensionless, std::is_kind> {} MIDIClock;
+inline constexpr struct MIDIClock : std::quantity_spec<std::dimensionless, std::is_kind> {} MIDIClock;
 
-inline constexpr struct BeatCount final : std::quantity_spec<std::dimensionless, std::is_kind> {} BeatCount;
-inline constexpr struct BeatDuration final : std::quantity_spec<std::isq::period_duration> {} BeatDuration;
-inline constexpr struct Tempo final : std::quantity_spec<std::isq::frequency, BeatCount / BeatDuration> {} Tempo;
+inline constexpr struct BeatCount : std::quantity_spec<std::dimensionless, std::is_kind> {} BeatCount;
+inline constexpr struct BeatDuration : std::quantity_spec<std::isq::period_duration> {} BeatDuration;
+inline constexpr struct Tempo : std::quantity_spec<std::isq::frequency, BeatCount / BeatDuration> {} Tempo;
 
 // units
-inline constexpr struct Sample final : std::named_unit<"Smpl", std::one, std::kind_of<SampleCount>> {} Sample;
-inline constexpr struct SampleValue final : std::named_unit<"PCM", std::one, std::kind_of<UnitSampleAmount>> {} SampleValue;
-inline constexpr struct MIDIPulse final : std::named_unit<"p", std::one, std::kind_of<MIDIClock>> {} MIDIPulse;
+inline constexpr struct Sample : std::named_unit<"Smpl", std::one, std::kind_of<SampleCount>> {} Sample;
+inline constexpr struct SampleValue : std::named_unit<"PCM", std::one, std::kind_of<UnitSampleAmount>> {} SampleValue;
+inline constexpr struct MIDIPulse : std::named_unit<"p", std::one, std::kind_of<MIDIClock>> {} MIDIPulse;
 
-inline constexpr struct QuarterNote final : std::named_unit<"q", std::one, std::kind_of<BeatCount>> {} QuarterNote;
-inline constexpr struct HalfNote final : std::named_unit<"h", std::mag<2> * QuarterNote> {} HalfNote;
-inline constexpr struct DottedHalfNote final : std::named_unit<"h.", std::mag<3> * QuarterNote> {} DottedHalfNote;
-inline constexpr struct WholeNote final : std::named_unit<"w", std::mag<4> * QuarterNote> {} WholeNote;
-inline constexpr struct EighthNote final : std::named_unit<"8th", std::mag_ratio<1, 2> * QuarterNote> {} EighthNote;
-inline constexpr struct DottedQuarterNote final : std::named_unit<"q.", std::mag<3> * EighthNote> {} DottedQuarterNote;
-inline constexpr struct QuarterNoteTriplet final : std::named_unit<"qt", std::mag_ratio<1, 3> * HalfNote> {} QuarterNoteTriplet;
-inline constexpr struct SixteenthNote final : std::named_unit<"16th", std::mag_ratio<1, 2> * EighthNote> {} SixteenthNote;
-inline constexpr struct DottedEighthNote final : std::named_unit<"q.", std::mag<3> * SixteenthNote> {} DottedEighthNote;
+inline constexpr struct QuarterNote : std::named_unit<"q", std::one, std::kind_of<BeatCount>> {} QuarterNote;
+inline constexpr struct HalfNote : std::named_unit<"h", std::mag<2> * QuarterNote> {} HalfNote;
+inline constexpr struct DottedHalfNote : std::named_unit<"h.", std::mag<3> * QuarterNote> {} DottedHalfNote;
+inline constexpr struct WholeNote : std::named_unit<"w", std::mag<4> * QuarterNote> {} WholeNote;
+inline constexpr struct EighthNote : std::named_unit<"8th", std::mag_ratio<1, 2> * QuarterNote> {} EighthNote;
+inline constexpr struct DottedQuarterNote : std::named_unit<"q.", std::mag<3> * EighthNote> {} DottedQuarterNote;
+inline constexpr struct QuarterNoteTriplet : std::named_unit<"qt", std::mag_ratio<1, 3> * HalfNote> {} QuarterNoteTriplet;
+inline constexpr struct SixteenthNote : std::named_unit<"16th", std::mag_ratio<1, 2> * EighthNote> {} SixteenthNote;
+inline constexpr struct DottedEighthNote : std::named_unit<"q.", std::mag<3> * SixteenthNote> {} DottedEighthNote;
 
 inline constexpr auto Beat = QuarterNote;
 
-inline constexpr struct BeatsPerMinute final : std::named_unit<"bpm", Beat / std::si::minute> {} BeatsPerMinute;
-inline constexpr struct MIDIPulsePerQuarter final : std::named_unit<"ppqn", MIDIPulse / QuarterNote> {} MIDIPulsePerQuarter;
+inline constexpr struct BeatsPerMinute : std::named_unit<"bpm", Beat / std::si::minute> {} BeatsPerMinute;
+inline constexpr struct MIDIPulsePerQuarter : std::named_unit<"ppqn", MIDIPulse / QuarterNote> {} MIDIPulsePerQuarter;
 
 namespace unit_symbols {
 
@@ -2292,25 +3166,25 @@ are vector quantities).
 The below presents how such a hierarchy tree can be defined in the library:
 
 ```cpp
-inline constexpr struct dim_length final : base_dimension<"L"> {} dim_length;
+inline constexpr struct dim_length : base_dimension<"L"> {} dim_length;
 
-inline constexpr struct length final : quantity_spec<dim_length> {} length;
-inline constexpr struct width final : quantity_spec<length> {} width;
+inline constexpr struct length : quantity_spec<dim_length> {} length;
+inline constexpr struct width : quantity_spec<length> {} width;
 inline constexpr auto breadth = width;
-inline constexpr struct height final : quantity_spec<length> {} height;
+inline constexpr struct height : quantity_spec<length> {} height;
 inline constexpr auto depth = height;
 inline constexpr auto altitude = height;
-inline constexpr struct thickness final : quantity_spec<width> {} thickness;
-inline constexpr struct diameter final : quantity_spec<width> {} diameter;
-inline constexpr struct radius final : quantity_spec<width> {} radius;
-inline constexpr struct radius_of_curvature final : quantity_spec<radius> {} radius_of_curvature;
-inline constexpr struct path_length final : quantity_spec<length> {} path_length;
+inline constexpr struct thickness : quantity_spec<width> {} thickness;
+inline constexpr struct diameter : quantity_spec<width> {} diameter;
+inline constexpr struct radius : quantity_spec<width> {} radius;
+inline constexpr struct radius_of_curvature : quantity_spec<radius> {} radius_of_curvature;
+inline constexpr struct path_length : quantity_spec<length> {} path_length;
 inline constexpr auto arc_length = path_length;
-inline constexpr struct distance final : quantity_spec<path_length> {} distance;
-inline constexpr struct radial_distance final : quantity_spec<distance> {} radial_distance;
-inline constexpr struct wavelength final : quantity_spec<length> {} wavelength;
-inline constexpr struct displacement final : quantity_spec<length, quantity_character::vector> {} displacement;
-inline constexpr struct position_vector final : quantity_spec<displacement> {} position_vector;
+inline constexpr struct distance : quantity_spec<path_length> {} distance;
+inline constexpr struct radial_distance : quantity_spec<distance> {} radial_distance;
+inline constexpr struct wavelength : quantity_spec<length> {} wavelength;
+inline constexpr struct displacement : quantity_spec<length, quantity_character::vector> {} displacement;
+inline constexpr struct position_vector : quantity_spec<displacement> {} position_vector;
 ```
 
 In the above code:
@@ -2451,7 +3325,7 @@ Fortunately, the above-mentioned conversion rules make the code safe by construc
 Let's analyze the following example:
 
 ```cpp
-inline constexpr struct horizontal_length final : quantity_spec<isq::length> {} horizontal_length;
+inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
 
 namespace christmas {
 
@@ -2520,8 +3394,8 @@ The same rules propagate to derived quantities. For example, we can define stron
 length and area:
 
 ```cpp
-inline constexpr struct horizontal_length final : quantity_spec<isq::length> {} horizontal_length;
-inline constexpr struct horizontal_area final : quantity_spec<isq::area, horizontal_length * isq::width> {} horizontal_area;
+inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
+inline constexpr struct horizontal_area : quantity_spec<isq::area, horizontal_length * isq::width> {} horizontal_area;
 ```
 
 The first definition says that a `horizontal_length` is a more specialized quantity than
@@ -2670,8 +3544,8 @@ Examples:
 A distinct quantity kind is defined by adding `is_kind` to the `quantity_spec` definition:
 
 ```cpp
-inline constexpr struct fluid_head final : quantity_spec<isq::height, is_kind> {} fluid_head;
-inline constexpr struct water_head final : quantity_spec<isq::height, is_kind> {} water_head;
+inline constexpr struct fluid_head : quantity_spec<isq::height, is_kind> {} fluid_head;
+inline constexpr struct water_head : quantity_spec<isq::height, is_kind> {} water_head;
 ```
 
 Both `fluid_head` and `water_head` are subkinds of _height_ (inheriting dimension of _length_
@@ -2749,7 +3623,7 @@ one for each base quantity. In the library, this is expressed by associating a q
 a unit being defined:
 
 ```cpp
-inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
 ```
 
 The `kind_of<isq::length>` above states explicitly that this unit has an associated quantity
@@ -2784,7 +3658,7 @@ Each such named derived unit is a result of a specific predefined unit equation.
 For example, a unit of power quantity is defined as:
 
 ```cpp
-inline constexpr struct watt final : named_unit<"W", joule / second> {} watt;
+inline constexpr struct watt : named_unit<"W", joule / second> {} watt;
 ```
 
 However, a power quantity can be expressed in other units as well. For example,
@@ -2822,8 +3696,8 @@ This is why it is important for the library to allow constraining such units to 
 a specific quantity kind:
 
 ```cpp
-inline constexpr struct hertz final : named_unit<"Hz", one / second, kind_of<isq::frequency>> {} hertz;
-inline constexpr struct becquerel final : named_unit<"Bq", one / second, kind_of<isq::activity>> {} becquerel;
+inline constexpr struct hertz : named_unit<"Hz", one / second, kind_of<isq::frequency>> {} hertz;
+inline constexpr struct becquerel : named_unit<"Bq", one / second, kind_of<isq::activity>> {} becquerel;
 ```
 
 With the above, `hertz` can only be used for _frequencies_, while `becquerel` should only be used for
@@ -2880,9 +3754,9 @@ are scaled versions of the [@SI] units with ratios that can't be explicitly expr
 predefined SI prefixes. Those include units like minute, hour, or electronvolt:
 
 ```cpp
-inline constexpr struct minute final : named_unit<"min", mag<60> * si::second> {} minute;
-inline constexpr struct hour final : named_unit<"h", mag<60> * minute> {} hour;
-inline constexpr struct electronvolt final : named_unit<"eV",
+inline constexpr struct minute : named_unit<"min", mag<60> * si::second> {} minute;
+inline constexpr struct hour : named_unit<"h", mag<60> * minute> {} hour;
+inline constexpr struct electronvolt : named_unit<"eV",
     mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * si::joule> {} electronvolt;
 ```
 
@@ -2890,26 +3764,26 @@ Also, units of other systems of units are often defined in terms of scaled versi
 (often SI) units. For example, the international yard is defined as:
 
 ```cpp
-inline constexpr struct yard final : named_unit<"yd", mag_ratio<9'144, 10'000> * si::metre> {} yard;
+inline constexpr struct yard : named_unit<"yd", mag_ratio<9'144, 10'000> * si::metre> {} yard;
 ```
 
 and then a `foot` can be defined as:
 
 ```cpp
-inline constexpr struct foot final : named_unit<"ft", mag_ratio<1, 3> * yard> {} foot;
+inline constexpr struct foot : named_unit<"ft", mag_ratio<1, 3> * yard> {} foot;
 ```
 
 For some units, a magnitude might also be irrational. The best example here is a `degree` which
 is defined using a floating-point magnitude having a factor of the number π (Pi):
 
 ```cpp
-inline constexpr struct pi_c final : mag_constant<{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, std::numbers::pi_v<long double>> {} pi_c;
-inline constexpr struct pi final : named_constant<symbol_text{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, mag<pi_c> * one> {} pi;
+inline constexpr struct pi_c : mag_constant<{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, std::numbers::pi_v<long double>> {} pi_c;
+inline constexpr struct pi : named_constant<symbol_text{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, mag<pi_c> * one> {} pi;
 inline constexpr auto π /* U+03C0 GREEK SMALL LETTER PI */ = pi;
 ```
 
 ```cpp
-inline constexpr struct degree final : named_unit<{u8"°", "deg"}, mag_ratio<1, 180> * π * si::radian> {} degree;
+inline constexpr struct degree : named_unit<{u8"°", "deg"}, mag_ratio<1, 180> * π * si::radian> {} degree;
 ```
 
 ### Common units
@@ -3049,30 +3923,30 @@ might not be the final version proposed for standardization._
 Dimensions:
 
 ```cpp
-inline constexpr struct dim_length final : base_dimension<"L"> {} dim_length;
-inline constexpr struct dim_mass final : base_dimension<"M"> {} dim_mass;
-inline constexpr struct dim_time final : base_dimension<"T"> {} dim_time;
-inline constexpr struct dim_electric_current final : base_dimension<"I"> {} dim_electric_current;
-inline constexpr struct dim_thermodynamic_temperature final : base_dimension<{u8"Θ", "O"}> {} dim_thermodynamic_temperature;
-inline constexpr struct dim_amount_of_substance final : base_dimension<"N"> {} dim_amount_of_substance;
-inline constexpr struct dim_luminous_intensity final : base_dimension<"J"> {} dim_luminous_intensity;
+inline constexpr struct dim_length : base_dimension<"L"> {} dim_length;
+inline constexpr struct dim_mass : base_dimension<"M"> {} dim_mass;
+inline constexpr struct dim_time : base_dimension<"T"> {} dim_time;
+inline constexpr struct dim_electric_current : base_dimension<"I"> {} dim_electric_current;
+inline constexpr struct dim_thermodynamic_temperature : base_dimension<{u8"Θ", "O"}> {} dim_thermodynamic_temperature;
+inline constexpr struct dim_amount_of_substance : base_dimension<"N"> {} dim_amount_of_substance;
+inline constexpr struct dim_luminous_intensity : base_dimension<"J"> {} dim_luminous_intensity;
 ```
 
 Units:
 
 ```cpp
-inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
-inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} metre;
-inline constexpr struct gram final : named_unit<"g", kind_of<isq::mass>> {} gram;
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct gram : named_unit<"g", kind_of<isq::mass>> {} gram;
 inline constexpr auto kilogram = kilo<gram>;
 
-inline constexpr struct newton final : named_unit<"N", kilogram * metre / square(second)> {} newton;
-inline constexpr struct joule final : named_unit<"J", newton * metre> {} joule;
-inline constexpr struct watt final : named_unit<"W", joule / second> {} watt;
-inline constexpr struct coulomb final : named_unit<"C", ampere * second> {} coulomb;
-inline constexpr struct volt final : named_unit<"V", watt / ampere> {} volt;
-inline constexpr struct farad final : named_unit<"F", coulomb / volt> {} farad;
-inline constexpr struct ohm final : named_unit<{u8"Ω", "ohm"}, volt / ampere> {} ohm;
+inline constexpr struct newton : named_unit<"N", kilogram * metre / square(second)> {} newton;
+inline constexpr struct joule : named_unit<"J", newton * metre> {} joule;
+inline constexpr struct watt : named_unit<"W", joule / second> {} watt;
+inline constexpr struct coulomb : named_unit<"C", ampere * second> {} coulomb;
+inline constexpr struct volt : named_unit<"V", watt / ampere> {} volt;
+inline constexpr struct farad : named_unit<"F", coulomb / volt> {} farad;
+inline constexpr struct ohm : named_unit<{u8"Ω", "ohm"}, volt / ampere> {} ohm;
 ```
 
 Prefixes:
@@ -3091,19 +3965,19 @@ template<PrefixableUnit U> struct mega_  : prefixed_unit<"M", mag_power<10, 6>, 
 Constants:
 
 ```cpp
-inline constexpr struct hyperfine_structure_transition_frequency_of_cs final :
+inline constexpr struct hyperfine_structure_transition_frequency_of_cs :
   named_constant<{u8"Δν_Cs", "dv_Cs"}, mag<9'192'631'770> * hertz> {} hyperfine_structure_transition_frequency_of_cs;
-inline constexpr struct speed_of_light_in_vacuum final :
+inline constexpr struct speed_of_light_in_vacuum :
   named_constant<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
-inline constexpr struct planck_constant final :
+inline constexpr struct planck_constant :
   named_constant<"h", mag_ratio<662'607'015, 100'000'000> * mag_power<10, -34> * joule * second> {} planck_constant;
-inline constexpr struct elementary_charge final :
+inline constexpr struct elementary_charge :
   named_constant<"e", mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * coulomb> {} elementary_charge;
-inline constexpr struct boltzmann_constant final :
+inline constexpr struct boltzmann_constant :
   named_constant<"k", mag_ratio<1'380'649, 1'000'000> * mag_power<10, -23> * joule / kelvin> {} boltzmann_constant;
-inline constexpr struct avogadro_constant final :
+inline constexpr struct avogadro_constant :
   named_constant<"N_A", mag_ratio<602'214'076, 100'000'000> * mag_power<10, 23> / mole> {} avogadro_constant;
-inline constexpr struct luminous_efficacy final :
+inline constexpr struct luminous_efficacy :
   named_constant<"K_cd", mag<683> * lumen / watt> {} luminous_efficacy;
 ```
 
@@ -3151,12 +4025,16 @@ _Note: In the above examples, the second symbol with arrows above should also us
 There are also a few requirements for printing subscripts of quantity types.
 [@ISO80000] states:
 
-> The following principles for the printing of subscripts apply:
->
-> - A subscript that represents a physical quantity or a mathematical variable, such as a running
->   number, is printed in italic (sloping) type.
-> - Other subscripts, such as those representing words or fixed numbers, are printed in roman
->   (upright) type.
+<blockquote>
+
+The following principles for the printing of subscripts apply:
+
+- A subscript that represents a physical quantity or a mathematical variable, such as a running
+  number, is printed in italic (sloping) type.
+- Other subscripts, such as those representing words or fixed numbers, are printed in roman
+  (upright) type.
+
+</blockquote>
 
 It is worth noting that only a limited set of Unicode characters are available as subscripts.
 Those are often used to differentiate various quantities of the same kind.
@@ -4076,23 +4954,27 @@ std::println("{::N[.3G]}", 1.2345678e8 * m);    // 1.23E+08 m
 
 Both [@ISO80000] and [@SI] are recommending printing numbers into separated into groups of three:
 
-> To facilitate the reading of numbers with many digits, these may be separated into groups of
-> three, counting from the decimal sign towards the left and the right. In the case where there
-> is no decimal part (and thus no decimal marker), the counting shall be from the right-most digit,
-> towards the left. No group shall contain more than three digits, except that when there are only
-> four digits before or after the decimal marker it is customary not to use a space to isolate
-> a single digit. Where such separation into groups of three is used, the groups shall be separated
-> by a small space and not by a point or a comma or by any other means.
->
-> EXAMPLE 1: 12 345  
-> EXAMPLE 2: 1 234 or 1234  
-> EXAMPLE 3: 1 234,567 8 or 1234,5678  
->
-> The practice of grouping digits in this way is a matter of choice. It is not always followed in
-> certain specialized applications such as engineering drawings and scripts to be read by a
-> computer. The separation into groups of three should not be used for ordinal numbers used as
-> reference numbers. A year, when given by four digits, shall always be written without a space
-> between the digits.
+<blockquote>
+
+To facilitate the reading of numbers with many digits, these may be separated into groups of
+three, counting from the decimal sign towards the left and the right. In the case where there
+is no decimal part (and thus no decimal marker), the counting shall be from the right-most digit,
+towards the left. No group shall contain more than three digits, except that when there are only
+four digits before or after the decimal marker it is customary not to use a space to isolate
+a single digit. Where such separation into groups of three is used, the groups shall be separated
+by a small space and not by a point or a comma or by any other means.
+
+EXAMPLE 1: 12 345  
+EXAMPLE 2: 1 234 or 1234  
+EXAMPLE 3: 1 234,567 8 or 1234,5678  
+
+The practice of grouping digits in this way is a matter of choice. It is not always followed in
+certain specialized applications such as engineering drawings and scripts to be read by a
+computer. The separation into groups of three should not be used for ordinal numbers used as
+reference numbers. A year, when given by four digits, shall always be written without a space
+between the digits.
+
+</blockquote>
 
 As of today, no flag in `std-format-spec` would force it. Similar output may be obtained thanks
 to localization, but international standards mentioned above recommend that for every user,
@@ -4611,7 +5493,7 @@ Vector and tensor quantities can be implemented in two ways:
     - `a / b` - division where the divisor has to be scalar
     - `a ⋅ b` - dot product of two vectors
     - `a × b` - cross product of two vectors
-    - `|a|` - magnitude of a vector
+    - `|a|` - magnitude (norm) of a vector, i.e., `norm(a)`
     - `a ⊗ b` - tensor product of two vectors or tensors
     - `a ⋅ b` - inner product of two tensors
     - `a ⋅ b` - inner product of tensor and vector
@@ -4880,10 +5762,10 @@ The `quantity` and `quantity_point` class templates are structural types to allo
 as template arguments. For example, we can write the following:
 
 ```cpp
-constexpr struct amsterdam_sea_level final : absolute_point_origin<isq::altitude> {
+constexpr struct amsterdam_sea_level : absolute_point_origin<isq::altitude> {
 } amsterdam_sea_level;
 
-constexpr struct mediterranean_sea_level final : relative_point_origin<amsterdam_sea_level + isq::altitude(-27 * cm)> {
+constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level + isq::altitude(-27 * cm)> {
 } mediterranean_sea_level;
 
 using altitude_DE = quantity_point<isq::altitude[m], amsterdam_sea_level>;
@@ -4929,8 +5811,8 @@ identifier for a tag type and its instance.
 Here is how we define `metre` and `second` [@SI] base units:
 
 ```cpp
-inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} metre;
-inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
 ```
 
 Please note that the above reuses the same identifier for a type and its value. The rationale
@@ -5049,9 +5931,9 @@ extensions to Non-Type Template Parameters, which allow us to directly pass a re
 the value-based unit equation to a class template definition:
 
 ```cpp
-inline constexpr struct newton final : named_unit<"N", kilogram * metre / square(second)> {} newton;
-inline constexpr struct pascal final : named_unit<"Pa", newton / square(metre)> {} pascal;
-inline constexpr struct joule final : named_unit<"J", newton * metre> {} joule;
+inline constexpr struct newton : named_unit<"N", kilogram * metre / square(second)> {} newton;
+inline constexpr struct pascal : named_unit<"Pa", newton / square(metre)> {} pascal;
+inline constexpr struct joule : named_unit<"J", newton * metre> {} joule;
 ```
 
 ### Framework-only class templates
@@ -5094,9 +5976,9 @@ more readable types and prevents users from instantiating the template by themse
 Here is how units are defined:
 
 ```cpp
-inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
-inline constexpr struct metre final : named_unit<"m", kind_of<isq::length>> {} metre;
-inline constexpr struct gram final : named_unit<"g", kind_of<isq::mass>> {} gram;
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct gram : named_unit<"g", kind_of<isq::mass>> {} gram;
 
 inline constexpr auto m = metre;
 inline constexpr auto s = second;
@@ -5248,29 +6130,124 @@ _Note: More information on this subject can be found in [The affine space] chapt
 
 ## Library namespace
 
-The number of framework types we propose with this library is not that large. They provide long-awaited
-strong types support not only to model physical quantities and units but also to improve safety
-of everything that can be counted or resembles mathematical numbers in some ways (e.g., _longitude_
-and _latitude_, pixel _coordinates_, _prices_, etc.). This library also provides the affine space
-abstraction that has a broad usage by itself.
+The library's names fall into two distinct categories with different placement requirements.
 
-This is why we propose to put all the framework entities directly in the namespace `std`. This
-also makes error messages terser, thus easier to read and understand, which is the primary goal of
-this library.
+### Framework entities — proposed in `std::`
 
-Of course, some entities would have to be renamed (e.g., `reference`) not to be ambiguous with
-other domains and already existing identifiers.
+The framework types (`quantity`, `quantity_point`, `quantity_spec`, `named_unit`, `dimension`,
+`mag`, concepts, …) are a small, fixed set. They provide long-awaited strong-type support not
+only for physical quantities and units but also for anything that resembles a measurable number
+(e.g., _longitude_ and _latitude_, pixel _coordinates_, _prices_). The affine space abstraction
+has similarly broad applicability.
 
-Besides the framework entities, we also have systems definitions. Provided quantity types and units
-would land in their own subnamespace in the namespace `std`.
+We propose placing all framework entities directly in namespace `std`. The primary motivation is
+**error message quality**: when a type mismatch occurs, the compiler reports the full qualified
+name of every type involved. Nesting framework types inside `std::units` or a similar intermediate
+namespace adds that prefix to every diagnostic line, making already-complex template error messages
+significantly harder to read. Since the library's chief value proposition is catching unit errors
+at compile time, readable diagnostics are a first-class concern — arguably more so than for any
+other library.
 
-For example, a user could write the following code:
+Some entities would need to be renamed to avoid ambiguity with existing `std` identifiers
+(e.g., `reference`).
+
+#### Counterarguments considered
+
+During Croydon 2026 (SG18), three concerns were raised:
+
+- **Coherence with the rest of the standard library.** Short names aid error messages _within_
+  the library but may feel inconsistent alongside the rest of `std::`. We acknowledge this
+  tension; however, the alternative of longer qualified names measurably harms the user
+  experience that motivates the library's existence. Implementations also have scope to improve
+  diagnostics beyond what the library alone can do.
+
+- **Volume of names in `std::`.** The framework itself contributes a bounded, modest number of
+  names. System definitions (SI units, ISQ quantities) live in their own subnamespaces and do
+  not pollute `std::` directly.
+
+- **Naming conflicts with existing identifiers.** The most concrete example raised was `pi`:
+  `std::numbers::pi` is an existing floating-point constant, while this library defines `pi`
+  as a _unit_ (a dimensionless scaling factor). These are different things with different types,
+  so they cannot be confused by the compiler, but they are conceptually distinct and having two
+  entities called `pi` in closely related namespaces may surprise users. This is an open question
+  — see [Dimensionless and framework-level units] below.
+
+### System definitions — in subnamespaces
+
+Quantity types and units from concrete systems (SI, ISQ, US customary, …) are placed in their
+own subnamespaces under `std`:
 
 ```cpp
 using namespace std::si::unit_symbols;
 
 std::quantity<std::si::metre> q = 42 * m;
 ```
+
+This keeps the system-specific vocabulary scoped and avoids polluting `std::` with an
+unbounded set of unit and quantity names.
+
+### Dimensionless and framework-level entities { #framework-namespace }
+
+Beyond the framework types and the named systems, there are several entities that do not
+naturally belong to any concrete system namespace yet are more than just library machinery.
+They fall into roughly three categories with potentially different placement requirements.
+
+#### Algebraic identities
+
+`dimension_one`, `dimensionless`, and `one` are the algebraic identity elements of the
+framework's type system — the dimension, quantity specification, and unit of dimensionless
+quantities respectively. They are mandatory infrastructure: any quantity equation that produces
+a dimensionless result relies on them implicitly. As such they are arguably framework entities
+and could live in `std::` alongside `quantity` and `named_unit`. However, placing `one`
+directly in `std::` raises a naming concern: to be consistent with the existing `dimension_one`
+and `dimensionless` names in the same group, and to avoid potential conflicts with user-defined
+`one` identifiers, it may need to be renamed to `unit_one`.
+
+#### `pi` — a system-required constant
+
+`pi` occupies a special position: it is a mandatory magnitude factor for defining SI units.
+The SI `degree` (plane angle) is defined as `mag<pi> / mag<180> * rad`, making `pi` a
+dependency of the SI system itself, not merely a convenience for user code. Placing it in
+`std::si::` is therefore tempting, but wrong: users working with angles in non-SI contexts
+(custom unit systems, pure mathematics, signal processing) need `pi` independently of the SI
+system, so requiring `std::si::pi` would impose an unwanted SI dependency.
+
+Placing it in `std::` alongside the framework types is the most accessible option. The
+proximity to `std::numbers::pi` might initially appear problematic — both represent π but are
+fundamentally different kinds of entity: `std::numbers::pi` is a floating-point approximation,
+while `std::pi` would be a compile-time exact symbolic constant, evaluated to floating-point
+only when applied to a concrete value. However, this paper argues throughout that `quantity`
+is not merely a physics type but a safer numeric wrapper for any arithmetic value. Under that
+framing, `pi` can be seen as a safer version of `std::numbers::pi`: it carries the same
+mathematical meaning but defers floating-point evaluation and composes exactly with unit
+magnitudes. The naming proximity in `std::` would then reflect a genuine relationship rather
+than a collision — especially since the library uses `std::numbers::pi` under the hood when
+materialising the floating-point value of `pi`. Whether this reasoning is sufficient to justify
+`std::pi` is ultimately a question for LEWG.
+
+#### Useful dimensionless units with no system home
+
+`percent` (`%`), `per_mille` (`‰`), and `parts_per_million` (`ppm`) are widely used in
+production code but, to our knowledge, are not defined by any standard system of units
+(neither SI nor any other system included in this proposal). They are convenient extensions
+of `one` that belong to no particular domain. Whether they should share a namespace with the
+algebraic identities or be grouped separately is unclear.
+
+#### Short helpers and factory functions
+
+`per<U>` (reciprocal unit), `delta<U>()` and `point<U>()` (affine space constructors) are
+intentionally terse to keep quantity equations and construction syntax readable. Their brevity
+could be problematic in the flat `std::` namespace. However, unlike the units and quantity
+specs above, these are helpers that form part of the core API and are arguably framework
+entities in the same sense as `quantity` itself.
+
+#### Summary
+
+The placement of all of the above is an **open question for LEWG**. The three or four
+categories above may warrant different namespaces, or a single shared subnamespace (e.g.,
+`std::units::` or `std::qty::`). The tradeoff is consistent with the broader framework
+discussion: a subnamespace reduces name-conflict risk but requires `using namespace` to keep
+equations readable.
 
 
 ## Concepts
@@ -5477,7 +6454,7 @@ because this quantity type implicitly converts to `isq::thermodynamic_temperatur
 However, if we define `mean_sea_level` in the following way:
 
 ```cpp
-inline constexpr struct mean_sea_level final : absolute_point_origin<isq::altitude> {} mean_sea_level;
+inline constexpr struct mean_sea_level : absolute_point_origin<isq::altitude> {} mean_sea_level;
 ```
 
 then it can't be used as a point origin for _points_ of `isq::length` or `isq::width` as none of
@@ -5587,34 +6564,34 @@ Here is a comparison of quantity specification and units definitions in both alt
 Today (inconsistent?):
 
 ```cpp
-inline constexpr struct length final : quantity_spec<dim_length> {} length;
-inline constexpr struct time final   : quantity_spec<dim_time> {} time;
-inline constexpr struct speed final  : quantity_spec<length / time> {} speed;
+inline constexpr struct length : quantity_spec<dim_length> {} length;
+inline constexpr struct time   : quantity_spec<dim_time> {} time;
+inline constexpr struct speed  : quantity_spec<length / time> {} speed;
 
-inline constexpr struct metre final  : named_unit<"m", kind_of<isq::length>> {} metre;
-inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre  : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
 ```
 
 Option 1:
 
 ```cpp
-inline constexpr struct length final : named_quantity_spec<dim_length> {} length;
-inline constexpr struct time final   : named_quantity_spec<dim_time> {} time;
-inline constexpr struct speed final  : named_quantity_spec<length / time> {} speed;
+inline constexpr struct length : named_quantity_spec<dim_length> {} length;
+inline constexpr struct time   : named_quantity_spec<dim_time> {} time;
+inline constexpr struct speed  : named_quantity_spec<length / time> {} speed;
 
-inline constexpr struct metre final  : named_unit<"m", kind_of<isq::length>> {} metre;
-inline constexpr struct second final : named_unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre  : named_unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
 ```
 
 Option 2:
 
 ```cpp
-inline constexpr struct length final : quantity_spec<dim_length> {} length;
-inline constexpr struct time final   : quantity_spec<dim_time> {} time;
-inline constexpr struct speed final  : quantity_spec<length / time> {} speed;
+inline constexpr struct length : quantity_spec<dim_length> {} length;
+inline constexpr struct time   : quantity_spec<dim_time> {} time;
+inline constexpr struct speed  : quantity_spec<length / time> {} speed;
 
-inline constexpr struct metre final  : unit<"m", kind_of<isq::length>> {} metre;
-inline constexpr struct second final : unit<"s", kind_of<isq::time>> {} second;
+inline constexpr struct metre  : unit<"m", kind_of<isq::length>> {} metre;
+inline constexpr struct second : unit<"s", kind_of<isq::time>> {} second;
 ```
 
 Please also note, that we've added `point_quantityXXX` alternatives as we consider replacing
@@ -5903,14 +6880,14 @@ on other abstractions. Let's compare how a unit can be defined using both of tho
 - with `mag_power`:
 
  ```cpp
- inline constexpr struct electronvolt final :
+ inline constexpr struct electronvolt :
    named_unit<"eV", mag_ratio<1'602'176'634, 1'000'000'000> * mag_power<10, -19> * si::joule> {} electronvolt;
  ```
 
 - with `pow<>(mag<>)`:
 
- ```cpp
- inline constexpr struct electronvolt final :
+```cpp
+ inline constexpr struct electronvolt :
    named_unit<"eV", mag_ratio<1'602'176'634, 1'000'000'000> * pow<-19>(mag<10>) * si::joule> {} electronvolt;
  ```
 
@@ -6176,6 +7153,17 @@ support from the library, and we do not propose it here either.
 
 ## Unit magnitudes
 
+::: note
+The word "magnitude" appears in this paper with three distinct meanings:
+
+- **Quantity magnitude** (ISO 80000): the "magnitude of a quantity" is the quantity value itself —
+  a number and a reference together expressing how large the quantity is.
+- **Vector magnitude**: the Euclidean norm of a vector, `|v|`, provided by the `norm()` CPO
+  (also accessible as `magnitude(v)` for compatibility with physics terminology).
+- **Unit magnitude** (this section): a compile-time scaling factor relating a unit to other units
+  of the same dimension.
+:::
+
 Each unit is associated with a magnitude representing its scaling factor relative to other units of
 the same dimension. However, absolute magnitude values have no physical meaning—only the _ratio_
 between magnitudes matters. For example, once we assign magnitude $m_f$ to _foot_, we must assign
@@ -6251,12 +7239,12 @@ namespace si {
 
 namespace si2019 {
 
-inline constexpr struct speed_of_light_in_vacuum final :
+inline constexpr struct speed_of_light_in_vacuum :
   named_constant<"c", mag<299'792'458> * metre / second> {} speed_of_light_in_vacuum;
 
 }  // namespace si2019
 
-inline constexpr struct magnetic_constant final :
+inline constexpr struct magnetic_constant :
   named_constant<{u8"μ₀", "u_0"}, mag<4> * mag_power<10, -7> * π * henry / metre> {} magnetic_constant;
 
 }  // namespace si
@@ -6739,37 +7727,41 @@ This is exactly why we decided not to follow this hugely surprising path in this
 The selected approach was also consistent with the feedback from C++ experts. For example,
 this is what Richard Smith said about this issue:
 
-> I think the quotient-remainder property is a less important motivation here than other factors
-> -- the constraints on `%` and `/` are quite different, so they lack the inherent connection they
-> have for integers. In particular, I would expect that `A / B` works for all quantities `A` and `B`,
-> whereas `A % B` is only meaningful when `A` and `B` have the same dimension. It seems like
-> a nice-to-have for the property to apply in the case where both `/` and `%` are defined,
-> but internal consistency of `/` across all cases seems much more important to me.
->
-> I would expect `61 min % 1 h` to be `1 min`, and `1 h % 59 min` to also be `1 min`, so my
-> intuition tells me that the result type of `A % B`, where `A` and `B` have the same dimension,
-> should have the smaller unit of `A` and `B` (and if the smaller one doesn't divide
-> the larger one, we should either use the `gcd / std::common_type` of the units of
-> `A` and `B` or perhaps just produce an error). I think any other behavior for `%` is hard to
-> defend.
->
-> On the other hand, for division it seems to me that the choice of unit should probably not affect
-> the result, and so if we want that `5 mm / 120 min = 0 mm/min`, then `5 h / 120 min == 0 hc`
-> (where `hc` is a dimensionless "hexaconta", or `60x`, unit). I don't like the idea of taking
-> SI base units into account; that seems arbitrary and like it would do the wrong thing as often
-> as it does the right thing, especially when the units have a multiplier that is very large or
-> small. We could special-case the situation of a dimensionless quantity, but that could lead to
-> problematic overflow pretty easily: a calculation such as `10 s * 5 GHz * 2 uW` would overflow
-> an `int` if it produces a dimensionless quantity for `10 s * 5 GHz`, but it could equally
-> produce `50 G * 2 uW = 100 kW` without any overflow, and presumably would if the terms were merely
-> reordered.
->
-> If people want to use integer-valued quantities, I think it's fundamental that you need
-> to know what the units of the result of an operation will be, and take that into account in how you
-> express computations; the simplest rule for heterogeneous operators like `*` or `/` seems to be that
-> the units of the result are determined by applying the operator to the units of the operands
-> -- and for homogeneous operators like `+` or `%`, it seems like the only reasonable option is
-> that you get the `std::common_type` of the units of the operands.
+<blockquote>
+
+I think the quotient-remainder property is a less important motivation here than other factors
+-- the constraints on `%` and `/` are quite different, so they lack the inherent connection they
+have for integers. In particular, I would expect that `A / B` works for all quantities `A` and `B`,
+whereas `A % B` is only meaningful when `A` and `B` have the same dimension. It seems like
+a nice-to-have for the property to apply in the case where both `/` and `%` are defined,
+but internal consistency of `/` across all cases seems much more important to me.
+
+I would expect `61 min % 1 h` to be `1 min`, and `1 h % 59 min` to also be `1 min`, so my
+intuition tells me that the result type of `A % B`, where `A` and `B` have the same dimension,
+should have the smaller unit of `A` and `B` (and if the smaller one doesn't divide
+the larger one, we should either use the `gcd / std::common_type` of the units of
+`A` and `B` or perhaps just produce an error). I think any other behavior for `%` is hard to
+defend.
+
+On the other hand, for division it seems to me that the choice of unit should probably not affect
+the result, and so if we want that `5 mm / 120 min = 0 mm/min`, then `5 h / 120 min == 0 hc`
+(where `hc` is a dimensionless "hexaconta", or `60x`, unit). I don't like the idea of taking
+SI base units into account; that seems arbitrary and like it would do the wrong thing as often
+as it does the right thing, especially when the units have a multiplier that is very large or
+small. We could special-case the situation of a dimensionless quantity, but that could lead to
+problematic overflow pretty easily: a calculation such as `10 s * 5 GHz * 2 uW` would overflow
+an `int` if it produces a dimensionless quantity for `10 s * 5 GHz`, but it could equally
+produce `50 G * 2 uW = 100 kW` without any overflow, and presumably would if the terms were merely
+reordered.
+
+If people want to use integer-valued quantities, I think it's fundamental that you need
+to know what the units of the result of an operation will be, and take that into account in how you
+express computations; the simplest rule for heterogeneous operators like `*` or `/` seems to be that
+the units of the result are determined by applying the operator to the units of the operands
+-- and for homogeneous operators like `+` or `%`, it seems like the only reasonable option is
+that you get the `std::common_type` of the units of the operands.
+
+</blockquote>
 
 To summarize, the modulo operator on physical units has more in common with addition and
 division operators than with the quotient-remainder theorem. To avoid surprising results, the
@@ -6980,7 +7972,7 @@ that uses a unit that is proportional to the ratio of kilometers per megaparsecs
 units of length:
 
 ```cpp
-inline constexpr struct hubble_constant final :
+inline constexpr struct hubble_constant :
     named_constant<{u8"H₀", "H_0"}, mag_ratio<701, 10> * si::kilo<si::metre> / si::second / si::mega<parsec>> {
 } hubble_constant;
 ```
@@ -7019,12 +8011,12 @@ Besides the unit `one`, there are a few other scaled units predefined in the lib
 with dimensionless quantities:
 
 ```cpp
-inline constexpr struct percent final : named_unit<"%", mag_ratio<1, 100> * one> {} percent;
-inline constexpr struct per_mille final : named_unit<{u8"‰", "%o"}, mag_ratio<1, 1000> * one> {} per_mille;
-inline constexpr struct parts_per_million final : named_unit<"ppm", mag_ratio<1, 1'000'000> * one> {} parts_per_million;
+inline constexpr struct percent : named_unit<"%", mag_ratio<1, 100> * one> {} percent;
+inline constexpr struct per_mille : named_unit<{u8"‰", "%o"}, mag_ratio<1, 1000> * one> {} per_mille;
+inline constexpr struct parts_per_million : named_unit<"ppm", mag_ratio<1, 1'000'000> * one> {} parts_per_million;
 inline constexpr auto ppm = parts_per_million;
 
-inline constexpr struct pi final : named_constant<symbol_text{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, mag<pi_c> * one> {} pi;
+inline constexpr struct pi : named_constant<symbol_text{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, mag<pi_c> * one> {} pi;
 inline constexpr auto π /* U+03C0 GREEK SMALL LETTER PI */ = pi;
 ```
 
@@ -7119,22 +8111,25 @@ hierarchy contains more than one quantity kind and more than one unit in its tre
 
 ![](img/quantities_of_dimensionless.svg)
 
+_Dotted lines denote `is_kind` relationships, where a child quantity forms a distinct kind
+incompatible with quantities of the same parent._
+
 To provide such support in the library, we provided an `is_kind` specifier that can be appended
 to the quantity specification:
 
 ```cpp
-inline constexpr struct angular_measure final : quantity_spec<dimensionless, arc_length / radius, is_kind> {} angular_measure;
-inline constexpr struct solid_angular_measure final : quantity_spec<dimensionless, area / pow<2>(radius), is_kind> {} solid_angular_measure;
-inline constexpr struct storage_capacity final : quantity_spec<dimensionless, is_kind> {} storage_capacity;
+inline constexpr struct angular_measure : quantity_spec<dimensionless, arc_length / radius, is_kind> {} angular_measure;
+inline constexpr struct solid_angular_measure : quantity_spec<dimensionless, area / pow<2>(radius), is_kind> {} solid_angular_measure;
+inline constexpr struct storage_capacity : quantity_spec<dimensionless, is_kind> {} storage_capacity;
 ```
 
 With the above, we can constrain `radian`, `steradian`, and `bit` to be allowed for usage with
 specific quantity kinds only:
 
 ```cpp
-inline constexpr struct radian final : named_unit<"rad", metre / metre, kind_of<isq::angular_measure>> {} radian;
-inline constexpr struct steradian final : named_unit<"sr", square(metre) / square(metre), kind_of<isq::solid_angular_measure>> {} steradian;
-inline constexpr struct bit final : named_unit<"bit", one, kind_of<storage_capacity>> {} bit;
+inline constexpr struct radian : named_unit<"rad", metre / metre, kind_of<isq::angular_measure>> {} radian;
+inline constexpr struct steradian : named_unit<"sr", square(metre) / square(metre), kind_of<isq::solid_angular_measure>> {} steradian;
+inline constexpr struct bit : named_unit<"bit", one, kind_of<storage_capacity>> {} bit;
 ```
 
 This still allows the usage of `one` (possibly scaled) for such quantities which is exactly what
@@ -7390,9 +8385,9 @@ Thanks to the new design, we can immediately see what happens here and why the r
 incorrect in the second case.
 
 
-### `default_point_origin<Reference>`, `quantity_from_zero()`, and `zeroth_point_origin<QuantitySpec>`
+### `default_point_origin<Reference>`, `quantity_from_unit_zero()`, and `natural_point_origin<QuantitySpec>`
 
-`default_point_origin<Reference>`, `quantity_from_zero()`, and `zeroth_point_origin<QuantitySpec>`
+`default_point_origin<Reference>`, `quantity_from_unit_zero()`, and `natural_point_origin<QuantitySpec>`
 are introduced to simplify the usage of:
 
 - temperature (and quantities with similar units) points where each unit has its own origin,
@@ -7405,7 +8400,7 @@ use cases would look like without it.
 Let's try to reimplement parts of our room AC temperature controller from the [Temperature support] chapter:
 
 ```cpp
-constexpr struct room_reference_temp final : relative_point_origin<si::zeroth_degree_Celsius + delta<deg_C>(21)> {} room_reference_temp;
+constexpr struct room_reference_temp : relative_point_origin<si::zeroth_degree_Celsius + delta<deg_C>(21)> {} room_reference_temp;
 using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
 
 room_temp room_ref{};
@@ -7419,15 +8414,15 @@ std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
 Now let's compare it to the implementation using a currently proposed design:
 
 ```cpp
-constexpr struct room_reference_temp final : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
+constexpr struct room_reference_temp : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
 using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference_temp>;
 
 room_temp room_ref{};
 
 std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
-             room_ref.quantity_from_zero(),
-             room_ref.in(deg_F).quantity_from_zero(),
-             room_ref.in(K).quantity_from_zero());
+             room_ref.quantity_from_unit_zero(),
+             room_ref.in(deg_F).quantity_from_unit_zero(),
+             room_ref.in(K).quantity_from_unit_zero());
 ```
 
 First, removing those features also renders `point<deg_C>(21)` impossible to implement. Second,
@@ -7436,7 +8431,7 @@ as we have to track a current unit of a quantity carefully. If someone changes a
 a point origin also has to be changed to get meaningful results. This is why, to ensure that we are
 origin-safe, we also need to provide `.in(deg_C).` in the first print argument.
 
-In the proposed design, the above problems are eliminated with the `quantity_from_zero()` usage
+In the proposed design, the above problems are eliminated with the `quantity_from_unit_zero()` usage
 that always returns a proper value for a current unit.
 
 
@@ -7669,7 +8664,7 @@ int main()
   // implicit conversion
   std::quantity_point qp = ts;
 
-  std::cout << qp.quantity_from_zero() << "\n";
+  std::cout << qp.quantity_from_unit_zero() << "\n";
 
   // explicit conversion
   print(Timestamp(qp));
@@ -7698,8 +8693,8 @@ It is important to note here that only a `quantity_point` that uses `chrono_poin
 as its origin can be converted to the `std::chrono` abstractions:
 
 ```cpp
-inline constexpr struct ts_origin final : relative_point_origin<chrono_point_origin<system_clock> + 1 * h> {} ts_origin;
-inline constexpr struct my_origin final : absolute_point_origin<isq::time> {} my_origin;
+inline constexpr struct ts_origin : relative_point_origin<chrono_point_origin<system_clock> + 1 * h> {} ts_origin;
+inline constexpr struct my_origin : absolute_point_origin<isq::time> {} my_origin;
 
 quantity_point qp1 = sys_seconds{1s};
 auto tp1 = to_chrono_time_point(qp1);  // OK
@@ -7719,7 +8714,7 @@ auto tp5 = to_chrono_time_point(qp5);  // Compile-time Error (2)
 
 `(1)` `my_origin` is not defined in terms of `chrono_point_origin<Clock>`.
 
-`(2)` `zeroth_point_origin` is not defined in terms of `chrono_point_origin<Clock>`.
+`(2)` `natural_point_origin` is not defined in terms of `chrono_point_origin<Clock>`.
 
 Here is an example of how interoperability described in this chapter can be used in practice:
 
@@ -7763,6 +8758,67 @@ Through the last years [@MP-UNITS] library proved to be very intuitive to both n
 the domain and non-C++ experts. Thanks to the user-friendly multiply syntax, support for CTAD,
 excellent readability of generated types in compiler error messages, and simplicity of systems
 definitions, this library makes it easy to do the first steps in the dimensional analysis domain.
+
+## Target audiences
+
+Following the practice suggested in [@P1700R0], we identify four distinct user populations for
+this library, each with different needs and interactions:
+
+<!-- markdownlint-disable MD013 -->
+
+| Audience                   | Population        | Roles and skills                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|----------------------------|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Application Developers** | millions          | Write application code using pre-defined quantities, units, and systems. Perform arithmetic with automatic dimensional analysis and compile-time unit safety. Use `quantity` for deltas and `quantity_point` for points and measurements (temperature, GPS, timestamps). Write generic interfaces constrained with `QuantityOf`. Interoperate with `std::chrono`. Modernise existing codebases by replacing raw numeric types with strongly-typed quantities. |
+| **Unit Authors**           | tens of thousands | Add named or scaled units to existing quantity types — standard-system extensions (imperial, binary prefixes) and derived combinations. Work entirely within the provided ISQ hierarchy; no new dimensions or quantity specifications required.                                                                                                                                                                                                               |
+| **Domain Modelers**        | thousands         | Properly model a new domain: define quantity systems (ISQ-like hierarchies), dimensions, quantity specifications, quantity kind hierarchies, and units. Design domain frameworks (physics engines, geodesy libraries, robotics toolkits) with correct ISQ-style structure. Require domain knowledge and familiarity with the quantity type system; deep C++ metaprogramming is not needed.                                                                    |
+| **Deep Integrators**       | hundreds          | Bridge custom or legacy types into the quantity system via `quantity_like_traits`. Implement custom representation types with specialised scaling behaviour. Require template metaprogramming expertise and understanding of library internals; domain-specific quantity modelling is not needed.                                                                                                                                                             |
+
+<!-- markdownlint-enable MD013 -->
+
+This clear separation ensures that the vast majority of users (Application Developers) can be
+productive immediately with minimal learning, while still providing extensibility for expert users.
+
+### Feature mapping by audience
+
+The following table maps library features to their primary target audiences:
+
+<!-- markdownlint-disable MD013 -->
+
+| Feature                                               | Application Developers | Unit Authors | Domain Modelers | Deep Integrators |
+|-------------------------------------------------------|:----------------------:|:------------:|:---------------:|:----------------:|
+| Multiply syntax (`42 * m`)                            |           ✓            |      ✓       |        ✓        |        ✓         |
+| CTAD for quantities                                   |           ✓            |      ✓       |        ✓        |        ✓         |
+| Arithmetic operations (`+`, `-`, `*`, `/`)            |           ✓            |      ✓       |        ✓        |        ✓         |
+| Unit conversions (`.in(unit)`)                        |           ✓            |      ✓       |        ✓        |        ✓         |
+| Comparison operators                                  |           ✓            |      ✓       |        ✓        |        ✓         |
+| Standard unit symbols (`si::metre`, `usc::foot`)      |           ✓            |      ✓       |        ✓        |        ✓         |
+| Text formatting with `std::format`                    |           ✓            |      ✓       |        ✓        |        ✓         |
+| Extracting numerical values (`.numerical_value_in()`) |           ✓            |      ✓       |        ✓        |        ✓         |
+| `std::chrono` interop                                 |           ✓            |      ✓       |        ✓        |        ✓         |
+| `quantity` vs `quantity_point` (basic usage)          |           ✓            |      ✓       |        ✓        |        ✓         |
+| Generic interfaces (`QuantityOf<isq::length>`)        |           ✓            |      ✓       |        ✓        |        ✓         |
+| Defining custom units (`named_unit`)                  |                        |      ✓       |        ✓        |        ✓         |
+| Unit prefixes (SI and binary)                         |                        |      ✓       |        ✓        |        ✓         |
+| Scaled units (`mag<N> * unit`, `mag_constant`)        |                        |      ✓       |        ✓        |        ✓         |
+| Systems of quantities (ISQ-like hierarchies)          |                        |              |        ✓        |                  |
+| Defining quantity types (`quantity_spec`)             |                        |              |        ✓        |                  |
+| Custom dimensions (`derived_dimension`)               |                        |              |        ✓        |                  |
+| Quantity kind hierarchies (`is_kind`)                 |                        |              |        ✓        |                  |
+| Custom point origins                                  |                        |              |        ✓        |                  |
+| Representation type constraints (`RepresentationOf`)  |                        |              |        ✓        |        ✓         |
+| Symbolic expression templates                         |                        |              |                 |        ✓         |
+| Magnitude framework (`mag_power`)                     |                        |              |                 |        ✓         |
+| Custom `quantity_like_traits`                         |                        |              |                 |        ✓         |
+| Custom representation types                           |                        |              |                 |        ✓         |
+
+<!-- markdownlint-enable MD013 -->
+
+Application Developers need only the first eleven rows — the core usage features. Unit Authors
+additionally define named and scaled units within the existing ISQ hierarchy. Domain Modelers
+and Deep Integrators are largely disjoint audiences: Domain Modelers bring domain expertise to
+define quantity systems, dimensions, and specifications, while Deep Integrators bring C++
+metaprogramming expertise to extend the library's type machinery. Both groups build on Unit
+Author skills, but neither needs the other's specialisation.
 
 ## Prerequisites and target audience
 
@@ -7900,7 +8956,7 @@ example like the below could be a great exercise here:
 ```cpp
 import std;
 
-inline constexpr struct smoot final : std::named_unit<"smoot", std::mag<67> * std::usc::inch> {} smoot;
+inline constexpr struct smoot : std::named_unit<"smoot", std::mag<67> * std::usc::inch> {} smoot;
 
 int main()
 {
@@ -8052,15 +9108,94 @@ This library fits naturally into existing courses:
 - Focus on problems, not bookkeeping
 - Prevents entire categories of bugs
 
+## Teaching impact beyond C++
+
+While the previous sections focus on teaching the library itself, this feature has broader
+pedagogical value: it transforms C++ into a teaching tool for units and quantities in general.
+A standardized quantities and units library extends C++'s educational reach beyond traditional
+computer science into physics, engineering, and even primary education.
+
+### Enabling interdisciplinary education
+
+The library provides non-CS educators with a robust computational tool for teaching their subject
+matter. Physics teachers can build hands-on computational exercises where students implement
+real physics equations (projectile motion, circuit analysis, thermodynamics) with compile-time
+verification that their dimensional analysis is correct. Engineering instructors can create
+laboratory exercises where sensor data is processed with proper unit handling from the start,
+mirroring professional practice. Chemistry educators can teach stoichiometry and gas laws with
+students writing code that enforces correct unit conversions between moles, grams, liters, and
+atmospheres.
+
+This creates opportunities for integrated learning where domain knowledge and computational thinking
+develop together. A student learning physics doesn't just memorize formulas—they implement them,
+and the compiler verifies their understanding of dimensional relationships. When a student writes
+`force = mass * acceleration` and the library confirms the result has units of force, they've
+demonstrated conceptual understanding in a way that traditional problem sets cannot assess.
+
+### Supporting faculty with limited programming experience
+
+Many science and engineering faculty have computational needs but limited software engineering
+expertise. The library's intuitive multiply syntax (`distance = 50 * km`) requires minimal C++
+knowledge while providing significant safety benefits. Faculty can create course materials using
+straightforward code that reads like mathematical notation, lowering the barrier to incorporating
+computation into their curriculum. The library's compile-time error messages serve double duty:
+they catch programming mistakes _and_ reveal dimensional analysis errors that indicate conceptual
+misunderstandings.
+
+This is particularly valuable for disciplines where programming is auxiliary to the primary subject.
+An engineering professor teaching fluid mechanics doesn't need to become a C++ expert—basic
+quantities and units operations are accessible with minimal training while still providing the
+benefits of type safety and dimensional analysis.
+
+### Enriching K-12 and informal education
+
+Computing education increasingly begins in primary and secondary schools. Robotics programs, often
+built around platforms like LEGO Mindstorms or Arduino, provide rich opportunities to introduce
+quantities and units naturally. A middle school robotics team programming their robot to navigate
+a course benefits from using `speed = 30 * cm / s` instead of raw numbers. The explicit units make
+the code self-documenting for young programmers still building intuition about physical quantities.
+
+When students can write `if (distance < 50 * cm) { stop(); }` the connection between their physical
+robot and their code becomes clearer. The compiler preventing them from comparing distance to time
+reinforces dimensional understanding at an age when these concepts are still forming. This creates
+a richer learning environment where programming and physical intuition develop in parallel.
+
+Similarly, informal education settings—science museums, summer camps, maker spaces—can leverage
+the library in interactive exhibits and workshops. The combination of physical computing (sensors,
+actuators) with properly-typed quantities provides immediate, tangible feedback about both
+programming and physics concepts.
+
+### Preparing students for professional practice
+
+Standardization ensures students learn an industry-relevant skill. Unlike toy educational languages
+or frameworks that must be unlearned later, proper units handling in C++ directly transfers to
+professional software development. Students who learn to write `quantity area = width * height;`
+where `width` and `height` are quantities develop habits that prevent real-world errors in
+safety-critical systems.
+
+This is particularly important for students entering industries where C++ dominates: aerospace,
+automotive, embedded systems, robotics, quantitative finance, and game development. A graduate who
+has used quantities and units throughout their coursework arrives at their first job already
+familiar with dimensional analysis in code, ready to contribute safely to production systems.
+
+The standardization aspect is crucial here—without it, each company uses incompatible internal
+libraries or ad-hoc approaches, forcing new graduates to relearn concepts they should already know.
+A standard library provides a stable foundation that educational institutions can confidently build
+curricula around, knowing their graduates will use these same tools professionally.
+
 
 # Acknowledgements
 
 Special thanks and recognition goes to [The C++ Alliance](https://cppalliance.org) for supporting
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
 
-We would also like to thank Peter Sommerlad for providing valuable feedback that helped us shape
-the final version of this document, and Michael Hordijk for discovering typos and improving the flow
-of some confusing passages.
+We would also like to thank:
+
+- Peter Sommerlad for providing valuable feedback that helped us shape the final version of this document,
+- Michael Hordijk for discovering typos and improving the flow of some confusing passages,
+- Florian Tatzel and J.C. van Winkel (SG20 chairs) for the insightful suggestion to highlight the library's
+  broader impact on teaching units and quantities beyond C++ education and a need to assign the skills
+  required for different target audiences.
 
 <!-- markdownlint-disable -->
 
