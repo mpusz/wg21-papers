@@ -2904,7 +2904,7 @@ conversion at the function's input and output.
 Moreover, in a good library, the above code should not compile. The reason for this is that
 even though the conversion from `km` to `m` and from `h` to `s` is considered value-preserving,
 it is not true in the opposite direction. When we will try to convert the result stored in an
-integral type from the unit of `m/s` to `km/h` we will inevitably loose some data.
+integral type from the unit of `m/s` to `km/h` we will inevitably lose some data.
 
 We could try to provide concepts like `ScaledUnitOf<si::metre>` that would take a set of units
 while trying to constrain them somehow, but it leads to even more problems with the unit
