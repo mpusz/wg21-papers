@@ -9068,9 +9068,9 @@ Based on teaching experience with [@MP-UNITS]:
      intentional
 
 2. **Operator precedence with unit literals**: Forgetting parentheses in expressions
-   - Example: `quantity frequency = 1 / 2 * s;` gives `0.5 s`, not `0.5 Hz`
-   - Correct: `quantity frequency = 1 / (2 * s);` or
-     `quantity period = 2 * s; auto frequency = 1 / period;`
+   - Example: `quantity frequency = 1. / 2 * s;` gives `0.5 s`, not `0.5 Hz`
+   - Correct: `quantity frequency = 1. / (2 * s);` or
+     `quantity period = 2. * s; auto frequency = 1 / period;`
    - Solution: Use parentheses or intermediate variables for clarity
 
 3. **Confusing `quantity` and `quantity_point`**: Attempting invalid affine space operations
