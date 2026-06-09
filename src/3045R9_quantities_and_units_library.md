@@ -30,6 +30,24 @@ toc-depth: 4
 
 ## Changes since [@P3045R8]
 
+- Remaining references to the `final` keyword in definitions removed
+- New [Concept Hierarchy] chapter added, documenting the building-block concepts,
+  the character-specific concepts, the internal representation concepts,
+  and the public `RepresentationOf` concept.
+- Vector/tensor magnitude redesign: `mp_units::norm()` replaced by `mp_units::magnitude()`
+  as the primary CPO (with `norm`-named member/free functions accepted as fallbacks for
+  linear-algebra library interoperability).
+- New `disable_vector<T>` opt-out customization point added, with `std::complex<T>` opted
+  out by default.
+- Text output is now provided for `quantity_point` when its point origin equals
+  `default_point_origin(R)`.
+- `quantity_from_unit_zero()` renamed back to `quantity_from_zero()` with its constraint
+  simplified to `PO == default_point_origin(R)`, matching `zero()`.
+- `quantity_point::in(unit)` semantics updated for units that carry a built-in
+  `_point_origin_`: when the current point is at the default origin for its current unit
+  (`PO == default_point_origin(R)`), `.in(target_unit)` now also switches the point origin
+  to `target_unit._point_origin_` — matching the design proposed for logarithmic level
+  units. Points at custom origins continue to perform a pure unit-scale conversion.
 
 
 ## Changes since [@P3045R7]
@@ -677,7 +695,7 @@ kind, such as width and height, or difference between kinetic and potential ener
 **POLL:** _We see the value of standardizing these parts of the framework: Core library (quantity,
 symbolic expressions, dimensions, units, references and concepts), Quantity kinds (support
 quantities of the same dimension), Quantities of the same kind (width, height, etc.)._
- 
+
 | SF | F | N | A | SA |
 |:--:|:-:|:-:|:-:|:--:|
 | 27 | 9 | 0 | 0 | 0  |
@@ -958,7 +976,7 @@ It should be possible for most proposed features (besides the text output) to be
 This chapter provides a brief introduction to the quantities and units domain. Please refer to
 [@ISO80000] and [@SI] for more details.
 
-<!-- 
+<!--
 flowchart TD
     dimension --- quantity_type["quantity kind & type"]
     quantity_type --- reference["quantity reference<br>(i.e., unit)"]
@@ -1317,7 +1335,7 @@ quantity_point<isq::distance[si::metre]> qp1(100 * m);
 quantity_point<isq::distance[si::metre]> qp2 = point<m>(120);
 
 assert(qp2 - qp1 == 20 * m);
-assert(qp1.quantity_from_unit_zero() == 100 * m);
+assert(qp1.quantity_from_zero() == 100 * m);
 // auto res = qp1 + qp2;   // Compile-time error
 ```
 
@@ -1473,10 +1491,9 @@ room_temp room_ref{};
 room_temp room_low = room_ref - number_of_steps * step_delta;
 room_temp room_high = room_ref + number_of_steps * step_delta;
 
+auto std_ref = room_ref.point_for(si::ice_point);
 std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
-             room_ref.quantity_from_unit_zero(),
-             room_ref.in(deg_F).quantity_from_unit_zero(),
-             room_ref.in(K).quantity_from_unit_zero());
+             std_ref, std_ref.in(deg_F), std_ref.in(K));
 
 std::println("| {:<18} | {:^18} | {:^18} | {:^18} |",
              "Temperature delta", "Room reference", "Ice point", "Absolute zero");
@@ -1562,8 +1579,8 @@ The following table summarizes the requirements for different representation cha
 | Totally ordered (`<`, `>`, `<=`, `>=`)     |               ✅                |                               -                               |                               -                                |                            -                             |
 | Not a quantity type itself                 |               ✅                |                               ✅                               |                               ✅                                |                            ✅                             |
 | **Construction**                           |               -                |                        `T{real, imag}`                        |                               -                                |                            -                             |
-| **Required CPOs**                          |               -                | `mp_units::real()`, `mp_units::imag()`, `mp_units::modulus()` |                       `mp_units::norm()`                       |                    `mp_units::norm()`                    |
-| **Opt-out mechanism**                      |       `disable_real<T>`        |                               -                               |                               -                                |                            -                             |
+| **Required CPOs**                          |               -                | `mp_units::real()`, `mp_units::imag()`, `mp_units::modulus()` |                    `mp_units::magnitude()`                     |                 `mp_units::magnitude()`                  |
+| **Opt-out mechanism**                      |       `disable_real<T>`        |                               -                               |                      `disable_vector<T>`                       |                            -                             |
 | **Examples**                               | `int`, `double`, `long double` |                    `std::complex<double>`                     | `Eigen::Vector3d`, `cartesian_vector<double>`, `int`, `double` | `Eigen::Matrix3d`, `int`, `double` (for scalar measures) |
 <!-- markdownlint-enable MD013 MD060 -->
 
@@ -1609,11 +1626,14 @@ and `mp_units::imag()` to distinguish real from complex scalars — a design cho
 may be refined based on standardization discussions.
 
 The different names reflect domain conventions: `modulus()` is traditional complex
-analysis terminology, while `norm()` is standard linear algebra terminology used across
-industry (Eigen, NumPy, MATLAB, Armadillo). The library follows these established
-conventions rather than imposing a single unified name (e.g., `abs()`). Additionally,
-`magnitude()` is provided as an alias for `norm()` for compatibility with physics
-terminology.
+analysis terminology, while `magnitude()` follows physics and engineering conventions
+for vectors. Naming the vector CPO `norm` was considered but rejected: `std::norm`
+already exists in `<complex>` with a different meaning — it returns |z|² (the squared
+modulus), not |z|. Introducing a standard CPO named `norm` that returns |v| would
+create a semantic collision within the same namespace. The library therefore uses
+`magnitude` as the primary name and additionally accepts `norm`-named member functions
+and free functions as fallbacks, so that types from linear algebra libraries integrate
+without adaptation.
 
 Arithmetic types like `int` and `double` intentionally satisfy requirements for multiple
 characters — real scalar (primary use), 1-dimensional vector, and scalar tensor measures
@@ -1630,6 +1650,240 @@ quantity sigma = isq::stress(100.0 * Pa);   // Scalar tensor measure
 Most engineering extracts scalar measures from tensor fields rather than working with
 full 3×3 matrix representations — von Mises stress, principal stresses, shear components,
 hydrostatic stress — which is why arithmetic types cover the tensor character in practice.
+
+
+## Concept Hierarchy
+
+Most of the concepts described below are _exposition-only_: they capture how the library
+classifies representation types internally and are not part of its public interface. The
+only public concept in this chapter is `RepresentationOf` — the building-block and
+character concepts (`Addable`, `ScalableWith`, `RealScalar`, `Vector`, and the rest) exist
+to define it and to explain how a representation type is recognized.
+
+These concepts are **syntactic**: they constrain which operations are available and that
+results have a common type with `T` (`std::common_with`). They deliberately do **not** —
+and a C++ concept fundamentally cannot — enforce the algebraic _laws_ (associativity,
+commutativity, distributivity, existence of identities, compatibility of an order with the
+arithmetic) that the corresponding mathematical structures require. This is the same
+limitation `std::regular` and `std::totally_ordered` already accept. For this reason the
+concepts are named for the _role_ a type plays rather than for the structure it resembles;
+[Relationship to algebraic structures] below maps each one to the structure it approximates
+and lists the laws left unchecked.
+
+The requirements summarized in the table above map directly to a hierarchy of C++
+concepts. The lowest-level building blocks are:
+
+```cpp
+template<typename T>
+concept WeaklyRegular = std::copyable<T> && std::equality_comparable<T>;
+
+template<typename T>
+concept Addable = requires(const T a, const T b) {
+  { -a } -> std::common_with<T>;
+  { a + b } -> std::common_with<T>;
+  { a - b } -> std::common_with<T>;
+};
+
+template<typename T, typename S>
+concept ScalableWith = requires(const T v, const S s) {
+  { v * s / s } -> std::common_with<T>;
+  { s * v / s } -> std::common_with<T>;
+  { v / s * s } -> std::common_with<T>;
+};
+```
+
+`WeaklyRegular` is `std::regular` without default-initialization. Default construction is
+intentionally not required: some representation types cannot provide a meaningful
+default-constructed value (see, e.g., [@P2993R0]) yet are otherwise well-behaved as quantity
+representations. Requiring only copyability and equality comparison keeps such types in scope.
+
+`Addable` requires unary negation (`-a`) alongside `+` and `-`, so it models an additive
+_group_ rather than a mere monoid. Inverses are required because the library forms
+differences (between quantities, and between quantity points); types that support only
+accumulation are intentionally out of scope.
+
+`ScalableWith<T, S>` deliberately constrains the _round-trip_ `v * s / s` rather than the
+intermediate `v * s`. Leaving the intermediate unconstrained is intentional: it lets types
+whose `operator*`/`operator/` change the type — quantities being the canonical example —
+still satisfy the concept, as long as scaling by `s` and back lands on a type with a common
+type with `T`. The round-trip requirement simultaneously rejects irreversible silent type
+promotion, where `operator*` decays to a different type than `T` and never recovers it
+(e.g. a checked-integer wrapper whose `operator*` returns a raw arithmetic type). The
+constraint is on the result _type_, not its value: over integer representations `v * s / s`
+need not equal `v` (integer division truncates). `ScalableWith` certifies that the scalar
+action is **type-stable**, not that scaling is exactly invertible. Because the round-trip
+divides by `s`, the scalar type `S` must itself be division-capable (field-like); scaling by
+ring-only scalars that lack division is not expressible through this concept.
+
+The result types of `+`, `-`, and the scaling round-trip are guarded with
+`std::common_with<T>` rather than left unconstrained or pinned to a stronger concept, and the
+choice is a deliberate compromise:
+
+- A bare requirement (`{ a + b };`) is satisfied even by an `operator+` returning `void`, so
+  some return check is needed.
+- The natural ideal — requiring the result to be a scalar/vector _again_ (true closure,
+  `{ a + b } -> Scalar`) — is **ill-formed**, not merely expensive: those character concepts
+  are defined transitively through `Addable`/`ScalableWith`, so constraining their own
+  results by them would make a concept depend on itself, which [temp.constr.atomic]{.sref} forbids
+  (and which would otherwise recurse without termination).
+- Requiring `std::same_as<T>` is well-formed but too strong: it forbids the type-changing
+  arithmetic the round-trip is designed to permit (expression templates, quantities).
+
+`std::common_with<T>` is the non-recursive middle ground: it rejects `void` and unrelated
+return types while admitting any result that shares a common type with `T`. The standard's
+cross-type comparison concepts (`std::equality_comparable_with`,
+`std::three_way_comparable_with`) constrain with the related `std::common_reference_with`,
+because they relate operands that may be lvalues or proxy references. Here the constrained
+expressions yield prvalues, so a common _value_ type is the meaningful requirement — and
+`std::common_with` is the stronger relation anyway, entailing `common_reference_with` for the
+corresponding `const` lvalue references ([concept.common]).
+
+These compose into the character-specific concepts:
+
+```cpp
+template<typename T>
+concept RegularAddable = Addable<T> && WeaklyRegular<T>;
+
+// Scalars: self-scalable — T * T and T / T stay in the same type
+template<typename T>
+concept BaseScalar = RegularAddable<T> && ScalableWith<T, T>;
+
+// Real scalar: totally ordered, opt-out via disable_real<T>
+template<typename T>
+concept RealScalar = !disable_real<T> && BaseScalar<T> && std::totally_ordered<T>;
+
+// Complex scalar: constructible from real/imag parts; provides real, imag, modulus
+template<typename T>
+concept ComplexScalar =
+  BaseScalar<T> &&
+  requires(const T v, const T& ref) {
+    requires std::constructible_from<T,
+      decltype(mp_units::real(ref)), decltype(mp_units::imag(ref))>;
+    mp_units::real(v);
+    mp_units::imag(v);
+    mp_units::modulus(v);
+    requires ScalableWith<T, decltype(mp_units::modulus(v))>;
+  };
+
+// Vector: scalable by its magnitude type (a scalar); magnitude need not equal T
+template<typename T>
+concept Vector =
+  !disable_vector<T> &&
+  RegularAddable<T> &&
+  requires(const T v) {
+    mp_units::magnitude(v);
+    requires ScalableWith<T, decltype(mp_units::magnitude(v))>;
+  };
+```
+
+The key structural difference between `BaseScalar` and `Vector` reflects the underlying
+mathematics. A scalar type must satisfy `ScalableWith<T, T>` — multiplying two scalars
+yields another scalar of the same kind. A vector type is only required to satisfy
+`ScalableWith<T, decltype(magnitude(v))>` — it can be scaled by its magnitude (a scalar),
+but vector × vector is not required and is typically not defined at all.
+
+The concept is named `Vector` to match the `quantity_character::vector` it identifies, not to
+assert that it models an arbitrary vector space. In the [@ISO80000] sense a vector quantity is
+characterized by a magnitude and a direction, so the `magnitude(v)` requirement is intrinsic
+to that character rather than an extra restriction: the representation of a vector quantity
+is, precisely, an element of a normed space.
+
+`ComplexScalar` takes `modulus(v)` to be the Euclidean modulus
+$|z| = \sqrt{\operatorname{re}(z)^2 + \operatorname{im}(z)^2}$ — the same quantity
+`magnitude` computes for vectors — and _not_ the algebraic field norm $|z|^2$ (see
+[Relationship to algebraic structures]).
+
+The character concepts combine with `MagnitudeScalable` (described in
+[How Scaling Works]) to form the representation concepts the library checks internally:
+
+```cpp
+template<typename T>
+concept RealScalarRepresentation = !is_quantity<value_type_t<T>> && RealScalar<T> && MagnitudeScalable<T>;
+
+template<typename T>
+concept ComplexScalarRepresentation = !is_quantity<value_type_t<T>> && ComplexScalar<T> && MagnitudeScalable<T>;
+
+template<typename T>
+concept VectorRepresentation = !is_quantity<value_type_t<T>> && Vector<T> && MagnitudeScalable<T>;
+```
+
+The `!is_quantity<value_type_t<T>>` guard applies to the **element type** of `T`, not to
+`T` itself. For a plain type like `double`, `value_type_t<double>` is `double` — not a
+quantity, so the guard is satisfied. For a container-style representation like
+`cartesian_vector<double>`, `value_type_t<cartesian_vector<double>>` is `double` — also
+fine. The guard rejects `cartesian_vector<quantity<si::metre, double>>` because its
+element type is itself a quantity, preventing inadvertent nesting of quantities.
+
+The top-level public concept is `RepresentationOf<T, V>`, where `V` is either a
+`quantity_spec` or a `quantity_character` value:
+
+```cpp
+template<typename T, auto V>
+concept RepresentationOf =
+  (QuantitySpec<decltype(V)> &&
+   ((QuantityKindSpec<decltype(V)> && SomeRepresentation<T>) ||
+    IsOfCharacter<T, V.character>)) ||
+  (std::same_as<quantity_character, decltype(V)> && IsOfCharacter<T, V>);
+```
+
+When `V` is a `quantity_spec`, the concept checks whether `T` matches the character
+embedded in that spec. For a _kind_ spec — one that represents an entire kind without
+pinning a specific character, such as `kind_of<isq::length>` — any valid representation
+type is accepted. When `V` is a bare `quantity_character` value (e.g.,
+`quantity_character::vector`), `T` must directly satisfy that character's requirements.
+
+
+### Relationship to algebraic structures
+
+Each concept above approximates a classical algebraic structure but is named for the role it
+plays in the library rather than for that structure. We avoid the structural names (`Field`,
+`OrderedField`, `VectorSpace`, …) on purpose:
+
+- A concept can only check that operations exist and that result types are stable; it cannot
+  verify the defining laws. A concept named `Field` would promise associativity,
+  distributivity, and inverses that the compiler never enforces.
+- The library deliberately admits types that are _weaker_ than the named structure. `int` is
+  not a field (it has no multiplicative inverses) yet must satisfy `BaseScalar`; `int` and
+  `double` are accepted as one-dimensional vectors although they are not, in the usual sense,
+  elements of a vector space. Role-oriented names ("scalar", "vector") communicate the
+  intended use without making algebraic claims the type does not honor.
+
+<!-- markdownlint-disable MD013 MD060 -->
+
+| Concept             | Structure approximated                                               | Principal laws left unchecked                                                                                          |
+|---------------------|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| `Addable`           | additive group                                                       | associativity & commutativity of `+`, existence of `0`                                                                 |
+| `WeaklyRegular`     | a set with value semantics (copy + equality)                         | —                                                                                                                      |
+| `RegularAddable`    | a (regular) abelian group under addition                             | the group axioms above                                                                                                 |
+| `ScalableWith<T,S>` | a scalar action of `S` on `T` (module / vector-space multiplication) | distributivity and associativity of the action; closure is approximated by round-trip type stability, not `v*s/s == v` |
+| `BaseScalar`        | a field (commutative division ring)                                  | commutativity/associativity of `×`, distributivity, existence of `0` and `1`                                           |
+| `RealScalar`        | an ordered field                                                     | compatibility of the order with `+` and `×` (`std::totally_ordered` is only a set order)                               |
+| `ComplexScalar`     | the complex field `ℂ` (a 2-D real division algebra with modulus)     | field axioms; that `real`/`imag` genuinely coordinatize `ℂ`                                                            |
+| `Vector`            | an element of a normed vector space                                  | the vector-space axioms and the norm axioms (homogeneity, triangle inequality)                                         |
+
+<!-- markdownlint-enable MD013 MD060 -->
+
+A note on the magnitude vocabulary, where the mathematics is most easily miscommunicated.
+The word "norm" is overloaded across mathematics:
+
+- the **algebraic (field) norm** $N(z) = z\bar{z} = |z|^2$ — a multiplicative, quadratic form; and
+- the **Euclidean ($L^2$) norm** $\lVert v\rVert = \sqrt{N(z)} = |z|$ — the analytic norm
+  satisfying the triangle inequality.
+
+`std::norm(std::complex)` already exists and computes the _field_ norm $|z|^2$, not $|z|$.
+A new customization point named `norm` returning $\lVert v\rVert$ would therefore both
+collide with `std::norm` and reuse a word that already carries a different, legitimate
+meaning in the same namespace. The library avoids the ambiguity by using:
+
+- `modulus(z)` for the complex absolute value $|z|$ (the standard complex-analysis term), and
+- `magnitude(v)` for the vector Euclidean norm $\lVert v\rVert$,
+
+and by exposing no customization point for the field norm.
+
+Complex types are kept out of the vector character by the `!Scalar` guard on the `norm`
+fallback (described above) together with `disable_vector<std::complex>`: without those,
+`std::norm(z)` would supply the real value $|z|^2$ and make a complex number satisfy
+`Vector` with a spurious "magnitude".
 
 
 ## Customization Points
@@ -1663,22 +1917,27 @@ implementations in the following priority order:
 3. `c.abs()` member function
 4. `abs(c)` free function found via ADL
 
-**`mp_units::norm(v)`** - Returns the norm (magnitude) of a vector or tensor as a scalar:
+**`mp_units::magnitude(v)`** - Returns the magnitude of a vector or tensor as a scalar:
 
-1. `v.norm()` member function
-2. `norm(v)` free function found via ADL
-3. For arithmetic types: `std::abs(v)`
-4. For real scalar types: `v.abs()` member function
-5. For real scalar types: `abs(v)` free function found via ADL
+1. `v.magnitude()` member function
+2. `magnitude(v)` free function found via ADL
+3. `v.norm()` member function
+4. `norm(v)` free function found via ADL
+5. For arithmetic types: `std::abs(v)`
+6. For real scalar types: `v.abs()` member function
+7. For real scalar types: `abs(v)` free function found via ADL
 
-**`mp_units::magnitude(v)`** - Returns the magnitude of a vector as a scalar:
+Steps 3–4 are provided so that types from linear algebra libraries that follow the
+`norm()` naming convention work without adaptation. They are guarded to only apply
+when `T` is not a `Scalar` (i.e., neither a real nor a complex scalar): `std::norm` is
+overloaded both for arithmetic types and for `std::complex`, returning |x|² rather than
+|x| in either case, so scalar types are explicitly directed to the `abs` fallback below
+instead.
 
-1. Delegates to `mp_units::norm(v)` (provided for compatibility with physics terminology)
-
-For `modulus()`, `abs()` is checked as a fallback for compatibility with `std::complex`
-and similar types that use that name. For `norm()`, `abs()` enables arithmetic types
-to serve as 1-dimensional vectors and scalar tensor measures, which accurately reflects
-engineering practice where most calculations use scalar values rather than full
+For `modulus()`, `abs()` is accepted as a fallback for compatibility with `std::complex`
+and similar types that use that name. For `magnitude()`, `abs()` enables arithmetic
+types to serve as 1-dimensional vectors and scalar tensor measures, which accurately
+reflects engineering practice where most calculations use scalar values rather than full
 vector/tensor representations.
 ---
 
@@ -1699,6 +1958,63 @@ exclude `bool`, which is totally ordered and arithmetic but meaningless as a qua
 template<>
 constexpr bool mp_units::disable_real<my_type> = true;
 ```
+
+::: note
+The `disable_real` and `disable_vector` opt-outs exist for the same underlying reason:
+both guard against syntactic satisfaction of a concept where the **semantics are wrong**.
+
+- `disable_real<T>`: `std::totally_ordered` is a ubiquitous, incidental property. Many
+  types support `operator<` purely for container use with no physical meaning as a real
+  scalar. `bool` is the canonical example.
+- `disable_vector<T>`: the `magnitude()` CPO accepts `norm()` as a fallback (for linear
+  algebra library interoperability), but `std::norm` for complex types returns |z|²
+  rather than |z|. `std::complex<T>` is therefore opted out by default.
+
+There is no `disable_complex<T>`. The `ComplexScalar` contract — `real()`, `imag()`,
+and `modulus()` by those names, plus `T{re, im}` construction — is too specific to be
+satisfied accidentally by any standard type or mixin. No opt-out is needed.
+:::
+
+---
+
+#### `disable_vector<T>`
+
+A specializable variable template to opt out a type from being treated as a vector:
+
+```cpp
+template<typename T>
+constexpr bool mp_units::disable_vector = false;
+```
+
+Specializing to `true` prevents a type from satisfying `Vector` even if it provides all
+required operations. The library uses this internally to exclude `std::complex<T>`:
+`std::complex<T>` satisfies the syntactic requirements for `Vector` because the
+non-member `std::norm` (found via ADL) is accepted as a fallback for
+`mp_units::magnitude()`. However, `std::norm(z)` returns |z|² — the **squared** modulus
+— not |z|, so the semantics are wrong for a vector magnitude. Opting out prevents this
+accidental satisfaction:
+
+```cpp
+// built-in specialization — do not specialize further for std::complex
+template<typename T>
+constexpr bool mp_units::disable_vector<std::complex<T>> = true;
+```
+
+User-defined complex-like types that provide `real()`, `imag()`, and `norm()` should
+follow the same pattern:
+
+```cpp
+template<>
+constexpr bool mp_units::disable_vector<my_complex_type> = true;
+```
+
+::: note
+The `disable_real` / `disable_vector` pair share the same rationale: both opt-out
+mechanisms guard against accidental syntactic satisfaction of a concept where the
+semantics are wrong. `disable_complex` is not needed because the `ComplexScalar`
+contract — `real()`, `imag()`, `modulus()` by those names, plus `T{re, im}`
+construction — is too specific to be satisfied accidentally.
+:::
 
 ---
 
@@ -1763,7 +2079,7 @@ pointers — specializing it for a non-iterator type is a semantic misuse.
 
 The library scales a representation value by calling `value * factor` and `value / factor`,
 where `factor` is of type `representation_underlying_type_t<T>` (or a wider integer type
-for the rational integer path — see [How Scaling Works?] for details). A type may
+for the rational integer path — see [How Scaling Works] for details). A type may
 additionally provide `operator*(T, UnitMagnitude)` to receive the full compile-time unit
 magnitude; when present, this operator is called **first** and the factor-based operators
 serve as a fallback. The magnitude-aware operator may return a **different type** — see
@@ -2263,7 +2579,7 @@ for a `double` representation is a single multiplication:
 ```
 
 Scaling behaviour for other representation types (integers, fixed-point, custom types) is
-discussed in [How Scaling Works?].
+discussed in [How Scaling Works].
 
 The return type is `quantity<si::metre{}, double>` holding `620.14`. Attempting to convert to
 an incompatible unit — for example `si::second` — is a compile-time error because `si::second`
@@ -2640,8 +2956,8 @@ std::optional<hw_voltage_quantity_point> read_hw_voltage()
 
 void print(std::QuantityPoint auto qp)
 {
-  std::println("{:10} ({:5})", qp.quantity_from_unit_zero(),
-               std::value_cast<double, si::volt>(qp).quantity_from_unit_zero());
+  std::println("{:10} ({:5})", qp,
+               std::value_cast<double, si::volt>(qp));
 }
 
 int main()
@@ -2932,7 +3248,7 @@ To prevent the above issues, most of the libraries on the market introduce dimen
 Thanks to that, we could solve the first issue of the previous chapter with:
 
 ```cpp
-QuantityOf<dim_speed> auto avg_speed(QuantityOf<dim_length> auto distance, 
+QuantityOf<dim_speed> auto avg_speed(QuantityOf<dim_length> auto distance,
                                      QuantityOf<dim_time> auto time)
 {
   return distance / time;
@@ -2951,7 +3267,7 @@ vector product of those. For example, a quantity of _speed_ has a dimension of $
 So, to be physically correct, the above code should be rewritten as:
 
 ```cpp
-QuantityOf<dim_length / dim_time> auto avg_speed(QuantityOf<dim_length> auto distance, 
+QuantityOf<dim_length / dim_time> auto avg_speed(QuantityOf<dim_length> auto distance,
                                                  QuantityOf<dim_time> auto time)
 {
   return distance / time;
@@ -3082,7 +3398,7 @@ abstraction to safely implement them.
 
 # Systems of quantities and units
 
-<!-- 
+<!--
 flowchart TD
     system_of_quantities["System of Quantities"]
     system_of_quantities --- system_of_units1[System of Units #1]
@@ -5016,25 +5332,46 @@ scope of this paper.
 
 ## Quantity point text output
 
-The library does not provide a text output for quantity points. The quantity stored inside
-is just an implementation detail of this type. It is a vector from a specific origin.
-Without the knowledge of the origin, the vector by itself is useless as we can't determine
-which point it describes.
+Text output is provided for `quantity_point` when its point origin equals
+`default_point_origin(R)` — the library-chosen default for the given reference:
 
-In the current library design, point origin does not provide any text in its definition.
-Even if we could add such information to the point's definition, we would not
-know how to output it in the text. There may be many ways to do it. For example, should we
-prepend or append the origin part to the quantity text?
+- For references without an offset unit (e.g., `quantity_point<isq::length[m]>`),
+  `default_point_origin` is `natural_point_origin<QuantitySpec>`, the mathematical zero.
+  The stored quantity is unambiguous and can be printed directly:
 
-For example, the text output of `42 m` for a quantity point may mean many things. It may be
-an offset from the mountain top, sea level, or maybe the center of Mars.
-Printing `42 m AMSL` for altitudes above mean sea level is a much better solution, but the
-library does not have enough information to print it that way by itself.
+  ```cpp
+  quantity_point qp{42 * m};
+  std::println("{}", qp);          // "42 m"
+  ```
+
+- For references whose unit carries a built-in origin (e.g., `quantity_point<deg_C>`),
+  `default_point_origin` is the unit's canonical reference point (`si::ice_point`). The
+  output matches the conventional notation:
+
+  ```cpp
+  quantity_point temp = point<deg_C>(20.);
+  std::println("{}", temp);        // "20 ℃"
+  ```
+
+Text output is **not** provided when a non-default origin is used. The stored value is a
+displacement from a domain-specific reference whose name the library cannot know. The same
+numeric value can describe entirely different physical locations depending on the origin —
+`42 m` above sea level, a mountain top, or the centre of Mars are all distinct points.
+For such cases the displacement should be extracted explicitly, with an application-defined
+label added to make the value unambiguous:
+
+```cpp
+std::cout << altitude.quantity_ref_from(sea_level) << " AMSL";  // "42 m AMSL"
+```
 
 
 ## Text output open questions
 
-1. Should we somehow provide text support for quantity points? What about temperatures?
+1. ~~Should we somehow provide text support for quantity points? What about temperatures?~~
+   Resolved: text output is provided when `PO == default_point_origin(R)`; this covers both
+   ordinary physical quantities (natural zero) and temperatures with their conventional
+   unit-based reference (e.g., `deg_C` → ice point). Points anchored to user-defined
+   non-default origins remain without automatic output.
 2. How to name `symbol_text` accessor member functions (e.g., `.portable()`)? The same names
    should consistently be used in `character_set` and in the formatting grammar.
 3. What about the localization for units? Will we get something like ICU in the C++ standard?
@@ -5859,11 +6196,6 @@ To improve the types readability we also prefer to use type identifiers for temp
 |-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `isq::speed(50 * km / h) / (5 * s)` | `quantity<reference<derived_quantity_spec<isq::speed_t{}, per<isq::time_t{}>>{}, derived_unit<si::kilo_t<si::metre_t{}>{}, per<non_si::hour_t{}, si::second_t{}>>{}>{}, int>` |
 
-Moreover, to prevent possible issues in the library's framework compile-time logic, all of the library's
-entities must be marked `final`. This prevents the users from deriving their own strong types from them,
-which would prevent symbolic expressions simplification of equivalent entities. This constraint
-is enforced by the concepts in the library.
-
 ### Strong types instead of aliases
 
 Let's look again at the above units definitions. Another essential point to notice is that
@@ -6280,8 +6612,6 @@ We propose some suggestions at the end of the chapter._
 - Derived dimensions are implicitly created by the library's framework based on the quantity
   equation provided in the quantity specification.
 
-All of the above dimensions have to be marked as `final`.
-
 #### `DimensionOf<T, V>` concept { #DimensionOf-concept }
 
 `DimensionOf` concept is satisfied when both arguments satisfy a [`Dimension`](#Dimension-concept)
@@ -6301,8 +6631,6 @@ concept and when they compare equal.
 - Quantity kinds describing a family of mutually comparable quantities.
 - Intermediate derived quantity specifications being a result of a quantity equations on other
   specifications.
-
-All of the above quantity specifications have to be marked as `final`.
 
 #### `QuantitySpecOf<T, V>` concept { #QuantitySpecOf-concept }
 
@@ -6330,8 +6658,6 @@ _Note:_ Unit magnitude implementation is a private implementation detail of the 
 - Derived unnamed units being a result of a unit equations on other units.
 - Physical constants defined by a user by inheriting from the `named_constant` class template instantiated
   with a unique symbol identifier and a product of multiplying another unit with some magnitude.
-
-All of the above units have to be marked as `final`.
 
 #### `PrefixableUnit<T>` { #PrefixableUnit-concept }
 
@@ -6771,10 +7097,6 @@ the resulting symbolic expression.
     magnitude. This allows us to properly print symbols of some units or constants that require
     such behavior. For example, the Hubble constant is expressed in `km⋅s⁻¹⋅Mpc⁻¹`, where both
     `km` and `Mpc` are units of _length_.
-
-    Also, to prevent possible issues in compile-time logic, all of the library's entities must be
-    marked `final`. This prevents the users to derive own strong types from them, which would
-    prevent symbolic expression simplification of equivalent entities.
 
     In [@MP-UNITS] library, we've tried to refine symbolic expressions simplification rules to
     preserve the information of the origin. However, we were not satisfied with the results.
@@ -8389,9 +8711,9 @@ Thanks to the new design, we can immediately see what happens here and why the r
 incorrect in the second case.
 
 
-### `default_point_origin<Reference>`, `quantity_from_unit_zero()`, and `natural_point_origin<QuantitySpec>`
+### `default_point_origin<Reference>`, `quantity_from_zero()`, and `natural_point_origin<QuantitySpec>`
 
-`default_point_origin<Reference>`, `quantity_from_unit_zero()`, and `natural_point_origin<QuantitySpec>`
+`default_point_origin<Reference>`, `quantity_from_zero()`, and `natural_point_origin<QuantitySpec>`
 are introduced to simplify the usage of:
 
 - temperature (and quantities with similar units) points where each unit has its own origin,
@@ -8415,7 +8737,7 @@ std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
              room_ref.in(K).quantity_from(si::zeroth_kelvin));
 ```
 
-Now let's compare it to the implementation using a currently proposed design:
+Now let's compare it to the implementation using the currently proposed design:
 
 ```cpp
 constexpr struct room_reference_temp : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
@@ -8424,19 +8746,32 @@ using room_temp = quantity_point<isq::Celsius_temperature[deg_C], room_reference
 room_temp room_ref{};
 
 std::println("Room reference temperature: {} ({}, {::N[.2f]})\n",
-             room_ref.quantity_from_unit_zero(),
-             room_ref.in(deg_F).quantity_from_unit_zero(),
-             room_ref.in(K).quantity_from_unit_zero());
+             room_ref.in(deg_C).quantity_from(default_point_origin(deg_C)),
+             room_ref.in(deg_F).quantity_from(default_point_origin(deg_F)),
+             room_ref.in(K).quantity_from(default_point_origin(K)));
 ```
 
 First, removing those features also renders `point<deg_C>(21)` impossible to implement. Second,
-mandating an explicit point origin when we convert to `quantity` makes the code harder to maintain
-as we have to track a current unit of a quantity carefully. If someone changes a unit,
-a point origin also has to be changed to get meaningful results. This is why, to ensure that we are
-origin-safe, we also need to provide `.in(deg_C).` in the first print argument.
+`default_point_origin(unit)` always gives the correct standard origin for the current unit, so
+conversions remain unit-agnostic: if someone changes the unit, no origin name needs updating.
 
-In the proposed design, the above problems are eliminated with the `quantity_from_unit_zero()` usage
-that always returns a proper value for a current unit.
+For `quantity_point` objects already at their unit's default origin (the common case for directly
+constructed temperature points), text output works directly and `quantity_from_zero()` returns
+the stored displacement:
+
+```cpp
+quantity_point temp = point<deg_C>(21.);  // PO = default_point_origin(deg_C) = ice_point
+
+std::println("{} ({}) ({::N[.2f]})", temp, temp.in(deg_F), temp.in(K));
+// prints: 21 ℃ (70.8 ℉) (294.15 K)
+
+auto delta_C = temp.quantity_from_zero();        // 21 ℃ — from ice_point
+auto delta_K = temp.in(K).quantity_from_zero();  // 294.15 K — from absolute_zero
+```
+
+`.quantity_from_zero()` is constrained to `PO == default_point_origin(R)`, matching `zero()`.
+For points at custom origins (such as `room_ref` above), use
+`quantity_from(default_point_origin(unit))` to obtain the displacement from the standard origin.
 
 
 ## Interoperability with other libraries
@@ -8668,7 +9003,7 @@ int main()
   // implicit conversion
   std::quantity_point qp = ts;
 
-  std::cout << qp.quantity_from_unit_zero() << "\n";
+  std::cout << qp << "\n";
 
   // explicit conversion
   print(Timestamp(qp));
@@ -8888,11 +9223,11 @@ import std;
 int main()
 {
   using namespace std::si::unit_symbols;
-  
+
   quantity distance = 100.0 * m;
   quantity time = 9.58 * s;
   quantity speed = distance / time;
-  
+
   std::println("Usain Bolt's speed: {::N[.2f]}", speed);  // 10.44 m/s
 }
 ```
