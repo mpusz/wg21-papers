@@ -15,6 +15,20 @@ toc-depth: 3
 
 ## Changes since [@P4185R0]
 
+- [Points without output] and [Text output for quantity points] sections updated to reflect
+  that the reference implementation now provides text output for `quantity_point` when its
+  point origin equals `default_point_origin(R)`, resolving the most common case. Points
+  anchored to non-default origins remain without automatic output.
+- `quantity_from_unit_zero()` renamed to `quantity_from_zero()` with its constraint
+  simplified to `PO == default_point_origin(R)`. The `.in(unit)` method for `quantity_point`
+  now also switches the point origin to `unit._point_origin_` when the current point is at
+  its default origin, consistent with the proposed logarithmic level unit design. The
+  cumbersome `temp.in(K).quantity_from_unit_zero()` idiom referenced in this paper should
+  now be read as `temp.in(K).quantity_from_zero()`; it remains valid and still produces
+  the absolute Kelvin value.
+- "Runtime frame projections" updated from "Not yet implemented" to "Implemented in
+  [@MP-UNITS]".
+
 
 # Abstract
 
@@ -288,12 +302,12 @@ and extracting the displacement from absolute zero:
 
 ```cpp
 auto temp = point<deg_C>(28.);
-auto T = temp.in(K).quantity_from_unit_zero();    // 301.15 K — correct but cumbersome
+auto T = temp.in(K).quantity_from_zero();    // 301.15 K — correct but cumbersome
 auto R_calc = P * V / (n * T);
 ```
 
 While the affine space model _can_ handle this case, the ergonomics are poor:
-`point<deg_C>(28.).in(K).quantity_from_unit_zero()` is a far cry from what a domain expert
+`point<deg_C>(28.).in(K).quantity_from_zero()` is a far cry from what a domain expert
 would consider natural. The need to go through a point, convert units, and then extract
 the displacement from zero is a significant usability burden that discourages correct usage.
 
@@ -669,22 +683,31 @@ solution is described in [Range-validated quantity points](#bounds).
 
 ## Points without output {#points-no-output}
 
-The current library deliberately omits text output for `quantity_point`. Users have consistently
-requested this feature — the need is real. Domain experts working with altitudes, timestamps,
-geographic coordinates, or sensor readings want to print measurement results directly:
+The library now provides text output for `quantity_point` when its point origin equals
+`default_point_origin(R)` — covering the most common case. Domain experts working with
+physical quantities measured from their natural zero, or temperatures expressed in
+conventional notation (°C, °F), can print results directly:
+
+```cpp
+quantity_point qp{42 * m};
+std::println("{}", qp);                                    // "42 m"
+
+quantity_point temp = point<deg_C>(20.);
+std::println("{}", temp);                                  // "20 ℃"
+```
+
+For points anchored to non-default, domain-specific origins, text output is deliberately
+omitted — the same numeric value can describe entirely different physical locations
+depending on the choice of origin:
 
 ```cpp
 quantity_point<m, mean_sea_level> alt = mean_sea_level + 1350 * m;
-// std::println("{}", alt);                                 // Does not compile today
-std::println("{} AMSL", alt.quantity_from(mean_sea_level)); // Current workaround
+// std::println("{}", alt);                                 // Does not compile
+std::println("{} AMSL", alt.quantity_from(mean_sea_level)); // Explicit workaround
 ```
 
-However, providing a default text representation for quantity points is non-trivial. Unlike
-units, which have standard symbols, points have no universal notation. The same physical
-point can be expressed relative to different origins, and it's unclear what a generic library
-should print by default. How absolute quantities resolve the common case, and what is
-recommended for general points, is discussed in
-[Text output for quantity points](#text-output).
+The challenge of providing a universal default for such cases, and what is recommended
+for general points, is discussed in [Text output for quantity points](#text-output).
 
 ## Affine relationships in quantity hierarchies {#hierarchy-affine-problem}
 
@@ -767,7 +790,7 @@ Now `pos + disp` yields `position_vector` (correct), but `pos2 - pos1` still yie
 convertible to `displacement` (parent to child requires an explicit conversion). The
 reversed hierarchy also misrepresents the physical relationship: not every displacement
 "is" position vector, and the implicit conversion from `displacement` to `position_vector`
-is physically unsound. 
+is physically unsound.
 
 **Option 3 — Aliases (current [@MP-UNITS] V2 design for `altitude`/`height`).**
 
@@ -3037,10 +3060,17 @@ as leaf elements.
 
 ## Current state
 
-The library provides `std::formatter` specializations for `quantity` but not for
-`quantity_point`. The rationale is that a point's origin is context-dependent and the library
-cannot determine how to format it. A point expressed as `42 m` could mean 42 meters above
-sea level, 42 meters above ground level, or 42 meters from the center of Mars.
+The library provides `std::formatter` specializations for `quantity` and, conditionally,
+for `quantity_point`. The conditional formatter is enabled when the point origin equals
+`default_point_origin(R)` — either `natural_point_origin<QuantitySpec>` (the mathematical
+zero, for references without an offset unit) or the unit's canonical reference point (for
+units that carry a built-in origin, such as `deg_C` → `si::ice_point`). In both cases the
+stored value has a single, unambiguous interpretation and can be printed the same way as
+the equivalent `quantity`.
+
+For any other origin the formatter is not provided. A point expressed as `42 m` relative
+to a user-defined origin could mean 42 meters above sea level, above ground level, or from
+the centre of Mars — the library cannot determine which.
 
 ## The challenge of default representations
 
@@ -3489,7 +3519,7 @@ The following table summarizes the proposed additions and their relationship to 
 | Absolute quantities       | Breaking change (default)                  | First   | Not in [@MP-UNITS]; proven in [@SEQUOIA] |
 | Affine space annotations  | Breaking change (unifies `quantity_point`) | First   | Not yet implemented                      |
 | Range-validated points    | Pure addition                              | First   | Implemented in [@MP-UNITS]               |
-| Runtime frame projections | Pure addition                              | Later   | Not yet implemented                      |
+| Runtime frame projections | Pure addition                              | Later   | Implemented in [@MP-UNITS]               |
 | Text output for points    | Resolved by absolutes                      | First   | Indirect resolution                      |
 | Integer division safety   | Breaking change (guard)                    | First   | Implemented - open for SG6 decision      |
 | Comparison against zero   | Design choice (open)                       | First   | Implemented - open for SG6 decision      |
@@ -3540,9 +3570,10 @@ three-way delta/absolute/point split), the path forward is:
 
 5. **Submit to LWG** for full wording review once LEWG has approved the design.
 
-Runtime frame projections (the "Later" feature in the summary table) follow a parallel
-track: they can be implemented and proposed independently once the core abstractions are
-stable, without blocking the initial standardization of [@P3045R7].
+Runtime frame projections (the "Later" feature in the summary table) have already been
+implemented in **[@MP-UNITS]** and follow a parallel track: they can be proposed
+independently once the core abstractions are stable, without blocking the initial
+standardization of [@P3045R7].
 
 # Acknowledgments
 
