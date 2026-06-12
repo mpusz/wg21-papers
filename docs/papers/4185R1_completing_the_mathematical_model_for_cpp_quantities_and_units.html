@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2026-06-09" />
+  <meta name="dcterms.date" content="2026-06-11" />
   <title>Completing the Mathematical Model for C++ Quantities and
 Units</title>
   <style>
@@ -572,7 +572,7 @@ Model for C++ Quantities and Units</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2026-06-09</td>
+    <td>2026-06-11</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -2745,7 +2745,7 @@ used in the point case).<span> — <em>end note</em> ]</span></p>
 <p>The following examples demonstrate the explicit and implicit casts
 between all three abstractions:</p>
 <div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ── From Absolute ──────────────────────────────────────────────────────────────────────</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;</span> total<span class="op">{</span><span class="dv">5</span> <span class="op">*</span> kg<span class="op">}</span>;</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;</span> total <span class="op">=</span> <span class="dv">5</span> <span class="op">*</span> kg;</span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Absolute → Delta: implicit (no notation at call site) or explicit .delta()</span></span>
 <span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>delta<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&gt;</span> d1 <span class="op">=</span> total;         <span class="co">// implicit</span></span>
@@ -2755,7 +2755,7 @@ between all three abstractions:</p>
 <span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>point<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&gt;</span> p<span class="op">{</span>total<span class="op">}</span>;           <span class="co">// explicit ctor</span></span>
 <span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="co">// ── From Delta ─────────────────────────────────────────────────────────────────────────</span></span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>delta<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&gt;</span> change<span class="op">{</span><span class="dv">3</span> <span class="op">*</span> kg<span class="op">}</span>;</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>delta<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;&gt;</span> change <span class="op">=</span> <span class="dv">3</span> <span class="op">*</span> kg;</span>
 <span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="co">// Delta → Absolute: explicit .absolute(); fires contract assertion if change &lt; 0</span></span>
 <span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>quantity<span class="op">&lt;</span>isq<span class="op">::</span>mass<span class="op">[</span>kg<span class="op">]&gt;</span> amount <span class="op">=</span> change<span class="op">.</span>absolute<span class="op">()</span>;</span>
@@ -3013,18 +3013,6 @@ mass stays absolute mass)</td>
 displacement (e.g., area × Δheight → Δvolume)</td>
 </tr>
 <tr>
-<td style="text-align: left;">Absolute / Absolute</td>
-<td style="text-align: left;">Absolute</td>
-<td style="text-align: left;">A physical ratio (efficiency, density,
-strain)</td>
-</tr>
-<tr>
-<td style="text-align: left;">Absolute / Delta</td>
-<td style="text-align: left;">Delta</td>
-<td style="text-align: left;">Rate of an absolute w.r.t. a signed
-step</td>
-</tr>
-<tr>
 <td style="text-align: left;">Delta × Absolute</td>
 <td style="text-align: left;">Delta</td>
 <td style="text-align: left;">(same as Absolute × Delta — multiplication
@@ -3035,6 +3023,18 @@ is commutative)</td>
 <td style="text-align: left;">Delta</td>
 <td style="text-align: left;">Rescaling a signed difference (factor
 preserves delta category)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Absolute / Absolute</td>
+<td style="text-align: left;">Absolute</td>
+<td style="text-align: left;">A physical ratio (efficiency, density,
+strain)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Absolute / Delta</td>
+<td style="text-align: left;">Delta</td>
+<td style="text-align: left;">Rate of an absolute w.r.t. a signed
+step</td>
 </tr>
 <tr>
 <td style="text-align: left;">Delta / Absolute</td>

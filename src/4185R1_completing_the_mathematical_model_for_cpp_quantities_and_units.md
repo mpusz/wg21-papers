@@ -1451,7 +1451,7 @@ The following examples demonstrate the explicit and implicit casts between all t
 
 ```cpp
 // ── From Absolute ──────────────────────────────────────────────────────────────────────
-quantity<isq::mass[kg]> total{5 * kg};
+quantity<isq::mass[kg]> total = 5 * kg;
 
 // Absolute → Delta: implicit (no notation at call site) or explicit .delta()
 quantity<delta<isq::mass[kg]>> d1 = total;         // implicit
@@ -1461,7 +1461,7 @@ quantity<delta<isq::mass[kg]>> d2 = total.delta(); // explicit
 quantity<point<isq::mass[kg]>> p{total};           // explicit ctor
 
 // ── From Delta ─────────────────────────────────────────────────────────────────────────
-quantity<delta<isq::mass[kg]>> change{3 * kg};
+quantity<delta<isq::mass[kg]>> change = 3 * kg;
 
 // Delta → Absolute: explicit .absolute(); fires contract assertion if change < 0
 quantity<isq::mass[kg]> amount = change.absolute();
@@ -1607,10 +1607,10 @@ quantity transferred = (before - after).absolute();  // quantity<isq::mass[kg]>:
 | Absolute × Absolute       | Absolute | A product of two absolute quantities (energy = power × time)                         |
 | Absolute × Scalar         | Absolute | Rescaling by a dimensionless factor (2 × mass stays absolute mass)                   |
 | Absolute × Delta          | Delta    | Absolute scaled by a displacement is a displacement (e.g., area × Δheight → Δvolume) |
-| Absolute / Absolute       | Absolute | A physical ratio (efficiency, density, strain)                                       |
-| Absolute / Delta          | Delta    | Rate of an absolute w.r.t. a signed step                                             |
 | Delta × Absolute          | Delta    | (same as Absolute × Delta — multiplication is commutative)                           |
 | Delta × Scalar            | Delta    | Rescaling a signed difference (factor preserves delta category)                      |
+| Absolute / Absolute       | Absolute | A physical ratio (efficiency, density, strain)                                       |
+| Absolute / Delta          | Delta    | Rate of an absolute w.r.t. a signed step                                             |
 | Delta / Absolute          | Delta    | A change scaled by a fixed absolute reference                                        |
 | Delta / Delta             | Delta    | A rate of change (velocity = displacement / duration)                                |
 | `abs(delta_real_scalar)`  | Absolute | Magnitude of a scalar delta                                                          |
