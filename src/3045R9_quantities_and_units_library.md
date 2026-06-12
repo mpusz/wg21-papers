@@ -30,6 +30,8 @@ toc-depth: 4
 
 ## Changes since [@P3045R8]
 
+- [Quantity formatting] chapter extended with a [Two levels of format specification].
+- [Text output open questions] chapter removed.
 - Remaining references to the `final` keyword in definitions removed
 - New [Concept Hierarchy] chapter added, documenting the building-block concepts,
   the character-specific concepts, the internal representation concepts,
@@ -437,7 +439,6 @@ While there exists some standards and guidelines such as MISRA C++ [@MISRA_CPP] 
 enforcing the creation of safe code in C++, they are cumbersome to use and tend to shift the burden
 on the discipline of the programmers to enforce these. At the time of writing, the C++ language
 does not change fast enough to enforce safe-by-construction code.
-
 
 One of the ways C++ can significantly improve the safety of applications being written
 by thousands of developers is by introducing a type-safe, well-tested, standardized way to handle
@@ -5109,6 +5110,62 @@ In the above grammar:
   format string. Each override starts with a subentity identifier ('N', 'U', or 'D') followed by
   the format string enclosed in square brackets.
 
+#### Two levels of format specification
+
+The grammar above introduces a two-level design that may initially look unfamiliar, so it is worth
+describing in detail. A `quantity` is a wrapper over a numerical value tagged with a unit (and,
+indirectly, a dimension). When formatting it, there are two independent concerns, and each `:`
+delimiter opens the section that addresses one of them:
+
+- The first `:` (as in any `std::format` replacement field) starts the **quantity-level** format
+  specification. Here we provide `fill-and-align` and `width` that treat the entire quantity output
+  as one contiguous piece of text, and `quantity-specs` — a small layout language built from the
+  `%N`, `%U`, `%D`, `%?`, and `%%` placeholders — that decides _which_ components (numerical value,
+  unit, dimension) are printed and _how_ they are arranged.
+- The second `:` starts the **component-level** format specifications (`defaults-specs`). A
+  `quantity` is only a numerical wrapper. It does not — and should not — assume any knowledge about
+  the format-spec grammar of the representation type it stores. This is why the specs provided in
+  `N[...]`, `U[...]`, and `D[...]` are not interpreted by the quantity formatter at all. They are
+  forwarded verbatim to the formatters of the respective components and processed there.
+
+We deliberately chose _not_ to follow the `%Q`/`%q` convention that `std::chrono::duration` uses for
+its value and unit suffix. Those identifiers are easy to confuse with one another, do not hint at
+what they stand for, and — being lower/upper-case variants of the same letter — leave no room for a
+mnemonic third option. A `quantity` additionally exposes its _dimension_, which the `chrono` grammar
+has no concept of and therefore no placeholder for. We instead use the self-explanatory `%N`
+(numerical value), `%U` (unit), and `%D` (dimension), where each letter directly evokes the component
+it inserts.
+
+Separating the two concerns means that overriding how a single component is formatted does not force
+us to respell the default quantity layout. For example, to round the number to two decimal places
+while keeping the default arrangement of the components intact, it is enough to leave the
+quantity-level spec empty and provide only the component-level override:
+
+```cpp
+std::println("{::N[.2f]}", 100. * km / (3 * h));  // 33.33 km/h
+```
+
+We did not have to write out the default `%N%?%U` layout just to attach a precision to the number.
+Had numerical-value modifiers been embedded directly in the quantity format-spec (as is the case for
+`std::chrono::duration`), every such customization would have required repeating the entire default
+format string verbatim.
+
+This two-level `{::...}` shape is not novel. The C++ standard library already uses it to format the
+elements of a range. For a range, the first `:` opens the range's own format spec, and the optional
+second `:` introduces a format spec that is forwarded to the formatter of each element:
+
+```cpp
+std::vector v{1.2345, 2.3456, 3.4567};
+std::println("{}", v);        // [1.2345, 2.3456, 3.4567]
+std::println("{::.2f}", v);   // [1.23, 2.35, 3.46]
+std::println("{:n:.2f}", v);  // 1.23, 2.35, 3.46
+```
+
+Here `.2f` after the second `:` is not interpreted by the range formatter — it is handed unchanged to
+the `double` formatter used for every element. The `quantity` formatter follows exactly the same
+principle, so users already familiar with formatting the contents of a container should find the
+`quantity` grammar consistent with their expectations.
+
 #### Default formatting
 
 To format `quantity` values, the formatting facility uses `quantity-format-spec`. If left empty,
@@ -5363,32 +5420,6 @@ label added to make the value unambiguous:
 ```cpp
 std::cout << altitude.quantity_ref_from(sea_level) << " AMSL";  // "42 m AMSL"
 ```
-
-
-## Text output open questions
-
-1. ~~Should we somehow provide text support for quantity points? What about temperatures?~~
-   Resolved: text output is provided when `PO == default_point_origin(R)`; this covers both
-   ordinary physical quantities (natural zero) and temperatures with their conventional
-   unit-based reference (e.g., `deg_C` → ice point). Points anchored to user-defined
-   non-default origins remain without automatic output.
-2. How to name `symbol_text` accessor member functions (e.g., `.portable()`)? The same names
-   should consistently be used in `character_set` and in the formatting grammar.
-3. What about the localization for units? Will we get something like ICU in the C++ standard?
-4. Do we care about ostreams enough to introduce custom manipulators to format dimensions and units?
-5. `std::chrono::duration` uses 'Q' and 'q' for a number and a unit. In the grammar above, we
-   proposed using 'N' and 'U' for them, respectively. We also introduced 'D' for dimensions. Are
-   we OK with this?
-6. Are we OK with the usage of `'_'` for denoting a subscript identifier? Should we use it
-   everywhere (consistency) or only where there is no dedicated Unicode subscript character?
-7. Are we OK with using Unicode characters for unit symbols in the code:
-
-    ```cpp
-    quantity resistance = 60 * kΩ;
-    quantity capacitance = 100 * µF;
-    ```
-
-8. Can we have digits grouping for numbers?
 
 
 # Core Library Framework scope
@@ -9179,12 +9210,20 @@ No prior knowledge of template metaprogramming or dimensional analysis is requir
 
 Starting with compelling examples helps students understand _why_ strong typing matters:
 
-- [@ARIANE] - Ariane 5 rocket destroyed due to unit conversion error ($370M loss)
-- [@MARS_ORBITER] - Lost due to pound-force vs. Newton confusion ($327M loss)
-- [@COLUMBUS] - Got Americas "wrong" due to distance unit misunderstandings
+- [@MARS_ORBITER] - Lost in 1999 because thruster software produced pound-force-seconds while the
+  navigation system expected newton-seconds ($125M loss)
+- [@GIMLI_GLIDER] - Air Canada Flight 143 ran out of fuel mid-flight in 1983 after the load was
+  calculated in pounds instead of kilograms
+- [@COLUMBUS] - Mixed up the Arabic mile and the Roman mile while preparing his voyage, badly
+  underestimating the size of the equator and his expected travel distance
+- [@ARIANE] - Ariane 5 rocket destroyed in 1996 by an overflow when converting a 64-bit
+  floating-point value to a 16-bit signed integer ($370M loss)
 
-These examples demonstrate that unit errors are costly, hard to spot in code review, and can slip
-through testing. A quick demonstration of untyped vs. typed code makes the value proposition clear:
+See [Safety concerns] for more examples and a deeper discussion of why these errors happen.
+
+These examples demonstrate that unit and conversion errors are costly, hard to spot in code review,
+and can slip through testing. A quick demonstration of untyped vs. typed code makes the value
+proposition clear:
 
 ```cpp
 // Unsafe - compiles but crashes spacecraft
@@ -9195,8 +9234,7 @@ double orbital_velocity(double radius, double period)
 auto v = orbital_velocity(400000, 5400);  // What units? Which one is length? Compiler can't tell!
 
 // Safe - units enforced at compile time
-quantity<si::metre / si::second> orbital_velocity(quantity<si::metre> auto radius,
-                                                  quantity<si::second> auto period)
+quantity<si::metre / si::second> orbital_velocity(quantity<si::metre> radius, quantity<si::second> period)
 {
   return 2 * pi * radius / period;
 }
@@ -9409,7 +9447,7 @@ Based on teaching experience with [@MP-UNITS]:
    - Solution: Use parentheses or intermediate variables for clarity
 
 3. **Confusing `quantity` and `quantity_point`**: Attempting invalid affine space operations
-   - Example: `auto result = 20 * deg_C + 30 * deg_C;` - can't add absolute temperatures
+   - Example: `auto result = 20 * deg_C + 30 * deg_C;` - multiply syntax disabled for offset units
    - Solution: Understand difference between intervals (quantities) and points (quantity_points)
 
 4. **Forgetting namespace qualification**: Writing `42 * m` without importing unit symbols
