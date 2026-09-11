@@ -39,3 +39,6 @@ test_package/build
 # Targets
 src/*.html
 src/generated/
+
+# personal, machine-specific agent notes (never committed: references a private repo)
+/CLAUDE.local.md
