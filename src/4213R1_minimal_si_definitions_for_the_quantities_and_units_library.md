@@ -109,7 +109,7 @@ derived by fixing the numerical values of seven **defining constants**:
 |------------------------------------------|--------|---------------------------|
 | Hyperfine transition frequency of Cs-133 | Δν_Cs  | 9 192 631 770 Hz          |
 | Speed of light in vacuum                 | c      | 299 792 458 m/s           |
-| Planck constant                          | h      | 6.626 070 15 × 10⁻³⁴ J·s  |
+| Planck constant                          | h      | 6.626 070 15 × 10⁻³⁴ J⋅s  |
 | Elementary charge                        | e      | 1.602 176 634 × 10⁻¹⁹ C   |
 | Boltzmann constant                       | k      | 1.380 649 × 10⁻²³ J/K     |
 | Avogadro constant                        | N_A    | 6.022 140 76 × 10²³ mol⁻¹ |
@@ -339,9 +339,9 @@ inline constexpr struct radius : named_quantity_spec<width> {} radius;
 inline constexpr struct path_length : named_quantity_spec<length> {} path_length;
 inline constexpr auto arc_length = path_length;
 inline constexpr struct area : named_quantity_spec<pow<2>(length), non_negative> {} area;
-inline constexpr struct angular_measure : named_quantity_spec<dimensionless, arc_length / radius, is_kind>  {} angular_measure;
+inline constexpr struct angular_measure : named_quantity_spec<dimensionless, arc_length / radius, subkind>  {} angular_measure;
 inline constexpr struct solid_angular_measure
-    : named_quantity_spec<dimensionless, area / pow<2>(radius), is_kind, non_negative> {} solid_angular_measure;
+    : named_quantity_spec<dimensionless, area / pow<2>(radius), subkind, non_negative> {} solid_angular_measure;
 inline constexpr struct period_duration : named_quantity_spec<duration> {} period_duration;
 inline constexpr struct frequency : named_quantity_spec<inverse(period_duration), non_negative> {} frequency;
 
@@ -541,7 +541,7 @@ inline constexpr struct henry   : named_unit<"H",   weber / ampere> {} henry;
 
 inline constexpr struct absolute_zero : relative_point_origin<point<kelvin>(0)> {} absolute_zero;
 inline constexpr struct ice_point : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
-inline constexpr struct degree_Celsius : named_unit<symbol_text{u8"℃", "`C"}, kelvin, ice_point> {} degree_Celsius;
+inline constexpr struct degree_Celsius : named_unit<symbol_text{u8"°C", "`C"}, kelvin, ice_point> {} degree_Celsius;
 
 inline constexpr struct becquerel : named_unit<"Bq",  one / second, kind_of<isq::activity>> {} becquerel;
 inline constexpr struct gray      : named_unit<"Gy",  joule / kilogram, kind_of<isq::absorbed_dose>> {} gray;
@@ -566,12 +566,11 @@ inline constexpr auto lux = lux_of<>;
 This introduces **26 names** in `std::si`: the 22 coherent derived units with special names, the
 `lumen_of` and `lux_of` variable templates, and the point origins `absolute_zero` and `ice_point`.
 
-::: note
-A named derived unit carries a `kind_of<>` constraint only where the SI Brochure keeps its name
-for one quantity (`hertz`, `becquerel`, `gray`, `sievert`, `katal`) or where the library needs the
-distinction itself (`radian`, `steradian`, `lumen`, `lux`). `degree_Celsius` takes its kind from
-`kelvin`. The other twelve carry none. For example, `quantity<isq::torque[si::joule]>` is
-well-formed. ISO 80000-1 notes that the joule is not used for a moment of force, and the library
+::: note A named derived unit carries a `kind_of<>` constraint only where the SI Brochure reserves
+its name for particular quantities (`hertz`, `becquerel`, `gray`, `sievert`, `katal`) or where the
+library needs the distinction itself (`radian`, `steradian`, `lumen`, `lux`). `degree_Celsius` takes
+its kind from `kelvin`. The other twelve carry none. For example, `quantity<isq::torque[si::joule]>`
+is well-formed. ISO 80000-1 notes that the joule is not used for a moment of force, and the library
 leaves that convention to the author.
 
 Four of these units serve multiple unrelated ISQ quantity hierarchies. Restricting them to a single
@@ -907,7 +906,7 @@ environments (it requires `<chrono>`).
 namespace std {
 
 // Customization point specialization enabling implicit construction of a
-// quantity<si::second> (and prefixed variants) from a std::chrono::duration.
+// quantity<si::second> (and prefixed variants) from a chrono::duration.
 template<typename Rep, typename Period>
 struct quantity_like_traits<chrono::duration<Rep, Period>> {
   static constexpr auto reference = /* SI time unit derived from Period */;
@@ -928,7 +927,7 @@ template<typename C>
 inline constexpr $chrono-point-origin-t$<C> chrono_point_origin;
 
 // Customization point specialization enabling conversion between
-// std::chrono::time_point and a point with a clock-based origin.
+// chrono::time_point and a point with a clock-based origin.
 template<typename C, typename Rep, typename Period>
 struct quantity_like_traits<chrono::time_point<C, chrono::duration<Rep, Period>>> {
   static constexpr auto reference = point</* SI time unit derived from Period */, chrono_point_origin<C>>;
@@ -1112,7 +1111,7 @@ for formatting output.
 ```cpp
 namespace std::si {
 
-enum class prefix_range : uint8_t {
+enum class prefix_range {
   engineering,  // selects only powers of 1000 (milli, kilo, mega, ...)
                 // resulting in a value in the range [1.0, 1000)
   full          // selects all 24 prefixes (including deca, hecto, deci, centi)
