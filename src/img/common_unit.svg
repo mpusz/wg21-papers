@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 572" width="100%" font-family="sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker></defs>
+<style>
+.box { fill: none; stroke: #222; stroke-width: 1.3; }
+.arr { stroke: #222; stroke-width: 1.3; marker-end: url(#a); }
+.t { font-size: 13px; fill: #111; }
+.mono { font-family: monospace; font-size: 13px; fill: #111; }
+.lbl { font-size: 12px; fill: #333; font-style: italic; }
+.hdr { font-size: 14px; font-weight: bold; fill: #111; }
+</style>
+<line x1="522" y1="8" x2="522" y2="564" stroke="#999" stroke-dasharray="4 4"/>
+<text x="185.0" y="18" class="hdr" text-anchor="middle">Steps</text>
+<text x="540" y="18" class="hdr">Example</text>
+<rect x="20" y="40" width="330" height="44" rx="22" class="box"/>
+<text x="185.0" y="62.0" class="mono" text-anchor="middle" dominant-baseline="central">get_common_unit(u₁, u₂, …)</text>
+<text x="540" y="62.0" class="mono" text-anchor="start" dominant-baseline="central">get_common_unit(km, m, mi)</text>
+<line x1="185.0" y1="84" x2="185.0" y2="106" class="arr"/>
+<rect x="20" y="108" width="330" height="44" rx="4" class="box"/>
+<text x="185.0" y="122.0" class="t" text-anchor="middle" dominant-baseline="central">1. Replace each common_unit argument</text>
+<text x="185.0" y="138.0" class="t" text-anchor="middle" dominant-baseline="central">by its members</text>
+<text x="540" y="130.0" class="mono" text-anchor="start" dominant-baseline="central">km, m, mi</text>
+<line x1="185.0" y1="152" x2="185.0" y2="174" class="arr"/>
+<polygon points="20,198.0 34,176 336,176 350,198.0 336,220 34,220" class="box"/>
+<text x="185.0" y="198.0" class="t" text-anchor="middle" dominant-baseline="central">2. Are the units convertible?</text>
+<text x="540" y="198.0" class="t" text-anchor="start" dominant-baseline="central">all three are units of length: yes</text>
+<line x1="185.0" y1="220" x2="185.0" y2="242" class="arr"/>
+<text x="193.0" y="232" class="lbl">yes</text>
+<line x1="350" y1="198.0" x2="378" y2="198.0" class="arr"/>
+<text x="365.0" y="191.0" class="lbl" text-anchor="middle">no</text>
+<rect x="380" y="176" width="130" height="44" rx="22" class="box"/>
+<text x="445.0" y="198.0" class="t" text-anchor="middle" dominant-baseline="central">ill-formed</text>
+<rect x="20" y="244" width="330" height="44" rx="4" class="box"/>
+<text x="185.0" y="258.0" class="t" text-anchor="middle" dominant-baseline="central">3. Drop every unit that another</text>
+<text x="185.0" y="274.0" class="t" text-anchor="middle" dominant-baseline="central">unit strictly divides</text>
+<text x="540" y="266.0" class="t" text-anchor="start" dominant-baseline="central">m divides km, so km is dropped</text>
+<line x1="185.0" y1="288" x2="185.0" y2="310" class="arr"/>
+<rect x="20" y="312" width="330" height="44" rx="4" class="box"/>
+<text x="185.0" y="326.0" class="t" text-anchor="middle" dominant-baseline="central">4. Of two equivalent units,</text>
+<text x="185.0" y="342.0" class="t" text-anchor="middle" dominant-baseline="central">keep the preferred one</text>
+<text x="540" y="334.0" class="t" text-anchor="start" dominant-baseline="central">no equivalent pair: m, mi</text>
+<line x1="185.0" y1="356" x2="185.0" y2="378" class="arr"/>
+<rect x="20" y="380" width="330" height="44" rx="4" class="box"/>
+<text x="185.0" y="394.0" class="t" text-anchor="middle" dominant-baseline="central">5. Form the common unit</text>
+<text x="185.0" y="410.0" class="t" text-anchor="middle" dominant-baseline="central">of the units left</text>
+<text x="540" y="402.0" class="mono" text-anchor="start" dominant-baseline="central">common_unit&lt;si::metre, yard_pound::mile&gt;</text>
+<line x1="185.0" y1="424" x2="185.0" y2="446" class="arr"/>
+<polygon points="20,470.0 34,448 336,448 350,470.0 336,492 34,492" class="box"/>
+<text x="185.0" y="470.0" class="t" text-anchor="middle" dominant-baseline="central">6. Are the quantities compatible?</text>
+<text x="540" y="470.0" class="t" text-anchor="start" dominant-baseline="central">all three quantities are lengths: yes</text>
+<line x1="185.0" y1="492" x2="185.0" y2="514" class="arr"/>
+<text x="193.0" y="504" class="lbl">yes</text>
+<line x1="350" y1="470.0" x2="378" y2="470.0" class="arr"/>
+<text x="365.0" y="463.0" class="lbl" text-anchor="middle">no</text>
+<rect x="380" y="448" width="130" height="44" rx="22" class="box"/>
+<text x="445.0" y="470.0" class="t" text-anchor="middle" dominant-baseline="central">ill-formed</text>
+<rect x="20" y="516" width="330" height="44" rx="22" class="box"/>
+<text x="185.0" y="538.0" class="t" text-anchor="middle" dominant-baseline="central">the common unit</text>
+<text x="540" y="538.0" class="mono" text-anchor="start" dominant-baseline="central">common_unit&lt;si::metre, yard_pound::mile&gt;</text>
+</svg>
