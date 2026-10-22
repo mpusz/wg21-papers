@@ -1,6 +1,6 @@
 ---
 title: "Minimal SI: Defining the International System of Units for the C++ Standard Library"
-document: P4213R0
+document: P4213R1
 date: today
 audience:
   - Library Evolution Working Group
@@ -10,14 +10,14 @@ author:
 toc-depth: 3
 ---
 
-This paper is a companion to [@P3045R8_PRE] (Quantities and Units Library). Its purpose is to
+This paper is a companion to [@P3045R10_PRE] (Quantities and Units Library). Its purpose is to
 present to LEWG a complete, structured reference of all definitions required to implement the
 International System of Units (SI) within a `std::` quantities library, so that LEWG can make
 informed decisions about scope, phasing, and feasibility of standardization. The synopses are
-not final interfaces — they reflect the current state of [@P3045R8_PRE] and [@P4185R0_PRE] and
+not final interfaces — they reflect the current state of [@P3045R10_PRE] and [@P4185R2_PRE] and
 will evolve as those papers progress. The definitions are organized as a mandatory core
-(41 ISQ + 81 SI = 122 names) plus six independently-votable optional chapters (~756 additional
-names), totalling ~878 names across `std::isq` and `std::si`.
+(40 ISQ + 59 SI = 99 names) plus six independently-votable optional chapters (~752 additional
+names), totalling ~851 names across `std::isq` and `std::si`.
 
 # Introduction
 
@@ -25,7 +25,7 @@ names), totalling ~878 names across `std::isq` and `std::si`.
 
 ### The Content Gap
 
-[@P3045R8_PRE] supplies the type system. It does not supply the SI. A user who includes the
+[@P3045R10_PRE] supplies the type system. It does not supply the SI. A user who includes the
 framework gets `quantity`, `unit`, `quantity_spec`, `prefix` — but no `metre`, no `kilogram`,
 no `second`. The framework is deliberately content-agnostic: it supports arbitrary systems of
 quantities and units. Shipping the framework without SI content would be like shipping
@@ -33,7 +33,7 @@ quantities and units. Shipping the framework without SI content would be like sh
 
 ### Why a Separate Paper
 
-The separation between framework and content is deliberate. [@P3045R8_PRE] defines the
+The separation between framework and content is deliberate. [@P3045R10_PRE] defines the
 machinery — quantity types, unit types, representation, concepts, text output. This paper
 defines the domain content — the ISQ quantities needed to classify SI units, the SI units
 themselves, the prefixes, and the unit symbols — that populates `std::si` and `std::isq`
@@ -45,7 +45,7 @@ the other. It also reflects a broader
 roadmap: SI is the most important system of units but not the only one. Additional papers may
 follow covering further unit systems and ISQ parts. A paper on mathematical functions for
 quantities is anticipated, and other library extensions may follow. Each is an independent
-building block, deliverable whenever [@P3045R8_PRE] is accepted, without blocking or being
+building block, deliverable whenever [@P3045R10_PRE] is accepted, without blocking or being
 blocked by the others.
 
 ### Why Modular
@@ -62,11 +62,11 @@ particular implementation strategy.
 :::
 
 ::: note
-The synopses assume that two features proposed in [@P4185R0_PRE] are accepted:
+The synopses assume that two features proposed in [@P4185R2_PRE] are accepted:
 
-- **Non-negativity**: if not accepted, all `non_negative` tags in `quantity_spec` definitions
-  can simply be dropped.
-- **Absolute quantities**: if not accepted, `kelvin` must revert to the [@P3045R8_PRE] design —
+- **Non-negativity**: if not accepted, all `non_negative` and `possibly_negative` tags in
+  `quantity_spec` definitions can simply be dropped.
+- **Absolute quantities**: if not accepted, `kelvin` must revert to the [@P3045R10_PRE] design —
   declaring `absolute_zero` as an `absolute_point_origin` and passing it as the explicit point
   origin of the unit.
 :::
@@ -134,30 +134,30 @@ The following components are covered by this paper, organized by namespace.
    `dim_luminous_intensity`) that form the dimensional foundation of the system.
 2. **Base quantities** — the 7 base quantities (`length`, `mass`, `duration`,
    `electric_current`, `thermodynamic_temperature`, `amount_of_substance`,
-   `luminous_intensity`) corresponding to the 7 SI base units.
-3. **SI-relevant derived quantities** — the derived quantities required to correctly classify
-   all SI named units: geometry (`width`, `radius`, `path_length`, `area`, `period_duration`,
-   `angular_measure`, `solid_angular_measure`, `frequency`), mechanics (`energy`, `force`,
-   `pressure`), electromagnetism (`electric_potential`, `capacitance`, `impedance`,
-   `admittance`, `magnetic_flux_density`), light and radiation (`luminous_flux`,
-   `illuminance`), physical chemistry (`catalytic_activity`), and atomic/nuclear physics
-   (`activity`, `absorbed_dose`, `dose_equivalent`).
+   `luminous_intensity`) corresponding to the 7 SI base units, with the photometric conditions
+   (photopic, scotopic, and mesopic vision) that parameterize the luminous quantities.
+3. **SI-relevant derived quantities** — the derived quantities that the definitions of the SI
+   units name: geometry (`width`, `radius`, `path_length`, `area`, `period_duration`,
+   `angular_measure`, `solid_angular_measure`, `frequency`), mechanics (`energy`), light and
+   radiation (`luminous_flux`, `illuminance`), physical chemistry (`catalytic_activity`), and
+   atomic/nuclear physics (`activity`, `absorbed_dose`, `ionizing_radiation_quality_factor`,
+   `dose_equivalent`).
 
 **SI core (`std::si` namespace) — depends on ISQ:**
 
 1. **Prefixes** — 24 multiplicative scale factors from quecto to quetta.
 2. **Base units** — 7 named units plus the special treatment of the kilogram (which already
    carries a prefix and must therefore be derived from `gram`).
-3. **Derived units with special names** — 22 coherent derived units such as newton and joule,
-   plus the degree Celsius which requires a temperature point origin.
+3. **Derived units with special names** — 22 coherent derived units such as newton, joule,
+   and the degree Celsius, which requires a temperature point origin.
 
 **SI optional (`std::si` and related namespaces) — each independently votable:**
 
 1. **Non-SI units accepted for use with SI** — time units (minute, hour, day), angular units
    (degree, arcminute, arcsecond), and others; placed in a dedicated namespace (name open to
    LEWG discussion) and re-exported into `std::si`.
-2. **SI-defining constants** — the 7 exact constants plus a small number of commonly needed
-   derived constants; versioned by inline subnamespace.
+2. **SI-defining constants** — the 7 exact constants that define the SI, versioned by inline
+   subnamespace.
 3. **Unit symbols** — short-form aliases (`m`, `km`, `Hz`, ...) for all prefix–unit
    combinations.
 4. **`std::chrono` interoperability** — conversion between SI time quantities and
@@ -187,14 +187,21 @@ Three aggregate headers span the full scope:
 - `<si>` — includes all SI headers: `<si_core>`, `<si_accepted_units>`, `<si_constants>`,
   `<si_unit_symbols>`, `<si_chrono>`, `<si_math>`, and `<si_prefix_utils>`.
 
+### Exposition-only types
+
+As in [@P3045R10_PRE], the type of a variable template is exposition-only. Users write
+`si::kilo<si::metre>` or `isq::luminous_flux_of<isq::scotopic_vision>`, never its type. The
+synopses show these types with exposition-only names (`$kilo-t$`, `$luminous-flux-t$`, ...), and
+the counts of names below don't include them.
+
 ### Dependency Graph
 
 The header dependency structure is a simple tree rooted at the P3045 framework:
 
 ```text
 P3045 (Quantities and Units Library framework)
-└── <isq_si_quantities>          mandatory · freestanding · 41 names
-    └── <si_core>                mandatory · freestanding · 81 names
+└── <isq_si_quantities>          mandatory · freestanding · 40 names
+    └── <si_core>                mandatory · freestanding · 59 names
         ├── <si_accepted_units>  optional  · freestanding
         ├── <si_constants>       optional  · freestanding
         ├── <si_unit_symbols>    optional  · freestanding
@@ -234,7 +241,7 @@ import std.isq;           // all ISQ definitions
 ISQ (ISO 80000) defines physical quantities independently of any unit system; the full
 standard spans over 10 parts covering hundreds of quantities. This paper standardizes only
 the minimal subset needed to define SI: seven base dimensions, seven base quantities, and
-the derived quantities required to correctly classify the 22 SI coherent derived units.
+the derived quantities that the definitions of the SI units name.
 All of these reside in `std::isq` and are provided by a single header, `<isq_si_quantities>`.
 
 ## Base Dimensions
@@ -255,97 +262,135 @@ inline constexpr struct dim_luminous_intensity : base_dimension<"J"> {} dim_lumi
 
 This introduces **7 names** in `std::isq`.
 
+## Photometric Conditions
+
+The photometric quantities weight a radiometric quantity with a spectral luminous efficiency
+function of the human eye. ISO 80000-7:2019 (clauses 0.3 to 0.5) defines one such function for
+each condition of vision: photopic (daylight), scotopic (night), and mesopic (twilight, at an
+adaptation level). A luminous intensity under photopic vision and one under scotopic vision have
+the same dimension and are measured in the same candela, yet adding them is meaningless.
+
+The ISQ subset therefore makes the condition a parameter of the photometric quantities, and every
+condition roots a kind of its own. The SI units stay one candela, one lumen, and one lux: the
+condition only states which kind a unit is associated with. Photopic vision is the default, so
+code that names no condition reads the same as without the parameter. The parameter has to be
+part of the first standardized definitions. Adding it later would change the types of
+`isq::luminous_intensity` and `si::candela`.
+
+```cpp
+namespace std::isq {
+
+struct photometric_condition_base {};
+
+template<typename T>
+concept PhotometricCondition = derived_from<T, photometric_condition_base>;
+
+inline constexpr struct photopic_vision : photometric_condition_base {} photopic_vision;
+inline constexpr struct scotopic_vision : photometric_condition_base {} scotopic_vision;
+
+template<auto AdaptationLevel> struct $mesopic-vision-t$ : photometric_condition_base {};
+template<auto AdaptationLevel> constexpr $mesopic-vision-t$<AdaptationLevel> mesopic_vision;
+
+} // namespace std::isq
+```
+
+A user can define a further condition, such as an alpha-opic weighting of CIE S 026, by deriving
+from `photometric_condition_base`. This introduces **5 names** in `std::isq`.
+
 ## Base Quantities
 
 ```cpp
 namespace std::isq {
 
-inline constexpr struct length : quantity_spec<dim_length, non_negative> {} length;
-inline constexpr struct mass : quantity_spec<dim_mass, non_negative> {} mass;
-inline constexpr struct duration : quantity_spec<dim_time, non_negative> {} duration;
+inline constexpr struct length : named_quantity_spec<dim_length, non_negative> {} length;
+inline constexpr struct mass : named_quantity_spec<dim_mass, non_negative> {} mass;
+inline constexpr struct duration : named_quantity_spec<dim_time, non_negative> {} duration;
 inline constexpr auto time = duration;
-inline constexpr struct electric_current : quantity_spec<dim_electric_current> {} electric_current;
-inline constexpr struct thermodynamic_temperature : quantity_spec<dim_thermodynamic_temperature, non_negative> {} thermodynamic_temperature;
-inline constexpr struct amount_of_substance : quantity_spec<dim_amount_of_substance, non_negative> {} amount_of_substance;
-inline constexpr struct luminous_intensity : quantity_spec<dim_luminous_intensity, non_negative> {} luminous_intensity;
+inline constexpr struct electric_current : named_quantity_spec<dim_electric_current> {} electric_current;
+inline constexpr struct thermodynamic_temperature :
+  named_quantity_spec<dim_thermodynamic_temperature, non_negative> {} thermodynamic_temperature;
+inline constexpr struct amount_of_substance : named_quantity_spec<dim_amount_of_substance, non_negative> {} amount_of_substance;
+template<PhotometricCondition auto Condition = photopic_vision>
+struct $luminous-intensity-t$ : named_quantity_spec<dim_luminous_intensity, non_negative> {};
+template<PhotometricCondition auto Condition = photopic_vision>
+constexpr $luminous-intensity-t$<Condition> luminous_intensity_of;
+inline constexpr auto luminous_intensity = luminous_intensity_of<>;
 
 } // namespace std::isq
 ```
 
-This introduces **8 names** in `std::isq` (7 base quantity types and a `time` alias for
-`duration`, which is the SI name for the same base quantity).
+This introduces **9 names** in `std::isq`: 6 base quantity types, the `luminous_intensity_of`
+variable template and the photopic `luminous_intensity`, and a `time` alias for `duration`, which is
+the SI name for the same base quantity.
 
 ## SI-Relevant Derived Quantities
 
-The following derived quantities form the minimal ISQ subset needed to correctly classify
-all 22 SI named derived units:
+The following derived quantities form the minimal ISQ subset. They are the kinds of the SI
+derived units that carry one, and the quantities those kinds are defined from. A quantity that
+no SI unit names, such as _force_ or _electric potential_, is left out, so its definition can
+still be refined before it is standardized:
 
 ```cpp
 namespace std::isq {
 
 // space and time
-inline constexpr struct width : quantity_spec<length> {} width;
-inline constexpr auto breadth = width;
-inline constexpr struct radius : quantity_spec<width> {} radius;
-inline constexpr struct path_length : quantity_spec<length> {} path_length;
+inline constexpr struct width : named_quantity_spec<length> {} width;
+inline constexpr struct radius : named_quantity_spec<width> {} radius;
+inline constexpr struct path_length : named_quantity_spec<length> {} path_length;
 inline constexpr auto arc_length = path_length;
-inline constexpr struct area : quantity_spec<pow<2>(length), non_negative> {} area;
-inline constexpr struct angular_measure : quantity_spec<dimensionless, arc_length / radius, is_kind>  {} angular_measure;
+inline constexpr struct area : named_quantity_spec<pow<2>(length), non_negative> {} area;
+inline constexpr struct angular_measure : named_quantity_spec<dimensionless, arc_length / radius, is_kind>  {} angular_measure;
 inline constexpr struct solid_angular_measure
-    : quantity_spec<dimensionless, area / pow<2>(radius), is_kind, non_negative> {} solid_angular_measure;
-inline constexpr struct period_duration : quantity_spec<duration> {} period_duration;
-inline constexpr auto period = period_duration;
-inline constexpr struct frequency : quantity_spec<inverse(period_duration), non_negative> {} frequency;
+    : named_quantity_spec<dimensionless, area / pow<2>(radius), is_kind, non_negative> {} solid_angular_measure;
+inline constexpr struct period_duration : named_quantity_spec<duration> {} period_duration;
+inline constexpr struct frequency : named_quantity_spec<inverse(period_duration), non_negative> {} frequency;
 
 // mechanics
-inline constexpr struct energy : quantity_spec<mass * pow<2>(length) / pow<2>(duration), non_negative> {} energy;
-inline constexpr struct force : quantity_spec<mass * length / pow<2>(duration), quantity_character::vector> {} force;
-inline constexpr struct pressure : quantity_spec<force / area, quantity_character::real_scalar> {} pressure;
-
-// electromagnetism
-inline constexpr struct electric_potential
-    : quantity_spec<energy / (electric_current * duration), quantity_character::real_scalar> {} electric_potential;
-inline constexpr struct capacitance
-    : quantity_spec<electric_current * duration / electric_potential, non_negative> {} capacitance;
-inline constexpr struct impedance
-    : quantity_spec<electric_potential / electric_current, quantity_character::complex_scalar> {} impedance;
-inline constexpr struct admittance
-    : quantity_spec<inverse(impedance), quantity_character::complex_scalar> {} admittance;
-inline constexpr struct magnetic_flux_density
-    : quantity_spec<mass / (electric_current * pow<2>(duration)), quantity_character::vector> {} magnetic_flux_density;
+inline constexpr struct energy :
+  named_quantity_spec<mass * pow<2>(length) / pow<2>(duration), possibly_negative> {} energy;
 
 // light and radiation
-inline constexpr struct luminous_flux
-    : quantity_spec<luminous_intensity * solid_angular_measure, non_negative> {} luminous_flux;
-inline constexpr struct illuminance : quantity_spec<luminous_flux / area, non_negative> {} illuminance;
+template<PhotometricCondition auto Condition = photopic_vision>
+struct $luminous-flux-t$
+    : named_quantity_spec<luminous_intensity_of<Condition> * solid_angular_measure, non_negative> {};
+template<PhotometricCondition auto Condition = photopic_vision>
+constexpr $luminous-flux-t$<Condition> luminous_flux_of;
+inline constexpr auto luminous_flux = luminous_flux_of<>;
+
+template<PhotometricCondition auto Condition = photopic_vision>
+struct $illuminance-t$ : named_quantity_spec<luminous_flux_of<Condition> / area, non_negative> {};
+template<PhotometricCondition auto Condition = photopic_vision>
+constexpr $illuminance-t$<Condition> illuminance_of;
+inline constexpr auto illuminance = illuminance_of<>;
 
 // physical chemistry
-inline constexpr struct catalytic_activity : quantity_spec<amount_of_substance / duration, non_negative> {} catalytic_activity;
+inline constexpr struct catalytic_activity : named_quantity_spec<amount_of_substance / duration, non_negative> {} catalytic_activity;
 
 // atomic and nuclear physics
-inline constexpr struct activity : quantity_spec<inverse(duration), non_negative> {} activity;
-inline constexpr struct absorbed_dose : quantity_spec<energy / mass, non_negative> {} absorbed_dose;
+inline constexpr struct activity : named_quantity_spec<inverse(duration), non_negative> {} activity;
+inline constexpr struct absorbed_dose : named_quantity_spec<energy / mass, non_negative> {} absorbed_dose;
 inline constexpr struct ionizing_radiation_quality_factor
-    : quantity_spec<dimensionless, non_negative> {} ionizing_radiation_quality_factor;
+    : named_quantity_spec<dimensionless, non_negative> {} ionizing_radiation_quality_factor;
 inline constexpr struct dose_equivalent
-    : quantity_spec<absorbed_dose * ionizing_radiation_quality_factor, non_negative> {} dose_equivalent;
+    : named_quantity_spec<absorbed_dose * ionizing_radiation_quality_factor, non_negative> {} dose_equivalent;
 
 } // namespace std::isq
 ```
 
-This introduces **26 names** in `std::isq` (23 derived quantity types and 3 aliases:
-`breadth`, `arc_length`, and `period`).
+This introduces **19 names** in `std::isq`: 14 derived quantity types, the `luminous_flux_of` and
+`illuminance_of` variable templates with their photopic variables, and the `arc_length` alias.
 
 ### Summary of ISQ Definitions
 
 | Component                                      | Names introduced |
 |------------------------------------------------|------------------|
 | Base dimensions                                | 7                |
-| Base quantities (incl. `time` alias)           | 8                |
-| SI-relevant derived quantities (incl. aliases) | 26               |
-| **Total**                                      | **41**           |
+| Photometric conditions                         | 5                |
+| Base quantities (incl. `time` alias)           | 9                |
+| SI-relevant derived quantities (incl. aliases) | 19               |
+| **Total**                                      | **40**           |
 
-Straw poll: _We want `<isq_si_quantities>` — the minimal ISQ subset (41 definitions) required
+Straw poll: _We want `<isq_si_quantities>` — the minimal ISQ subset (40 definitions) required
 by `<si_core>` — to be standardized as part of the quantities and units library._
 
 # Core SI Definitions (`<si_core>`)
@@ -355,67 +400,66 @@ base and derived unit definitions.
 
 ## SI Prefixes
 
-The 24 standard SI prefixes are defined as class templates parameterised on a
-`PrefixableUnit` type, together with corresponding variable templates that provide the
-user-facing API:
+The 24 standard SI prefixes are variable templates parameterised on a `prefixable_unit`. Their
+types are exposition-only class templates:
 
 ```cpp
 namespace std::si {
 
-template<PrefixableUnit U> struct quecto_ : prefixed_unit<"q",  mag_power<10, -30>, U{}> {};
-template<PrefixableUnit U> struct ronto_  : prefixed_unit<"r",  mag_power<10, -27>, U{}> {};
-template<PrefixableUnit U> struct yocto_  : prefixed_unit<"y",  mag_power<10, -24>, U{}> {};
-template<PrefixableUnit U> struct zepto_  : prefixed_unit<"z",  mag_power<10, -21>, U{}> {};
-template<PrefixableUnit U> struct atto_   : prefixed_unit<"a",  mag_power<10, -18>, U{}> {};
-template<PrefixableUnit U> struct femto_  : prefixed_unit<"f",  mag_power<10, -15>, U{}> {};
-template<PrefixableUnit U> struct pico_   : prefixed_unit<"p",  mag_power<10, -12>, U{}> {};
-template<PrefixableUnit U> struct nano_   : prefixed_unit<"n",  mag_power<10,  -9>, U{}> {};
-template<PrefixableUnit U> struct micro_  : prefixed_unit<symbol_text{u8"µ", "u"}, mag_power<10, -6>, U{}> {};
-template<PrefixableUnit U> struct milli_  : prefixed_unit<"m",  mag_power<10,  -3>, U{}> {};
-template<PrefixableUnit U> struct centi_  : prefixed_unit<"c",  mag_power<10,  -2>, U{}> {};
-template<PrefixableUnit U> struct deci_   : prefixed_unit<"d",  mag_power<10,  -1>, U{}> {};
-template<PrefixableUnit U> struct deca_   : prefixed_unit<"da", mag_power<10,   1>, U{}> {};
-template<PrefixableUnit U> struct hecto_  : prefixed_unit<"h",  mag_power<10,   2>, U{}> {};
-template<PrefixableUnit U> struct kilo_   : prefixed_unit<"k",  mag_power<10,   3>, U{}> {};
-template<PrefixableUnit U> struct mega_   : prefixed_unit<"M",  mag_power<10,   6>, U{}> {};
-template<PrefixableUnit U> struct giga_   : prefixed_unit<"G",  mag_power<10,   9>, U{}> {};
-template<PrefixableUnit U> struct tera_   : prefixed_unit<"T",  mag_power<10,  12>, U{}> {};
-template<PrefixableUnit U> struct peta_   : prefixed_unit<"P",  mag_power<10,  15>, U{}> {};
-template<PrefixableUnit U> struct exa_    : prefixed_unit<"E",  mag_power<10,  18>, U{}> {};
-template<PrefixableUnit U> struct zetta_  : prefixed_unit<"Z",  mag_power<10,  21>, U{}> {};
-template<PrefixableUnit U> struct yotta_  : prefixed_unit<"Y",  mag_power<10,  24>, U{}> {};
-template<PrefixableUnit U> struct ronna_  : prefixed_unit<"R",  mag_power<10,  27>, U{}> {};
-template<PrefixableUnit U> struct quetta_ : prefixed_unit<"Q",  mag_power<10,  30>, U{}> {};
+template<prefixable_unit U> struct $quecto-t$ : prefixed_unit<"q",  mag_power<10, -30>, U{}> {};
+template<prefixable_unit U> struct $ronto-t$  : prefixed_unit<"r",  mag_power<10, -27>, U{}> {};
+template<prefixable_unit U> struct $yocto-t$  : prefixed_unit<"y",  mag_power<10, -24>, U{}> {};
+template<prefixable_unit U> struct $zepto-t$  : prefixed_unit<"z",  mag_power<10, -21>, U{}> {};
+template<prefixable_unit U> struct $atto-t$   : prefixed_unit<"a",  mag_power<10, -18>, U{}> {};
+template<prefixable_unit U> struct $femto-t$  : prefixed_unit<"f",  mag_power<10, -15>, U{}> {};
+template<prefixable_unit U> struct $pico-t$   : prefixed_unit<"p",  mag_power<10, -12>, U{}> {};
+template<prefixable_unit U> struct $nano-t$   : prefixed_unit<"n",  mag_power<10,  -9>, U{}> {};
+template<prefixable_unit U> struct $micro-t$  : prefixed_unit<symbol_text{u8"µ", "u"}, mag_power<10, -6>, U{}> {};
+template<prefixable_unit U> struct $milli-t$  : prefixed_unit<"m",  mag_power<10,  -3>, U{}> {};
+template<prefixable_unit U> struct $centi-t$  : prefixed_unit<"c",  mag_power<10,  -2>, U{}> {};
+template<prefixable_unit U> struct $deci-t$   : prefixed_unit<"d",  mag_power<10,  -1>, U{}> {};
+template<prefixable_unit U> struct $deca-t$   : prefixed_unit<"da", mag_power<10,   1>, U{}> {};
+template<prefixable_unit U> struct $hecto-t$  : prefixed_unit<"h",  mag_power<10,   2>, U{}> {};
+template<prefixable_unit U> struct $kilo-t$   : prefixed_unit<"k",  mag_power<10,   3>, U{}> {};
+template<prefixable_unit U> struct $mega-t$   : prefixed_unit<"M",  mag_power<10,   6>, U{}> {};
+template<prefixable_unit U> struct $giga-t$   : prefixed_unit<"G",  mag_power<10,   9>, U{}> {};
+template<prefixable_unit U> struct $tera-t$   : prefixed_unit<"T",  mag_power<10,  12>, U{}> {};
+template<prefixable_unit U> struct $peta-t$   : prefixed_unit<"P",  mag_power<10,  15>, U{}> {};
+template<prefixable_unit U> struct $exa-t$    : prefixed_unit<"E",  mag_power<10,  18>, U{}> {};
+template<prefixable_unit U> struct $zetta-t$  : prefixed_unit<"Z",  mag_power<10,  21>, U{}> {};
+template<prefixable_unit U> struct $yotta-t$  : prefixed_unit<"Y",  mag_power<10,  24>, U{}> {};
+template<prefixable_unit U> struct $ronna-t$  : prefixed_unit<"R",  mag_power<10,  27>, U{}> {};
+template<prefixable_unit U> struct $quetta-t$ : prefixed_unit<"Q",  mag_power<10,  30>, U{}> {};
 
-template<PrefixableUnit auto U> constexpr quecto_<decltype(U)> quecto;
-template<PrefixableUnit auto U> constexpr ronto_<decltype(U)> ronto;
-template<PrefixableUnit auto U> constexpr yocto_<decltype(U)> yocto;
-template<PrefixableUnit auto U> constexpr zepto_<decltype(U)> zepto;
-template<PrefixableUnit auto U> constexpr atto_<decltype(U)> atto;
-template<PrefixableUnit auto U> constexpr femto_<decltype(U)> femto;
-template<PrefixableUnit auto U> constexpr pico_<decltype(U)> pico;
-template<PrefixableUnit auto U> constexpr nano_<decltype(U)> nano;
-template<PrefixableUnit auto U> constexpr micro_<decltype(U)> micro;
-template<PrefixableUnit auto U> constexpr milli_<decltype(U)> milli;
-template<PrefixableUnit auto U> constexpr centi_<decltype(U)> centi;
-template<PrefixableUnit auto U> constexpr deci_<decltype(U)> deci;
-template<PrefixableUnit auto U> constexpr deca_<decltype(U)> deca;
-template<PrefixableUnit auto U> constexpr hecto_<decltype(U)> hecto;
-template<PrefixableUnit auto U> constexpr kilo_<decltype(U)> kilo;
-template<PrefixableUnit auto U> constexpr mega_<decltype(U)> mega;
-template<PrefixableUnit auto U> constexpr giga_<decltype(U)> giga;
-template<PrefixableUnit auto U> constexpr tera_<decltype(U)> tera;
-template<PrefixableUnit auto U> constexpr peta_<decltype(U)> peta;
-template<PrefixableUnit auto U> constexpr exa_<decltype(U)> exa;
-template<PrefixableUnit auto U> constexpr zetta_<decltype(U)> zetta;
-template<PrefixableUnit auto U> constexpr yotta_<decltype(U)> yotta;
-template<PrefixableUnit auto U> constexpr ronna_<decltype(U)> ronna;
-template<PrefixableUnit auto U> constexpr quetta_<decltype(U)> quetta;
+template<prefixable_unit auto U> constexpr $quecto-t$<decltype(U)> quecto;
+template<prefixable_unit auto U> constexpr $ronto-t$<decltype(U)> ronto;
+template<prefixable_unit auto U> constexpr $yocto-t$<decltype(U)> yocto;
+template<prefixable_unit auto U> constexpr $zepto-t$<decltype(U)> zepto;
+template<prefixable_unit auto U> constexpr $atto-t$<decltype(U)> atto;
+template<prefixable_unit auto U> constexpr $femto-t$<decltype(U)> femto;
+template<prefixable_unit auto U> constexpr $pico-t$<decltype(U)> pico;
+template<prefixable_unit auto U> constexpr $nano-t$<decltype(U)> nano;
+template<prefixable_unit auto U> constexpr $micro-t$<decltype(U)> micro;
+template<prefixable_unit auto U> constexpr $milli-t$<decltype(U)> milli;
+template<prefixable_unit auto U> constexpr $centi-t$<decltype(U)> centi;
+template<prefixable_unit auto U> constexpr $deci-t$<decltype(U)> deci;
+template<prefixable_unit auto U> constexpr $deca-t$<decltype(U)> deca;
+template<prefixable_unit auto U> constexpr $hecto-t$<decltype(U)> hecto;
+template<prefixable_unit auto U> constexpr $kilo-t$<decltype(U)> kilo;
+template<prefixable_unit auto U> constexpr $mega-t$<decltype(U)> mega;
+template<prefixable_unit auto U> constexpr $giga-t$<decltype(U)> giga;
+template<prefixable_unit auto U> constexpr $tera-t$<decltype(U)> tera;
+template<prefixable_unit auto U> constexpr $peta-t$<decltype(U)> peta;
+template<prefixable_unit auto U> constexpr $exa-t$<decltype(U)> exa;
+template<prefixable_unit auto U> constexpr $zetta-t$<decltype(U)> zetta;
+template<prefixable_unit auto U> constexpr $yotta-t$<decltype(U)> yotta;
+template<prefixable_unit auto U> constexpr $ronna-t$<decltype(U)> ronna;
+template<prefixable_unit auto U> constexpr $quetta-t$<decltype(U)> quetta;
 
 } // namespace std::si
 ```
 
-This introduces **48 names** in `std::si` (24 class templates + 24 variable templates).
+This introduces **24 names** in `std::si`, the variable templates.
 
 ## SI Units
 
@@ -431,26 +475,46 @@ inline constexpr auto kilogram = kilo<gram>;
 inline constexpr struct ampere : named_unit<"A", kind_of<isq::electric_current>> {} ampere;
 inline constexpr struct kelvin : named_unit<"K", kind_of<isq::thermodynamic_temperature>> {} kelvin;
 inline constexpr struct mole    : named_unit<"mol", kind_of<isq::amount_of_substance>> {} mole;
-inline constexpr struct candela : named_unit<"cd", kind_of<isq::luminous_intensity>> {} candela;
+
+template<isq::PhotometricCondition auto C = isq::photopic_vision>
+struct $candela-t$;
+template<>
+struct $candela-t$<isq::photopic_vision> : named_unit<"cd", kind_of<isq::luminous_intensity>> {};
+template<isq::PhotometricCondition auto C>
+struct $candela-t$ : named_unit<"cd", $candela-t$<>{}, kind_of<isq::luminous_intensity_of<C>>> {};
+template<isq::PhotometricCondition auto C = isq::photopic_vision>
+constexpr $candela-t$<C> candela_of;
+inline constexpr auto candela = candela_of<>;
 
 } // namespace std::si
 ```
 
-This introduces **8 names** in `std::si`. Note that `kilogram` is defined as `kilo<gram>`
-rather than as a primary unit. This is by design: because `kilogram` already carries the `kilo`
-prefix, SI prefixes must be applied to `gram` (e.g., `milli<gram>`, `micro<gram>`). The library
-models this correctly by treating `gram` as the prefixable base and deriving `kilogram` from it.
+This introduces **9 names** in `std::si`: 7 base units, `kilogram`, and the `candela_of` variable
+template. The candela of a condition other than photopic
+vision is defined in terms of the photopic one, so all of them are the same unit of measurement.
 
-Under the absolute quantities model from [@P4185R0_PRE], `kelvin` requires no explicit point origin.
+Note that `kilogram` is defined as `kilo<gram>` rather than as a primary unit. This is by design:
+because `kilogram` already carries the `kilo` prefix, SI prefixes must be applied to `gram` (e.g.,
+`milli<gram>`, `micro<gram>`). The library models this correctly by treating `gram` as the
+prefixable base and deriving `kilogram` from it.
+
+The names follow the spelling of the English text of the SI Brochure [@SI]: `metre` here, and
+`litre` and `tonne` among the non-SI units below. The United States uses `meter`, `liter`, and the
+prefix `deka`, as in NIST Special Publication 330. An alias such as
+`inline constexpr auto meter = metre;` would make both spellings compile, but a diagnostic names the
+type, so it would still say `metre`. This paper proposes only the SI spelling. Adding the aliases,
+or switching to the US spelling, is a choice for LEWG.
+
+Under the absolute quantities model from [@P4185R2_PRE], `kelvin` requires no explicit point origin.
 A `quantity<si::kelvin>` is intrinsically absolute — `28 * K` compiles and produces an absolute
-thermodynamic temperature directly. In the pre-P4185 design ([@P3045R8_PRE]), `kelvin` had to declare
+thermodynamic temperature directly. In the pre-P4185 design ([@P3045R10_PRE]), `kelvin` had to declare
 `absolute_zero` as an `absolute_point_origin`, which prevented the multiply syntax from being
-used and forced users to write `absolute_zero + 28 * K` instead.
+used and forced users to write `point<K>(28)` or `delta<K>(28)` instead.
 
 ### Derived Units with Special Names
 
-SI defines 22 coherent derived units with special names, plus three temperature-related
-definitions (`absolute_zero`, `ice_point`, `degree_Celsius`):
+SI defines 22 coherent derived units with special names, among them `degree_Celsius`, whose point
+origin is `ice_point`. The block also declares the point origin `absolute_zero`:
 
 ```cpp
 namespace std::si {
@@ -458,20 +522,20 @@ namespace std::si {
 inline constexpr struct radian    : named_unit<"rad", metre / metre, kind_of<isq::angular_measure>> {} radian;
 inline constexpr struct steradian : named_unit<"sr",  square(metre) / square(metre), kind_of<isq::solid_angular_measure>> {} steradian;
 inline constexpr struct hertz   : named_unit<"Hz",  one / second, kind_of<isq::frequency>> {} hertz;
-inline constexpr struct newton  : named_unit<"N",   kilogram * metre / square(second), kind_of<isq::force>> {} newton;
-inline constexpr struct pascal  : named_unit<"Pa",  newton / square(metre), kind_of<isq::pressure>> {} pascal;
-inline constexpr struct joule   : named_unit<"J",   newton * metre, kind_of<isq::energy>> {} joule;
+inline constexpr struct newton  : named_unit<"N",   kilogram * metre / square(second)> {} newton;
+inline constexpr struct pascal  : named_unit<"Pa",  newton / square(metre)> {} pascal;
+inline constexpr struct joule   : named_unit<"J",   newton * metre> {} joule;
 // No kind_of: W is shared by isq::power, isq::heat_flow_rate, isq::radiant_flux, etc.
 inline constexpr struct watt    : named_unit<"W",   joule / second> {} watt;
 // No kind_of: C is shared by isq::electric_charge and isq::electric_flux (different ISQ hierarchies).
 inline constexpr struct coulomb : named_unit<"C",   ampere * second> {} coulomb;
-inline constexpr struct volt    : named_unit<"V",   watt / ampere, kind_of<isq::electric_potential>> {} volt;
-inline constexpr struct farad   : named_unit<"F",   coulomb / volt, kind_of<isq::capacitance>> {} farad;
-inline constexpr struct ohm     : named_unit<symbol_text{u8"Ω", "ohm"}, volt / ampere, kind_of<isq::impedance>> {} ohm;
-inline constexpr struct siemens : named_unit<"S",   one / ohm, kind_of<isq::admittance>> {} siemens;
+inline constexpr struct volt    : named_unit<"V",   watt / ampere> {} volt;
+inline constexpr struct farad   : named_unit<"F",   coulomb / volt> {} farad;
+inline constexpr struct ohm     : named_unit<symbol_text{u8"Ω", "ohm"}, volt / ampere> {} ohm;
+inline constexpr struct siemens : named_unit<"S",   one / ohm> {} siemens;
 // No kind_of: Wb is shared by isq::magnetic_flux, isq::protoflux, isq::linked_magnetic_flux, etc.
 inline constexpr struct weber   : named_unit<"Wb",  volt * second> {} weber;
-inline constexpr struct tesla   : named_unit<"T",   weber / square(metre), kind_of<isq::magnetic_flux_density>> {} tesla;
+inline constexpr struct tesla   : named_unit<"T",   weber / square(metre)> {} tesla;
 // No kind_of: H is shared by isq::inductance and isq::permeance (different ISQ hierarchies).
 inline constexpr struct henry   : named_unit<"H",   weber / ampere> {} henry;
 
@@ -479,23 +543,39 @@ inline constexpr struct absolute_zero : relative_point_origin<point<kelvin>(0)> 
 inline constexpr struct ice_point : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
 inline constexpr struct degree_Celsius : named_unit<symbol_text{u8"℃", "`C"}, kelvin, ice_point> {} degree_Celsius;
 
-inline constexpr struct lumen     : named_unit<"lm",  candela * steradian, kind_of<isq::luminous_flux>> {} lumen;
-inline constexpr struct lux       : named_unit<"lx",  lumen / square(metre), kind_of<isq::illuminance>> {} lux;
 inline constexpr struct becquerel : named_unit<"Bq",  one / second, kind_of<isq::activity>> {} becquerel;
 inline constexpr struct gray      : named_unit<"Gy",  joule / kilogram, kind_of<isq::absorbed_dose>> {} gray;
 inline constexpr struct sievert   : named_unit<"Sv",  joule / kilogram, kind_of<isq::dose_equivalent>> {} sievert;
 inline constexpr struct katal     : named_unit<"kat", mole / second, kind_of<isq::catalytic_activity>> {} katal;
 
+template<isq::PhotometricCondition auto C = isq::photopic_vision>
+struct $lumen-t$ : named_unit<"lm", candela_of<C> * steradian, kind_of<isq::luminous_flux_of<C>>> {};
+template<isq::PhotometricCondition auto C = isq::photopic_vision>
+constexpr $lumen-t$<C> lumen_of;
+inline constexpr auto lumen = lumen_of<>;
+
+template<isq::PhotometricCondition auto C = isq::photopic_vision>
+struct $lux-t$ : named_unit<"lx", lumen_of<C> / square(metre), kind_of<isq::illuminance_of<C>>> {};
+template<isq::PhotometricCondition auto C = isq::photopic_vision>
+constexpr $lux-t$<C> lux_of;
+inline constexpr auto lux = lux_of<>;
+
 } // namespace std::si
 ```
 
-This introduces **25 names** in `std::si`: the 22 coherent derived units with special names,
-plus `absolute_zero`, `ice_point`, and `degree_Celsius`.
+This introduces **26 names** in `std::si`: the 22 coherent derived units with special names, the
+`lumen_of` and `lux_of` variable templates, and the point origins `absolute_zero` and `ice_point`.
 
 ::: note
-Four SI named units are deliberately defined without a `kind_of<>` constraint because they
-serve multiple unrelated ISQ quantity hierarchies. Restricting them to a single kind would
-incorrectly reject legitimate uses from the other hierarchies.
+A named derived unit carries a `kind_of<>` constraint only where the SI Brochure keeps its name
+for one quantity (`hertz`, `becquerel`, `gray`, `sievert`, `katal`) or where the library needs the
+distinction itself (`radian`, `steradian`, `lumen`, `lux`). `degree_Celsius` takes its kind from
+`kelvin`. The other twelve carry none. For example, `quantity<isq::torque[si::joule]>` is
+well-formed. ISO 80000-1 notes that the joule is not used for a moment of force, and the library
+leaves that convention to the author.
+
+Four of these units serve multiple unrelated ISQ quantity hierarchies. Restricting them to a single
+kind would incorrectly reject legitimate uses from the other hierarchies.
 
 | Unit          | ISQ quantity hierarchies that use it                                                                                             |
 |---------------|----------------------------------------------------------------------------------------------------------------------------------|
@@ -507,7 +587,7 @@ incorrectly reject legitimate uses from the other hierarchies.
 
 `absolute_zero` is defined as a `relative_point_origin` at `point<kelvin>(0)` — a named origin
 at 0 K — rather than as an `absolute_point_origin`. Under the absolute quantities model from
-[@P4185R0_PRE], the natural zero of `isq::thermodynamic_temperature` is implicit in every kelvin
+[@P4185R2_PRE], the natural zero of `isq::thermodynamic_temperature` is implicit in every kelvin
 quantity; there is no need for an independent origin declaration. `absolute_zero` is retained as
 a named convenience for the `temp - absolute_zero` idiom and for explicit zero-point arithmetic.
 `ice_point` is defined as an offset of 273.150 K from that same natural zero, and `degree_Celsius`
@@ -517,14 +597,13 @@ is the unit for quantities anchored at `ice_point`.
 
 | Component                          | Names introduced |
 |------------------------------------|------------------|
-| SI prefixes (class templates)      | 24               |
 | SI prefixes (variable templates)   | 24               |
-| SI base units                      | 8                |
-| SI named derived units and origins | 25               |
-| **Total**                          | **81**           |
+| SI base units                      | 9                |
+| SI named derived units and origins | 26               |
+| **Total**                          | **59**           |
 
-Straw poll: _We want `<si_core>` — 81 SI definitions including 24 prefixes, 8 base units, and
-25 derived units and origins — to be standardized as part of the quantities and units library._
+Straw poll: _We want `<si_core>` — 59 SI definitions including 24 prefixes, the base units, and
+the derived units and origins — to be standardized as part of the quantities and units library._
 
 # Optional: Non-SI Units Accepted for Use with SI (`<si_accepted_units>`)
 
@@ -598,13 +677,12 @@ included as part of the quantities and units library._
 
 # Optional: SI-Defining Constants (`<si_constants>`)
 
-`<si_constants>` provides the seven exact constants that define the 2019 SI, plus a small
-set of derived constants in common use. These constants appear directly in physical equations
-(E = mc², Planck's law, the ideal gas law, etc.) and, because they are `named_constant`
-objects, they are unit-like: they embed in the types of quantity expressions. A function
-returning `quantity<si::speed_of_light_in_vacuum * si::second>` has a type that is only
-compatible with other code that names the same constant. Standardizing these definitions
-therefore matters for library interoperability, not only for scientific computing.
+`<si_constants>` provides the seven exact constants that define the 2019 SI. These constants appear
+directly in physical equations (E = mc², Planck's law, the ideal gas law, etc.) and, because they
+are `named_constant` objects, they are unit-like: they embed in the types of quantity expressions. A
+function returning `quantity<si::speed_of_light_in_vacuum * si::second>` has a type that is only
+compatible with other code that names the same constant. Standardizing these definitions therefore
+matters for library interoperability, not only for scientific computing.
 
 ## Versioning by Inline Subnamespace
 
@@ -650,49 +728,21 @@ inline constexpr struct luminous_efficacy : named_constant<"K_cd", mag<683> * lu
 
 } // namespace si2019
 
-// A selection of derived constants found useful in practice — this list is not exhaustive.
-inline constexpr struct standard_gravity
-  : named_constant<symbol_text{u8"g₀", "g_0"}, mag_ratio<980'665, 100'000> * metre / square(second)> {} standard_gravity;
-
-inline constexpr struct reduced_planck_constant
-  : named_constant<symbol_text{u8"ℏ", "hbar"}, si2019::planck_constant / (mag<2> * π)> {} reduced_planck_constant;
-
-inline constexpr struct magnetic_constant
-  : named_constant<symbol_text{u8"μ₀", "u_0"}, mag<4> * mag_power<10, -7> * π * henry / metre> {} magnetic_constant;
-
 } // namespace std::si
 ```
 
-| Category                         | Count  |
-|----------------------------------|--------|
-| SI-defining constants (`si2019`) | 7      |
-| Derived physical constants       | 3      |
-| **Total**                        | **10** |
-
-This introduces **10 names** in `std::si`: the 7 SI-defining constants (within `si2019`) plus
-3 additional constants (`standard_gravity`, `reduced_planck_constant`, `magnetic_constant`).
-
-::: note
-The three additional constants listed above are a small, arbitrary selection drawn from the
-[mp-units](https://github.com/mpusz/mp-units) library — constants that proved useful in
-practice. This list is neither normative nor complete: there are many other derived constants
-in common use (Faraday constant, Stefan–Boltzmann constant, Rydberg constant, etc.). LEWG
-should treat the question of which derived constants to include as a separate design decision,
-independent of whether the seven SI-defining constants are standardized.
-:::
+This introduces **7 names** in `std::si`, all within `si2019`. Other constants, such as the
+standard acceleration of free fall, the reduced Planck constant, or the magnetic constant, are
+not part of the definition of the SI and are left to a later paper.
 
 ## Why This Is a Separate Chapter
 
-The seven defining constants and any derived constants form a distinct kind of vocabulary: they
-are physical constants, not units, and they raise separate design questions — versioning
-strategy, which derived constants to include, and how many. Separating them into a dedicated
-chapter lets LEWG vote on these questions independently of the unit definitions.
+The seven defining constants form a distinct kind of vocabulary. They are physical constants,
+not units, and they raise their own design question, the versioning strategy. Separating them
+into a dedicated chapter lets LEWG vote on them independently of the unit definitions.
 
 Straw poll: _We want the seven SI-defining constants (`si2019` namespace) to be included as
 part of the quantities and units library._
-
-Straw poll: _We want a selected set of derived physical constants to be included as part of
-the quantities and units library._
 
 # Optional: Unit Symbols (`<si_unit_symbols>`)
 
@@ -807,11 +857,13 @@ namespace std::si::unit_symbols {
 | Non-SI unit symbols                         | 14        |
 | **Total**                                   | **~715+** |
 
-This is deliberately the largest component. For 21 of the 22 named derived SI units, all
-24 SI prefixes are defined; `degree_Celsius` is excluded because prefixed Celsius temperatures
-have no physical meaning for an offset scale (21 × 24 = 504). Units with non-ASCII symbols —
-`Ω` for ohm and `µ` for the micro prefix — additionally provide Unicode aliases, bringing the
-total above 504. The 14 non-SI unit symbols are comparatively modest.
+This is deliberately the largest component. For 21 of the 22 named derived SI units, all 24 SI
+prefixes are defined (21 × 24 = 504). `degree_Celsius` is excluded, as in the reference
+implementation. NIST's guidance on writing SI units permits prefixes on it (12 m°C is its example),
+and the core library accepts `si::milli<si::degree_Celsius>`, so a user can still form one. This
+paper doesn't predefine symbols for them. Units with non-ASCII symbols — `Ω` for ohm and `µ` for
+the micro prefix — additionally provide Unicode aliases, bringing the total above 504. The 14 non-SI
+unit symbols are comparatively modest.
 
 The result is approximately **715+ named constants** in total.
 
@@ -869,19 +921,17 @@ struct quantity_like_traits<chrono::duration<Rep, Period>> {
 
 // Absolute point origin associated with a clock's epoch
 template<typename C>
-struct chrono_point_origin_ : absolute_point_origin<isq::time> {
+struct $chrono-point-origin-t$ : absolute_point_origin<isq::time> {
   using clock = C;
 };
 template<typename C>
-inline constexpr chrono_point_origin_<C> chrono_point_origin;
+inline constexpr $chrono-point-origin-t$<C> chrono_point_origin;
 
 // Customization point specialization enabling conversion between
-// std::chrono::time_point and quantity_point with a clock-based origin.
+// std::chrono::time_point and a point with a clock-based origin.
 template<typename C, typename Rep, typename Period>
-struct quantity_point_like_traits<
-  chrono::time_point<C, chrono::duration<Rep, Period>>> {
-  static constexpr auto reference   = /* SI time unit derived from Period */;
-  static constexpr auto point_origin = chrono_point_origin<C>;
+struct quantity_like_traits<chrono::time_point<C, chrono::duration<Rep, Period>>> {
+  static constexpr auto reference = point</* SI time unit derived from Period */, chrono_point_origin<C>>;
   static constexpr bool explicit_import = false;
   static constexpr bool explicit_export = false;
   using rep = Rep;
@@ -894,8 +944,8 @@ struct quantity_point_like_traits<
 template<quantity_of<isq::duration> Q>
 [[nodiscard]] constexpr auto to_chrono_duration(const Q& q);
 
-template<quantity_point_of<isq::time> QP>
-  requires is_specialization_of<decltype(QP::absolute_point_origin), chrono_point_origin_>
+template<quantity_of<point<isq::time>> QP>
+  requires is_specialization_of<remove_const_t<decltype(QP::absolute_point_origin)>, $chrono-point-origin-t$>
 [[nodiscard]] constexpr auto to_chrono_time_point(const QP& qp);
 
 } // namespace std
@@ -903,21 +953,21 @@ template<quantity_point_of<isq::time> QP>
 
 The period-to-unit mapping covers all standard `std::chrono` periods:
 
-| `chrono` instantiation            | Mapped SI unit        |
-|-----------------------------------|-----------------------|
-| `chrono::nanoseconds`             | `nano<second>`        |
-| `chrono::microseconds`            | `micro<second>`       |
-| `chrono::milliseconds`            | `milli<second>`       |
-| `chrono::seconds`                 | `second`              |
-| `chrono::minutes`                 | `minute`              |
-| `chrono::hours`                   | `hour`                |
-| `chrono::days`                    | `day`                 |
-| `chrono::weeks`                   | `7 * day`             |
-| `chrono::duration<R, ratio<N,D>>` | `ratio<N,D> * second` |
+| `chrono` instantiation            | Mapped SI unit             |
+|-----------------------------------|----------------------------|
+| `chrono::nanoseconds`             | `nano<second>`             |
+| `chrono::microseconds`            | `micro<second>`            |
+| `chrono::milliseconds`            | `milli<second>`            |
+| `chrono::seconds`                 | `second`                   |
+| `chrono::minutes`                 | `minute`                   |
+| `chrono::hours`                   | `hour`                     |
+| `chrono::days`                    | `day`                      |
+| `chrono::weeks`                   | `mag<7> * day`             |
+| `chrono::duration<R, ratio<N,D>>` | `mag_ratio<N, D> * second` |
 
-The `quantity_like_traits` specialization with `explicit_export = false` allows implicit
-construction of a `chrono::duration` from a quantity, but only when the target type is already
-known at the call site:
+The `quantity_like_traits` specialization for `chrono::duration` with
+`explicit_export = false` allows implicit construction of a `chrono::duration` from a quantity,
+but only when the target type is already known at the call site:
 
 ```cpp
 chrono::seconds s = 5 * si::second;    // OK — target type known, implicit export
@@ -936,20 +986,19 @@ auto tp = to_chrono_time_point(qty_point);
 // tp is chrono::time_point<Clock, ...> — clock and period both deduced
 ```
 
-`to_chrono_time_point` additionally requires that the `quantity_point`'s absolute origin is a
-`chrono_point_origin_`, enforcing at compile time that the point is anchored to a clock epoch
-and not to an arbitrary physical reference.
+`to_chrono_time_point` additionally requires that the point's absolute origin is a
+`chrono_point_origin<C>` for some clock `C`, enforcing at compile time that the point is anchored to
+a clock epoch and not to an arbitrary physical reference.
 
 | Category                                  | Count |
 |-------------------------------------------|-------|
 | Customization point specializations       | 2     |
-| Struct templates (`chrono_point_origin_`) | 1     |
 | Variable template (`chrono_point_origin`) | 1     |
 | Function templates (to_chrono_*)          | 2     |
-| **Total**                                 | **6** |
+| **Total**                                 | **5** |
 
-This introduces **2 struct templates**, **1 variable template**, **2 function templates**, and
-**2 specializations** of library customization points.
+This introduces **1 variable template**, **2 function templates**, and **2 specializations** of
+library customization points.
 
 ## Why This Is a Separate Chapter
 
@@ -958,9 +1007,9 @@ library features and depends on `<chrono>`, a hosted-only facility. Separating i
 chapter lets LEWG vote on this integration independently and allows the mandatory core to remain
 usable in freestanding environments.
 
-Straw poll: _We want the `std::chrono` interoperability type traits (`quantity_like_traits`,
-`quantity_point_like_traits`, `chrono_point_origin_`) to be included as part of the quantities
-and units library._
+Straw poll: _We want the `std::chrono` interoperability type traits (the two
+`quantity_like_traits` specializations and `chrono_point_origin`) to be included as part of the
+quantities and units library._
 
 Straw poll: _We want the explicit `to_chrono_duration` and `to_chrono_time_point` conversion
 helpers to be included as part of the quantities and units library._
@@ -990,33 +1039,35 @@ This ensures that, for example, `si::sin(30 * deg)` yields the same result as
 ```cpp
 namespace std::si {
 
-template<reference_of<isq::angular_measure> auto R, typename Rep>
+template<quantity_reference_of<isq::angular_measure> auto R, typename Rep>
   requires requires(Rep v) { sin(v); } || requires(Rep v) { std::sin(v); }
 [[nodiscard]] quantity_of<dimensionless> auto sin(const quantity<R, Rep>& q) noexcept;
 
-template<reference_of<isq::angular_measure> auto R, typename Rep>
+template<quantity_reference_of<isq::angular_measure> auto R, typename Rep>
   requires requires(Rep v) { cos(v); } || requires(Rep v) { std::cos(v); }
 [[nodiscard]] quantity_of<dimensionless> auto cos(const quantity<R, Rep>& q) noexcept;
 
-template<reference_of<isq::angular_measure> auto R, typename Rep>
+template<quantity_reference_of<isq::angular_measure> auto R, typename Rep>
   requires requires(Rep v) { tan(v); } || requires(Rep v) { std::tan(v); }
 [[nodiscard]] quantity_of<dimensionless> auto tan(const quantity<R, Rep>& q) noexcept;
 
-template<reference_of<dimensionless> auto R, typename Rep>
+template<quantity_reference_of<dimensionless> auto R, typename Rep>
   requires requires(Rep v) { asin(v); } || requires(Rep v) { std::asin(v); }
 [[nodiscard]] quantity_of<isq::angular_measure> auto asin(const quantity<R, Rep>& q) noexcept;
 
-template<reference_of<dimensionless> auto R, typename Rep>
+template<quantity_reference_of<dimensionless> auto R, typename Rep>
   requires requires(Rep v) { acos(v); } || requires(Rep v) { std::acos(v); }
 [[nodiscard]] quantity_of<isq::angular_measure> auto acos(const quantity<R, Rep>& q) noexcept;
 
-template<reference_of<dimensionless> auto R, typename Rep>
+template<quantity_reference_of<dimensionless> auto R, typename Rep>
   requires requires(Rep v) { atan(v); } || requires(Rep v) { std::atan(v); }
 [[nodiscard]] quantity_of<isq::angular_measure> auto atan(const quantity<R, Rep>& q) noexcept;
 
 template<auto R1, typename Rep1, auto R2, typename Rep2>
-  requires get_common_reference(R1, R2) &&
-           (requires(Rep1 v1, Rep2 v2) { atan2(v1, v2); } || requires(Rep1 v1, Rep2 v2) { std::atan2(v1, v2); })
+  requires requires(Rep1 v1, Rep2 v2) {
+    get_common_reference(R1, R2);
+    requires requires { atan2(v1, v2); } || requires { std::atan2(v1, v2); };
+  }
 [[nodiscard]] quantity_of<isq::angular_measure> auto atan2(const quantity<R1, Rep1>& y, const quantity<R2, Rep2>& x) noexcept;
 
 } // namespace std::si
@@ -1072,8 +1123,8 @@ enum class prefix_range : uint8_t {
  * Calls func with q rescaled to the SI prefix that gives the numerical value
  * at least min_integral_digits digits in its integral part.
  */
-template<Quantity Q, invocable<Q> Func, PrefixableUnit U, auto Character = quantity_character::real_scalar>
-  requires RepresentationOf<typename Q::rep, Character> && treat_as_floating_point<typename Q::rep> &&
+template<delta_quantity Q, invocable<Q> Func, prefixable_unit U, auto Character = quantity_character{}>
+  requires representation_of<typename Q::rep, Character> && treat_as_floating_point<typename Q::rep> &&
            requires(typename Q::rep v) {
              requires requires { abs(v);   } || requires { std::abs(v);   };
              requires requires { log10(v); } || requires { std::log10(v); };
@@ -1096,7 +1147,7 @@ invoke_with_prefixed([](auto q){ std::print("{}", q); }, 0.003 * m, metre);
 invoke_with_prefixed([](auto q){ std::print("{}", q); }, 1.5e6 * Hz, hertz);
 // prints "1.5 MHz"
 
-invoke_with_prefixed([](auto q){ std::print("{}", q); }, 42 * km, metre, prefix_range::engineering, 2);
+invoke_with_prefixed([](auto q){ std::print("{}", q); }, 42. * km, metre, prefix_range::engineering, 2);
 // prints "42 km"  (at least 2 integral digits requested)
 ```
 
@@ -1126,50 +1177,48 @@ utility — to be included as part of the quantities and units library._
 | Component                                     |          Header           |    Type     | Definitions |
 |-----------------------------------------------|:-------------------------:|:-----------:|:-----------:|
 | ISQ base dimensions                           |   `<isq_si_quantities>`   |  mandatory  |      7      |
-| ISQ base quantities (incl. `time` alias)      |   `<isq_si_quantities>`   |  mandatory  |      8      |
-| ISQ derived quantities for SI (incl. aliases) |   `<isq_si_quantities>`   |  mandatory  |     26      |
-| **ISQ subtotal**                              | **`<isq_si_quantities>`** |             |   **41**    |
-| SI prefixes (class + variable templates)      |        `<si_core>`        |  mandatory  |     48      |
-| SI base units                                 |        `<si_core>`        |  mandatory  |      8      |
-| SI named derived units and origins            |        `<si_core>`        |  mandatory  |     25      |
-| **SI core subtotal**                          |      **`<si_core>`**      |             |   **81**    |
-| **ISQ + SI core total**                       |                           |             |   **122**   |
+| ISQ photometric conditions                    |   `<isq_si_quantities>`   |  mandatory  |      5      |
+| ISQ base quantities (incl. `time` alias)      |   `<isq_si_quantities>`   |  mandatory  |      9      |
+| ISQ derived quantities for SI (incl. aliases) |   `<isq_si_quantities>`   |  mandatory  |     19      |
+| **ISQ subtotal**                              | **`<isq_si_quantities>`** |             |   **40**    |
+| SI prefixes (variable templates)              |        `<si_core>`        |  mandatory  |     24      |
+| SI base units                                 |        `<si_core>`        |  mandatory  |      9      |
+| SI named derived units and origins            |        `<si_core>`        |  mandatory  |     26      |
+| **SI core subtotal**                          |      **`<si_core>`**      |             |   **59**    |
+| **ISQ + SI core total**                       |                           |             |   **99**    |
 | Non-SI units accepted for use with SI         |   `<si_accepted_units>`   |  optional   |     13      |
 | Customization point specializations           |   `<si_accepted_units>`   |  optional   |      3      |
-| SI-defining constants (si2019 + derived)      |     `<si_constants>`      |  optional   |     10      |
+| SI-defining constants (`si2019`)              |     `<si_constants>`      |  optional   |      7      |
 | Unit symbols (SI + non-SI)                    |    `<si_unit_symbols>`    |  optional   |    ~715+    |
-| `std::chrono` interoperability                |       `<si_chrono>`       | hosted only |     ~6      |
+| `std::chrono` interoperability                |       `<si_chrono>`       | hosted only |      5      |
 | Trigonometric math functions                  |        `<si_math>`        | hosted only |      7      |
 | Prefix auto-selection utility                 |    `<si_prefix_utils>`    | hosted only |      2      |
-| **Optional subtotal**                         |                           |             |  **~756+**  |
-| **Grand total**                               |                           |             |  **~878+**  |
+| **Optional subtotal**                         |                           |             |  **~752+**  |
+| **Grand total**                               |                           |             |  **~851+**  |
 
 
 # Consolidated Straw Polls
 
 **Poll 1** (`<isq_si_quantities>`): _We want `<isq_si_quantities>` — the minimal ISQ subset
-(41 definitions) required by `<si_core>` — to be standardized as part of the quantities and
+(40 definitions) required by `<si_core>` — to be standardized as part of the quantities and
 units library._
 
-**Poll 2** (`<si_core>`): _We want `<si_core>` — 81 SI definitions including 24 prefixes,
-8 base units, and 25 derived units and origins — to be standardized as part of the quantities
-and units library._
+**Poll 2** (`<si_core>`): _We want `<si_core>` — 59 SI definitions including 24 prefixes, the
+base units, and the derived units and origins — to be standardized as part of the quantities and
+units library._
 
 **Poll 3** (`<si_accepted_units>`): _We want `<si_accepted_units>` — non-SI units accepted for
 use with SI — to be included as part of the quantities and units library._
 
-**Poll 4a** (`<si_constants>`, defining): _We want the seven SI-defining constants (`si2019`
-namespace) to be included as part of the quantities and units library._
+**Poll 4** (`<si_constants>`): _We want the seven SI-defining constants (`si2019` namespace) to
+be included as part of the quantities and units library._
 
-**Poll 4b** (`<si_constants>`, derived): _We want a selected set of derived physical constants
-to be included as part of the quantities and units library._
-
-**Poll 5** (`<si_unit_symbols>`): _We want `<si_unit_symbols>` — the ~720+ short-form unit
+**Poll 5** (`<si_unit_symbols>`): _We want `<si_unit_symbols>` — the ~715+ short-form unit
 symbol aliases — to be included as part of the quantities and units library._
 
 **Poll 6a** (`<si_chrono>`, traits): _We want the `std::chrono` interoperability type traits
-(`quantity_like_traits`, `quantity_point_like_traits`, `chrono_point_origin_`) to be included
-as part of the quantities and units library._
+(the two `quantity_like_traits` specializations and `chrono_point_origin`) to be included as
+part of the quantities and units library._
 
 **Poll 6b** (`<si_chrono>`, helpers): _We want the explicit `to_chrono_duration` and
 `to_chrono_time_point` conversion helpers to be included as part of the quantities and units
@@ -1188,8 +1237,8 @@ Mateusz's membership in the ISO C++ Committee and the production of this proposa
 
 ---
 references:
-- id: P3045R8_PRE
-  citation-label: P3045R8
+- id: P3045R10_PRE
+  citation-label: P3045R10
   author:
     - family: Pusz
       given: Mateusz
@@ -1206,14 +1255,14 @@ references:
     - family: Reverdy
       given: Vincent
   title: "Quantities and units library"
-  URL: <https://wg21.link/p3045r8>
-- id: P4185R0_PRE
-  citation-label: P4185R0
+  URL: <https://wg21.link/p3045r10>
+- id: P4185R2_PRE
+  citation-label: P4185R2
   author:
     - family: Pusz
       given: Mateusz
   title: "Completing the Mathematical Model for C++ Quantities and Units"
-  URL: <https://wg21.link/p4185r0>
+  URL: <https://wg21.link/p4185r2>
 - id: SI
   citation-label: SI
   title: "SI Brochure: The International System of Units (SI)"
