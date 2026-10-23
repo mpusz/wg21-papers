@@ -21,15 +21,15 @@ encouraged further work on Section 6 "Absolute quantities" of [@P4185R1], and th
 moved to papers of their own so that each can be decided separately. The only dependency of this
 paper is [@P3045R10_PRE].
 
-- The chapter "Non-negative quantities" and its motivation moved to [@NON-NEG], and so did the
+- The chapter "Non-negative quantities" and its motivation moved to [@P4411R0_PRE], and so did the
   runtime checks of the `non_negative` tag on absolute quantities. Absolute quantities no longer
   depend on the tag (see [Sign of an absolute quantity](#absolute-sign)).
-- The chapter "Range-validated quantity points" and the motivation section "Bounded domains"
-  moved to [@BOUNDS], as SG6 encouraged in a poll at Brno 2026. [@BOUNDS] records the poll and
+- The chapter "Range-validated quantity points" and the motivation section "Bounded domains" moved
+  to [@P4412R0_PRE], as SG6 encouraged in a poll at Brno 2026. [@P4412R0_PRE] records the poll and
   lists its changes since R1.
 - The chapter "Integer division safety" and the motivation section "Integer division hazard"
-  moved to [@INT-DIV].
-- The chapter "Comparison against zero" and its motivation section moved to [@ZERO-CMP].
+  moved to [@P4409R0_PRE].
+- The chapter "Comparison against zero" and its motivation section moved to [@P4406R0_PRE].
 - The chapter "Text output for quantity points" and the motivation section "Points without
   output" moved to [@P3045R10_PRE], except for one paragraph on absolute quantities (see
   [Text output](#absolute-text-output)).
@@ -40,9 +40,15 @@ paper is [@P3045R10_PRE].
 - [Implementation experience](#absolute-implementation-experience) added. Absolute quantities are
   implemented on a prototype branch off the version 3 line of the reference implementation, and the
   experience completed the model in several places, among them [unary negation](#absolute-negation),
-  a delta for every absolute in the prototype and now an open question, the concept
+  now conditional on [@P4411R0_PRE], the concept
   `linear_quantity` for what absolutes and deltas share, the common reference of a mixed pair,
   compound assignment, the abstraction of `%` and `fmod`, and the result of `hypot`.
+- A value written with a bare unit is an absolute of a quantity kind, and a kind takes the domain
+  of its root, so if [@P4411R0_PRE] is adopted, `-5. * m` is a contract violation and a signed
+  value is spelled `delta<m>(-5.)`. A vector value written with a bare unit is ill-formed instead
+  of a delta. `si::absolute_zero` is the natural origin of thermodynamic temperature, and an offset
+  unit is a unit whose origin isn't a natural origin, so the kelvin isn't one (see
+  [Temperature revisited](#absolute-temperature)).
 - [Concepts](#absolute-concepts) added. `quantity_of` tells what a quantity can be used as, and
   the abstraction concepts tell what it is.
 - [Averages and centers of mass](#averaging) added, to answer a question SG6 asked at Brno 2026.
@@ -215,9 +221,9 @@ the [@MP-UNITS] documentation illustrates the same pattern in embedded systems: 
 maps a physical voltage range to integer counts, and the measured voltage is an absolute
 scalar quantity, not a difference. Users have independently requested the same ergonomic
 improvements for such cases (see [mp-units discussion #606](https://github.com/mpusz/mp-units/discussions/606)).
-The solution, described in [Temperature revisited](#absolute-temperature), changes the very
-definition of the Kelvin unit so that `28 * K` creates an absolute thermodynamic temperature
-directly, without any conversion idiom.
+The solution, described in [Temperature revisited](#absolute-temperature), makes `absolute_zero`
+the natural origin of thermodynamic temperature, so that the kelvin isn't an offset unit and
+`28 * K` creates an absolute thermodynamic temperature directly, without any conversion idiom.
 
 ## Mass balance and accumulation {#mass-balance}
 
@@ -314,7 +320,8 @@ both, and this paper doesn't enforce the sign (see [Sign of an absolute quantity
 Points on a scale with a non-trivial lower bound but _no_ distinguished absolute origin occupy a
 fourth abstraction in [@ROSTEN2025]: the **convex space**, a half-line whose lower bound is fixed
 but not zero. The Celsius scale is the canonical example: `ice_point` is a `relative_point_origin`
-offset by 273.15 K from the natural zero of the temperature kind, so the lower bound of 0 K
+offset by 273.15 K from `si::absolute_zero`, the natural origin of thermodynamic temperature (see
+[Temperature revisited](#absolute-temperature)), so the lower bound of 0 K
 corresponds to −273.15 °C on the Celsius scale. This paper models such scales with points.
 
 ## Syntax {#absolute-syntax}
@@ -339,6 +346,14 @@ This mirrors the way physicists write equations: $m = 10\ \mathrm{kg}$ denotes a
 mass, with an explicit $\Delta$ only when a difference is intended. Please note that making
 `quantity` default to absolute is a **breaking change** relative to [@P3045R10_PRE], where
 `quantity` is a delta.
+
+A bare unit means an amount. `20 * kg` is an absolute of the quantity kind `kind_of<isq::mass>`,
+and it is an absolute whatever its sign. A signed value of a kind, such as a change, is spelled
+as a delta: `delta<m>(-5.)` is a displacement of 5 m in the negative direction, and `delta<K>(-5.)`
+is a temperature change. A position on a scale is spelled as a point and picks an origin. If
+[@P4411R0_PRE] is adopted, a quantity kind takes the domain of its root, so `-5. * m`, `-1 * kg`,
+and `-5. * K` are contract violations, while `-5. * A` isn't, since an electric current can be
+negative (see [Sign of an absolute quantity](#absolute-sign)).
 
 ## Absolute quantities are not points {#abs-vs-point}
 
@@ -398,18 +413,21 @@ The quantity specification decides first. A specification of vector or tensor ch
 `delta<isq::velocity[m / s]>` names that same reference, as `point<deg_C, si::ice_point>` names
 `point<deg_C>`. A vector quantity needs no `delta` either as a value or as a type:
 `isq::velocity(5. * m / s)` is a `quantity<isq::velocity[m / s], double>`, a velocity along one
-axis, and `isq::velocity(vec * m / s)` is a `quantity<isq::velocity[m / s], vec3>`, and both are
-deltas. Only a quantity kind, the specification of a bare unit such as `m` or `m / s`, admits every
-tensor order, and there the representation decides: `5. * m` is an absolute, while `vec * m`,
-`quantity{vec, m}`, and a scalar quantity scaled by a vector are deltas of type
-`quantity<delta<m>, vec3>`, since a reference can't depend on the representation. A bare unit names
-no specification to ask, so the representation is the only key left, and naming the quantity
-removes that dependence. A point
-reference stays a point (`point<isq::position_vector[m]>(vec)` is a point). The scalar field, real
-or complex, plays no role: a complex scalar (an impedance, a complex power) has a true zero and is
-an absolute, and `modulus()` of it is specified as a real absolute (not yet in the prototype). A
-vector delta has no `.absolute()`, and its `magnitude()` is an absolute scalar. A component
-vector of a vector delta is a delta along an axis, even though its representation is a scalar.
+axis, and `vec * isq::velocity[m / s]` is a `quantity<isq::velocity[m / s], vec3>`, and both are
+deltas. A bare unit such as `m` or `m / s` names a quantity kind, and its plain reference is an
+absolute reference whatever the representation, so a vector value can't be stored under it:
+`vec * (m / s)` and `quantity{vec, m / s}` are ill-formed. A result computed from a vector is a
+delta: `(2. * m) * vec` scales an absolute by a vector number, and a vector is never an absolute. A
+vector of a kind is spelled `delta<m / s>(vec)`,
+or the quantity is named, as in `vec * isq::velocity[m / s]`. The storage type doesn't change the
+abstraction of a quantity, as it already doesn't for a named specification. A point
+reference stays a point (`point<isq::position_vector[m]>(vec)` is a point), and a vector point
+needs a specification of vector character, so `point<m>(vec)` is ill-formed, as `vec * m` is.
+The scalar field, real or complex, plays no role: a complex scalar (an impedance, a complex power)
+has a true zero and is an absolute, and `modulus()` of it is specified as a real absolute (not yet
+in the prototype). A vector delta has no `.absolute()`, and its `magnitude()` is an absolute
+scalar. A component vector of a vector delta is a delta along an axis, even though its
+representation is a scalar.
 
 ## Conversions between abstractions {#absolute-conversions}
 
@@ -452,8 +470,7 @@ quantity<isq::mass[kg]> amount = change.absolute();
 quantity<isq::mass[kg]> size   = abs(change);      // |change|
 
 // Delta → Point: origin + delta
-quantity<point<isq::length[m]>> pos =
-    natural_point_origin<isq::length> + delta<isq::length[m]>(3);
+quantity<point<isq::length[m]>> pos = natural_point_origin<isq::length> + delta<isq::length[m]>(3);
 
 // ── From Point ─────────────────────────────────────────────────────────────────────────
 quantity<point<isq::thermodynamic_temperature[K]>> boiling{373.15 * K};
@@ -467,7 +484,7 @@ quantity<isq::thermodynamic_temperature[K]> t_abs = boiling.absolute();
 ```
 
 An absolute may be negative in this paper, so `.absolute()` doesn't check the value, and a sign
-check for non-negative quantities is left to [@NON-NEG]. The conversion is still explicit. A delta
+check for non-negative quantities is left to [@P4411R0_PRE]. The conversion is still explicit. A delta
 is a change, and an absolute is an amount measured from the true zero of its scale. Using one as
 the other is the mistake of [The temperature trap]: a temperature change of 28 K passed where a
 temperature of 28 K is needed. An implicit conversion would let that mistake compile, so
@@ -603,6 +620,7 @@ quantity transferred = (before - after).absolute();  // quantity<isq::mass[kg]>
 | Delta × Delta             | Delta    | A product of two changes (see [Products and quotients of two deltas])                |
 | Delta / Delta             | Delta    | A rate of change (velocity = displacement / duration)                                |
 | `abs(delta_real_scalar)`  | Absolute | Magnitude of a scalar delta                                                          |
+| `pow<N>(delta_scalar)`    | Absolute | An even integral `N`: a power of one value can't be negative                         |
 | `modulus(complex_scalar)` | Absolute | Modulus of a complex number                                                          |
 | `magnitude(delta_vector)` | Absolute | Magnitude of a vector delta (speed = magnitude(velocity))                            |
 | `a % b`, `fmod(a, b)`     | Dividend | The abstraction of the dividend, whose sign the remainder has                        |
@@ -631,61 +649,150 @@ and `(Δa * Δb) / Δc` an absolute. Three alternative rules work for every grou
   reference then carries an integer instead of a flag.
 
 This paper proposes the first rule, which is the one the table above uses. In the examples of
-[@MP-UNITS], it costs four `.absolute()` calls, each after a quotient of two deltas: a Kalman gain,
-the ratio of two variances that are squares of deltas, a glide distance computed from two altitude
-differences, and the durations of an aircraft tow and of a climb in a thermal, each a height change
-divided by a rate of climb.
+[@MP-UNITS], it costs three `.absolute()` calls, each after a quotient of two deltas: a glide
+distance computed from two altitude differences, and the durations of an aircraft tow and of a
+climb in a thermal, each a height change divided by a rate of climb.
+
+A power sees one value. For a real value, `pow<N>(Δx)` with an even integral `N` can't be negative,
+so it is an absolute, as `abs(Δx)` and `hypot(Δx, Δy)` are. This keeps
+`sqrt(pow<2>(Δx) + pow<2>(Δy))` and `hypot(Δx, Δy)` the same type. `Δx * Δx` stays a delta,
+because a product doesn't record that both operands are one value. Odd powers stay deltas, and so
+does a power of a vector.
+
+In the Kalman filter examples of [@MP-UNITS], the rule makes a variance, the square of a standard
+deviation, an absolute, so the Kalman gain, a ratio of two variances, needs no `.absolute()`. Before
+the rule it needed one, as a quotient of two deltas. The call moves to the covariance update
+$(1 - K) P$: `1 - K` is the difference of two absolutes, and so a delta, while the gain is never
+above one, and `.absolute()` checks that the updated variance isn't negative.
 
 ### Sign of an absolute quantity {#absolute-sign}
 
 An absolute quantity is anchored at a true zero, and nothing in this paper constrains its sign.
 An electric current is positive or negative relative to the reference direction chosen for it, and
 under the load sign convention a reactive power is positive for an inductive load and negative for
-a capacitive one, while both have a physically meaningful zero. If [@NON-NEG] is adopted,
+a capacitive one, while both have a physically meaningful zero. If [@P4411R0_PRE] is adopted,
 absolute quantities are where its `non_negative` tag is checked on values, and
-[@NON-NEG] describes where the checks run and why they can't be elided further.
+[@P4411R0_PRE] describes where the checks run and why they can't be elided further.
+
+With [@P4411R0_PRE], the abstraction decides which values its check applies to. A delta is never
+checked, as a change can have either sign. An absolute is checked when its quantity specification
+is non-negative. A quantity kind `kind_of<QS>` is defined only for a root `QS` and takes the domain
+of that root, so `kind_of<isq::length>`, `kind_of<isq::mass>`, and
+`kind_of<isq::thermodynamic_temperature>` are non-negative, while `kind_of<isq::electric_current>`
+isn't. A value written with a bare unit is an absolute of a kind, so `-5. * m` and `-5. * K` are
+contract violations, and a signed value is spelled `delta<m>(-5.)` or `delta<K>(-5.)`. An unnamed
+specification, such as `isq::mass / isq::volume`, is never non-negative. A point is checked when
+its own specification is non-negative and the chain of its origins ends at a natural origin, so
+`point<deg_C>(-300.)` is a violation through `ice_point`, and a point measured from an
+`independent_point_origin`, such as an epoch or a tare, never is. A `possibly_negative`
+specification under a non-negative parent, such as _effective mass_ under _mass_, keeps the units
+and the natural origin of its parent and is never checked.
+
+### For discussion: a negative value written with a bare unit {#absolute-negative-bare-unit}
+
+This consequence of the model is the one users will hit first, and SG6 is asked to discuss it
+explicitly. With absolute quantities and [@P4411R0_PRE] adopted, a value written with a bare unit
+is a checked absolute of its kind. Code that writes `-5. * K` to mean "5 K colder" is a contract
+violation, and the change has to be spelled as a delta:
+
+```cpp
+quantity t1 = -5. * K;           // ✗ contract violation: a temperature 5 K below absolute zero
+quantity t2 = delta<K>(-5.);     // ✓ a temperature change of -5 K
+
+quantity o1 = -3. * m;           // ✗ contract violation: a negative length
+quantity o2 = delta<m>(-3.);     // ✓ an offset of -3 m
+
+quantity e1 = -1. * s;           // ✗ contract violation: a negative duration
+quantity e2 = delta<s>(-1.);     // ✓ one second earlier
+```
+
+The rule is consistent with the rest of the model: `28 * K` is a temperature, so `-5. * K` is a
+temperature below absolute zero, and a value doesn't change its abstraction with its sign. The
+cost is that the shortest spelling of a signed change in a unit of a non-negative kind is now
+wrong. In a constant expression evaluated under a checking contract semantic, such as
+`constexpr quantity t = -5. * K;`, the violation fails to compile. At run time it is a contract
+violation only when the check runs, and under a semantic that doesn't check, the negative absolute
+is stored silently. The prototype implements this check: with gsl-lite as its contract backend,
+`constexpr quantity t = -5. * K;` doesn't compile, and `-5. * K`, `-1 * kg`, and `-1. * s`
+evaluated at run time terminate. Values of a kind that admits negative values, such as `-5. * A`,
+are unaffected.
+
+The order of evaluation makes the rule reach further than these three lines suggest.
+[@P3045R10_PRE] extended the multiply syntax from `number * unit` to `quantity * unit` and
+`quantity / unit` (see its chapter "Multiply syntax commutativity"), so `1 * m / s` is two
+operations, and its intermediate result `1 * m` is a quantity of its own. With checked absolutes,
+that intermediate can fail where the whole expression wouldn't, and the same happens before a
+conversion to a signed quantity:
+
+```cpp
+quantity v1 = -1. * m / s;               // ✗ contract violation: (-1. * m) is a negative length
+quantity v2 = -1. * (m / s);             // unchecked, as an expression's kind is never non-negative,
+                                         //   but still a negative absolute
+quantity v3 = delta<m / s>(-1.);         // ✓ a signed velocity component is a change
+
+quantity a1 = isq::altitude(-5. * m);    // ✗ contract violation: -5. * m is a negative length
+quantity a2 = isq::altitude[m](-5.);     // ✓ altitude is signed
+quantity a3 = -5. * isq::altitude[m];    // ✓
+```
+
+Under the model, `v1` and `v2` are both wrong spellings of a signed value, and `v2` passes only
+because an expression carries no sign. The parentheses decide whether the mistake is caught. SG6
+is asked to choose between:
+
+- keeping the multiply syntax of [@P3045R10_PRE], and teaching `delta<m / s>(-1.)` as the spelling
+  of a signed value: `v1` is then a violation that points at that spelling;
+- restricting the multiply syntax to `number * unit`, so that `quantity * unit` and
+  `quantity / unit` are ill-formed: `v1` becomes a compile-time error instead of a run-time one, at
+  the cost of writing every `42 * m / s` as `42 * (m / s)` in existing code, which the extension
+  of [@P3045R10_PRE] was added to avoid;
+- not checking a value written with a bare unit at all, which also leaves `-5. * K` unchecked.
+
+The author proposes the first option.
 
 ### Unary negation {#absolute-negation}
 
-What `-x` yields for an absolute `x` is an open question, and SG6 guidance is welcome. The
-prototype implements rule 1 below. The author prefers rule 2 if [@NON-NEG] is adopted, and rule 1
-otherwise.
+The negation of an amount is the change that cancels it, so `-mass` is never a mass, while the
+negation of an electric current is a current flowing the other way. Which of the two applies
+depends on whether the quantity can be negative, which is what the `non_negative` tag of
+[@P4411R0_PRE] states. The rule for `-x` therefore depends on whether that paper is adopted.
 
-**Rule 1: a delta for every absolute.** `-x` yields a delta of the same quantity specification.
-The negation of an amount is the change that cancels it, and `-mass` is never a mass. The result
-type follows from the abstraction of the operand alone. `-x` and `-1 * x` then differ in type:
-`-1 * x` stays an absolute, by the scalar row of the multiplication table.
+**If [@P4411R0_PRE] is adopted,** `-x` keeps the absolute abstraction when the quantity
+specification of `x`, named or a quantity kind, admits negative values. It yields a delta for a
+`non_negative` specification, a kind whose root is `non_negative`, and an unnamed derived
+specification, whose sign the library doesn't infer from a quantity equation. A kind takes the
+domain of its root, so `-(5. * A)` keeps the absolute abstraction and `-(2. * kg)` doesn't:
 
 ```cpp
+quantity<isq::electric_current[A]> I1 = ..., I2 = ...;
+quantity<isq::electric_current[A]> I3 = -(I1 + I2);  // an absolute current, as Kirchhoff's law needs
+
 quantity<isq::kinetic_energy[J]> Ek = ...;
 quantity<isq::thermodynamic_temperature[K]> T = ...;
-
 auto ratio = -Ek / T;    // delta<kinetic_energy> / absolute<temperature> = delta<...>
 auto Ek2 = abs(-Ek);     // the magnitude of a delta is an absolute again
 ```
 
-The cost falls on quantities whose absolutes can be negative, such as electric current, electric
-charge, or reactive power. In `I3 = -(I1 + I2)` with three electric currents, the right-hand side
-is a delta, and storing it in a current needs `.absolute()`, while `-1 * (I1 + I2)` stays an
-absolute. Domain experts may find that cumbersome.
+The cost is that the result type of `-x` depends on the quantity specification, so generic code
+that negates an absolute has to allow for both outcomes. Algebraically equal spellings can differ as
+well: `-I1 - I2` subtracts an absolute from an absolute and is a delta (see
+[Algebraic-equivalence asymmetry](#abs-algebraic-equivalence)). The abstraction already depends on the
+specification elsewhere, as a vector specification is never an absolute, and generic code that
+needs a delta writes `-x.delta()`.
 
-**Rule 2: an absolute only for a named specification that admits negative values.** `-x` keeps the
-absolute abstraction when `x` has a named quantity specification that admits negative values, and
-yields a delta otherwise: for a `non_negative` specification ([@NON-NEG]), a quantity kind, or an
-unnamed derived specification. A kind spans its whole tree, which can hold quantities of both
-domains (in the tree of _mass_, [@NON-NEG] marks _effective mass_ `possibly_negative` and _mass_
-itself `non_negative`), and the library doesn't infer non-negativity from a quantity equation, so both
-cases are treated as possibly non-negative. `I3 = -(I1 + I2)` with three `isq::electric_current`
-values is then an absolute current, and `-x` and `-1 * x` agree for it. Once [@NON-NEG] tags
-`isq::mass` `non_negative`, `-(1 * isq::mass[kg])` is a delta, as under rule 1, and so is
-`-(2. * kg)`. The cost is that the result type of `-x` depends on the quantity specification, so
-generic code that negates an absolute has to allow for both outcomes. Without [@NON-NEG], no specification
-has the tag, every named specification would keep the absolute abstraction, and the author prefers
-rule 1.
+**Without [@P4411R0_PRE],** no specification has the tag, and the rule above would keep the absolute
+abstraction for every named specification and kind, `-mass` included, so `-x` is a delta for every
+absolute instead. The result type follows from the abstraction of the operand alone, and the cost
+falls on quantities whose absolutes can be negative, such as electric current, electric charge, or reactive
+power: in `I3 = -(I1 + I2)` the right-hand side is a delta, and storing it in a current needs
+`.absolute()`.
+
+The prototype implements the rule for an adopted [@P4411R0_PRE], with its `non_negative` tags. It
+first made `-x` a delta for every absolute. Switching changed no test result and no example output,
+and static tests were added for negations that give an absolute and for negations that give a delta.
 
 Under either rule, `-1 * x` scales an absolute by a number and stays an absolute, so it can differ
-in type from `-x`. If [@NON-NEG] is adopted, its sign check rejects `-1 * isq::mass[kg]`, a
-negative amount, while `-(1 * isq::mass[kg])` is a delta under both rules.
+in type from `-x`. If [@P4411R0_PRE] is adopted, its sign check rejects `-1 * isq::mass[kg]` and
+`-1 * kg`, each a negative amount, while `-(1 * isq::mass[kg])` and `-(1 * kg)` are deltas.
 
 ## Design rationale: the zero-anchor principle {#abs-delta-rationale}
 
@@ -725,7 +832,7 @@ that. This was rejected for three reasons:
    `abs ± delta` may be negative at runtime, but so may `abs × scalar`: a negative scalar
    drives the result below zero, yet `Absolute × Scalar → Absolute` was never in doubt.
    Whether a value is in range is a property of the value, and a check on the value answers
-   it, such as the one [@NON-NEG] proposes. A type demotion doesn't.
+   it, such as the one [@P4411R0_PRE] proposes. A type demotion doesn't.
 
 2. It conflates abstraction with value constraint. Possibly-negative absolutes like
    `reactive_power` belong on a ratio scale regardless of their sign. Under universal
@@ -765,8 +872,8 @@ quantity consumption = delta<isq::mass[kg]>(600.);  // delta: how much the maneu
 fuel -= consumption;                                // absolute: −100 kg
 ```
 
-This paper accepts the −100 kg absolute. If [@NON-NEG] is adopted, its sign check rejects it, as the
-prototype does.
+This paper accepts the −100 kg absolute. If [@P4411R0_PRE] is adopted, its sign check rejects it, as
+the prototype does.
 
 The model is the problem. A delta is a change of something, and the change this maneuver makes to
 the tank is −600 kg, not +600 kg. The mass the maneuver burns is an amount: it is measured from
@@ -830,22 +937,27 @@ in [@P3045R10_PRE].
 ## Temperature revisited {#absolute-temperature}
 
 With absolute quantities, the temperature use case from [The temperature trap](#temp-trap) is
-resolved. The key change is in how the Kelvin unit is defined.
+resolved. The key change is in what an offset unit is and in how `absolute_zero` is defined.
 
-In [@P3045R10_PRE], `kelvin` declares `absolute_zero` as its explicit point origin, which
-triggers the multiply syntax restriction and prevents `28 * K` from compiling. Under the absolute
-quantities model, `kelvin` no longer needs a declared point origin, which removes the multiply
-syntax restriction. `absolute_zero` is retained as a named `relative_point_origin` at 0 K to support
-scenarios like the `temp - absolute_zero` idiom shown in [The temperature trap](#temp-trap).
-`ice_point` is defined as an offset in millikelvin from the natural zero:
+In [@P3045R10_PRE], `absolute_zero` is an `absolute_point_origin`, and `kelvin` declares it as its
+point origin, which triggers the multiply syntax restriction and prevents `28 * K` from compiling.
+Under the absolute quantities model, an **offset unit** is a unit whose point origin is not a
+natural origin, that is, doesn't compare equal to `natural_point_origin<QS>`. The natural origin of
+a kind marks the same true zero as the natural origin of a quantity of that kind, so
+`natural_point_origin<isq::thermodynamic_temperature>` and
+`natural_point_origin<kind_of<isq::thermodynamic_temperature>>` compare equal.
+`si::absolute_zero` is the natural origin of thermodynamic temperature under a name of its own, and
+`kelvin` keeps naming it as its origin, so the kelvin is not an offset unit. The name exists so that
+the `temp - absolute_zero` idiom of [The temperature trap](#temp-trap) keeps working and so that
+types print a meaningful origin. `ice_point` stays a relative origin, an offset in millikelvin from
+the kelvin scale, so `degree_Celsius` is an offset unit, and so is `degree_Fahrenheit`. In the
+prototype, `natural_point_origin_` is the class type of `natural_point_origin`:
 
 ```cpp
-inline constexpr struct kelvin : named_unit<"K", kind_of<isq::thermodynamic_temperature>> {} kelvin;
+inline constexpr struct absolute_zero : natural_point_origin_<kind_of<isq::thermodynamic_temperature>> {} absolute_zero;
+inline constexpr struct kelvin : named_unit<"K", kind_of<isq::thermodynamic_temperature>, absolute_zero> {} kelvin;
 
-// absolute_zero: kept as a named origin for the (temp − absolute_zero) idiom
-inline constexpr struct absolute_zero : relative_point_origin<point<kelvin>(0)> {} absolute_zero;
-
-// Celsius chain — offset value 273.150 K unchanged
+// Celsius chain: offset value 273.150 K unchanged
 inline constexpr struct ice_point : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
 inline constexpr struct degree_Celsius : named_unit<symbol_text{u8"°C", "`C"}, kelvin, ice_point> {} degree_Celsius;
 ```
@@ -872,7 +984,7 @@ When working with Celsius input, the conversion path is explicit but straightfor
 ```cpp
 // auto T = 28. * deg_C;                 // still does not compile — offset unit
 quantity temp = point<deg_C>(28.);       // 28 °C on the Celsius scale
-// quantity T = temp.absolute();         // does not compile — offset unit, no natural_point_origin
+// quantity T = temp.absolute();         // does not compile: the origin is ice_point, not a natural one
 quantity T = temp.in(K).absolute();      // 301.15 K — absolute temperature
 quantity R_calc = P * V / (n * T);       // compiles, correct
 ```
@@ -883,8 +995,19 @@ ratio-scale magnitude (thermodynamic temperature measured from absolute zero). T
 replaces the [@P3045R10_PRE] workaround `temp.in(K).delta_from_zero()` with a more
 direct name that reflects the mathematical intent.
 
-Offset units (°C, °F) are never absolute because they carry an explicit non-zero point origin.
-A point on the Celsius scale is not an absolute temperature, and it must be converted explicitly.
+Offset units (°C, °F) are never absolute, because their origin is not a natural origin. A point
+on the Celsius scale is not an absolute temperature, and it must be converted explicitly. A point
+in kelvins is measured from `absolute_zero`, a natural origin, so `point<K>(28.).absolute()` is
+`28. * K`. `.in(U)` changes only the unit of a point, never its quantity specification, so
+`point<isq::thermodynamic_temperature[deg_C]>(20.).in(K)` is still a point of
+`isq::thermodynamic_temperature`.
+
+The lower bound of a Celsius point needs no bounds policy on `ice_point`. If [@P4411R0_PRE] is
+adopted, a point of a non-negative specification is checked when the chain of its origins ends at
+a natural origin, and the chain of `ice_point` ends at `absolute_zero`. So `point<deg_C>(-300.)`
+and `point<deg_F>(-460)` are contract violations, while `point<deg_C>(-273)` with an `int`
+representation isn't: the floor is checked exactly in the common type of the value and the offset
+of `ice_point`, which an `int` in degrees Celsius can't hold.
 
 ::: note
 The `point` abstraction in this library generalizes beyond pure affine spaces. A pure affine
@@ -906,8 +1029,8 @@ an independent property of the Celsius origin. Adding two Celsius temperatures i
 same reason as any affine point addition: a Celsius point is a location on the scale, not an amount
 measured from true zero. The `.in(K).absolute()` call is the operation that transports a value from
 the convex-space (Celsius) domain into the absolute convex (Kelvin) domain by making the true-zero
-anchor explicit. The type of a Kelvin absolute doesn't enforce the lower bound (see
-[Sign of an absolute quantity](#absolute-sign)).
+anchor explicit. The type of a Kelvin absolute doesn't enforce the lower bound. If
+[@P4411R0_PRE] is adopted, its sign check on the value does (see [Sign of an absolute quantity](#absolute-sign)).
 
 ## Mass balance revisited {#mass-balance-revisited}
 
@@ -1034,10 +1157,19 @@ This is a breaking change to the initial proposal:
    `time_point` stays a point.
 6. A quantity of a vector or tensor specification is never an absolute, so without `point<>` it
    stays a delta, and its type keeps its spelling: `quantity<isq::velocity[m / s], vec3>` needs no
-   change. Only a vector value of a bare unit changes type, from `quantity<m, vec3>` to
-   `quantity<delta<m>, vec3>`.
-7. `-x` on an absolute is a delta, under rule 1 of [Unary negation](#absolute-negation).
-8. Compound assignment keeps the abstraction of its left operand, so `a -= b` with two absolutes
+   change. A vector value of a bare unit can't be an absolute either, so `vec * m` and
+   `quantity<m, vec3>` become ill-formed, and the value is spelled `delta<m>(vec)`, of type
+   `quantity<delta<m>, vec3>`. A vector point of a bare unit, `point<m>(vec)` or
+   `quantity<point<m>, vec3>`, is ill-formed too, and is spelled with a vector specification, as
+   in `point<isq::position_vector[m]>(vec)`.
+7. A value of a bare unit is an absolute of its kind. If [@P4411R0_PRE] is adopted, a negative
+   value of a non-negative kind, such as `-5. * K` written for a temperature change, is a contract
+   violation, and the change is spelled `delta<K>(-5.)` (see
+   [For discussion](#absolute-negative-bare-unit)).
+8. `-x` on an absolute is a delta when its quantity specification doesn't admit negative values or
+   is an unnamed derived specification, and for every absolute if [@P4411R0_PRE] isn't adopted
+   (see [Unary negation](#absolute-negation)).
+9. Compound assignment keeps the abstraction of its left operand, so `a -= b` with two absolutes
    is ill-formed.
 
 However:
@@ -1049,7 +1181,7 @@ However:
   converts implicitly to `quantity<R>` (item 3).
 - A state update by a signed change, such as `level += change` with a delta `change`, keeps the
   absolute abstraction. Subtracting an amount, such as `fuel -= consumption` with an absolute
-  `consumption`, is ill-formed (item 8), and the signed balance is formed first, as in
+  `consumption`, is ill-formed (item 9), and the signed balance is formed first, as in
   [Handling underflow](#abs-underflow).
 
 ## Implementation experience {#absolute-implementation-experience}
@@ -1072,10 +1204,13 @@ The rule `absolute − absolute → delta` exposed category errors in the librar
 functions stored the difference of two positions back into a position type: `floor` and `ceil`,
 `wrap_to_range` and `reflect_in_range`, and the canonical form of a spherical vector.
 
-Together with the `non_negative` check of [@NON-NEG], the model also found signed changes stored as
-absolutes in the tests: negative durations fed to the rounding functions, a −3 m projection offset
-stored as a length, negative origin bounds, and negative and NaN inputs of formatting tests. In the
-examples it found three modeling errors:
+Together with the `non_negative` check of [@P4411R0_PRE], the model also found signed changes stored
+as absolutes in the tests: negative durations fed to the rounding functions, a −3 m projection
+offset stored as a length, negative origin bounds, and negative and NaN inputs of formatting tests.
+Checking values written with a bare unit changed about 300 more lines of the tests, nearly all of
+them negative literals such as `-42 * m` used as signed numbers and now spelled `delta<m>(-42)`, and
+the glide computer example, whose sink rates are written `delta<m / s>(-0.7389)`.
+In the examples it found three modeling errors:
 
 - A rate of climb was declared as a child of `speed`, but a sinking glider has a negative rate of
   climb. It is the vertical component vector of the velocity, so it is now a child of
@@ -1094,6 +1229,8 @@ R1 left these cases open.
   delta. Without that rule, `a -= b` would turn a delta into an absolute without `.absolute()`.
 - **Remainder.** `%` and `fmod` take the abstraction of the dividend, whose sign the remainder has.
 - **`hypot`** returns an absolute, as `abs` does.
+- **Even powers.** `pow<N>` of a scalar delta with an even integral `N` returns an absolute (see
+  [Products and quotients of two deltas]).
 - **The common reference.** The first version had two notions of it: the reference the `+` rule
   yields for a mixed pair (an absolute), and the type both operands convert to (the delta), which
   comparisons such as `5 * kg == delta<kg>(5)` need. `get_common_reference` now means conversion
@@ -1105,6 +1242,29 @@ R1 left these cases open.
   `std::chrono` a refused delta → absolute conversion. So `speed * quantity{std::chrono::seconds{5}}`
   is a delta distance, and storing it in a `quantity<m>` needs `.absolute()`. A `time_point` stays a
   point.
+- **Time instants** are points from an epoch. ISO 80000-3:2019 item 3-9 defines _duration_ as a
+  "measure of the time difference between two events" and notes that "Duration is often just
+  called time", and no part of ISO 80000 defines an instant or a time coordinate. So
+  `isq::time` is the same quantity as `isq::duration`, and an instant is a point measured from an
+  `independent_point_origin`, as `std::chrono` measures a `time_point` from the epoch of its
+  clock. Such a point is never checked against a floor, so a negative instant is
+  `epoch + delta<s>(-1.)`. If [@P4411R0_PRE] is adopted, `point<s>(-1.)`, a point measured from
+  the natural origin, is a contract violation.
+- **Natural origins and offset units.** The natural origin of a kind compares equal to the natural
+  origin of a quantity of that kind, `si::absolute_zero` is the natural origin of thermodynamic
+  temperature under its own name, and an offset unit is a unit whose origin isn't a natural origin (see
+  [Temperature revisited](#absolute-temperature)). In the prototype, `natural_point_origin_` is no
+  longer `final`, and an origin is natural when it derives from a tag type.
+- **Exact bounds.** A bound that a point inherits from an origin up its chain is checked exactly, in
+  the common type of the value and the offset to the origin that owns the bound, so a point with an
+  `int` representation in degrees Celsius can be checked against 0 K. A bound that adjusts the
+  value, such as clamping or wrapping of [@P4412R0_PRE], still needs its offset and its bounds to
+  be exact in the type of the point, which stores the result.
+- **Special values.** The quiet and signaling NaN of a point are built without the floor check, as
+  the NaN of an absolute is built without the sign check.
+- **Bare units.** A value written with a bare unit is an absolute of its kind and is checked when
+  the root of the kind is non-negative, and a vector value written with a bare unit is
+  ill-formed. A complex value of a kind isn't checked, as a complex quantity has no order.
 
 ### What generic code needs
 
@@ -1129,7 +1289,7 @@ scalar absolute.
 
 **The name of `absolute_point_origin`.** The word "absolute" names an abstraction of quantities, and
 it also names the origin that starts an independent affine space, `absolute_point_origin`, while
-`si::absolute_zero` is a relative origin. The reference implementation renames the origin and keeps
+`si::absolute_zero` is a natural origin. The reference implementation renames the origin and keeps
 the old name, deprecated. The candidates are:
 
 - `absolute_point_origin`, the name used in [@P3045R10_PRE] and in this paper's examples: it
@@ -1141,6 +1301,11 @@ the old name, deprecated. The candidates are:
 `root_point_origin` and `base_point_origin` aren't candidates, because "root" names the root of a
 quantity kind and "base" names base quantities and units. This paper proposes
 `independent_point_origin`, and its examples keep the current spelling until SG6 chooses a name.
+
+**A negative value written with a bare unit.** If [@P4411R0_PRE] is adopted, `-5. * K` written
+for a temperature change is a contract violation, and the change is spelled `delta<K>(-5.)`. This
+is the consequence users will meet first, and it is discussed in
+[For discussion](#absolute-negative-bare-unit) and polled below.
 
 **Compile time** is not measured yet. An A/B against the branch base precedes any merge.
 
@@ -1170,14 +1335,16 @@ their own.
    `quantity<delta<R>>`._
 3. _An absolute quantity should convert to a delta implicitly, as proposed in P4185R2._
 4. _A product or a quotient with a delta operand should be a delta, as proposed in P4185R2._
-5. _For an absolute `x`, `-x` should be a delta for every quantity specification (rule 1 of
-   [Unary negation](#absolute-negation))._
-6. _If [@NON-NEG] is adopted, then for an absolute `x`, `-x` should stay an absolute when `x` has a
-   named quantity specification that admits negative values, and be a delta otherwise (rule 2 of
-   [Unary negation](#absolute-negation))._
-7. _`quantity_of<Q, QS>` should match the absolutes of `QS`, and `quantity_of<Q, delta<QS>>` its
+5. _For an absolute `x`, `-x` should stay an absolute when the quantity specification of `x`,
+   named or a quantity kind, admits negative values according to [@P4411R0_PRE], and be a delta
+   otherwise. If [@P4411R0_PRE] isn't adopted, `-x` should be a delta for every absolute, as
+   proposed in [Unary negation](#absolute-negation)._
+6. _`quantity_of<Q, QS>` should match the absolutes of `QS`, and `quantity_of<Q, delta<QS>>` its
    deltas and absolutes, as proposed in [Concepts](#absolute-concepts)._
-8. _`absolute_point_origin` should be renamed to `independent_point_origin`._
+7. _`absolute_point_origin` should be renamed to `independent_point_origin`._
+8. _If [@P4411R0_PRE] is adopted, a value written with a bare unit of a non-negative quantity kind,
+   such as `-5. * K`, should be an absolute and be checked, and a signed change should be spelled
+   `delta<K>(-5.)` (see [For discussion](#absolute-negative-bare-unit))._
 
 # Next steps
 
@@ -1233,33 +1400,33 @@ references:
   author: "Oliver J. Rosten"
   title: "Sequoia — a C++ library exploring mathematical foundations for quantities"
   URL: <https://github.com/ojrosten/sequoia>
-- id: BOUNDS
+- id: P4412R0_PRE
   citation-label: P4412R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Range-Validated Quantity Points"
-  URL: <https://wg21.link/p4412>
-- id: NON-NEG
+  URL: <https://wg21.link/p4412r0>
+- id: P4411R0_PRE
   citation-label: P4411R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Non-Negative Quantity Specifications"
-  URL: <https://wg21.link/p4411>
-- id: INT-DIV
+  URL: <https://wg21.link/p4411r0>
+- id: P4409R0_PRE
   citation-label: P4409R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Integer Division in a Quantities Library"
-  URL: <https://wg21.link/p4409>
-- id: ZERO-CMP
+  URL: <https://wg21.link/p4409r0>
+- id: P4406R0_PRE
   citation-label: P4406R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Comparing Quantities Against Zero"
-  URL: <https://wg21.link/p4406>
+  URL: <https://wg21.link/p4406r0>
 
 ---
