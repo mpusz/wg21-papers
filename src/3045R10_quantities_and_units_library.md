@@ -25,6 +25,7 @@ header-includes:
   - |
     ```{=html}
     <style>
+    img.figure { display: block; margin: 0 auto; }
     /* The figures are drawn in dark colors on a transparent background. In the dark theme they are
        inverted, with the hue turned back, under the same conditions as the theme's own styles. */
     @media screen and (prefers-color-scheme: dark) {
@@ -59,7 +60,7 @@ header-includes:
   `QuantityPoint`, and `quantity_of` matches deltas and points. The quantity concepts match only a
   possibly cv-qualified specialization of `quantity`. See [Concepts](#concepts).
 - `QuantityLike` and the predicates `implicitly_convertible`, `explicitly_convertible`, `castable`,
-  and `equivalent` are exposition-only. `quantity_like_traits` describes
+  `interconvertible`, and `equivalent` are exposition-only. `quantity_like_traits` describes
   points too, so `QuantityPointLike` and `quantity_point_like_traits` are removed, and so is
   `DimensionOf`.
 - A truncating conversion takes a rounding policy (`truncated`, `rounded`, `rounded_down`, or
@@ -96,15 +97,17 @@ header-includes:
 - `magnitude()` is the only character-specific member of `quantity` that this paper proposes.
   Scalar and vector products and the parts of a complex quantity are left to a future paper.
   See [Character-specific operations].
-- A conversion between integer representation types is implicit only when the destination has the
-  same signedness and an integer conversion rank that is not lower, or is the type the source
-  promotes to, so `unsigned short` to `int` depends on the implementation. See
-  `implicitly_scalable` in [Representation Types].
+- A conversion between integer representation types keeps the rule of `std::chrono::duration`.
+  [@P4408R0_PRE] proposes making it implicit only when the destination can represent every value of
+  the source. See `implicitly_scalable` in [Representation Types].
 - Following SG16 review of [@P3045R9], `character_set::utf8` and `character_set::portable` are
   renamed to `unicode` and `basic`, the `default_...` enumerators are removed, and
   `unit_symbol()` and `dimension_symbol()` return `basic_string_view<CharT>`. The paper specifies
   how a symbol is written to each character type without transcoding from the literal encoding.
   See [Symbols].
+- `si::absolute_zero` is the natural origin of _thermodynamic temperature_ under a name of its
+  own, and the exposition-only type of `natural_point_origin` is no longer `final`.
+  See [Temperature support].
 - [Quantity point text output] explains why no facility is proposed for points at non-default
   origins, and [Marking a delta in an offset unit] why a delta prints without a marker such as `Δ`.
 - [Names that need a decision] proposes the nested namespace `std::math` for the customization
@@ -251,7 +254,7 @@ header-includes:
   `zeroth_point_origin<QuantitySpec>`](#default-point-origin) chapter added.
 - [Multiply syntax commutativity] chapter added.
 - [Quantity specifications] and [Bikeshedding `quantity_spec`] chapters added.
-- [Bikeshedding `reference`] chapter added.
+- "Bikeshedding `reference`" chapter added.
 - `𝜋` added as an alias for `pi`
 - [Library namespace] chapter added.
 
@@ -289,7 +292,8 @@ header-includes:
 - [Units] chapter added.
 - [Common unit magnitude] chapter added.
 - [Addition and subtraction] chapter extended with the paragraph about irrational magnitudes.
-- "Lack of convertibility from fundamental types" chapter refactored to [Convertibility from fundamental types].
+- "Lack of convertibility from fundamental types" chapter refactored to
+  [Convertibility from fundamental types].
 
 ## Changes since [@P3045R0]
 
@@ -424,7 +428,7 @@ in other domains that we can get in the future from other authors.
 | User control of associated entities                |    2     |       [@P2822R2]       | ADL for NTTP parameters.                                                                                   |
 | `template = delete`                                |    2     |       [@P2041R1]       | Deleting primary variable templates for customization points.                                              |
 | Composing formatters                               |    2     |          ???           | Redirect a format context to a buffer and narrow a parse context.                                          |
-| Grouping numbers in `std-format-spec`              |    2     |    [@DIGIT-GROUP]      | [Extensions to `std-format-spec`].                                                                         |
+| Grouping numbers in `std-format-spec`              |    2     |    [@P4410R0_PRE]      | [Extensions to `std-format-spec`].                                                                         |
 | Number concepts                                    |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
 | SFINAEable constexpr exceptions                    |    3     |       [@P3679R0]       | Much improved error messages.                                                                              |
 | A Simple Approach to Universal Template Parameters |    3     |       [@P2989R2]       | Uniform handling of types and NTTPs in the generic interfaces.                                             |
@@ -1105,11 +1109,13 @@ of base quantities in a special way by:
 
 For example:
 
-- _length_ ($L$), _mass_ ($M$), _time_ ($T$), _electric current_ ($I$), _thermodynamic temperature_ ($Θ$),
-  _amount of substance_ ($N$), and _luminous intensity_ ($J$) are the base dimensions of the ISQ.
+- _length_ ($L$), _mass_ ($M$), _time_ ($T$), _electric current_ ($I$), _thermodynamic temperature_
+  ($Θ$), _amount of substance_ ($N$), and _luminous intensity_ ($J$) are the base dimensions of the
+  ISQ.
 - A derived dimension of _force_ in the ISQ is denoted by $dim\;F = LMT^{–2}$.
-- [@ISO80000] (part 13) provides _traffic intensity_ quantity that is measured in erlangs but not in the unit one,
-  which also implies that it should be introduced as a base quantity with its own dimension.
+- [@ISO80000] (part 13) provides _traffic intensity_ quantity that is measured in erlangs but not in
+  the unit one, which also implies that it should be introduced as a base quantity with its own
+  dimension.
 
 ## Quantity kind & type
 
@@ -1433,7 +1439,8 @@ Multiply syntax is disabled to prevent confusion between deltas and points.
 `natural_point_origin<QuantitySpec>` provides a default origin for domains with a well-established,
 unique zeroth point, eliminating boilerplate:
 
-<img class="figure" src="img/affine_space_1_delta_from.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
+<img class="figure" src="img/affine_space_1_delta_from.svg"
+     style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 quantity<point<isq::distance[si::metre]>> qp1(100 * m);
@@ -1470,7 +1477,8 @@ Key design considerations:
 Absolute point origins establish isolated, independent spaces where points are incompatible even
 with the same quantity type:
 
-<img class="figure" src="img/affine_space_2_delta_from.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
+<img class="figure" src="img/affine_space_2_delta_from.svg"
+     style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 inline constexpr struct origin : absolute_point_origin<isq::distance> {} origin;
@@ -1494,7 +1502,8 @@ determine the resulting quantity type.
 
 Absolute point origins enable multiple independent coordinate systems within the same quantity type:
 
-<img class="figure" src="img/affine_space_3.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
+<img class="figure" src="img/affine_space_3.svg"
+     style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 inline constexpr struct origin1 : absolute_point_origin<isq::distance> {} origin1;
@@ -1513,7 +1522,8 @@ assert(qp1 - origin1 == 100 * m);
 Relative point origins support common scales with multiple reference points that remain compatible
 (_temperatures_, _timestamps_, _altitudes_):
 
-<img class="figure" src="img/affine_space_4_delta_from.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
+<img class="figure" src="img/affine_space_4_delta_from.svg"
+     style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 inline constexpr struct A : absolute_point_origin<isq::distance> {} A;
@@ -1536,7 +1546,8 @@ assert(C - B == 10 * m);               // Can subtract relative origins
 
 The same point can be represented with deltas from various origins:
 
-<img class="figure" src="img/affine_space_5.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
+<img class="figure" src="img/affine_space_5.svg"
+     style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 quantity<point<si::metre, C>> qp2C = qp2;         // converting constructor
@@ -1557,7 +1568,7 @@ _Temperature_ is an example of relative point origins with stacked hierarchies:
 ```cpp
 namespace si {
 
-inline constexpr struct absolute_zero : absolute_point_origin<isq::thermodynamic_temperature> {} absolute_zero;
+inline constexpr struct absolute_zero : $natural-point-origin-t$<kind_of<isq::thermodynamic_temperature>> {} absolute_zero;
 inline constexpr struct ice_point : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
 
 }
@@ -1569,6 +1580,12 @@ inline constexpr struct fahrenheit_zero :
 
 }
 ```
+
+`si::absolute_zero` is the natural origin of _thermodynamic temperature_ under a name of its own.
+It derives from `$natural-point-origin-t$`, the exposition-only type of `natural_point_origin`, so
+it compares equal to `natural_point_origin<isq::thermodynamic_temperature>`, and a point measured
+from one can be subtracted from a point measured from the other. The name lets users write
+`temp - si::absolute_zero`, and it makes the origin readable where a type names it.
 
 Origins stack hierarchically (°F → °C → K), and units embed their origins:
 
@@ -1591,7 +1608,8 @@ quantity q3 = point<deg_C>(20.5);
 
 Custom temperature references enable domain-specific applications:
 
-<img class="figure" src="img/affine_space_6_delta_from.svg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
+<img class="figure" src="img/affine_space_6_delta_from.svg"
+     style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
 constexpr struct room_reference_temp : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
@@ -1728,8 +1746,8 @@ scalar: the field axis is read from `numeric_field`, whose default reports _comp
 the type exposes the `real()`/`imag()` API, so `$RealScalar$`, which requires a real field, is
 not satisfied regardless of ordering.
 
-The different names reflect domain conventions: `modulus()` is traditional complex
-analysis terminology, while `magnitude()` follows physics and engineering conventions
+The different names reflect domain conventions: `math::modulus` is traditional complex
+analysis terminology, while `math::magnitude` follows physics and engineering conventions
 for vectors. [Relationship to algebraic structures] explains why the vector CPO is not named
 `norm`, and [Customization Point Objects (CPOs)] lists the `norm`-named fallbacks that let types
 from linear algebra libraries integrate without adaptation.
@@ -1872,11 +1890,9 @@ concept $RealScalar$ = $Real$<T> && $BaseScalar$<T> && totally_ordered<T>;
 
 // Complex scalar: constructible from real/imag parts; provides a modulus
 template<typename T>
-concept $ComplexScalar$ =
-  $Complex$<T> && $BaseScalar$<T> &&
+concept $ComplexScalar$ = $Complex$<T> && $BaseScalar$<T> &&
   requires(const T v, const T& ref) {
-    requires constructible_from<T,
-      decltype(math::real(ref)), decltype(math::imag(ref))>;
+    requires constructible_from<T, decltype(math::real(ref)), decltype(math::imag(ref))>;
     math::modulus(v);
     requires $ScalableWith$<T, decltype(math::modulus(v))>;
   };
@@ -1928,8 +1944,9 @@ $|z| = \sqrt{\operatorname{re}(z)^2 + \operatorname{im}(z)^2}$, the same quantit
 
 Each character concept combines with `$RepresentationBaseline$`, the character-independent floor
 shared by every representation, to form the representation concepts the library checks internally.
-`$RepresentationBaseline$` requires that a type is not opted out (`disable_representation`) and that the
-library can scale it by a unit magnitude (`$UnitMagnitudeScalable$`, described in [How Scaling Works]):
+`$RepresentationBaseline$` requires that a type is not opted out (`disable_representation`) and that
+the library can scale it by a unit magnitude (`$UnitMagnitudeScalable$`, described in
+[How Scaling Works]):
 
 ```cpp
 template<typename T>
@@ -2032,7 +2049,7 @@ plays in the library rather than for that structure. We avoid the structural nam
 | `$ScalableWith$<T,S>` | a scalar action of `S` on `T` (module / vector-space multiplication) | distributivity and associativity of the action; closure is approximated by round-trip type stability, not `v*s/s == v` |
 | `$BaseScalar$`        | a field (commutative division ring)                                  | commutativity/associativity of `×`, distributivity, existence of `0` and `1`                                           |
 | `$RealScalar$`        | an ordered field                                                     | compatibility of the order with `+` and `×` (`std::totally_ordered` is only a set order)                               |
-| `$ComplexScalar$`     | the complex field `ℂ` (a 2-D real division algebra with modulus)     | field axioms; that `real`/`imag` genuinely coordinatize `ℂ`                                                            |
+| `$ComplexScalar$`     | the complex field `ℂ` (a 2-D real division algebra with modulus)     | field axioms; that `math::real`/`math::imag` genuinely coordinatize `ℂ`                                                |
 | `$Vector$`            | an element of a normed vector space                                  | the vector-space axioms and the norm axioms (homogeneity, triangle inequality)                                         |
 
 <!-- markdownlint-enable MD013 MD060 -->
@@ -2109,8 +2126,8 @@ overloaded both for arithmetic types and for `std::complex`, returning |x|² rat
 |x| in either case, so scalar types are explicitly directed to the `abs` fallback below
 instead.
 
-For `modulus()`, `abs()` is accepted as a fallback for compatibility with `std::complex`
-and similar types that use that name. For `magnitude()`, `abs()` enables arithmetic
+For `math::modulus`, `abs()` is accepted as a fallback for compatibility with `std::complex`
+and similar types that use that name. For `math::magnitude`, `abs()` enables arithmetic
 types to serve as 1-dimensional vectors and scalar tensor measures.
 
 ---
@@ -2424,18 +2441,8 @@ is incorrect:
 template<unit auto FromUnit, typename FromRep, unit auto ToUnit, typename ToRep>
 constexpr bool implicitly_scalable =
   treat_as_floating_point<ToRep> ||
-  (!treat_as_floating_point<FromRep> && is_integral_scaling(FromUnit, ToUnit) &&
-   $integer-rank-preserving$<FromRep, ToRep>);
+  (!treat_as_floating_point<FromRep> && is_integral_scaling(FromUnit, ToUnit));
 ```
-
-`$integer-rank-preserving$<From, To>` is `true` unless `From` and `To` are both integer types
-([basic.fundamental]{.sref}), `To` is not the type that `From` promotes to (`decltype(+From{})`,
-[conv.prom]{.sref}), and either their signedness differs or the integer conversion rank of `To` is
-lower than that of `From` ([conv.rank]{.sref}). `bool`, `char`, `wchar_t`, `char8_t`, `char16_t`,
-and `char32_t` are integer types as well, but they are not valid representation types (see
-[`disable_representation<T>`](#disable_representationt)), so the rule never applies to them.
-`signed char` and `unsigned char` are integer types, and `std::int8_t` and `std::uint8_t` name a
-signed and an unsigned integer type, so the rule covers them as well.
 
 `is_integral_scaling(from, to)` is a `consteval` predicate that can also be
 used in user specializations to distinguish the integral-factor case (e.g. `m → mm`
@@ -2443,20 +2450,11 @@ used in user specializations to distinguish the integral-factor case (e.g. `m �
 
 The default follows `std::chrono::duration`: a conversion to a floating-point representation is
 always implicit, a conversion between integer representations is implicit only when the unit ratio
-is an integer multiplier (exact, no truncation), and all other cases require an explicit cast. It
-differs in one respect: a conversion between integer representations also requires both types to
-have the same signedness and the destination to have an integer conversion rank not lower than the
-source's, or the destination to be the type the source promotes to. Either way, every value of the
-source type fits in the destination type on every implementation. `quantity<m, std::int16_t>` from
-`100'000 * m` therefore requires an explicit cast, while `duration<std::int16_t>` from
-`duration<int>{100'000}` doesn't. [@INT-REP-CONV] explains why the rank of [conv.rank]{.sref} is
-used instead of the type traits of [@P0870R8] and [@P2509R1].
-
-The promotion case is needed because the sum of two `std::uint8_t` quantities is an `int` quantity,
-and without it the operands could not convert to it. It is also the one case whose answer depends on
-the widths of the types. `unsigned short` promotes to `int` where `int` can represent every
-`unsigned short` value, and to `unsigned int` otherwise, so a conversion from `unsigned short` to
-`int` is implicit on the first kind of implementation and needs an explicit cast on the second.
+is an integer multiplier (exact, no truncation), and all other cases require an explicit cast. The
+integer types themselves are not compared, so `quantity<m, std::int16_t>` from `100'000 * m` is
+implicit and wraps, as `duration<std::int16_t>` from `duration<int>{100'000}` does.
+[@P4408R0_PRE] proposes making a conversion between integer representation types implicit only when
+the destination can represent every value of the source.
 
 For example, a decimal fixed-point type that represents decimal ratios exactly can
 permit all unit conversions implicitly:
@@ -2860,7 +2858,7 @@ does three things:
 
 1. Records the symbol `"smoot"` for use in text output.
 2. Inherits the `_base_type_` of the scaled unit, making `smoot` a unit of _length_.
-3. Records the scaling so that `get_canonical_unit(smoot)` can recover the exact magnitude
+3. Records the scaling so that `$get-canonical-unit$(smoot)` can recover the exact magnitude
    relative to `metre` without any additional bookkeeping.
 
 ## The `quantity` class template
@@ -2915,7 +2913,7 @@ constexpr quantity_of<quantity_spec> auto in(ToU) const;
 Internally, the conversion ratio is computed entirely at compile time:
 
 ```cpp
-constexpr unit_magnitude auto c_mag = get_canonical_unit(From::unit).mag / get_canonical_unit(To::unit).mag;
+constexpr unit_magnitude auto c_mag = $get-canonical-unit$(From::unit).mag / $get-canonical-unit$(To::unit).mag;
 ```
 
 The exact rational `8509/5000` is then applied to the stored value at runtime. The fraction
@@ -3080,7 +3078,8 @@ public:
     return height_ * measured_mass * g / filled_weight();
   }
 
-  [[nodiscard]] constexpr std::quantity<std::isq::volume[m3]> spare_capacity(const std::quantity<std::isq::mass[kg]>& measured_mass) const
+  [[nodiscard]] constexpr std::quantity<std::isq::volume[m3]> spare_capacity(
+    const std::quantity<std::isq::mass[kg]>& measured_mass) const
   {
     return (height_ - fill_level(measured_mass)) * base_;
   }
@@ -3089,7 +3088,8 @@ public:
 
 class CylindricalStorageTank : public StorageTank {
 public:
-  constexpr CylindricalStorageTank(const std::quantity<std::isq::radius[m]>& radius, const std::quantity<std::isq::height[m]>& height) :
+  constexpr CylindricalStorageTank(const std::quantity<std::isq::radius[m]>& radius,
+                                   const std::quantity<std::isq::height[m]>& height) :
       StorageTank(std::quantity_cast<horizontal_area>(std::numbers::pi * pow<2>(radius)), height)
   {
   }
@@ -3562,8 +3562,7 @@ a quantity of _speed_.
 To improve safety, with a units-only library, we have to write the function in the following way:
 
 ```cpp
-quantity<si::metre / si::second, int> avg_speed(quantity<si::metre, int> distance,
-                                                quantity<si::second, int> time)
+quantity<si::metre / si::second, int> avg_speed(quantity<si::metre, int> distance, quantity<si::second, int> time)
 {
   return distance / time;
 }
@@ -3605,8 +3604,7 @@ To prevent the above issues, most of the libraries on the market introduce dimen
 Thanks to that, we could solve the first issue of the previous chapter with:
 
 ```cpp
-quantity_of<dim_speed> auto avg_speed(quantity_of<dim_length> auto distance,
-                                      quantity_of<dim_time> auto time)
+quantity_of<dim_speed> auto avg_speed(quantity_of<dim_length> auto distance, quantity_of<dim_time> auto time)
 {
   return distance / time;
 }
@@ -3624,8 +3622,7 @@ products of powers of those. For example, a quantity of _speed_ has a dimension 
 So, to be physically correct, the above code should be rewritten as:
 
 ```cpp
-quantity_of<dim_length / dim_time> auto avg_speed(quantity_of<dim_length> auto distance,
-                                                  quantity_of<dim_time> auto time)
+quantity_of<dim_length / dim_time> auto avg_speed(quantity_of<dim_length> auto distance, quantity_of<dim_time> auto time)
 {
   return distance / time;
 }
@@ -3812,15 +3809,15 @@ The [@ISO-GUIDE] says:
 
 [@ISO80000] also explicitly notes:
 
-> **Measurement units of quantities of the same quantity dimension may be designated by the same name
-> and symbol even when the quantities are not of the same kind**. For example, joule per kelvin and J/K
-> are respectively the name and symbol of both a measurement unit of heat capacity and a measurement
-> unit of entropy, which are generally not considered to be quantities of the same kind. **However,
-> in some cases special measurement unit names are restricted to be used with quantities of specific
-> kind only**. For example, the measurement unit ‘second to the power minus one’ (1/s) is called hertz
-> (Hz) when used for frequencies and becquerel (Bq) when used for activities of radionuclides. As
-> another example, the joule (J) is used as a unit of energy, but never as a unit of moment of force,
-> i.e. the newton metre (N · m).
+> **Measurement units of quantities of the same quantity dimension may be designated by the same
+> name and symbol even when the quantities are not of the same kind**. For example, joule per kelvin
+> and J/K are respectively the name and symbol of both a measurement unit of heat capacity and a
+> measurement unit of entropy, which are generally not considered to be quantities of the same kind.
+> **However, in some cases special measurement unit names are restricted to be used with quantities
+> of specific kind only**. For example, the measurement unit ‘second to the power minus one’ (1/s)
+> is called hertz (Hz) when used for frequencies and becquerel (Bq) when used for activities of
+> radionuclides. As another example, the joule (J) is used as a unit of energy, but never as a unit
+> of moment of force, i.e. the newton metre (N · m).
 
 Those provide answers to all the issues mentioned above. More than one quantity may be defined for
 the same dimension:
@@ -4479,7 +4476,8 @@ For some units, a magnitude might also be irrational. The best example here is a
 is defined using a floating-point magnitude having a factor of the number π (Pi):
 
 ```cpp
-inline constexpr struct $pi-c$ : mag_constant<{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, numbers::pi_v<long double>> {} $pi-c$;  // exposition only
+inline constexpr struct $pi-c$ :  // exposition only
+    mag_constant<{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, numbers::pi_v<long double>> {} $pi-c$;
 inline constexpr struct pi : named_constant<symbol_text{u8"π" /* U+03C0 GREEK SMALL LETTER PI */, "pi"}, mag<$pi-c$> * one> {} pi;
 inline constexpr auto π /* U+03C0 GREEK SMALL LETTER PI */ = pi;
 ```
@@ -5328,8 +5326,7 @@ static_assert(unit_symbol<usf{.char_set = basic}>(mag_ratio<1, 18000> * metre / 
 
 static_assert(unit_symbol(mag<1> / (mag<2> * mag<$pi-c$>)*metre) == "(2⁻¹ π⁻¹ m)");
 static_assert(unit_symbol<usf{.solidus = always}>(mag<1> / (mag<2> * mag<$pi-c$>)*metre) == "(1/(2 π) m)");
-static_assert(unit_symbol<usf{.char_set = basic, .solidus = always}>(mag<1> / (mag<2> * mag<$pi-c$>) * metre) ==
-              "(1/(2 pi) m)");
+static_assert(unit_symbol<usf{.char_set = basic, .solidus = always}>(mag<1> / (mag<2> * mag<$pi-c$>) * metre) == "(1/(2 pi) m)");
 ```
 
 Additionally, if we decide to provide `per_mille` unit together with the framework (next to `one`,
@@ -5625,7 +5622,7 @@ independent concerns, and each `:` delimiter opens the section that addresses on
 A component spec may contain a nested replacement field, as the precision in `{} {::N[.{}f]}`
 does. Its automatic argument id has to continue the numbering of the enclosing format string, so
 that this field takes the third argument. A `basic_format_parse_context` can't be narrowed to the
-spec today, and a newly constructed one starts the numbering again from zero. [@COMPOSE-FMT]
+spec today, and a newly constructed one starts the numbering again from zero. [@P4413R0_PRE]
 proposes `set_end()` for this, and [@MP-UNITS] uses such a member when the parse context has one.
 
 We deliberately chose _not_ to follow the `%Q`/`%q` convention that `std::chrono::duration` uses for
@@ -5854,7 +5851,7 @@ between the digits.
 
 As of today, no flag in `std-format-spec` would force it. Similar output may be obtained thanks
 to localization, but international standards mentioned above recommend that for every user,
-no matter what localization option is being used. [@DIGIT-GROUP] proposes a locale-independent
+no matter what localization option is being used. [@P4410R0_PRE] proposes a locale-independent
 `'` option for this, so that `{::N['.2f]}` would print the numerical value of a quantity with
 its digits grouped.
 
@@ -6029,8 +6026,8 @@ MVP scope:
 
    It is not only about the convertibility of the quantities themselves but also about the
    construction of derived quantities from their components. Without this feature, we will not be
-   able to say that the _kinetic energy_ should not be implicitly convertible from the `m g h`
-   quantity equation (recipe for the _gravitational potential energy_).
+   able to say that a _gravitational potential energy_ should be implicitly constructible only from
+   the `m g h` quantity equation and not from any other expression of matching dimensions.
 
    Without hierarchies, we cannot:
    - Distinguish specific _lengths_ (_width_, _height_, _radius_), _energies_ (_kinetic_, _potential_,
@@ -6357,8 +6354,7 @@ class Box {
   quantity<isq::area[m2]> base_;
   quantity<isq::length[m]> height_;  // Can't distinguish length, width, height!
 public:
-  Box(quantity<isq::length[m]> l, quantity<isq::length[m]> w, quantity<isq::length[m]> h)
-    : base_(l * w), height_(h) {}
+  Box(quantity<isq::length[m]> l, quantity<isq::length[m]> w, quantity<isq::length[m]> h) : base_(l * w), height_(h) {}
 };
 ```
 
@@ -6424,7 +6420,7 @@ Vector and tensor quantities can be implemented in two ways:
     - `a / b` - division where the divisor has to be scalar
     - `a ⋅ b` - dot product of two vectors
     - `a × b` - cross product of two vectors
-    - `|a|` - magnitude (norm) of a vector, i.e., `magnitude(a)`
+    - `|a|` - magnitude (norm) of a vector, i.e., `math::magnitude(a)`
     - `a ⊗ b` - tensor product of two vectors or tensors
     - `a ⋅ b` - inner product of two tensors
     - `a ⋅ b` - inner product of tensor and vector
@@ -6442,8 +6438,10 @@ quantity q4 = isq::velocity(la_vector{0, 0, -60} * km / h);  // OK
 ```
 
 _Note: Under the absolute quantities of [@P4185R2_PRE], a quantity of vector character is never
-an absolute, so `q3` and `q4` stay deltas, and `quantity<isq::velocity[km / h], int>` names a delta
-there, as it does here._
+an absolute, so `q3` stays a delta, and `quantity<isq::velocity[km / h], int>` names a delta there,
+as it does here. A value times a bare unit is an absolute there, which a vector can't be, so
+`la_vector{0, 0, -60} * km / h` is ill-formed, and `q4` is written
+`isq::velocity(delta<km / h>(la_vector{0, 0, -60}))`._
 
 As we can see above, such features additionally improves the compile-time safety of the library
 by ensuring that quantities are created with proper quantity equations and are using correct
@@ -6542,7 +6540,7 @@ This is why floating-point representation types are recommended as a default to 
 value of a quantity. Some popular physical units libraries even
 [forbid integer division of quantities whose units differ](https://aurora-opensource.github.io/au/main/troubleshooting/#integer-division-forbidden).
 
-_Note: [@INT-DIV] revisits this behavior, and a later revision of this paper may change it._
+_Note: [@P4409R0_PRE] revisits this behavior, and a later revision of this paper may change it._
 
 ### Integer overflow
 
@@ -6635,9 +6633,10 @@ to a 16-bit integer destroyed Ariane 5 [@ARIANE]) and truncate on narrowing assi
 Floating-point types lose precision on narrowing, and `int64_t` to `double` conversion also loses
 precision.
 
-Safe numeric types in the standard library would address these concerns as `quantity` reps. A
-conversion between integer representation types whose destination can't hold every value of the
-source is explicit (see [`implicitly_scalable`](#implicitly_scalable) and [@INT-REP-CONV]).
+Safe numeric types in the standard library would address these concerns as `quantity` reps.
+[@P4408R0_PRE] proposes that a conversion between integer representation types whose destination
+can't hold every value of the source require `value_cast` (see
+[`implicitly_scalable`](#implicitly_scalable)).
 
 ### Potential surprises during units composition
 
@@ -7817,9 +7816,7 @@ The above program will produce the following types for _acceleration_ quantities
 - `acceleration2`
 
     ```cpp
-    quantity<delta_<isq::acceleration,
-                    derived_unit<si::metre, $per$<$power$<si::second, 2>>>>{},
-             double>
+    quantity<delta_<isq::acceleration, derived_unit<si::metre, $per$<$power$<si::second, 2>>>>{}, double>
     ```
 
 
@@ -7922,13 +7919,13 @@ unit) and then, we compare if the reference units and the magnitudes are the sam
 ```cpp
 consteval bool $equivalent$(unit auto lhs, unit auto rhs)
 {
-  const auto lhs_canonical = get_canonical_unit(lhs);
-  const auto rhs_canonical = get_canonical_unit(rhs);
+  const auto lhs_canonical = $get-canonical-unit$(lhs);
+  const auto rhs_canonical = $get-canonical-unit$(rhs);
   return lhs_canonical.mag == rhs_canonical.mag && lhs_canonical.reference_unit == rhs_canonical.reference_unit;
 }
 ```
 
-_Note: A `canonical_unit` is an implementation detail and is not exposed in public APIs for now._
+_Note: `$get-canonical-unit$` and the canonical unit it returns are exposition-only._
 
 For example:
 
@@ -8429,13 +8426,14 @@ and [Creating distinct quantity kinds with `subkind`] and [Nested quantity kinds
 declared kinds. This chapter states the rule those sections illustrate and explains the
 alternatives that were rejected.
 
-The specification describes the relation with three exposition-only predicates. A fourth one,
-`interconvertible`, is public and is `$implicitly-convertible$` in both directions:
+The specification describes the relation with four exposition-only predicates.
+`$interconvertible$` is `$implicitly-convertible$` in both directions:
 
 ```cpp
 consteval bool $implicitly-convertible$(quantity_spec auto from, quantity_spec auto to);  // exposition only
 consteval bool $explicitly-convertible$(quantity_spec auto from, quantity_spec auto to);  // exposition only
 consteval bool $castable$(quantity_spec auto from, quantity_spec auto to);                // exposition only
+consteval bool $interconvertible$(quantity_spec auto qs1, quantity_spec auto qs2);        // exposition only
 ```
 
 Generic code doesn't ask these questions directly. It constrains a parameter with `quantity_of`,
@@ -8497,21 +8495,35 @@ For the ISQ definitions below, with the local addition `special_speed` used by t
 inline constexpr struct special_speed : named_quantity_spec<isq::speed> {} special_speed;
 ```
 
-the facts are:
+the facts are the following, with the names of `isq` except `special_speed` and `dimensionless`:
 
-| Quantity                       | Root                        | Kind root                   | Equation                                | Defining ancestor           | Depth | Carried kinds                              |
-|--------------------------------|-----------------------------|-----------------------------|-----------------------------------------|-----------------------------|-------|--------------------------------------------|
-| `isq::width`                   | `isq::length`               | `isq::length`               | none                                    | none                        | 0     | none                                       |
-| `isq::speed`                   | `isq::speed`                | `isq::speed`                | `isq::length / isq::duration`           | `isq::speed`                | 1     | none                                       |
-| `special_speed`                | `isq::speed`                | `isq::speed`                | `isq::length / isq::duration`           | `isq::speed`                | 1     | none                                       |
-| `isq::velocity`                | `isq::speed`                | `isq::speed`                | `isq::displacement / isq::duration`     | `isq::velocity`             | 1     | none                                       |
-| `isq::acceleration`            | `isq::acceleration`         | `isq::acceleration`         | `isq::velocity / isq::duration`         | `isq::acceleration`         | 2     | none                                       |
-| `isq::angular_acceleration`    | `isq::angular_acceleration` | `isq::angular_acceleration` | `isq::angular_velocity / isq::duration` | `isq::angular_acceleration` | 3     | `isq::angular_measure`                     |
-| `isq::frequency`               | `isq::frequency`            | `isq::frequency`            | `inverse(isq::period_duration)`         | `isq::frequency`            | 1     | none                                       |
-| `isq::angular_measure`         | `dimensionless`             | `isq::angular_measure`      | `isq::path_length / isq::radius`        | `isq::angular_measure`      | 1     | `isq::angular_measure`                     |
-| `isq::phase_angle`             | `dimensionless`             | `isq::phase_angle`          | `isq::path_length / isq::radius`        | `isq::angular_measure`      | 1     | `isq::phase_angle`, `isq::angular_measure` |
-| `isq::rotational_displacement` | `dimensionless`             | `isq::angular_measure`      | `isq::path_length / isq::radius`        | `isq::angular_measure`      | 1     | `isq::angular_measure`                     |
-| `isq::rotation`                | `dimensionless`             | `dimensionless`             | (empty)                                 | `dimensionless`             | 1     | none                                       |
+| Quantity                  | Root                   | Kind root              | Depth |
+|---------------------------|------------------------|------------------------|-------|
+| `width`                   | `length`               | `length`               | 0     |
+| `speed`                   | `speed`                | `speed`                | 1     |
+| `special_speed`           | `speed`                | `speed`                | 1     |
+| `velocity`                | `speed`                | `speed`                | 1     |
+| `acceleration`            | `acceleration`         | `acceleration`         | 2     |
+| `angular_acceleration`    | `angular_acceleration` | `angular_acceleration` | 3     |
+| `frequency`               | `frequency`            | `frequency`            | 1     |
+| `angular_measure`         | `dimensionless`        | `angular_measure`      | 1     |
+| `phase_angle`             | `dimensionless`        | `phase_angle`          | 1     |
+| `rotational_displacement` | `dimensionless`        | `angular_measure`      | 1     |
+| `rotation`                | `dimensionless`        | `dimensionless`        | 1     |
+
+| Quantity                  | Equation                      | Defining ancestor      | Carried kinds                    |
+|---------------------------|-------------------------------|------------------------|----------------------------------|
+| `width`                   | none                          | none                   | none                             |
+| `speed`                   | `length / duration`           | `speed`                | none                             |
+| `special_speed`           | `length / duration`           | `speed`                | none                             |
+| `velocity`                | `displacement / duration`     | `velocity`             | none                             |
+| `acceleration`            | `velocity / duration`         | `acceleration`         | none                             |
+| `angular_acceleration`    | `angular_velocity / duration` | `angular_acceleration` | `angular_measure`                |
+| `frequency`               | `inverse(period_duration)`    | `frequency`            | none                             |
+| `angular_measure`         | `path_length / radius`        | `angular_measure`      | `angular_measure`                |
+| `phase_angle`             | `path_length / radius`        | `angular_measure`      | `phase_angle`, `angular_measure` |
+| `rotational_displacement` | `path_length / radius`        | `angular_measure`      | `angular_measure`                |
+| `rotation`                | (empty)                       | `dimensionless`        | none                             |
 
 `special_speed` and _phase angle_ take their equation over from the parent, and _rotational
 displacement_ restates its parent's (`isq::arc_length` is `isq::path_length`), so none of the three
@@ -8858,16 +8870,7 @@ result.
 
 **`isq::width * isq::height` to `isq::area`: `implicit`.**
 
-```mermaid
-flowchart TD
-    A["width ⋅ height → area"]
-    B["width ⋅ height → length²"]
-    C["height → length"]
-    D["<b>implicit</b>"]
-    A -->|"expand area (target, defines its equation): <b>implicit</b>"| B
-    B -->|"pair width with length (upcast): <b>implicit</b>"| C
-    C -->|"pair height with length (upcast): <b>implicit</b>"| D
-```
+![Conversion steps for width ⋅ height → area](img/qs_conversion_01.svg){.figure}&nbsp;
 
 ```cpp
 static_assert($implicitly-convertible$(isq::width * isq::height, isq::area));
@@ -8875,16 +8878,7 @@ static_assert($implicitly-convertible$(isq::width * isq::height, isq::area));
 
 **`isq::area` to `isq::width * isq::height`: `explicit`.**
 
-```mermaid
-flowchart TD
-    A["area → width ⋅ height"]
-    B["length² → width ⋅ height"]
-    C["length → height"]
-    D["<b>explicit</b>"]
-    A -->|"expand area (source): <b>implicit</b>"| B
-    B -->|"pair length with width (downcast): <b>explicit</b>"| C
-    C -->|"pair length with height (downcast): <b>explicit</b>"| D
-```
+![Conversion steps for area → width ⋅ height](img/qs_conversion_02.svg){.figure}&nbsp;
 
 ```cpp
 static_assert(!$implicitly-convertible$(isq::area, isq::width * isq::height));
@@ -8893,14 +8887,7 @@ static_assert($explicitly-convertible$(isq::area, isq::width * isq::height));
 
 **`inverse(isq::time)` to `isq::frequency`: `explicit`.** `isq::time` names `isq::duration`.
 
-```mermaid
-flowchart TD
-    A["1 / time → frequency"]
-    B["1 / time → 1 / period_duration"]
-    C["<b>explicit</b>"]
-    A -->|"expand frequency (target, defines its equation): <b>implicit</b>"| B
-    B -->|"pair time with period_duration (downcast): <b>explicit</b>"| C
-```
+![Conversion steps for 1 / time → frequency](img/qs_conversion_03.svg){.figure}&nbsp;
 
 ```cpp
 static_assert(!$implicitly-convertible$(inverse(isq::time), isq::frequency));
@@ -8909,14 +8896,7 @@ static_assert($explicitly-convertible$(inverse(isq::time), isq::frequency));
 
 **`isq::frequency` to `inverse(isq::time)`: `implicit`.**
 
-```mermaid
-flowchart TD
-    A["frequency → 1 / time"]
-    B["1 / period_duration → 1 / time"]
-    C["<b>implicit</b>"]
-    A -->|"expand frequency (source): <b>implicit</b>"| B
-    B -->|"pair period_duration with time (upcast): <b>implicit</b>"| C
-```
+![Conversion steps for frequency → 1 / time](img/qs_conversion_04.svg){.figure}&nbsp;
 
 ```cpp
 static_assert($implicitly-convertible$(isq::frequency, inverse(isq::time)));
@@ -8929,16 +8909,7 @@ and not every _speed_ is a _special speed_. The equation alone cannot make a _sp
 implicitly, so expanding `special_speed` on the target side ranks `explicit`, like the downcast
 from _speed_.
 
-```mermaid
-flowchart TD
-    A["width / duration → special_speed"]
-    B["width / duration → length / duration"]
-    C["width → length"]
-    D["<b>explicit</b>"]
-    A -->|"expand special_speed (target, inherits the equation of speed): <b>explicit</b>"| B
-    B -->|"pair duration with duration (same quantity): <b>implicit</b>"| C
-    C -->|"pair width with length (upcast): <b>implicit</b>"| D
-```
+![Conversion steps for width / duration → special_speed](img/qs_conversion_05.svg){.figure}&nbsp;
 
 The same conversion to `isq::speed` is `implicit`, because _speed_ defines its equation:
 
@@ -8952,14 +8923,7 @@ static_assert($implicitly-convertible$(isq::width / isq::duration, isq::speed));
 `inverse(wavelength)`, and _wavelength_ and _height_ are different branches of the tree of
 _length_:
 
-```mermaid
-flowchart TD
-    A["1 / repetency → height"]
-    B["wavelength → height"]
-    C["<b>cast</b>"]
-    A -->|"expand repetency (source): <b>implicit</b>"| B
-    B -->|"pair wavelength with height (different branches): <b>cast</b>"| C
-```
+![Conversion steps for 1 / repetency → height](img/qs_conversion_06.svg){.figure}&nbsp;
 
 ```cpp
 static_assert($castable$(inverse(isq::repetency), isq::height));
@@ -8976,20 +8940,7 @@ measure_. Every operation is `implicit`, but the source carries _angular measure
 carries nothing, so the kind boundary makes the conversion `explicit`:
 
 <!-- markdownlint-disable MD013 -->
-```mermaid
-flowchart TD
-    A["angular_velocity ⋅ radius / speed → dimensionless"]
-    B["rotational_displacement ⋅ radius / (duration ⋅ speed) → dimensionless"]
-    C["path_length / (duration ⋅ speed) → dimensionless"]
-    D["path_length / length → dimensionless"]
-    E["nothing left"]
-    F["<b>explicit</b>"]
-    A -->|"expand angular_velocity (source): <b>implicit</b>"| B
-    B -->|"expand rotational_displacement (source): <b>implicit</b>, the two radius factors cancel, the source leaves the kind angular_measure, noted for the kind boundary"| C
-    C -->|"expand speed (source): <b>implicit</b>, the two duration factors cancel"| D
-    D -->|"self-cancel path_length against length (source): <b>implicit</b>"| E
-    E -->|"kind boundary: the source left the kind angular_measure: <b>explicit</b>"| F
-```
+![Conversion steps for angular_velocity ⋅ radius / speed → dimensionless](img/qs_conversion_07.svg){.figure}&nbsp;
 <!-- markdownlint-enable MD013 -->
 
 ```cpp
@@ -9001,25 +8952,11 @@ static_assert($explicitly-convertible$(isq::angular_velocity * isq::radius / isq
 the numerator and once in the denominator, so the carried kinds balance:
 
 <!-- markdownlint-disable MD013 -->
-```mermaid
-flowchart TD
-    A["angular_velocity ⋅ radius / (angular_measure ⋅ speed) → dimensionless"]
-    B["rotational_displacement ⋅ radius / (duration ⋅ angular_measure ⋅ speed) → dimensionless"]
-    C["radius / (duration ⋅ speed) → dimensionless"]
-    D["radius / length → dimensionless"]
-    E["nothing left"]
-    F["<b>implicit</b>"]
-    A -->|"expand angular_velocity (source): <b>implicit</b>"| B
-    B -->|"self-cancel rotational_displacement against angular_measure (source): <b>implicit</b>, the numerator and the denominator both leave the kind angular_measure, both noted for the kind boundary"| C
-    C -->|"expand speed (source): <b>implicit</b>, the two duration factors cancel"| D
-    D -->|"self-cancel radius against length (source): <b>implicit</b>"| E
-    E -->|"kind boundary: the source carries angular_measure in its numerator and its denominator, which cancel, so no kind is lost: <b>implicit</b>"| F
-```
+![Conversion steps for angular_velocity ⋅ radius / (angular_measure ⋅ speed) → dimensionless](img/qs_conversion_08.svg){.figure}&nbsp;
 <!-- markdownlint-enable MD013 -->
 
 ```cpp
-static_assert($implicitly-convertible$(isq::angular_velocity * isq::radius / isq::angular_measure / isq::speed,
-                                     dimensionless));
+static_assert($implicitly-convertible$(isq::angular_velocity * isq::radius / isq::angular_measure / isq::speed, dimensionless));
 ```
 
 
@@ -9032,58 +8969,19 @@ common to both sides cancel first. If a single named quantity is left on each si
 decide. Otherwise the equation rule of [Derived quantities] continues with steps 2 and 3, with `K`
 in place of a kind `kind_of<K>`:
 
-```mermaid
-flowchart TD
-    start([step 1: source → target]) --> same{same type?}
-    same -- yes --> r_yes([implicit])
-    same -- no --> dim{same dimension?}
-    dim -- no --> r_no([none])
-    dim -- yes --> named{both sides a single named<br>quantity, or a kind of one?}
-    named -- yes --> kind{a kind on<br>either side?}
-    kind -- yes --> kinds([kind rules])
-    kind -- no --> tree([tree rule])
-    named -- no --> common[cancel the factors<br>common to both sides]
-    common --> left{a single named quantity<br>left on both sides?}
-    left -- yes --> kind
-    left -- no --> eq([equation rule:<br>go to step 2])
-```
+![The procedure, step 1](img/qs_conversion_09.svg){.figure}&nbsp;
 
 Step 2 makes one operation at a time. After each operation it starts again from the top, until
 both sides are the same: both empty, or the same product right after an exact equation:
 
 <!-- markdownlint-disable MD013 -->
-```mermaid
-flowchart TD
-    left{step 2:<br>both sides the same?} -- yes --> done([go to step 3])
-    left -- no --> single{exact equation, or<br>a product of its own tree?}
-    single -- no --> pair[pair the factors of every<br>tree found on both sides,<br>except siblings still waiting]
-    single -- yes --> sub[expand it]
-    pair --> apart{a pair ranking none, or<br>different roots of one<br>dimension left unpaired,<br>neither equation mentioning<br>the other's tree?}
-    apart -- yes --> r_no([none])
-    apart -- no --> paired{anything paired?}
-    paired -- no --> cancel{the other side empty,<br>and self-cancel possible?}
-    cancel -- yes --> cancelled[self-cancel]
-    cancel -- no --> deep{a factor with<br>an equation?}
-    deep -- no --> r_no
-    deep -- yes --> reduce[expand the deepest,<br>or the shallowest target<br>factor while siblings wait]
-    sub --> left
-    paired -- yes --> left
-    cancelled --> left
-    reduce --> left
-```
+![The procedure, step 2](img/qs_conversion_10.svg){.figure}&nbsp;
 <!-- markdownlint-enable MD013 -->
 
 Step 3 takes the lowest rank of the operations made in step 2, and [The kind boundary] may lower
 it:
 
-```mermaid
-flowchart TD
-    rank([step 3:<br>lowest operation rank]) --> both{a kind lost<br>and one gained?}
-    both -- yes --> r_no([none])
-    both -- no --> change{a kind lost, or one gained<br>by a source that is not a kind?}
-    change -- yes --> expl([at most<br>explicit])
-    change -- no --> keep([unchanged])
-```
+![The procedure, step 3](img/qs_conversion_11.svg){.figure}&nbsp;
 
 ::: ednote
 The three flowcharts are the ones in the user's guide. A figure in the style of
@@ -9183,8 +9081,7 @@ test in [@MP-UNITS] that guards it, where one exists.
     static_assert(!$implicitly-convertible$(isq::phase_coefficient, isq::propagation_coefficient));
     static_assert($explicitly-convertible$(isq::phase_coefficient, isq::propagation_coefficient));
     static_assert(!$implicitly-convertible$(isq::phase_coefficient * isq::path_length, dimensionless));
-    static_assert(!$implicitly-convertible$(isq::phase_coefficient * isq::mass,
-                                          isq::propagation_coefficient * isq::mass));
+    static_assert(!$implicitly-convertible$(isq::phase_coefficient * isq::mass, isq::propagation_coefficient * isq::mass));
     ```
 
 2. **Names never decide a tie between equally deep factors.** When several factors of the greatest
@@ -9223,8 +9120,7 @@ test in [@MP-UNITS] that guards it, where one exists.
    stays `explicit` like the bare one:
 
     ```cpp
-    static_assert(!$implicitly-convertible$(pow<2>(isq::phase_coefficient),
-                                          pow<2>(isq::propagation_coefficient)));
+    static_assert(!$implicitly-convertible$(pow<2>(isq::phase_coefficient), pow<2>(isq::propagation_coefficient)));
     ```
 
 5. **A kind of a derived quantity runs the equation rule.** `kind_of<K>` with a derived `K` runs
@@ -9283,8 +9179,7 @@ test in [@MP-UNITS] that guards it, where one exists.
     loses nothing and is `implicit`. Guarded in `isq_test.cpp`:
 
     ```cpp
-    static_assert($implicitly-convertible$(isq::angular_velocity * isq::radius / isq::angular_measure / isq::speed,
-                                         dimensionless));
+    static_assert($implicitly-convertible$(isq::angular_velocity * isq::radius / isq::angular_measure / isq::speed, dimensionless));
     ```
 
 11. **The kind boundary caps every verdict of the tree rule and of the kind rules.** The tree rule
@@ -9381,17 +9276,6 @@ The common specification of two point specifications is the point of the common 
 their scales, so `get_common_quantity_spec(point<isq::height>, point<isq::width>)` is
 `point<isq::length>`, and a point and a delta have no common specification.
 
-### Wording and interface
-
-The normative wording in the companion wording document follows this chapter: the vocabulary above
-is defined there with the same names, the ranks are an exposition-only enumeration whose enumerator
-`explicit_only` is the rank written `explicit` here, and the procedure follows the order of
-[The procedure in order]. The public interface is the predicate `interconvertible` and
-`get_common_quantity_spec`, which the library uses to find the quantity specification two operands
-have in common, for example in addition and comparison. The other three predicates are
-exposition-only.
-
-
 ## Quantity references
 
 _Note: We know that probably the term "reference" will not survive too long in the Committee,
@@ -9457,15 +9341,6 @@ unit algebra yields the scale of a point, the result is the delta of it
 the way `point<m>(42)` creates a point. For a unit other than an offset one the wrapper is kept only
 where the user spells it as a type (`quantity<delta<m>>`): `delta<m>(42)` is a `quantity<m, int>`,
 and `delta<m> * m` is `pow<2>(m)`.
-
-### Bikeshedding `reference`
-
-The term `reference` is highly overloaded in the C++ domain, which is why the concepts are
-`quantity_reference` and `quantity_reference_of`. The types themselves need no name a user would
-type: users obtain the reference of a delta through `QS[U]` or `delta<U>`, and the reference of a
-point through `point<R, PO>`, and the types are exposition-only. An implementation chooses their
-spellings, and the shorter they are, the easier compiler error messages are to grasp.
-
 
 ## Quantities
 
@@ -9939,7 +9814,7 @@ Only a compile-time zero is accepted: a constant expression of an integer or flo
 whose value is zero (e.g., `0`, `0u`, `0.`, `0.f`, `0LL`). A non-zero value or a runtime variable,
 even one whose value happens to be zero, is rejected at compile time. A requires-expression that
 probes such a comparison doesn't see this check, and a literal `0` passed through a function
-isn't a compile-time zero ([@ZERO-CMP] discusses both, together with alternative designs).
+isn't a compile-time zero ([@P4406R0_PRE] discusses both, together with alternative designs).
 
 
 #### Other maths
@@ -10553,6 +10428,10 @@ static_assert(q.in(deg_C) != qp.in(deg_C).delta_from_zero());
 
 :::
 
+_Note: [@P4185R2_PRE] lifts this exclusion for `si::kelvin`. The origin of the kelvin is a natural
+origin, so the kelvin is not an offset unit there, and `300 * K` is an absolute temperature rather
+than a delta._
+
 We believe that the code enforced with new utilities makes it much easier to understand what
 happens here.
 
@@ -10591,7 +10470,8 @@ are introduced to simplify the usage of:
 In theory, those abstractions are not needed, and in this chapter, we will describe how the API and
 use cases would look like without it.
 
-Let's try to reimplement parts of our room AC temperature controller from the [Temperature support] chapter:
+Let's try to reimplement parts of our room AC temperature controller from the [Temperature support]
+chapter:
 
 ```cpp
 constexpr struct room_reference_temp : relative_point_origin<si::ice_point + delta<deg_C>(21)> {} room_reference_temp;
@@ -10934,14 +10814,12 @@ struct quantity_like_traits<chrono::duration<Rep, Period>> {
   using rep = Rep;
   using T = chrono::duration<Rep, Period>;
 
-  [[nodiscard]] static constexpr rep to_numerical_value(const T& q) noexcept(
-    is_nothrow_copy_constructible_v<rep>)
+  [[nodiscard]] static constexpr rep to_numerical_value(const T& q) noexcept(is_nothrow_copy_constructible_v<rep>)
   {
     return q.count();
   }
 
-  [[nodiscard]] static constexpr T from_numerical_value(const rep& v) noexcept(
-    is_nothrow_copy_constructible_v<rep>)
+  [[nodiscard]] static constexpr T from_numerical_value(const rep& v) noexcept(is_nothrow_copy_constructible_v<rep>)
   {
     return T(v);
   }
@@ -10967,8 +10845,7 @@ struct quantity_like_traits<chrono::time_point<C, chrono::duration<Rep, Period>>
     return tp.time_since_epoch().count();
   }
 
-  [[nodiscard]] static constexpr T from_numerical_value(const rep& v) noexcept(
-    is_nothrow_copy_constructible_v<rep>)
+  [[nodiscard]] static constexpr T from_numerical_value(const rep& v) noexcept(is_nothrow_copy_constructible_v<rep>)
   {
     return T(chrono::duration<Rep, Period>(v));
   }
@@ -11518,11 +11395,8 @@ cover systems of quantities and units, math utilities, or any other part of [@MP
 this paper does not propose. Where a declaration says `@_see below_@`, the definition is not
 given here.
 
-The declarations are taken from the headers of [@MP-UNITS] at commit `b8f68c4889` of the
-`version-3` branch, ahead of the 3.0.0 release. They include the changes of the `master` branch
-from pull requests #858 to #864, and the prototype commits `f9b279106c` (the quantity concepts
-match only specializations of `quantity`) and `28bd40056c` (which changes no declaration shown
-here). The following adjustments apply:
+The declarations are taken from the headers of the `version-3` branch of [@MP-UNITS], ahead of
+its 3.0.0 release. The following adjustments apply:
 
 - Everything is shown in namespace `std`, as proposed in [Library namespace]. Names are kept
   as in [@MP-UNITS], including those that [Names that need a decision] leaves open, except that
@@ -11533,16 +11407,15 @@ here). The following adjustments apply:
   types need no public name and stay out of the interface. _Recommended practice_:
   implementations should name these types as shown here, so that diagnostics read the same
   across vendors.
-- Entities deprecated in [@MP-UNITS] are omitted.
 - Workarounds for current compiler limitations are replaced with the form intended for
   standardization (e.g., a single `pow` with a defaulted `Den` template parameter, and
   `named_quantity_spec` defined without CRTP using an explicit object parameter). Disjuncts
   that exist in constraints only to improve diagnostics are removed.
 - Features of [@MP-UNITS] that this paper does not propose are omitted: uncertainty of
   measured constants, bounds and overflow policies of point origins and constraint violation
-  handlers ([@BOUNDS]), frame projections, non-negative quantity specifications ([@NON-NEG]),
+  handlers ([@P4412R0_PRE]), frame projections, non-negative quantity specifications ([@P4411R0_PRE]),
   component access for vector quantities and their construction from components
-  ([@COMPONENT-VECTORS]), the `unit_for`, `reference_for`, and `rep_for` traits, and the observers
+  ([@P4407R0_PRE]), the `unit_for`, `reference_for`, and `rep_for` traits, and the observers
   of unit magnitudes (e.g., `get_value`) used internally by the scaling engine.
 - Names that the implementation does not expose, most of them kept in a `detail` namespace,
   appear in italics as exposition-only names, and their definitions are not given. The
@@ -11594,20 +11467,19 @@ class symbol_text;
 struct $symbol-text-interface$ {  // exposition only
   // concatenation
   template<size_t N1, size_t M1, size_t N2, size_t M2>
-  friend constexpr symbol_text<N1 + N2, M1 + M2> operator+(const symbol_text<N1, M1>& lhs,
-                                                           const symbol_text<N2, M2>& rhs);
+  friend constexpr symbol_text<N1 + N2, M1 + M2> operator+(const symbol_text<N1, M1>& lhs, const symbol_text<N2, M2>& rhs);
 
   // comparison
   template<size_t N1, size_t M1, size_t N2, size_t M2>
-  friend constexpr auto operator<=>(const symbol_text<N1, M1>& lhs,
-                                    const symbol_text<N2, M2>& rhs) noexcept;
+  friend constexpr auto operator<=>(const symbol_text<N1, M1>& lhs, const symbol_text<N2, M2>& rhs) noexcept;
+
   template<size_t N1, size_t M1, size_t N2, size_t M2>
-  friend constexpr bool operator==(const symbol_text<N1, M1>& lhs,
-                                   const symbol_text<N2, M2>& rhs) noexcept;
+  friend constexpr bool operator==(const symbol_text<N1, M1>& lhs, const symbol_text<N2, M2>& rhs) noexcept;
 
   template<size_t N1, size_t M1>
   friend constexpr bool operator==(const symbol_text<N1, M1>& lhs, char rhs) noexcept
     requires requires { symbol_text<N1, M1>(rhs); };
+
   template<size_t N1, size_t M1>
   friend constexpr auto operator<=>(const symbol_text<N1, M1>& lhs, char rhs) noexcept
     requires requires { symbol_text<N1, M1>(rhs); };
@@ -11615,6 +11487,7 @@ struct $symbol-text-interface$ {  // exposition only
   template<size_t N1, size_t M1, size_t N2>
   friend consteval bool operator==(const symbol_text<N1, M1>& lhs, const char (&rhs)[N2])
     requires requires { symbol_text<N1, M1>(rhs); };
+
   template<size_t N1, size_t M1, size_t N2>
   friend consteval auto operator<=>(const symbol_text<N1, M1>& lhs, const char (&rhs)[N2])
     requires requires { symbol_text<N1, M1>(rhs); };
@@ -11665,8 +11538,7 @@ template<$SymbolicArg$ T, $SymbolicArg$... Ts>
 struct $per$ final {};  // exposition only
 
 template<$SymbolicArg$ F, int Num, int... Den>
-  requires($valid-ratio$<Num, Den...> && $positive-ratio$<Num, Den...> &&
-           !$ratio-one$<Num, Den...>)
+  requires($valid-ratio$<Num, Den...> && $positive-ratio$<Num, Den...> && !$ratio-one$<Num, Den...>)
 struct $power$ final {};  // exposition only
 
 }
@@ -11729,12 +11601,9 @@ struct dimension_symbol_formatting {
 };
 
 template<typename CharT = char, output_iterator<CharT> Out, dimension D>
-constexpr Out dimension_symbol_to(Out out, D d,
-                                  const dimension_symbol_formatting& fmt =
-                                    dimension_symbol_formatting{});
+constexpr Out dimension_symbol_to(Out out, D d, const dimension_symbol_formatting& fmt = dimension_symbol_formatting{});
 
-template<dimension_symbol_formatting fmt = dimension_symbol_formatting{}, typename CharT = char,
-         dimension D>
+template<dimension_symbol_formatting fmt = dimension_symbol_formatting{}, typename CharT = char, dimension D>
 consteval basic_string_view<CharT> dimension_symbol(D);
 
 }
@@ -11816,13 +11685,11 @@ struct $quantity-spec-interface$ {  // exposition only
   template<typename Self, typename FwdQP, point_quantity QP = remove_cvref_t<FwdQP>>
     requires($explicitly-convertible$(QP::quantity_spec, $as-point$(Self{}))) &&
             point_origin_for<decltype(QP::point_origin), $remove-point$(Self{})> && requires {
-              typename quantity<$make-point-reference$($remove-point$(Self{}), QP::unit, QP::point_origin),
-                                typename QP::rep>;
+              typename quantity<$make-point-reference$($remove-point$(Self{}), QP::unit, QP::point_origin), typename QP::rep>;
             }
   constexpr point_quantity auto operator()(this Self, FwdQP&& qp);
 
-  template<typename Self, typename FwdValue,
-           representation_of<Self{}> Value = remove_cvref_t<FwdValue>>
+  template<typename Self, typename FwdValue, representation_of<Self{}> Value = remove_cvref_t<FwdValue>>
     requires($explicitly-convertible-to-dimensionless$(Self{}))
   constexpr delta_quantity auto operator()(this Self, FwdValue&& val);
 
@@ -11883,8 +11750,7 @@ template<typename Q>
 struct $kind-of-t$;
 
 template<quantity_spec Q>
-  requires $SymbolicArg$<Q> && (!$QuantityKindSpec$<Q>) && (!$PointQuantitySpec$<Q>) &&
-           ($get-kind-tree-root$(Q{}) == Q{})
+  requires $SymbolicArg$<Q> && (!$QuantityKindSpec$<Q>) && (!$PointQuantitySpec$<Q>) && ($get-kind-tree-root$(Q{}) == Q{})
 struct $kind-of-t$<Q> : @_see below_@ {};
 
 template<quantity_spec auto Q>
@@ -11903,19 +11769,6 @@ struct $point-t$<Q> : $quantity-spec-interface$ {};
 
 template<quantity_spec Q>
 consteval quantity_spec auto get_kind(Q);
-
-// conversions
-template<quantity_spec From, quantity_spec To>
-consteval bool $implicitly-convertible$(From from, To to);  // exposition only
-
-template<quantity_spec From, quantity_spec To>
-consteval bool $explicitly-convertible$(From from, To to);  // exposition only
-
-template<quantity_spec From, quantity_spec To>
-consteval bool $castable$(From from, To to);  // exposition only
-
-template<quantity_spec QS1, quantity_spec QS2>
-consteval bool interconvertible(QS1 qs1, QS2 qs2);
 
 // common quantity specification
 consteval quantity_spec auto get_common_quantity_spec(quantity_spec auto q);
@@ -12011,8 +11864,7 @@ template<typename T>
 concept prefixable_unit = unit<T> && $is-derived-from-specialization-of$<T, named_unit>;
 
 template<typename U, auto QS>
-concept unit_of = unit<U> && quantity_spec<decltype(QS)> &&
-                  $implicitly-convertible$(get_quantity_spec(U{}), $remove-point$(QS));
+concept unit_of = unit<U> && quantity_spec<decltype(QS)> && $implicitly-convertible$(get_quantity_spec(U{}), $remove-point$(QS));
 
 }
 ```
@@ -12027,22 +11879,26 @@ struct $unit-interface$ {  // exposition only
   template<unit_magnitude M, unit U>
   friend consteval unit auto operator*(M, U u);
   friend consteval unit auto operator*(unit auto, unit_magnitude auto) = delete;
+
   template<unit_magnitude M, unit U>
   friend consteval unit auto operator/(M m, U u);
 
   template<unit Lhs, unit Rhs>
   friend consteval unit auto operator*(Lhs lhs, Rhs rhs);
+
   template<unit Lhs, unit Rhs>
   friend consteval unit auto operator/(Lhs lhs, Rhs rhs);
 
   template<unit Lhs, unit Rhs>
   friend consteval bool operator==(Lhs, Rhs);
+
   template<unit Lhs, unit Rhs>
   friend consteval bool $equivalent$(Lhs lhs, Rhs rhs);  // exposition only
 
   template<intmax_t Num, intmax_t Den = 1, unit U>
     requires(Den != 0)
   friend consteval unit auto pow(U u);
+
   friend consteval unit auto sqrt(unit auto u);
   friend consteval unit auto cbrt(unit auto u);
   friend consteval unit auto square(unit auto u);
@@ -12052,6 +11908,7 @@ struct $unit-interface$ {  // exposition only
   // observers
   template<unit Self>
   friend consteval Self get_unit(Self self);
+
   template<unit U>
   friend consteval quantity_spec auto get_quantity_spec(U);
 };
@@ -12066,13 +11923,11 @@ template<symbol_text Symbol, auto...>
 struct named_unit;
 
 template<symbol_text Symbol, $QuantityKindSpec$ auto QS>
-  requires(!Symbol.empty()) &&
-          ($BaseDimension$<decltype(get_dimension(QS))> || $remove-kind$(QS) == dimensionless)
+  requires(!Symbol.empty()) && ($BaseDimension$<decltype(get_dimension(QS))> || $remove-kind$(QS) == dimensionless)
 struct named_unit<Symbol, QS> : $unit-interface$ {};
 
 template<symbol_text Symbol, $QuantityKindSpec$ auto QS, point_origin auto PO>
-  requires(!Symbol.empty()) &&
-          ($BaseDimension$<decltype(get_dimension(QS))> || $remove-kind$(QS) == dimensionless)
+  requires(!Symbol.empty()) && ($BaseDimension$<decltype(get_dimension(QS))> || $remove-kind$(QS) == dimensionless)
 struct named_unit<Symbol, QS, PO> : $unit-interface$ {};
 
 template<symbol_text Symbol, unit auto U>
@@ -12127,14 +11982,18 @@ namespace std {
 
 inline constexpr struct percent final :
     named_unit<"%", mag_ratio<1, 100> * one> {} percent;
+
 inline constexpr struct per_mille final :
     named_unit<symbol_text{u8"‰", "%o"}, mag_ratio<1, 1000> * one> {} per_mille;
+
 inline constexpr struct parts_per_million final :
     named_unit<"ppm", mag_ratio<1, 1'000'000> * one> {} parts_per_million;
+
 inline constexpr auto ppm = parts_per_million;
 
 inline constexpr struct pi final :
     named_constant<symbol_text{u8"π", "pi"}, mag<$pi-c$> * one> {} pi;
+
 inline constexpr auto π = pi;
 
 }
@@ -12144,8 +12003,6 @@ inline constexpr auto π = pi;
 
 ```cpp
 namespace std {
-
-consteval auto get_canonical_unit(unit auto u);
 
 // common unit
 consteval unit auto get_common_unit(unit auto u);
@@ -12198,8 +12055,7 @@ template<>
 inline constexpr bool space_before_unit_symbol<one> = false;
 
 template<typename CharT = char, output_iterator<CharT> Out, unit U>
-constexpr Out unit_symbol_to(Out out, U u,
-                             const unit_symbol_formatting& fmt = unit_symbol_formatting{});
+constexpr Out unit_symbol_to(Out out, U u, const unit_symbol_formatting& fmt = unit_symbol_formatting{});
 
 template<unit_symbol_formatting fmt = unit_symbol_formatting{}, typename CharT = char, unit U>
 consteval basic_string_view<CharT> unit_symbol(U);
@@ -12237,8 +12093,7 @@ template<typename T>
 concept quantity_reference = $LinearReference$<remove_const_t<T>> || $PointReference$<T>;
 
 template<typename T, auto QS>
-concept quantity_reference_of =
-  quantity_reference<T> && quantity_spec_of<decltype(get_quantity_spec(T{})), QS>;
+concept quantity_reference_of = quantity_reference<T> && quantity_spec_of<decltype(get_quantity_spec(T{})), QS>;
 
 // the interface shared by the references of a delta and of a point
 struct $reference-interface$ {  // exposition only
@@ -12248,6 +12103,7 @@ struct $reference-interface$ {  // exposition only
   // observers
   template<$WrappingReference$ R>
   friend consteval quantity_spec auto get_quantity_spec(R);
+
   template<$WrappingReference$ R>
   friend consteval unit auto get_unit(R);
 };
@@ -12262,20 +12118,25 @@ template<typename... Args>
 struct $delta-t$<Args...> : $reference-interface$ {
   template<typename... Args2>
   friend consteval bool operator==($delta-t$, $delta-t$<Args2...>);
+
   template<unit U2>
   friend consteval bool operator==($delta-t$, U2 u2);
 
   template<typename... Args2>
   friend consteval quantity_reference auto operator*($delta-t$, $delta-t$<Args2...>);
+
   template<unit U2>
   friend consteval quantity_reference auto operator*($delta-t$, U2);
+
   template<unit U1>
   friend consteval quantity_reference auto operator*(U1, $delta-t$);
 
   template<typename... Args2>
   friend consteval quantity_reference auto operator/($delta-t$, $delta-t$<Args2...>);
+
   template<unit U2>
   friend consteval quantity_reference auto operator/($delta-t$, U2);
+
   template<unit U1>
   friend consteval quantity_reference auto operator/(U1, $delta-t$);
 
@@ -12284,6 +12145,7 @@ struct $delta-t$<Args...> : $reference-interface$ {
   template<intmax_t Num, intmax_t Den = 1>
     requires(Den != 0)
   friend consteval quantity_reference auto pow($delta-t$);
+
   friend consteval quantity_reference auto sqrt($delta-t$);
   friend consteval quantity_reference auto cbrt($delta-t$);
 };
@@ -12295,18 +12157,18 @@ template<auto R>
 constexpr quantity_reference auto delta = @_see below_@;
 
 // creating quantities
-template<typename FwdRep, $LinearReference$ R,
-         representation_of<get_quantity_spec(R{})> Rep = remove_cvref_t<FwdRep>>
+template<typename FwdRep, $LinearReference$ R, representation_of<get_quantity_spec(R{})> Rep = remove_cvref_t<FwdRep>>
   requires(!$OffsetUnit$<decltype(get_unit(R{}))>)
 constexpr quantity<R{}, Rep> operator*(FwdRep&& lhs, R r);
-template<typename FwdRep, $LinearReference$ R,
-         representation_of<get_quantity_spec(R{})> Rep = remove_cvref_t<FwdRep>>
+
+template<typename FwdRep, $LinearReference$ R, representation_of<get_quantity_spec(R{})> Rep = remove_cvref_t<FwdRep>>
   requires(!$OffsetUnit$<decltype(get_unit(R{}))>)
 constexpr delta_quantity auto operator/(FwdRep&& lhs, R);
 
 template<$LinearReference$ R, typename Rep>
   requires representation_of<remove_cvref_t<Rep>, get_quantity_spec(R{})>
 constexpr auto operator*(R, Rep&&) = delete;
+
 template<$LinearReference$ R, typename Rep>
   requires representation_of<remove_cvref_t<Rep>, get_quantity_spec(R{})>
 constexpr auto operator/(R, Rep&&) = delete;
@@ -12314,12 +12176,14 @@ constexpr auto operator/(R, Rep&&) = delete;
 // changing the reference of a quantity
 template<typename FwdQ, $LinearReference$ R, delta_quantity Q = remove_cvref_t<FwdQ>>
 constexpr delta_quantity auto operator*(FwdQ&& q, R);
+
 template<typename FwdQ, $LinearReference$ R, delta_quantity Q = remove_cvref_t<FwdQ>>
 constexpr delta_quantity auto operator/(FwdQ&& q, R);
 
 template<$LinearReference$ R, typename Q>
   requires delta_quantity<remove_cvref_t<Q>>
 constexpr auto operator*(R, Q&& q) = delete;
+
 template<$LinearReference$ R, typename Q>
   requires delta_quantity<remove_cvref_t<Q>>
 constexpr auto operator/(R, Q&& q) = delete;
@@ -12327,16 +12191,14 @@ constexpr auto operator/(R, Q&& q) = delete;
 // common reference
 consteval unit auto get_common_reference(unit auto u1, unit auto u2, unit auto... rest)
   requires requires {
-    get_common_quantity_spec(get_quantity_spec(u1), get_quantity_spec(u2),
-                             get_quantity_spec(rest)...);
+    get_common_quantity_spec(get_quantity_spec(u1), get_quantity_spec(u2), get_quantity_spec(rest)...);
     get_common_unit(u1, u2, rest...);
   };
 
 template<$LinearReference$ R1, $LinearReference$ R2, $LinearReference$... Rest>
 consteval quantity_reference auto get_common_reference(R1 r1, R2 r2, Rest... rest)
   requires(!(unit<R1> && unit<R2> && (... && unit<Rest>))) && requires {
-    get_common_quantity_spec(get_quantity_spec(r1), get_quantity_spec(r2),
-                             get_quantity_spec(rest)...);
+    get_common_quantity_spec(get_quantity_spec(r1), get_quantity_spec(r2), get_quantity_spec(rest)...);
     get_common_unit(get_unit(r1), get_unit(r2), get_unit(rest)...);
   };
 
@@ -12358,9 +12220,7 @@ concept point_origin =
   !$is-specialization-of-relative-point-origin$<remove_const_t<T>>;
 
 template<typename T, auto QS>
-concept point_origin_for =
-  point_origin<T> &&
-  quantity_spec_of<decltype($remove-point$(QS)), $remove-point$(T::$quantity-spec$)>;
+concept point_origin_for = point_origin<T> && quantity_spec_of<decltype($remove-point$(QS)), $remove-point$(T::$quantity-spec$)>;
 
 // point origins
 template<quantity_spec auto QS>
@@ -12390,9 +12250,10 @@ struct absolute_point_origin : $point-origin-interface$ {};
 template<point_quantity auto QP>
 struct relative_point_origin : $point-origin-interface$ {};
 
+// a class derived from it, such as si::absolute_zero, is the same natural origin under a name of its own
 template<quantity_spec auto QS>
   requires(!$PointQuantitySpec$<decltype(QS)>)
-struct $natural-point-origin-t$ final : absolute_point_origin<QS> {};
+struct $natural-point-origin-t$ : absolute_point_origin<QS> {};
 
 template<quantity_spec auto QS>
 constexpr $natural-point-origin-t$<$remove-point$(QS)> natural_point_origin;
@@ -12413,6 +12274,7 @@ struct $point-t$<Args...> : $reference-interface$ {
   template<typename... Args2>
     requires $PointReference$<$point-t$<Args2...>>
   friend consteval bool operator==($point-t$, $point-t$<Args2...>);
+
   template<$LinearReference$ R2>
   friend consteval bool operator==($point-t$, R2);
 };
@@ -12465,8 +12327,7 @@ template<$has-value-type-member$ T>
 struct representation_underlying_type<T> {};
 
 template<$has-value-type-member$ T>
-  requires $has-element-type-member$<T> &&
-           same_as<remove_cv_t<typename T::value_type>, remove_cv_t<typename T::element_type>>
+  requires $has-element-type-member$<T> && same_as<remove_cv_t<typename T::value_type>, remove_cv_t<typename T::element_type>>
 struct representation_underlying_type<T> : $cond-underlying-type$<typename T::value_type> {};
 
 template<typename T>
@@ -12513,14 +12374,19 @@ constexpr bool disable_representation = @_see below_@;
 
 template<>
 inline constexpr bool disable_representation<bool> = true;
+
 template<>
 inline constexpr bool disable_representation<char> = true;
+
 template<>
 inline constexpr bool disable_representation<wchar_t> = true;
+
 template<>
 inline constexpr bool disable_representation<char8_t> = true;
+
 template<>
 inline constexpr bool disable_representation<char16_t> = true;
+
 template<>
 inline constexpr bool disable_representation<char32_t> = true;
 
@@ -12628,19 +12494,16 @@ namespace std {
 // implicit scaling
 consteval bool is_integral_scaling(unit auto from, unit auto to);
 
-// $integer-rank-preserving$<From, To> (exposition only) is true unless From and To are both
-// integer types, To is not the type that From promotes to, and either their signedness differs or
-// To has a lower integer conversion rank than From
 template<unit auto FromUnit, typename FromRep, unit auto ToUnit, typename ToRep>
 constexpr bool implicitly_scalable =
   treat_as_floating_point<ToRep> ||
-  (!treat_as_floating_point<FromRep> && is_integral_scaling(FromUnit, ToUnit) &&
-   $integer-rank-preserving$<FromRep, ToRep>);
+  (!treat_as_floating_point<FromRep> && is_integral_scaling(FromUnit, ToUnit));
 
 // scale_by_magnitude
 template<typename To, unit_magnitude M, typename From>
   requires $UnitMagnitudeScalable$<From>
 constexpr auto scale_by_magnitude(M m, const From& value);
+
 template<typename To, unit_magnitude M, typename From, $RoundingPolicy$ Policy>
   requires $UnitMagnitudeScalable$<From>
 constexpr auto scale_by_magnitude(M m, const From& value, Policy);
@@ -12664,12 +12527,10 @@ template<typename T>
 concept $Quantity$ = $is-specialization-of$<remove_cv_t<T>, quantity>;  // exposition only
 
 template<typename T>
-concept delta_quantity = $Quantity$<T> &&
-                         !$PointReference$<remove_const_t<decltype(remove_cv_t<T>::reference)>>;
+concept delta_quantity = $Quantity$<T> && !$PointReference$<remove_const_t<decltype(remove_cv_t<T>::reference)>>;
 
 template<typename T>
-concept point_quantity = $Quantity$<T> &&
-                         $PointReference$<remove_const_t<decltype(remove_cv_t<T>::reference)>>;
+concept point_quantity = $Quantity$<T> && $PointReference$<remove_const_t<decltype(remove_cv_t<T>::reference)>>;
 
 template<typename Q, auto V>
 concept quantity_of =
@@ -12712,52 +12573,50 @@ struct $quantity-interface$ {  // exposition only
   // binary operators
   template<auto R1, typename Rep1, auto R2, typename Rep2>
     requires $CommonlyInvocableQuantities$<plus<>, quantity<R1, Rep1>, quantity<R2, Rep2>>
-  friend constexpr delta_quantity auto operator+(const quantity<R1, Rep1>& lhs,
-                                                 const quantity<R2, Rep2>& rhs);
+  friend constexpr delta_quantity auto operator+(const quantity<R1, Rep1>& lhs, const quantity<R2, Rep2>& rhs);
+
   template<auto R1, typename Rep1, representation_of<get_quantity_spec(R1)> Value>
-    requires $ImplicitFromNumber$<R1> &&
-             $InvokeResultOf$<get_quantity_spec(R1), plus<>, Rep1, const Value&>
+    requires $ImplicitFromNumber$<R1> && $InvokeResultOf$<get_quantity_spec(R1), plus<>, Rep1, const Value&>
   friend constexpr delta_quantity auto operator+(const quantity<R1, Rep1>& lhs, const Value& rhs);
+
   template<auto R1, typename Rep1, representation_of<get_quantity_spec(R1)> Value>
-    requires $ImplicitFromNumber$<R1> &&
-             $InvokeResultOf$<get_quantity_spec(R1), plus<>, Rep1, const Value&>
+    requires $ImplicitFromNumber$<R1> && $InvokeResultOf$<get_quantity_spec(R1), plus<>, Rep1, const Value&>
   friend constexpr delta_quantity auto operator+(const Value& lhs, const quantity<R1, Rep1>& rhs);
 
   template<auto R1, typename Rep1, auto R2, typename Rep2>
     requires $CommonlyInvocableQuantities$<minus<>, quantity<R1, Rep1>, quantity<R2, Rep2>>
-  friend constexpr delta_quantity auto operator-(const quantity<R1, Rep1>& lhs,
-                                                 const quantity<R2, Rep2>& rhs);
+  friend constexpr delta_quantity auto operator-(const quantity<R1, Rep1>& lhs, const quantity<R2, Rep2>& rhs);
+
   template<auto R1, typename Rep1, representation_of<get_quantity_spec(R1)> Value>
-    requires $ImplicitFromNumber$<R1> &&
-             $InvokeResultOf$<get_quantity_spec(R1), minus<>, Rep1, const Value&>
+    requires $ImplicitFromNumber$<R1> && $InvokeResultOf$<get_quantity_spec(R1), minus<>, Rep1, const Value&>
   friend constexpr delta_quantity auto operator-(const quantity<R1, Rep1>& lhs, const Value& rhs);
+
   template<auto R1, typename Rep1, representation_of<get_quantity_spec(R1)> Value>
-    requires $ImplicitFromNumber$<R1> &&
-             $InvokeResultOf$<get_quantity_spec(R1), minus<>, Rep1, const Value&>
+    requires $ImplicitFromNumber$<R1> && $InvokeResultOf$<get_quantity_spec(R1), minus<>, Rep1, const Value&>
   friend constexpr delta_quantity auto operator-(const Value& lhs, const quantity<R1, Rep1>& rhs);
 
   template<auto R1, typename Rep1, auto R2, typename Rep2>
     requires(!treat_as_floating_point<Rep1>) && (!treat_as_floating_point<Rep2>) &&
             $CommonlyInvocableQuantities$<modulus<>, quantity<R1, Rep1>, quantity<R2, Rep2>>
-  friend constexpr delta_quantity auto operator%(const quantity<R1, Rep1>& lhs,
-                                                 const quantity<R2, Rep2>& rhs);
+  friend constexpr delta_quantity auto operator%(const quantity<R1, Rep1>& lhs, const quantity<R2, Rep2>& rhs);
+
   template<auto R1, typename Rep1, representation_of<get_quantity_spec(R1)> Value>
-    requires $ImplicitFromNumber$<R1> &&
-             $InvokeResultOf$<get_quantity_spec(R1), modulus<>, Rep1, const Value&>
+    requires $ImplicitFromNumber$<R1> && $InvokeResultOf$<get_quantity_spec(R1), modulus<>, Rep1, const Value&>
   friend constexpr delta_quantity auto operator%(const quantity<R1, Rep1>& lhs, const Value& rhs);
+
   template<auto R1, typename Rep1, representation_of<get_quantity_spec(R1)> Value>
-    requires $ImplicitFromNumber$<R1> &&
-             $InvokeResultOf$<get_quantity_spec(R1), modulus<>, Rep1, const Value&>
+    requires $ImplicitFromNumber$<R1> && $InvokeResultOf$<get_quantity_spec(R1), modulus<>, Rep1, const Value&>
   friend constexpr delta_quantity auto operator%(const Value& lhs, const quantity<R1, Rep1>& rhs);
 
   template<auto R1, typename Rep1, auto R2, typename Rep2>
     requires $InvocableQuantities$<multiplies<>, quantity<R1, Rep1>, quantity<R2, Rep2>>
-  friend constexpr delta_quantity auto operator*(const quantity<R1, Rep1>& lhs,
-                                                 const quantity<R2, Rep2>& rhs);
+  friend constexpr delta_quantity auto operator*(const quantity<R1, Rep1>& lhs, const quantity<R2, Rep2>& rhs);
+
   template<auto R1, typename Rep1, typename Value>
     requires(!$PointRef$<R1>) && (!delta_quantity<Value>) && (!quantity_reference<Value>) &&
             $ScalableResultOf$<get_quantity_spec(R1), multiplies<>, Rep1, const Value&>
   friend constexpr delta_quantity auto operator*(const quantity<R1, Rep1>& q, const Value& val);
+
   template<typename Value, auto R1, typename Rep1>
     requires(!$PointRef$<R1>) && (!delta_quantity<Value>) && (!quantity_reference<Value>) &&
             $ScalableResultOf$<get_quantity_spec(R1), multiplies<>, const Value&, Rep1>
@@ -12765,13 +12624,13 @@ struct $quantity-interface$ {  // exposition only
 
   template<auto R1, typename Rep1, auto R2, typename Rep2>
     requires $InvocableQuantities$<divides<>, quantity<R1, Rep1>, quantity<R2, Rep2>>
-  friend constexpr delta_quantity auto operator/(const quantity<R1, Rep1>& lhs,
-                                                 const quantity<R2, Rep2>& rhs);
+  friend constexpr delta_quantity auto operator/(const quantity<R1, Rep1>& lhs, const quantity<R2, Rep2>& rhs);
+
   template<auto R1, typename Rep1, typename Value>
     requires(!$PointRef$<R1>) && (!delta_quantity<Value>) && (!quantity_reference<Value>) &&
             $InvokeResultOf$<get_quantity_spec(R1), divides<>, Rep1, const Value&>
-  friend constexpr quantity_of<get_quantity_spec(R1)> auto operator/(const quantity<R1, Rep1>& q,
-                                                                     const Value& val);
+  friend constexpr quantity_of<get_quantity_spec(R1)> auto operator/(const quantity<R1, Rep1>& q, const Value& val);
+
   template<typename Value, auto R1, typename Rep1>
     requires(!$PointRef$<R1>) && (!delta_quantity<Value>) && (!quantity_reference<Value>) &&
             $ScalableResultOf$<get_quantity_spec(one / R1), divides<>, const Value&, Rep1>
@@ -12783,9 +12642,11 @@ struct $quantity-interface$ {  // exposition only
              equality_comparable<
                typename common_type_t<quantity<R1, Rep1>, quantity<R2, Rep2>>::rep>
   friend constexpr bool operator==(const quantity<R1, Rep1>& lhs, const quantity<R2, Rep2>& rhs);
+
   template<auto R1, typename Rep1, representation_of<get_quantity_spec(R1)> Value>
     requires $ImplicitFromNumber$<R1> && equality_comparable_with<Rep1, Value>
   friend constexpr bool operator==(const quantity<R1, Rep1>& lhs, const Value& rhs);
+
   template<auto R1, typename Rep1>
     requires(!$PointRef$<R1>) && equality_comparable<Rep1> &&
             requires { representation_values<Rep1>::zero(); }
@@ -12796,9 +12657,11 @@ struct $quantity-interface$ {  // exposition only
              three_way_comparable<
                typename common_type_t<quantity<R1, Rep1>, quantity<R2, Rep2>>::rep>
   friend constexpr auto operator<=>(const quantity<R1, Rep1>& lhs, const quantity<R2, Rep2>& rhs);
+
   template<auto R1, typename Rep1, representation_of<get_quantity_spec(R1)> Value>
     requires $ImplicitFromNumber$<R1> && three_way_comparable_with<Rep1, Value>
   friend constexpr auto operator<=>(const quantity<R1, Rep1>& lhs, const Value& rhs);
+
   template<auto R1, typename Rep1>
     requires(!$PointRef$<R1>) && three_way_comparable<Rep1> &&
             requires { representation_values<Rep1>::zero(); }
@@ -12806,50 +12669,51 @@ struct $quantity-interface$ {  // exposition only
 
   // affine space operators
   template<auto R1, typename Rep1, auto R2, typename Rep2>
-    requires $PointRef$<R1> && (!$PointRef$<R2>) &&
-             point_origin_for<decltype($point-origin-of$<R1>), get_quantity_spec(R2)> &&
+    requires $PointRef$<R1> && (!$PointRef$<R2>) && point_origin_for<decltype($point-origin-of$<R1>), get_quantity_spec(R2)> &&
              requires(const quantity<R1, Rep1>& qp, const quantity<R2, Rep2>& q) {
                qp.delta_from(qp.point_origin) + q;
              }
-  friend constexpr point_quantity auto operator+(const quantity<R1, Rep1>& qp,
-                                                 const quantity<R2, Rep2>& q);
+  friend constexpr point_quantity auto operator+(const quantity<R1, Rep1>& qp, const quantity<R2, Rep2>& q);
+
   template<auto R1, typename Rep1, auto R2, typename Rep2>
-    requires(!$PointRef$<R1>) && $PointRef$<R2> &&
-            point_origin_for<decltype($point-origin-of$<R2>), get_quantity_spec(R1)> &&
+    requires(!$PointRef$<R1>) && $PointRef$<R2> && point_origin_for<decltype($point-origin-of$<R2>), get_quantity_spec(R1)> &&
             requires(const quantity<R1, Rep1>& q, const quantity<R2, Rep2>& qp) {
               q + qp.delta_from(qp.point_origin);
             }
-  friend constexpr point_quantity auto operator+(const quantity<R1, Rep1>& q,
-                                                 const quantity<R2, Rep2>& qp);
+  friend constexpr point_quantity auto operator+(const quantity<R1, Rep1>& q, const quantity<R2, Rep2>& qp);
+
   template<std::point_origin PO, typename FwdQ, delta_quantity Q = remove_cvref_t<FwdQ>>
     requires point_origin_for<PO, Q::quantity_spec>
   friend constexpr point_quantity auto operator+(PO po, FwdQ&& q);
+
   template<typename FwdQ, std::point_origin PO, delta_quantity Q = remove_cvref_t<FwdQ>>
     requires point_origin_for<PO, Q::quantity_spec>
   friend constexpr point_quantity auto operator+(FwdQ&& q, PO po);
 
   template<auto R1, typename Rep1, auto R2, typename Rep2>
-    requires $PointRef$<R1> && (!$PointRef$<R2>) &&
-             point_origin_for<decltype($point-origin-of$<R1>), get_quantity_spec(R2)> &&
+    requires $PointRef$<R1> && (!$PointRef$<R2>) && point_origin_for<decltype($point-origin-of$<R1>), get_quantity_spec(R2)> &&
              requires(const quantity<R1, Rep1>& qp, const quantity<R2, Rep2>& q) {
                qp.delta_from(qp.point_origin) - q;
              }
-  friend constexpr point_quantity auto operator-(const quantity<R1, Rep1>& qp,
-                                                 const quantity<R2, Rep2>& q);
+  friend constexpr point_quantity auto operator-(const quantity<R1, Rep1>& qp, const quantity<R2, Rep2>& q);
+
   template<std::point_origin PO, auto R2, typename Rep2>
     requires(!$PointRef$<R2>) && point_origin_for<PO, get_quantity_spec(R2)> &&
             requires(const quantity<R2, Rep2>& q) { -q; }
   friend constexpr point_quantity auto operator-(PO po, const quantity<R2, Rep2>& q);
+
   template<auto R1, typename Rep1, quantity_of<quantity<R1, Rep1>::absolute_point_origin> QP2>
     requires $PointRef$<R1>
   friend constexpr delta_quantity auto operator-(const quantity<R1, Rep1>& lhs, const QP2& rhs)
     requires requires {
       lhs.delta_from(lhs.point_origin) - rhs.delta_from(QP2::point_origin);
     };
+
   template<auto R1, typename Rep1, std::point_origin PO2>
     requires $PointRef$<R1> && quantity_of<quantity<R1, Rep1>, PO2{}> &&
              quantity_reference_of<decltype(R1), get_quantity_spec(PO2{})>
   friend constexpr delta_quantity auto operator-(const quantity<R1, Rep1>& qp, PO2 po);
+
   template<std::point_origin PO1, auto R2, typename Rep2>
     requires $PointRef$<R2> && quantity_of<quantity<R2, Rep2>, PO1{}> &&
              quantity_reference_of<decltype(R2), get_quantity_spec(PO1{})>
@@ -12864,6 +12728,7 @@ struct $quantity-interface$ {  // exposition only
                 lhs - lhs.absolute_point_origin == rhs - rhs.absolute_point_origin;
               })
   friend constexpr bool operator==(const quantity<R1, Rep1>& lhs, const QP2& rhs);
+
   template<auto R1, typename Rep1, quantity_of<quantity<R1, Rep1>::absolute_point_origin> QP2>
     requires $PointRef$<R1> &&
              three_way_comparable_with<typename quantity<R1, Rep1>::quantity_type,
@@ -12877,8 +12742,7 @@ struct $quantity-interface$ {  // exposition only
   // text output (hosted)
   template<typename CharT, typename Traits, auto R, typename Rep>
     requires((!$PointRef$<R>) || $DefaultOriginPointRef$<R>)
-  friend basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os,
-                                                  const quantity<R, Rep>& q)
+  friend basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const quantity<R, Rep>& q)
     requires requires { os << q.numerical_value_ref_in(q.unit); };
 };
 
@@ -12896,10 +12760,11 @@ public:
 
   // static member functions
   static constexpr quantity zero() noexcept
-    requires requires { representation_values<rep>::zero(); } &&
-             ((!$PointRef$<R>) || $DefaultOriginPointRef$<R>);
+    requires requires { representation_values<rep>::zero(); } && ((!$PointRef$<R>) || $DefaultOriginPointRef$<R>);
+
   static constexpr quantity min() noexcept
     requires requires { representation_values<rep>::min(); };
+
   static constexpr quantity max() noexcept
     requires requires { representation_values<rep>::max(); };
 
@@ -12909,10 +12774,11 @@ public:
   template<quantity_reference R2>
     requires($equivalent$(unit, get_unit(R2{}))) && $SameKindReference$<R2, R>
   constexpr quantity(rep val, R2);
+
   template<typename Value, quantity_reference R2>
-    requires($equivalent$(unit, get_unit(R2{}))) && $SameKindReference$<R2, R> &&
-            (!$RepConstructibleFrom$<rep, Value>)
+    requires($equivalent$(unit, get_unit(R2{}))) && $SameKindReference$<R2, R> && (!$RepConstructibleFrom$<rep, Value>)
   constexpr quantity(Value val, R2) = delete;
+
   template<typename FwdValue, quantity_reference R2>
     requires(!$equivalent$(unit, get_unit(R2{}))) && (!$PointReference$<R2>) &&
             $QuantityConstructibleFrom$<quantity, quantity<R2{}, remove_cvref_t<FwdValue>>>
@@ -12920,34 +12786,30 @@ public:
 
   constexpr explicit(!$implicitly-convertible$(quantity_spec, dimensionless)) quantity(rep val)
     requires $ExplicitFromNumber$<reference>;
+
   template<typename Value>
-    requires $ExplicitFromNumber$<reference> && $RepConstructibleFrom$<rep, Value> &&
-             (!convertible_to<Value, rep>)
+    requires $ExplicitFromNumber$<reference> && $RepConstructibleFrom$<rep, Value> && (!convertible_to<Value, rep>)
   constexpr explicit quantity(Value val);
+
   template<typename Value>
     requires $ExplicitFromNumber$<reference> && (!$RepConstructibleFrom$<rep, Value>)
-  constexpr explicit(!convertible_to<Value, rep> ||
-                     !$implicitly-convertible$(quantity_spec, dimensionless)) quantity(Value val)
+  constexpr explicit(!convertible_to<Value, rep> || !$implicitly-convertible$(quantity_spec, dimensionless)) quantity(Value val)
     = delete;
 
   template<auto R2, typename Rep2>
-    requires $QuantityConstructibleFrom$<quantity, quantity<R2, Rep2>> &&
-             ($equivalent$(unit, get_unit(R2)))
+    requires $QuantityConstructibleFrom$<quantity, quantity<R2, Rep2>> && ($equivalent$(unit, get_unit(R2)))
   constexpr explicit(!convertible_to<Rep2, rep> ||
-                     !$implicitly-convertible$(get_quantity_spec(R2), quantity_spec) ||
-                     !implicitly_scalable<get_unit(R2), Rep2, unit, rep>)
+                     !$implicitly-convertible$(get_quantity_spec(R2), quantity_spec))
     quantity(const quantity<R2, Rep2>& q);
+
   template<auto R2, typename Rep2>
-    requires $QuantityConstructibleFrom$<quantity, quantity<R2, Rep2>> &&
-             (!$equivalent$(unit, get_unit(R2)))
+    requires $QuantityConstructibleFrom$<quantity, quantity<R2, Rep2>> && (!$equivalent$(unit, get_unit(R2)))
   constexpr explicit(!convertible_to<Rep2, rep> ||
-                     !$implicitly-convertible$(get_quantity_spec(R2), quantity_spec) ||
-                     !implicitly_scalable<get_unit(R2), Rep2, unit, rep>)
+                     !$implicitly-convertible$(get_quantity_spec(R2), quantity_spec))
     quantity(const quantity<R2, Rep2>& q);
 
   template<$QuantityLike$ Q>
-    requires(point_quantity<$quantity-like-type$<Q>> == $PointRef$<R>) &&
-            constructible_from<quantity, $quantity-like-type$<Q>>
+    requires(point_quantity<$quantity-like-type$<Q>> == $PointRef$<R>) && constructible_from<quantity, $quantity-like-type$<Q>>
   constexpr explicit(quantity_like_traits<Q>::explicit_import ||
                      !convertible_to<$quantity-like-type$<Q>, quantity>) quantity(const Q& q);
 
@@ -12970,32 +12832,34 @@ public:
     requires $PointRef$<R> && quantity_of<quantity<R2, Rep2>, $absolute-point-origin-of$<R>> &&
              constructible_from<$quantity-type-t$<R, Rep>,
                                 typename quantity<R2, Rep2>::quantity_type>
-  constexpr explicit(
-    !convertible_to<typename quantity<R2, Rep2>::quantity_type, $quantity-type-t$<R, Rep>>)
+  constexpr explicit(!convertible_to<typename quantity<R2, Rep2>::quantity_type, $quantity-type-t$<R, Rep>>)
     quantity(const quantity<R2, Rep2>& qp);
 
   // conversions
   template<unit_of<quantity_spec> ToU>
-    requires $ConvertibleOrigin$<R, Rep, ToU{}> &&
-             $ImplicitScaling$<$conversion-source-unit$<R, Rep, ToU{}>(), ToU{}, rep>
+    requires $ConvertibleOrigin$<R, Rep, ToU{}> && $ImplicitScaling$<$conversion-source-unit$<R, Rep, ToU{}>(), ToU{}, rep>
   constexpr quantity_of<quantity_spec> auto in(ToU) const;
+
   template<representation_of<quantity_spec> ToRep>
     requires $RepConstructibleFrom$<ToRep, rep>
   constexpr quantity_of<quantity_spec> auto in() const;
+
   template<representation_of<quantity_spec> ToRep, unit_of<quantity_spec> ToU>
     requires $RepConstructibleFrom$<ToRep, rep> && $ConvertibleOrigin$<R, Rep, ToU{}> &&
              $ImplicitConversion$<$conversion-source-unit$<R, Rep, ToU{}>(), rep, ToU{}, ToRep>
   constexpr quantity_of<quantity_spec> auto in(ToU) const;
+
   template<unit_of<quantity_spec> ToU, $RoundingPolicy$ Policy>
     requires $ConvertibleOrigin$<R, Rep, ToU{}> &&
              $ExplicitlyCastable$<$conversion-source-unit$<R, Rep, ToU{}>(), ToU{}, rep> &&
              $ValidRoundingPolicyFor$<Policy, rep, rep>
   constexpr quantity_of<quantity_spec> auto in(ToU, Policy policy) const;
+
   template<representation_of<quantity_spec> ToRep, $RoundingPolicy$ Policy>
     requires constructible_from<ToRep, rep> && $ValidRoundingPolicyFor$<Policy, rep, ToRep>
   constexpr quantity_of<quantity_spec> auto in(Policy policy) const;
-  template<representation_of<quantity_spec> ToRep, unit_of<quantity_spec> ToU,
-           $RoundingPolicy$ Policy>
+
+  template<representation_of<quantity_spec> ToRep, unit_of<quantity_spec> ToU, $RoundingPolicy$ Policy>
     requires constructible_from<ToRep, rep> && $ConvertibleOrigin$<R, Rep, ToU{}> &&
              $ExplicitlyCastable$<$conversion-source-unit$<R, Rep, ToU{}>(), ToU{}, ToRep> &&
              $ValidRoundingPolicyFor$<Policy, rep, ToRep>
@@ -13011,9 +12875,11 @@ public:
   template<unit_of<quantity_spec> U>
     requires(!$PointRef$<R>) && ($equivalent$(U{}, unit))
   constexpr rep& numerical_value_ref_in(U) & noexcept;
+
   template<unit_of<quantity_spec> U>
     requires((!$PointRef$<R>) || $DefaultOriginPointRef$<R>) && ($equivalent$(U{}, unit))
   constexpr const rep& numerical_value_ref_in(U) const& noexcept;
+
   template<unit_of<quantity_spec> U>
     requires($equivalent$(U{}, unit))
   constexpr const rep&& numerical_value_ref_in(U) const&& noexcept = delete;
@@ -13022,6 +12888,7 @@ public:
     requires((!$PointRef$<R>) || $DefaultOriginPointRef$<R>) &&
             requires(const quantity q) { q.in(U{}); }
   constexpr representation_of<quantity_spec> auto numerical_value_in(U) const noexcept;
+
   template<unit_of<quantity_spec> U, $RoundingPolicy$ Policy>
     requires((!$PointRef$<R>) || $DefaultOriginPointRef$<R>) &&
             requires(const quantity q, Policy p) { q.in(U{}, p); }
@@ -13032,9 +12899,11 @@ public:
   template<std::point_origin PO2>
     requires $PointRef$<R> && requires(const quantity qp) { qp - PO2{}; }
   constexpr delta_quantity auto delta_from(PO2) const&;
+
   template<std::point_origin PO2>
     requires $PointRef$<R> && requires(const quantity qp) { qp - PO2{}; }
   constexpr delta_quantity auto delta_from(PO2) &&;
+
   template<quantity_of<$absolute-point-origin-of$<R>> QP>
     requires $PointRef$<R>
   constexpr delta_quantity auto delta_from(const QP& qp) const;
@@ -13053,19 +12922,17 @@ public:
   explicit constexpr operator V_() const& noexcept;
 
   template<typename Q_, $QuantityLike$ Q = remove_cvref_t<Q_>>
-    requires(point_quantity<$quantity-like-type$<Q>> == $PointRef$<R>) &&
-            constructible_from<$quantity-like-type$<Q>, quantity>
-  explicit(quantity_like_traits<Q>::explicit_export ||
-           !convertible_to<quantity, $quantity-like-type$<Q>>) constexpr
+    requires(point_quantity<$quantity-like-type$<Q>> == $PointRef$<R>) && constructible_from<$quantity-like-type$<Q>, quantity>
+  explicit(quantity_like_traits<Q>::explicit_export || !convertible_to<quantity, $quantity-like-type$<Q>>) constexpr
   operator Q_() const
-    noexcept(noexcept(quantity_like_traits<Q>::from_numerical_value($numerical-value$)) &&
-             is_nothrow_copy_constructible_v<rep>);
+    noexcept(noexcept(quantity_like_traits<Q>::from_numerical_value($numerical-value$)) && is_nothrow_copy_constructible_v<rep>);
 
   // member unary operators
   constexpr quantity_of<quantity_spec> auto operator+() const
     requires(!$PointRef$<R>) && requires(const rep v) {
       { +v } -> common_with<rep>;
     };
+
   constexpr quantity_of<quantity_spec> auto operator-() const
     requires(!$PointRef$<R>) && requires(const rep v) {
       { -v } -> common_with<rep>;
@@ -13075,14 +12942,17 @@ public:
     requires requires(rep& v) {
       { ++v } -> same_as<rep&>;
     };
+
   constexpr quantity_of<quantity_spec> auto operator++(int)
     requires requires(rep& v) {
       { v++ } -> common_with<rep>;
     };
+
   constexpr quantity& operator--() &
     requires requires(rep& v) {
       { --v } -> same_as<rep&>;
     };
+
   constexpr quantity_of<quantity_spec> auto operator--(int)
     requires requires(rep& v) {
       { v-- } -> common_with<rep>;
@@ -13096,6 +12966,7 @@ public:
               { a += b } -> same_as<rep&>;
             }
   constexpr quantity& operator+=(const quantity<R2, Rep2>& other) &;
+
   template<auto R2, typename Rep2>
     requires(!$PointRef$<R2>) &&
             ($implicitly-convertible$(get_quantity_spec(R2), $remove-point$(quantity_spec))) &&
@@ -13103,6 +12974,7 @@ public:
               { a -= b } -> same_as<rep&>;
             }
   constexpr quantity& operator-=(const quantity<R2, Rep2>& other) &;
+
   template<auto R2, typename Rep2>
     requires(!$PointRef$<R>) && (!$PointRef$<R2>) && (!treat_as_floating_point<rep>) &&
             ($implicitly-convertible$(get_quantity_spec(R2), quantity_spec)) &&
@@ -13116,6 +12988,7 @@ public:
       { a *= b } -> same_as<rep&>;
     }
   constexpr quantity& operator*=(const Value& val) &;
+
   template<$ImplicitFromNumberQuantity$ Q2>
     requires(!$PointRef$<R>) && $ScalarRepConvertible$<typename Q2::rep, rep> &&
             requires(rep& a, const Q2::rep b) {
@@ -13128,6 +13001,7 @@ public:
       { a /= b } -> same_as<rep&>;
     }
   constexpr quantity& operator/=(const Value& val) &;
+
   template<$ImplicitFromNumberQuantity$ Q2>
     requires(!$PointRef$<R>) && $ScalarRepConvertible$<typename Q2::rep, rep> &&
             requires(rep& a, const Q2::rep b) {
@@ -13167,21 +13041,18 @@ constexpr delta_quantity auto quantity_cast(FwdQ&& q);
 
 template<quantity_spec auto ToQS, typename FwdQP, point_quantity QP = remove_cvref_t<FwdQP>>
   requires($castable$(QP::quantity_spec, ToQS)) && requires {
-    typename quantity<$make-point-reference$($remove-point$(ToQS), QP::unit, QP::point_origin),
-                      typename QP::rep>;
+    typename quantity<$make-point-reference$($remove-point$(ToQS), QP::unit, QP::point_origin), typename QP::rep>;
   }
 constexpr point_quantity auto quantity_cast(FwdQP&& qp);
 
 // value_cast
-template<auto ToU, typename FwdQ, $RoundingPolicy$ Policy = truncated_t,
-         delta_quantity Q = remove_cvref_t<FwdQ>>
+template<auto ToU, typename FwdQ, $RoundingPolicy$ Policy = truncated_t, delta_quantity Q = remove_cvref_t<FwdQ>>
   requires unit_of<decltype(ToU), Q::quantity_spec> &&
            $ExplicitlyCastable$<Q::unit, ToU, typename Q::rep> &&
            $ValidRoundingPolicyFor$<Policy, typename Q::rep, typename Q::rep>
 constexpr delta_quantity auto value_cast(FwdQ&& q, Policy = Policy{});
 
-template<typename ToRep, typename FwdQ, $RoundingPolicy$ Policy = truncated_t,
-         delta_quantity Q = remove_cvref_t<FwdQ>>
+template<typename ToRep, typename FwdQ, $RoundingPolicy$ Policy = truncated_t, delta_quantity Q = remove_cvref_t<FwdQ>>
   requires representation_of<ToRep, Q::quantity_spec> &&
            constructible_from<ToRep, typename Q::rep> &&
            $ValidRoundingPolicyFor$<Policy, typename Q::rep, ToRep>
@@ -13205,8 +13076,7 @@ template<typename ToRep, unit auto ToU, typename FwdQ, $RoundingPolicy$ Policy =
            $ValidRoundingPolicyFor$<Policy, typename Q::rep, ToRep>
 constexpr delta_quantity auto value_cast(FwdQ&& q, Policy policy = Policy{});
 
-template<delta_quantity ToQ, typename FwdQ, $RoundingPolicy$ Policy = truncated_t,
-         delta_quantity Q = remove_cvref_t<FwdQ>>
+template<delta_quantity ToQ, typename FwdQ, $RoundingPolicy$ Policy = truncated_t, delta_quantity Q = remove_cvref_t<FwdQ>>
   requires(ToQ::quantity_spec == Q::quantity_spec) &&
           unit_of<decltype(ToQ::unit), Q::quantity_spec> &&
           constructible_from<typename ToQ::rep, typename Q::rep> &&
@@ -13214,15 +13084,13 @@ template<delta_quantity ToQ, typename FwdQ, $RoundingPolicy$ Policy = truncated_
           $ValidRoundingPolicyFor$<Policy, typename Q::rep, typename ToQ::rep>
 constexpr delta_quantity auto value_cast(FwdQ&& q, Policy = Policy{});
 
-template<unit auto ToU, typename FwdQP, $RoundingPolicy$ Policy = truncated_t,
-         point_quantity QP = remove_cvref_t<FwdQP>>
+template<unit auto ToU, typename FwdQP, $RoundingPolicy$ Policy = truncated_t, point_quantity QP = remove_cvref_t<FwdQP>>
   requires unit_of<decltype(ToU), QP::quantity_spec> &&
            $ExplicitlyCastable$<QP::unit, ToU, typename QP::rep> &&
            $ValidRoundingPolicyFor$<Policy, typename QP::rep, typename QP::rep>
 constexpr point_quantity auto value_cast(FwdQP&& qp, Policy policy = Policy{});
 
-template<typename ToRep, typename FwdQP, $RoundingPolicy$ Policy = truncated_t,
-         point_quantity QP = remove_cvref_t<FwdQP>>
+template<typename ToRep, typename FwdQP, $RoundingPolicy$ Policy = truncated_t, point_quantity QP = remove_cvref_t<FwdQP>>
   requires representation_of<ToRep, QP::quantity_spec> &&
            constructible_from<ToRep, typename QP::rep> &&
            $ValidRoundingPolicyFor$<Policy, typename QP::rep, ToRep>
@@ -13246,8 +13114,7 @@ template<typename ToRep, unit auto ToU, typename FwdQP, $RoundingPolicy$ Policy 
            $ValidRoundingPolicyFor$<Policy, typename QP::rep, ToRep>
 constexpr point_quantity auto value_cast(FwdQP&& qp, Policy policy = Policy{});
 
-template<delta_quantity ToQ, typename FwdQP, $RoundingPolicy$ Policy = truncated_t,
-         point_quantity QP = remove_cvref_t<FwdQP>>
+template<delta_quantity ToQ, typename FwdQP, $RoundingPolicy$ Policy = truncated_t, point_quantity QP = remove_cvref_t<FwdQP>>
   requires(ToQ::quantity_spec == QP::quantity_type::quantity_spec) &&
           unit_of<decltype(ToQ::unit), QP::quantity_spec> &&
           constructible_from<typename ToQ::rep, typename QP::rep> &&
@@ -13255,8 +13122,7 @@ template<delta_quantity ToQ, typename FwdQP, $RoundingPolicy$ Policy = truncated
           $ValidRoundingPolicyFor$<Policy, typename QP::rep, typename ToQ::rep>
 constexpr point_quantity auto value_cast(FwdQP&& qp, Policy policy = Policy{});
 
-template<point_quantity ToQP, typename FwdQP, $RoundingPolicy$ Policy = truncated_t,
-         point_quantity QP = remove_cvref_t<FwdQP>>
+template<point_quantity ToQP, typename FwdQP, $RoundingPolicy$ Policy = truncated_t, point_quantity QP = remove_cvref_t<FwdQP>>
   requires(ToQP::quantity_spec == QP::quantity_spec) &&
           unit_of<decltype(ToQP::unit), QP::quantity_spec> &&
           ($same-absolute-point-origins$(ToQP::point_origin, QP::point_origin)) &&
@@ -13277,11 +13143,8 @@ template<auto R1, typename Rep1, auto R2, typename Rep2>
   requires requires {
     { get_common_reference(R1, R2) } -> quantity_reference;
     typename common_type_t<Rep1, Rep2>;
-    requires(!$overflows-non-zero-common-values$<common_type_t<Rep1, Rep2>>(get_unit(R1),
-                                                                            get_unit(R2)));
-    requires representation_of<common_type_t<Rep1, Rep2>,
-                               get_common_quantity_spec(get_quantity_spec(R1),
-                                                        get_quantity_spec(R2))>;
+    requires(!$overflows-non-zero-common-values$<common_type_t<Rep1, Rep2>>(get_unit(R1), get_unit(R2)));
+    requires representation_of<common_type_t<Rep1, Rep2>, get_common_quantity_spec(get_quantity_spec(R1), get_quantity_spec(R2))>;
   }
 struct common_type<quantity<R1, Rep1>, quantity<R2, Rep2>> {
   using type = quantity<get_common_reference(R1, R2), common_type_t<Rep1, Rep2>>;
@@ -13312,20 +13175,28 @@ class numeric_limits<quantity<R, Rep>> : public numeric_limits<Rep> {
 public:
   static constexpr quantity<R, Rep> min() noexcept
     requires requires { quantity<R, Rep>::min(); };
+
   static constexpr quantity<R, Rep> max() noexcept
     requires requires { quantity<R, Rep>::max(); };
+
   static constexpr quantity<R, Rep> lowest() noexcept
     requires requires { quantity<R, Rep>::min(); };  // returns min()
+
   static constexpr quantity<R, Rep> epsilon() noexcept
     requires requires { numeric_limits<Rep>::epsilon(); };
+
   static constexpr quantity<R, Rep> round_error() noexcept
     requires requires { numeric_limits<Rep>::round_error(); };
+
   static constexpr quantity<R, Rep> infinity() noexcept
     requires requires { numeric_limits<Rep>::infinity(); };
+
   static constexpr quantity<R, Rep> quiet_NaN() noexcept
     requires requires { numeric_limits<Rep>::quiet_NaN(); };
+
   static constexpr quantity<R, Rep> signaling_NaN() noexcept
     requires requires { numeric_limits<Rep>::signaling_NaN(); };
+
   static constexpr quantity<R, Rep> denorm_min() noexcept
     requires requires { numeric_limits<Rep>::denorm_min(); };
 };
@@ -13333,7 +13204,7 @@ public:
 }
 ```
 
-For a point whose origin, or an ancestor of it, has bounds, [@BOUNDS] removes `epsilon()`,
+For a point whose origin, or an ancestor of it, has bounds, [@P4412R0_PRE] removes `epsilon()`,
 `round_error()`, `infinity()`, `quiet_NaN()`, `signaling_NaN()`, and `denorm_min()`, and makes
 `has_infinity`, `has_quiet_NaN`, `has_signaling_NaN`, and `is_iec559` `false`.
 
@@ -13442,27 +13313,27 @@ references:
   citation-label: Hochrheinbrücke
   title: "An embarrassing discovery during the construction of a bridge"
   URL: <https://www.normaalamsterdamspeil.nl/wp-content/uploads/2015/03/website_bridge.pdf>
-- id: COMPOSE-FMT
+- id: P4413R0_PRE
   citation-label: P4413R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Composing formatters: redirecting a format context and narrowing a parse context"
-  URL: <https://wg21.link/p4413>
-- id: DIGIT-GROUP
+  URL: <https://wg21.link/p4413r0>
+- id: P4410R0_PRE
   citation-label: P4410R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Locale-independent digit grouping in std::format"
-  URL: <https://wg21.link/p4410>
-- id: INT-REP-CONV
+  URL: <https://wg21.link/p4410r0>
+- id: P4408R0_PRE
   citation-label: P4408R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Implicit Conversions Between Integer Representation Types"
-  URL: <https://wg21.link/p4408>
+  URL: <https://wg21.link/p4408r0>
 - id: ISO-GUIDE
   citation-label: ISO/IEC Guide 99
   title: "ISO/IEC Guide 99: International vocabulary of metrology — Basic and general concepts and associated terms (VIM)"
@@ -13578,47 +13449,47 @@ references:
   issued:
     year: 2016
   URL: <https://doi.org/10.1088/0026-1394/53/3/998>
-- id: BOUNDS
+- id: P4412R0_PRE
   citation-label: P4412R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Range-Validated Quantity Points"
-  URL: <https://wg21.link/p4412>
-- id: COMPONENT-VECTORS
+  URL: <https://wg21.link/p4412r0>
+- id: P4407R0_PRE
   citation-label: P4407R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Component Vectors of Vector Quantities"
-  URL: <https://wg21.link/p4407>
-- id: INT-DIV
+  URL: <https://wg21.link/p4407r0>
+- id: P4409R0_PRE
   citation-label: P4409R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Integer Division in a Quantities Library"
-  URL: <https://wg21.link/p4409>
-- id: NON-NEG
+  URL: <https://wg21.link/p4409r0>
+- id: P4411R0_PRE
   citation-label: P4411R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Non-Negative Quantity Specifications"
-  URL: <https://wg21.link/p4411>
-- id: ZERO-CMP
+  URL: <https://wg21.link/p4411r0>
+- id: P4406R0_PRE
   citation-label: P4406R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Comparing Quantities Against Zero"
-  URL: <https://wg21.link/p4406>
+  URL: <https://wg21.link/p4406r0>
 - id: P4185R2_PRE
   citation-label: P4185R2
   author:
     - family: Pusz
       given: Mateusz
-  title: "Completing the Mathematical Model for C++ Quantities and Units"
+  title: "Absolute Quantities"
   URL: <https://wg21.link/p4185r2>
 - id: SI
   citation-label: SI
