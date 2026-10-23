@@ -62,13 +62,8 @@ particular implementation strategy.
 :::
 
 ::: note
-The synopses assume that two features proposed in [@P4185R2_PRE] are accepted:
-
-- **Non-negativity**: if not accepted, all `non_negative` and `possibly_negative` tags in
-  `quantity_spec` definitions can simply be dropped.
-- **Absolute quantities**: if not accepted, `kelvin` must revert to the [@P3045R10_PRE] design —
-  declaring `absolute_zero` as an `absolute_point_origin` and passing it as the explicit point
-  origin of the unit.
+The synopses assume that the non-negative quantity specifications of [@P4411R0_PRE] are accepted.
+If they are not, all `non_negative` tags in `quantity_spec` definitions can simply be dropped.
 :::
 
 ## What Is SI?
@@ -346,13 +341,11 @@ inline constexpr struct period_duration : named_quantity_spec<duration> {} perio
 inline constexpr struct frequency : named_quantity_spec<inverse(period_duration), non_negative> {} frequency;
 
 // mechanics
-inline constexpr struct energy :
-  named_quantity_spec<mass * pow<2>(length) / pow<2>(duration), possibly_negative> {} energy;
+inline constexpr struct energy : named_quantity_spec<mass * pow<2>(length) / pow<2>(duration)> {} energy;
 
 // light and radiation
 template<PhotometricCondition auto Condition = photopic_vision>
-struct $luminous-flux-t$
-    : named_quantity_spec<luminous_intensity_of<Condition> * solid_angular_measure, non_negative> {};
+struct $luminous-flux-t$ : named_quantity_spec<luminous_intensity_of<Condition> * solid_angular_measure, non_negative> {};
 template<PhotometricCondition auto Condition = photopic_vision>
 constexpr $luminous-flux-t$<Condition> luminous_flux_of;
 inline constexpr auto luminous_flux = luminous_flux_of<>;
@@ -473,7 +466,8 @@ inline constexpr struct metre  : named_unit<"m", kind_of<isq::length>> {} metre;
 inline constexpr struct gram   : named_unit<"g", kind_of<isq::mass>> {} gram;
 inline constexpr auto kilogram = kilo<gram>;
 inline constexpr struct ampere : named_unit<"A", kind_of<isq::electric_current>> {} ampere;
-inline constexpr struct kelvin : named_unit<"K", kind_of<isq::thermodynamic_temperature>> {} kelvin;
+inline constexpr struct absolute_zero : $natural-point-origin-t$<kind_of<isq::thermodynamic_temperature>> {} absolute_zero;
+inline constexpr struct kelvin : named_unit<"K", kind_of<isq::thermodynamic_temperature>, absolute_zero> {} kelvin;
 inline constexpr struct mole    : named_unit<"mol", kind_of<isq::amount_of_substance>> {} mole;
 
 template<isq::PhotometricCondition auto C = isq::photopic_vision>
@@ -489,8 +483,8 @@ inline constexpr auto candela = candela_of<>;
 } // namespace std::si
 ```
 
-This introduces **9 names** in `std::si`: 7 base units, `kilogram`, and the `candela_of` variable
-template. The candela of a condition other than photopic
+This introduces **10 names** in `std::si`: 7 base units, `kilogram`, the `candela_of` variable
+template, and the point origin `absolute_zero`. The candela of a condition other than photopic
 vision is defined in terms of the photopic one, so all of them are the same unit of measurement.
 
 Note that `kilogram` is defined as `kilo<gram>` rather than as a primary unit. This is by design:
@@ -505,16 +499,23 @@ prefix `deka`, as in NIST Special Publication 330. An alias such as
 type, so it would still say `metre`. This paper proposes only the SI spelling. Adding the aliases,
 or switching to the US spelling, is a choice for LEWG.
 
-Under the absolute quantities model from [@P4185R2_PRE], `kelvin` requires no explicit point origin.
-A `quantity<si::kelvin>` is intrinsically absolute — `28 * K` compiles and produces an absolute
-thermodynamic temperature directly. In the pre-P4185 design ([@P3045R10_PRE]), `kelvin` had to declare
-`absolute_zero` as an `absolute_point_origin`, which prevented the multiply syntax from being
-used and forced users to write `point<K>(28)` or `delta<K>(28)` instead.
+`absolute_zero` is the natural origin of _thermodynamic temperature_ under a name of its own.
+`$natural-point-origin-t$` is the exposition-only type of `natural_point_origin` from
+[@P3045R10_PRE], so `absolute_zero` compares equal to
+`natural_point_origin<isq::thermodynamic_temperature>`, and `kelvin` names it as its origin. The
+name lets users write `temp - si::absolute_zero`, and it makes the origin readable where a type
+names it.
+
+The definition is the same with and without the absolute quantities of [@P4185R2_PRE].
+[@P3045R10_PRE] excludes every unit with a point origin from the multiply syntax, so there 28 K
+is written `point<K>(28)` or `delta<K>(28)`, depending on whether a temperature or a difference
+is meant. Under [@P4185R2_PRE], a unit whose origin is a natural origin is not an offset unit, so
+`28 * K` is an absolute thermodynamic temperature.
 
 ### Derived Units with Special Names
 
 SI defines 22 coherent derived units with special names, among them `degree_Celsius`, whose point
-origin is `ice_point`. The block also declares the point origin `absolute_zero`:
+origin is `ice_point`. The block also declares that point origin:
 
 ```cpp
 namespace std::si {
@@ -539,7 +540,6 @@ inline constexpr struct tesla   : named_unit<"T",   weber / square(metre)> {} te
 // No kind_of: H is shared by isq::inductance and isq::permeance (different ISQ hierarchies).
 inline constexpr struct henry   : named_unit<"H",   weber / ampere> {} henry;
 
-inline constexpr struct absolute_zero : relative_point_origin<point<kelvin>(0)> {} absolute_zero;
 inline constexpr struct ice_point : relative_point_origin<point<milli<kelvin>>(273'150)> {} ice_point;
 inline constexpr struct degree_Celsius : named_unit<symbol_text{u8"°C", "`C"}, kelvin, ice_point> {} degree_Celsius;
 
@@ -563,8 +563,8 @@ inline constexpr auto lux = lux_of<>;
 } // namespace std::si
 ```
 
-This introduces **26 names** in `std::si`: the 22 coherent derived units with special names, the
-`lumen_of` and `lux_of` variable templates, and the point origins `absolute_zero` and `ice_point`.
+This introduces **25 names** in `std::si`: the 22 coherent derived units with special names, the
+`lumen_of` and `lux_of` variable templates, and the point origin `ice_point`.
 
 ::: note A named derived unit carries a `kind_of<>` constraint only where the SI Brochure reserves
 its name for particular quantities (`hertz`, `becquerel`, `gray`, `sievert`, `katal`) or where the
@@ -584,21 +584,16 @@ kind would incorrectly reject legitimate uses from the other hierarchies.
 | `henry (H)`   | _inductance_ and _permeance_ — unrelated quantities with the same dimension                                                      |
 :::
 
-`absolute_zero` is defined as a `relative_point_origin` at `point<kelvin>(0)` — a named origin
-at 0 K — rather than as an `absolute_point_origin`. Under the absolute quantities model from
-[@P4185R2_PRE], the natural zero of `isq::thermodynamic_temperature` is implicit in every kelvin
-quantity; there is no need for an independent origin declaration. `absolute_zero` is retained as
-a named convenience for the `temp - absolute_zero` idiom and for explicit zero-point arithmetic.
-`ice_point` is defined as an offset of 273.150 K from that same natural zero, and `degree_Celsius`
-is the unit for quantities anchored at `ice_point`.
+`ice_point` is defined as an offset of 273.150 K from `absolute_zero`, and `degree_Celsius` is the
+unit for quantities anchored at `ice_point`.
 
 ### Summary of Mandatory Definitions
 
 | Component                          | Names introduced |
 |------------------------------------|------------------|
 | SI prefixes (variable templates)   | 24               |
-| SI base units                      | 9                |
-| SI named derived units and origins | 26               |
+| SI base units and their origin     | 10               |
+| SI named derived units and origin  | 25               |
 | **Total**                          | **59**           |
 
 Straw poll: _We want `<si_core>` — 59 SI definitions including 24 prefixes, the base units, and
@@ -1181,8 +1176,8 @@ utility — to be included as part of the quantities and units library._
 | ISQ derived quantities for SI (incl. aliases) |   `<isq_si_quantities>`   |  mandatory  |     19      |
 | **ISQ subtotal**                              | **`<isq_si_quantities>`** |             |   **40**    |
 | SI prefixes (variable templates)              |        `<si_core>`        |  mandatory  |     24      |
-| SI base units                                 |        `<si_core>`        |  mandatory  |      9      |
-| SI named derived units and origins            |        `<si_core>`        |  mandatory  |     26      |
+| SI base units and their origin                |        `<si_core>`        |  mandatory  |     10      |
+| SI named derived units and origin             |        `<si_core>`        |  mandatory  |     25      |
 | **SI core subtotal**                          |      **`<si_core>`**      |             |   **59**    |
 | **ISQ + SI core total**                       |                           |             |   **99**    |
 | Non-SI units accepted for use with SI         |   `<si_accepted_units>`   |  optional   |     13      |
@@ -1260,8 +1255,15 @@ references:
   author:
     - family: Pusz
       given: Mateusz
-  title: "Completing the Mathematical Model for C++ Quantities and Units"
+  title: "Absolute Quantities"
   URL: <https://wg21.link/p4185r2>
+- id: P4411R0_PRE
+  citation-label: P4411R0
+  author:
+    - family: Pusz
+      given: Mateusz
+  title: "Non-Negative Quantity Specifications"
+  URL: <https://wg21.link/p4411r0>
 - id: SI
   citation-label: SI
   title: "SI Brochure: The International System of Units (SI)"
