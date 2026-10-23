@@ -68,8 +68,11 @@ Changes since that section:
 - `min()` and `max()` of a point whose origin has no bounds of its own report the bounds of the
   nearest bounded ancestor (see [`min()`, `max()`, and `numeric_limits`](#limits)),
 - [Open questions](#open-questions) added,
-- the automatic check on the natural origin of a non-negative quantity moved to [@NON-NEG]
-  (see [Interaction with non-negative quantities](#non-negative)).
+- the floor at zero of a non-negative quantity left to [@P4411R0_PRE] as a property of the
+  point's quantity specification, while the policies stay properties of origins (see
+  [Interaction with non-negative quantities](#non-negative)), and an inherited checking bound
+  checked exactly in the common type of the value and the offset (see
+  [Bounds the point can hold](#exactness)).
 
 
 # Introduction
@@ -224,8 +227,9 @@ user-defined policy whose test is narrower than its `min` and `max`, as in
 domain. At an origin with `check_in_range{10. * m, 20. * m}`, the point type isn't
 `std::default_initializable`: `std::vector<T>(n)`, `resize(n)`, and `std::map::operator[]` don't
 compile for it, while `std::vector<T>(n, value)` and `resize(n, value)` do. An origin with
-`check_in_range{0. * m, 10. * m}`, a wrapping origin such as `prime_meridian`, and, under
-[@NON-NEG], the natural origin of a non-negative quantity keep the default constructor.
+`check_in_range{0. * m, 10. * m}` and a wrapping origin such as `prime_meridian` keep the default
+constructor, and so does a point that [@P4411R0_PRE] floors at zero when it is measured from the
+natural origin (see [Interaction with non-negative quantities](#non-negative)).
 Default-initialization, `T t;`, leaves the value indeterminate, as it does for the representation.
 
 ## Checking and adjusting policies {#policy-kinds}
@@ -301,18 +305,34 @@ without bounds of its own is translated by the offset into the frame of the ance
 bounds apply. With an integral representation, an offset of `0.5 * m` becomes 0 m, and an
 offset of `1'500 * m` becomes 1 km in a point stored in `int` kilometers.
 
-We propose that every constant the check uses be exact in the type the check runs in:
+We propose that every constant the check uses be exact in the type the check runs in. An
+adjusting policy stores its result in the point, so its check runs in the point's quantity type,
+and so does the check of bounds that belong to the point's own origin:
 
 1. Each bound converts to the point's quantity type, translated into the frame of the origin
    whose bounds apply, without changing its value.
 2. With a representation that isn't a floating-point one, the offset into that frame converts to
    the point's quantity type without changing its value.
 
-A point that breaks the rule offers no constructor from a delta, no `is_within_bounds`, no
-`try_make`, no `min()`, and no `max()`. These functions reject it through their constraints, so
-a generic algorithm can test for it. Other operations on such a point, such as a conversion from
-another point or `+=`, are ill-formed when used. The `min` and `max` members of a user-defined
-policy are subject to the same rule.
+A checking policy inherited from an ancestor only reports, and the value is stored unchanged, so
+nothing has to be translated back into the point's quantity type. Such a check runs in the
+common type of the value and the offset into the frame of the ancestor, and each bound has to be
+exact in that type only. A point stored in `int` kilometers, measured from an origin without
+bounds that lies `1'500 * m` above an origin with
+`check_in_range{delta<m>(-500), delta<m>(12'000)}`, is checked in `int` meters. The same holds
+for the floor of [@P4411R0_PRE] (see [Interaction with non-negative quantities](#non-negative)):
+a point in degrees Celsius is measured from `si::ice_point`, 273.15 K above the true zero, which
+no `int` in degrees Celsius holds. Its check runs in `int` millikelvin, so `point<deg_C>(-273)`
+is accepted and `point<deg_C>(-274)` is rejected exactly.
+
+A point that breaks the rule that applies to it offers no constructor from a delta, no
+`is_within_bounds`, no `try_make`, no `min()`, and no `max()`. These functions reject it through
+their constraints, so a generic algorithm can test for it. Other operations on such a point, such
+as a conversion from another point or `+=`, are ill-formed when used. A point whose inherited
+checking bounds are exact only in the common type offers the constructors, `is_within_bounds`,
+and `try_make`, but not `min()` and `max()`, which return a value of the point's own type (see
+[`min()`, `max()`, and `numeric_limits`](#limits)). The `min` and `max` members of a
+user-defined policy are subject to the same rules.
 
 A floating-point representation is treated differently in two places:
 
@@ -327,17 +347,17 @@ The rule has a cost for a `float` point. `0.1 * m` is a `double`, and the `doubl
 `0.1` isn't a `float` value, so this origin can't be used with a `float` point:
 
 ```cpp
-inline constexpr struct tape_end
-  : absolute_point_origin<isq::length, check_in_range{0.1 * m, 10. * m}> {} tape_end;
-inline constexpr struct tape_end_f
-  : absolute_point_origin<isq::length, check_in_range{0.1f * m, 10.f * m}> {} tape_end_f;
+inline constexpr struct tape_end : absolute_point_origin<isq::length, check_in_range{0.1 * m, 10. * m}> {} tape_end;
+inline constexpr struct tape_end_f : absolute_point_origin<isq::length, check_in_range{0.1f * m, 10.f * m}> {} tape_end_f;
 
 quantity<point<isq::length[m], tape_end>> a{0.5 * m, tape_end};               // OK
 quantity<point<isq::length[m], tape_end_f>, float> b{0.5f * m, tape_end_f};   // OK
 // quantity<point<isq::length[m], tape_end>, float> c{0.5f * m, tape_end};    // ill-formed
 ```
 
-The `float` point needs an origin with bounds written as `float`, such as `tape_end_f`. A bound
+The `float` point needs an origin with bounds written as `float`, such as `tape_end_f`. A
+relative origin that only inherits the bounds of `tape_end` can be used with a `float` point,
+because the inherited check runs in `double`, the common type of the value and the offset. A bound
 with a small integral value, such as `-90. * deg`, is exact in `float`, which holds every
 integer up to $2^{24}$.
 
@@ -358,7 +378,7 @@ A floating-point value can be NaN or infinite. Each policy states what it does w
 | `wrap_to_range`, `reflect_in_range` | stored as NaN | stored as NaN                |
 
 The checking policies are written as a positive test, `min <= v && v <= max`, so a value that
-compares unordered with the bounds fails it. A NaN never passes a check. `check_non_negative`
+compares unordered with the bounds fails it. A NaN never passes a checking policy. `check_non_negative`
 has no upper bound to compare with, so it accepts `+∞`. The clamping policies compare
 `v < min` and `v > max`, both false for NaN, so NaN passes through them unchanged. An infinite
 value has no position after it is wrapped or reflected, so the wrapping and reflecting
@@ -549,21 +569,29 @@ static_assert(std::numeric_limits<longitude<>>::lowest() == longitude<>::min());
 
 An excluded end has no value in the range, so neither the point type nor `numeric_limits`
 provides `min()` for an excluded lower end or `max()` for an excluded upper end. Neither is
-provided for a point that breaks the rule of [Bounds the point can hold](#exactness).
+provided for a point whose bounds and offset aren't exact in its own quantity type, even where
+an inherited check is exact in the common type (see [Bounds the point can hold](#exactness)).
+
+A point that [@P4411R0_PRE] floors at zero reports as its `min()` the true zero, translated into
+its frame, or the lower bound of its origin's range where that is higher, provided that the value is
+exact in its quantity type. For `quantity<point<isq::distance[m]>>` it is 0 m, and for
+`quantity<point<deg_C>>` it is -273.15 °C. `lowest()` of `numeric_limits` returns `min()` wherever
+`min()` exists. `quantity<point<deg_C>, int>` has no `min()`, and its `lowest()` is -273 °C, the
+lowest value that the floor accepts. A floored point without `min()` has no `lowest()` when its
+representation is a floating-point one or when the range of its origin bounds it from below.
 
 A point whose origin has no bounds of its own reports the bounds of its nearest bounded
 ancestor, translated into its own frame. With a floating-point representation the translation
 rounds, and the rounded value may be one that the ancestor rejects:
 
 ```cpp
-inline constexpr struct strip_start
-  : absolute_point_origin<isq::length, check_in_range{0.1 * m, 0.9 * m}> {} strip_start;
+inline constexpr struct strip_start : absolute_point_origin<isq::length, check_in_range{0.1 * m, 0.9 * m}> {} strip_start;
 inline constexpr struct strip_mark : relative_point_origin<strip_start + 0.7 * m> {} strip_mark;
 
 using strip_point = quantity<point<isq::length[m], strip_mark>>;
 
 // 0.1 m - 0.7 m = -0.6 m, but -0.6 m + 0.7 m rounds to 0.09999999999999998 m
-static_assert(strip_point::min().delta_from(strip_mark) == -0.5999999999999999 * m);
+static_assert(strip_point::min().delta_from(strip_mark) == delta<m>(-0.5999999999999999));
 static_assert(strip_point::max().delta_from(strip_mark) == 0.2000000000000001 * m);
 // one step above 0.9 m - 0.7 m still translates back to 0.9 m
 ```
@@ -585,6 +613,10 @@ an origin with `clamp_to_range{10. * deg, 20. * deg}`, `infinity()` would return
 even where a policy accepts the value, and that `has_infinity`, `has_quiet_NaN`,
 `has_signaling_NaN`, and `is_iec559` be `false` there.
 
+The floor of [@P4411R0_PRE] isn't a bound of an origin, so a point that it floors keeps these
+members. Its `quiet_NaN()` and `signaling_NaN()` are built without the floor check, and reading
+the number back in the point's own unit doesn't check it again.
+
 ## Relative origins {#relative}
 
 ### Inheriting the bounds of an ancestor {#inherit}
@@ -598,7 +630,7 @@ exact in it (see [Bounds the point can hold](#exactness)):
 
 ```cpp
 inline constexpr struct mean_sea_level
-  : absolute_point_origin<isq::altitude, check_in_range{-500. * m, 12'000. * m}> {} mean_sea_level;
+  : absolute_point_origin<isq::altitude, check_in_range{delta<m>(-500.), delta<m>(12'000.)}> {} mean_sea_level;
 
 inline constexpr struct runway : relative_point_origin<mean_sea_level + 1'600. * m> {} runway;
 
@@ -618,8 +650,7 @@ applied, again once. That is sound only if every value inside the child's bounds
 inside the bounds of every origin above it, so the library checks this at compile time:
 
 ```cpp
-inline constexpr struct drone_corridor
-  : relative_point_origin<runway + 0. * m, check_in_range{0. * m, 120. * m}> {} drone_corridor;
+inline constexpr struct drone_corridor : relative_point_origin<runway + 0. * m, check_in_range{0. * m, 120. * m}> {} drone_corridor;
 // [1'600 m, 1'720 m] above sea level fits in [-500 m, 12'000 m]
 ```
 
@@ -685,21 +716,70 @@ which policy wins when they disagree, for example when a child clamps and its pa
 
 ## Interaction with non-negative quantities {#non-negative}
 
-[@NON-NEG] proposes a `non_negative` property of a quantity specification. With it, the
-natural origin of a non-negative quantity gets `check_non_negative` automatically:
+[@P4411R0_PRE] proposes a `non_negative` property of a quantity specification, and with it a
+floor at zero for points. A point is floored when its own quantity specification is
+non-negative, where a quantity kind `kind_of<QS>` takes the domain of its root `QS`, and when the
+chain of its origins ends at a natural origin, unless its representation is a complex number. The
+floor rejects a point below the true zero:
 
 ```cpp
 quantity d1 = point<isq::distance[m]>(5.);   // OK
 quantity d2 = point<isq::distance[m]>(-1.);  // contract violation
+quantity d3 = point<m>(-5.);                 // contract violation: kind_of<isq::length> is non-negative
+quantity a1 = point<isq::altitude[m]>(-5.);  // OK: altitude is possibly_negative
 ```
 
-The automatic check applies only to `natural_point_origin<QS>`. A user-defined origin
-chooses its own policy, or none, because it may represent a calibrated offset or a tare where
-negative values are expected. A point of a quantity kind, such as `point<m>(5.)`, isn't
-checked, because `kind_of<isq::length>` covers signed quantities too.
+The floor is a property of the quantity. [@P4411R0_PRE] specifies it, and it isn't one of the
+policies of this paper. The policies stay properties of origins, and the user attaches
+`check_non_negative` or `clamp_non_negative` to an origin like any other policy. A point measured
+from an origin of the user's own, whose chain doesn't end at a natural origin, isn't floored. A
+net reading on a balance is measured from the tare and may lie below it:
 
-Nothing in this paper depends on [@NON-NEG]. Without it, a user attaches `check_non_negative`
-to an origin explicitly, and the automatic attachment is the only thing missing.
+```cpp
+inline constexpr struct tare : absolute_point_origin<isq::mass> {} tare;
+
+quantity net = tare - 0.3 * kg;  // OK: 0.3 kg below the tare
+```
+
+Temperature needs no policy on any origin. [@P4185R2_PRE] defines `si::absolute_zero` as the
+natural origin of thermodynamic temperature under a name of its own, and `si::ice_point` stays a
+relative origin defined from it. The chain of a point in degrees Celsius therefore ends at the
+natural origin, and the point is floored at the true zero (see
+[Bounds the point can hold](#exactness) for an `int` point):
+
+```cpp
+quantity t1 = point<deg_C>(-40.);   // OK
+quantity t2 = point<deg_C>(-300.);  // contract violation: 26.85 K below the true zero
+```
+
+Without [@P4185R2_PRE], `si::absolute_zero` is the `absolute_point_origin` of [@P3045R10_PRE],
+and a point in kelvin or degrees Celsius isn't floored.
+
+Both apply when a floored point is measured from an origin with a policy, its own or inherited.
+The policy runs first, and the floor then checks the value to be stored, so the result of a clamp
+is checked too. The floor isn't a bound of the natural origin, so the nesting rule of
+[Bounds of their own](#hierarchy) doesn't compare a range with it, and the range of an origin may
+reach below the true zero. Such an origin is well-formed, and a floored point measured from it
+gets both checks:
+
+```cpp
+inline constexpr struct shelf
+  : relative_point_origin<natural_point_origin<isq::length> + 5. * m, check_in_range{delta<m>(-10.), delta<m>(15.)}> {} shelf;
+
+quantity<point<isq::height[m], shelf>> h1{delta<m>(-3.), shelf};    // OK: 2 m above the true zero
+quantity<point<isq::height[m], shelf>> h2{delta<m>(-7.), shelf};    // contract violation: below the floor
+quantity<point<isq::altitude[m], shelf>> a1{delta<m>(-7.), shelf};  // OK: an altitude isn't floored
+```
+
+The floor tests that the value isn't negative, as the sign check of an absolute in
+[@P4411R0_PRE] does, and a NaN isn't negative, so it passes the floor. Whether a NaN is valid is a
+question of range: `check_in_range`, and `check_non_negative` attached to an origin, reject it. An
+adjusting policy that stores NaN, as `nan_outside_range` of
+[NaN for a value outside the physics](#nan-policy) does at `ambient_zero`, stores it at a
+floored point too.
+
+Nothing in this paper depends on [@P4411R0_PRE]. Without it, no point is floored, and a user
+attaches `check_non_negative` to an origin explicitly.
 
 
 # Writing a policy {#writing-a-policy}
@@ -859,18 +939,16 @@ struct overlaps_range {
   constexpr bool operator()(const V& v) const
   {
     const auto& m = v.numerical_value_ref_in(V::unit);
-    return m.upper_bound() >= min.numerical_value_in(V::unit) &&
-           m.lower_bound() <= max.numerical_value_in(V::unit);
+    return m.upper_bound() >= min.numerical_value_in(V::unit) && m.lower_bound() <= max.numerical_value_in(V::unit);
   }
 };
 
-inline constexpr struct scale_zero
-  : absolute_point_origin<isq::mass, overlaps_range{0. * kg, 1000. * kg}> {} scale_zero;
+inline constexpr struct scale_zero : absolute_point_origin<isq::mass, overlaps_range{0. * kg, 1000. * kg}> {} scale_zero;
 
 using reading = quantity<point<isq::mass[kg], scale_zero>, uncertain<double>>;
 
-static_assert(reading::is_within_bounds(uncertain{-0.2, 0.5} * kg, scale_zero));
-static_assert(!reading::is_within_bounds(uncertain{-0.9, 0.5} * kg, scale_zero));
+static_assert(reading::is_within_bounds(delta<kg>(uncertain{-0.2, 0.5}), scale_zero));
+static_assert(!reading::is_within_bounds(delta<kg>(uncertain{-0.9, 0.5}), scale_zero));
 ```
 
 The point type still reports 0 kg and 1000 kg as its `min()` and `max()`, so the estimate of an
@@ -1098,8 +1176,7 @@ public:
   // changed for a point at a bounded origin
   static constexpr bool has_infinity = !@$bounded-point$@<R> && numeric_limits<Rep>::has_infinity;
   static constexpr bool has_quiet_NaN = !@$bounded-point$@<R> && numeric_limits<Rep>::has_quiet_NaN;
-  static constexpr bool has_signaling_NaN =
-    !@$bounded-point$@<R> && numeric_limits<Rep>::has_signaling_NaN;
+  static constexpr bool has_signaling_NaN = !@$bounded-point$@<R> && numeric_limits<Rep>::has_signaling_NaN;
   static constexpr bool is_iec559 = !@$bounded-point$@<R> && numeric_limits<Rep>::is_iec559;
 
   static constexpr quantity<R, Rep> epsilon() noexcept
@@ -1120,7 +1197,7 @@ public:
 ```
 
 `$bounded-point$<R>` is `true` when `R` is `point<R2, PO>` and `PO`, or one of its ancestors, has
-bounds.
+bounds. The floor of [@P4411R0_PRE] doesn't make a point a `$bounded-point$`.
 
 
 # Implementation experience {#implementation}
@@ -1190,8 +1267,10 @@ options are:
    is accepted.
 
    The conversion of every bound's representation is exact, and the 16'777'217 m case is
-   rejected. However, code that pairs `float` points with `double` literals is ill-formed, and
-   the rule has two parts that a user has to learn.
+   rejected. An inherited checking bound is compared in the common type of the value and the
+   offset, so the restriction falls on bounds that the point's own origin declares and on
+   adjusting policies. However, code that pairs `float` points with `double` literals is
+   ill-formed, and the rule has two parts that a user has to learn.
    Scaling to another unit can still round a bound with an integral value:
    `check_in_range{134'221 * m, ...}` passes the rule for a `float` point in millimeters, and
    134'221'000 mm becomes 134'220'992 mm.
@@ -1230,8 +1309,9 @@ Author preference is option 1.
 5. _The static member functions `is_within_bounds` and `try_make` should be provided as
    proposed in P4412R0._
 6. _Every bound, and the offset to a bounded ancestor for a representation that isn't a
-   floating-point one, should be required to be exact in the quantity type of the point, as
-   proposed in P4412R0 (option 1 of "Exactness for floating-point points")._
+   floating-point one, should be required to be exact in the quantity type of the point, or, for
+   an inherited checking policy, in the common type of the value and the offset, as proposed in
+   P4412R0 (option 1 of "Exactness for floating-point points")._
 7. _The bounds of a relative point origin should be required at compile time to lie within the
    bounds of its nearest bounded ancestor, as proposed in P4412R0 (see "Nested cyclic origins"
    for cyclic ancestors)._
@@ -1257,13 +1337,20 @@ references:
       given: Mateusz
   title: "Quantities and units library"
   URL: <https://wg21.link/p3045r10>
-- id: NON-NEG
+- id: P4411R0_PRE
   citation-label: P4411R0
   author:
     - family: Pusz
       given: Mateusz
   title: "Non-Negative Quantity Specifications"
   URL: <https://wg21.link/p4411r0>
+- id: P4185R2_PRE
+  citation-label: P4185R2
+  author:
+    - family: Pusz
+      given: Mateusz
+  title: "Absolute Quantities"
+  URL: <https://wg21.link/p4185r2>
 - id: MP-UNITS
   citation-label: mp-units
   title: "mp-units - A Physical Quantities and Units library for C++"
