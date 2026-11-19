@@ -14,6 +14,16 @@ toc-depth: 3
 
 # Revision history
 
+## R1
+
+- The proposed rule in [The widths of the types](#alt-width) is now written with list
+  initialization instead of `numeric_limits<T>::digits`.
+- [Proposal](#proposal) explains how a class-type representation such as `safe_int` decides whether
+  a conversion is implicit, with no specialization of `implicitly_scalable`.
+- "Rank or width" was folded into [Integer conversion rank](#alt-rank), which now follows
+  [The widths of the types](#alt-width).
+- Shorter sections on [@P0870R8] and [@P2509R1].
+
 ## R0
 
 Initial revision. [@P3045R9] listed [@P0870R5] and [@P2509R1] as papers that would help to prevent
@@ -43,7 +53,7 @@ only when, the destination can represent every value of the source on the implem
 compiles it. This is the answer that list initialization ([dcl.init.list]{.sref}) gives for
 narrowing from a non-constant expression of one integer type to another, and it needs no new type
 trait. The paper also describes a rule based on the integer conversion rank, which gives the same
-answer on more implementations, and explains why it is rejected.
+answer on every implementation for more pairs of types, and explains why it is rejected.
 
 
 # Current design {#current-design}
@@ -123,8 +133,9 @@ paper proposes the same answer for conversions between integer representation ty
 
 A fourth property divides the alternatives below: whether the same code may compile on one
 implementation and not on another. [Alternatives](#alternatives) explains why every rule that meets
-requirement 1 depends on the implementation, and [The choice](#cmp-choice) why this paper accepts
-it.
+requirement 1 depends on the implementation, and [Integer conversion rank](#alt-rank) explains
+why this paper prefers the rule of [The widths of the types](#alt-width) to one that, for most pairs
+of standard integer types, depends on the implementation less.
 
 
 # Alternatives {#alternatives}
@@ -153,86 +164,110 @@ describes what they have in common.
 
 [@P0870R8] proposes a trait that tells whether a conversion is narrowing in the sense of list
 initialization ([dcl.init.list]{.sref}). In 2026, LEWG voted to forward it to LWG for C++29, to be
-confirmed by an electronic poll.
+confirmed by an electronic poll. It is close to being part of the standard, but it isn't in it
+yet, so it fails requirement 3.
 
-The trait rejects `std::int16_t` from `int`. It doesn't meet requirement 3 yet, although it is close
-to being part of the standard.
+Used for every pair of representation types, it also fails requirement 2. A conversion from an
+integer type to a floating-point type is narrowing unless the source is a constant expression whose
+value converts exactly, and a type trait sees no value. `quantity<m> d = 1 * m;` would need
+`value_cast<double>(1 * m)`.
 
-The trait fails requirement 2: a conversion from an integer type to a floating-point type is
-narrowing unless the source is a constant expression whose value converts exactly, and a type trait
-sees no value. `quantity<m> d = 1 * m;` would need `value_cast<double>(1 * m)`.
-
-The [Proposal](#proposal) uses its answer for integer pairs only and keeps `treat_as_floating_point`
-for the rest, without waiting for the trait.
+[The widths of the types](#alt-width) uses the same check that the trait is built on, list
+initialization, but applies it to pairs of integer types only. It doesn't have to wait for the
+trait.
 
 ### A value-preservation trait, P2509 {#alt-p2509}
 
 [@P2509R1] proposes `is_value_preserving_convertible<From, To>`, which is `true` when every value of
-`From` is represented exactly in `To`. It relies on `numeric_limits`, and its motivation cites
-[@P2980R1], the proposed quantities and units library, as a use case.
+`From` is represented exactly in `To`. Its motivation cites [@P2980R1], the proposed quantities and
+units library, as a use case. For a pair of integer types, both this trait and the one of
+[@P0870R8] give the answer this paper proposes.
 
-Its answer depends on the implementation by design. The paper says so, and gives `long double` and
-`double` under two ABIs as an example.
+It fails requirement 2. `double` from `std::int64_t` and `float` from `int` where `int` has 32 bits
+aren't value-preserving, so `quantity<m, float> f = 1 * m;` would need an explicit conversion. It
+also fails requirement 3, and it isn't close to the standard. SG6 polled it in 2022 with weak
+consensus (2/1/4/1/0) and the comment that more motivation was needed, and reviewed R1 at Sofia 2025
+without a poll. It needs a revision.
 
-It fails requirements 2 and 3:
+### The widths of the types {#alt-width}
 
-- It rejects common floating-point conversions. `double` from `std::int64_t` and `float` from `int`
-  where `int` has 32 bits aren't value-preserving, so `quantity<m, float> f = 1 * m;` would need an
-  explicit conversion.
-- It isn't close to the standard. SG6 polled it in 2022 with weak consensus (2/1/4/1/0)
-  and the comment that more motivation was needed, and reviewed R1 at Sofia 2025 without a
-  poll. It needs a revision.
+A conversion between two integer types is implicit when it isn't narrowing in the sense of list
+initialization ([dcl.init.list]{.sref}):
+
+```cpp
+template<typename From, typename To>
+constexpr bool $integer-value-preserving$ = true;
+
+template<integral From, integral To>
+constexpr bool $integer-value-preserving$<From, To> = requires(From f) { To{f}; };
+```
+
+`f` isn't a constant expression, and for such a source [dcl.init.list]{.sref} makes a conversion
+between integer types narrowing exactly when the destination can't represent every value of the
+source. That is requirement 1, and checking it needs nothing outside the standard. Whether a
+conversion is narrowing depends on the widths of the types: `int i{l};` for a non-constant `long l`
+is well-formed on Windows and ill-formed on 64-bit Linux. The type that an
+integer type promotes to can represent every value of it, so the rule needs no special case for
+promotion. It meets requirements 1, 2, and 3.
+
+A library can compute the same answer from `numeric_limits<From>` and `numeric_limits<To>`, by
+checking that `min()` and `max()` of `From` are within those of `To`. The comparison has to be
+sign-aware, such as with `cmp_less_equal`, because the built-in `<=` can convert a signed operand to
+an unsigned type first.
 
 ### Integer conversion rank {#alt-rank}
 
 A conversion between two integer types is implicit when both are signed or both are unsigned and
-the integer conversion rank of `To` isn't lower than that of `From`, or when `To` is the type that
-`From` promotes to ([conv.prom]{.sref}). A rank that isn't lower implies a width that isn't smaller
-([conv.rank]{.sref}), so the rule accepts only conversions that preserve every value. The promotion
-case is needed because the arithmetic operators convert both operands to the type of the result:
+the integer conversion rank of `To` isn't lower than that of `From` ([conv.rank]{.sref}), or when
+`To` is the type that `From` promotes to ([conv.prom]{.sref}). The promotion case is needed
+because the arithmetic operators convert both operands to the type of the result:
 
 ```cpp
 auto c = std::uint8_t{10} * m + std::uint8_t{20} * m;  // error without the promotion case: the sum is an int quantity,
                                                        // and int from std::uint8_t changes the signedness
 ```
 
-The traits of [@P0870R8] and [@P2509R1] ask whether `To` represents every value of `From` on the
-implementation at hand, and the rank rule asks whether the ranks of the two types guarantee it.
-Every conversion between integer types that the rank rule accepts, the traits accept too, but not
-the other way round: the rank rule rejects `int` from `long` also where both have 32 bits, and
-`long` from `std::uint16_t` everywhere. No standard trait exposes the rank. For the standard integer
-types, an implementation can find it by listing them.
+A rank that isn't lower implies a width that isn't smaller, so every conversion that this rule
+accepts, [the width rule](#alt-width) accepts too. No standard trait exposes the rank, but a library
+can find it for the standard integer types by listing them.
 
-The rule isn't portable. Its answer depends on the implementation in three ways. The type that a
-type of lower rank than `int` promotes to is `int` or `unsigned int`, depending on the widths. Which
-extended integer types exist is implementation-defined, and so is the relative rank of two of them
-with the same width. And the names and expressions listed in [Drawbacks of every non-portable
-rule](#non-portable-drawbacks) have different types on different implementations.
+It meets requirements 1, 2, and 3. For most pairs of standard integer types, it gives the same
+answer on every implementation. `int` from `long`, for example, is rejected everywhere. It still
+depends on the implementation in three ways. The type that a type of lower rank than `int` promotes
+to is `int` or `unsigned int`, depending on the widths. Which extended integer types exist is
+implementation-defined, and so is the relative rank of two of them with the same width. And the
+names and expressions listed in [Drawbacks of every non-portable rule](#non-portable-drawbacks)
+still have different types on different implementations.
 
-It meets requirements 1, 2, and 3. [Rank or width](#rank-or-width) compares it with the rule of [The
-widths of the types](#alt-width).
-
-
-### The widths of the types {#alt-width}
-
-A conversion between two integer types is implicit when the destination represents every value of
-the source on the implementation that compiles it:
+This paper rejects it because it also rejects conversions that can't change any value of the
+source type on the implementation at hand, and that [the width rule](#alt-width) accepts. The rank
+rule requires the same signedness because a signed type of higher rank isn't always wider than an
+unsigned one (`short` and `unsigned char` can both have 16 bits, as where `CHAR_BIT` is 16). So it
+rejects a conversion from an unsigned type to a wider signed one, other than promotion. It also
+rejects a conversion to a type of lower rank where both types have the same width:
 
 ```cpp
-template<typename From, typename To>
-constexpr bool $integer-value-preserving$ =
-  !(is_integral_v<From> && is_integral_v<To>) ||
-  ((is_unsigned_v<From> || is_signed_v<To>) &&
-   numeric_limits<To>::digits >= numeric_limits<From>::digits);
+void f(quantity<m, long> l, quantity<m, unsigned> u, quantity<m, std::uint16_t> u16)
+{
+  quantity<m, int> a = l;     // rank: error everywhere   width: OK on Windows, error on 64-bit Linux
+  quantity<m, long> b = u;    // rank: error everywhere   width: OK where long is wider than unsigned
+  quantity<m, long> c = u16;  // rank: error everywhere   width: OK everywhere
+}
 ```
 
-`numeric_limits<T>::digits` is the width of an integer type less its sign bit, so the rule needs
-nothing outside the standard, and it is what [@P0870R8] and [@P2509R1] answer for integer pairs. Its
-answer is the one that list initialization already gives: `int i{l};` for a non-constant `long l` is
-well-formed on Windows and ill-formed on 64-bit Linux. The type that an integer type promotes to
-always represents every value of it, so the rule needs no special case for promotion. It meets
-requirements 1, 2, and 3.
+An explicit conversion tells a reader that a value can change there. Users who meet a rule that
+requires one where no value can change may write explicit conversions by habit, and then those stop
+telling the reader anything. The width rule requires one only where the source type has a value
+that the destination can't represent. That still includes `quantity<m, short> q = 42 * m;` (see
+[Costs](#costs)). Where its answer depends on the implementation, as for `int` from `long`, ported
+code fails to compile exactly on the implementation where the conversion can change a value, and
+that is the code to review.
 
+The same answer on every implementation doesn't extend to the `<cstdint>` aliases, which code that
+cares about the widths of its integers often uses. For them, the rank rule can be less portable than
+the width rule. The rank rule rejects `std::int64_t` from `long long` on 64-bit Linux, where
+`std::int64_t` is `long`, of lower rank, and accepts it on Windows, where both are the same type.
+The width rule accepts it on both.
 
 ### Drawbacks of every non-portable rule {#non-portable-drawbacks}
 
@@ -249,59 +284,6 @@ void f(quantity<m, std::uint16_t> a, quantity<m, std::uint16_t> b)
   quantity<m, int> q = 100'000 * m;  // OK where int is wider than 16 bits, error where it has 16 (the literal is long)
 }
 ```
-
-### Rank or width {#rank-or-width}
-
-Both rules reject every conversion between integer types that can change a value on the
-implementation that compiles it. They differ in which other conversions they reject, and in how far
-the answer depends on the implementation.
-
-#### Portability {#cmp-portability}
-
-The rank rule depends on the implementation only in the cases listed in [Integer conversion
-rank](#alt-rank). The width rule depends on it for every pair of types whose relative widths differ
-between implementations.
-
-```cpp
-void f(quantity<m, unsigned short> us, quantity<m, long> l)
-{
-  quantity<m, int> a = us;  // both: OK where int is wider than short, error where they have the same width
-  quantity<m, int> b = l;   // rank: error everywhere
-                            // width: OK on Windows, error on 64-bit Linux
-}
-```
-
-#### Conversions that preserve every value {#cmp-preserving}
-
-The width rule accepts every conversion that preserves every value on the implementation at hand.
-The rank rule rejects some of them. A conversion from an unsigned type to a signed type of higher
-rank other than the type it promotes to, such as `short` from `unsigned char`, is rejected, because
-a higher rank doesn't guarantee a strictly greater width (both may have 16 bits where `CHAR_BIT` is
-16).
-
-```cpp
-void f(quantity<m, unsigned> u, quantity<m, std::uint16_t> u16, quantity<m, unsigned char> uc)
-{
-  quantity<m, long> b = u;    // rank: error everywhere      width: OK where long is wider than unsigned
-  quantity<m, long> c = u16;  // rank: error everywhere      width: OK everywhere
-  quantity<m, short> d = uc;  // rank: error everywhere      width: OK where short is wider than unsigned char
-}
-```
-
-#### The choice {#cmp-choice}
-
-This paper proposes the width rule. It rejects fewer conversions, and each conversion it rejects can
-change a value on the implementation that compiles it. So an explicit conversion between integer
-representation types is needed only where a value can change, and it keeps telling a reader so. The
-rank rule also requires explicit conversions where no value can change, and a user who meets enough
-of them may write them by habit. Where the answer depends on the implementation, as for `int` from
-`long`, the width rule requires the explicit conversion on the implementation where the value can
-change, which is the one that has to be reviewed when the code is ported.
-
-List initialization made the same choice: whether `int i{l};` is narrowing follows the widths of
-`int` and `long`. The advantage of the rank rule, the same answer on every implementation for most
-pairs of standard integer types, doesn't extend to the `<cstdint>` aliases, which code that cares
-about the widths of its integers often uses.
 
 
 # Proposal {#proposal}
@@ -330,10 +312,31 @@ quantity type. A conversion that it rejects is written with `value_cast`, such a
 types too, but [@P3045R10_PRE] doesn't accept them as representation types, so the rule doesn't
 apply to them. `signed char` and `unsigned char` are a signed and an unsigned integer type
 ([basic.fundamental]{.sref}) that programs use for small numbers. They remain valid representation
-types, so `std::int8_t` and `std::uint8_t` are covered. The rule covers pairs of integer types only,
-and a wrapper such as `safe_int<int>` keeps specializing `implicitly_scalable`. A type that
-`is_integral` doesn't recognize, such as `__int128` in a strict standard mode, keeps the current
-rule unless `implicitly_scalable` is specialized for it.
+types, so `std::int8_t` and `std::uint8_t` are covered. A type that `is_integral` doesn't recognize,
+such as `__int128` with libstdc++ before GCC 16 in a strict standard mode, keeps the current rule
+unless `implicitly_scalable` is specialized for it.
+
+The rule covers pairs of integer types only. For a class type, whether `To{f}` is valid depends on
+its constructors (or its members, for an aggregate), and not on whether the conversion can change a
+value. Such a type keeps the current rule, and decides itself whether a conversion is implicit. The
+converting constructor of `quantity` in [@P3045R10_PRE] is `explicit` when
+`convertible_to<FromRep, ToRep>` is `false`. The
+`safe_int` of [@MP-UNITS] has a converting constructor that is `explicit` when the destination
+can't represent every value of the source (see [mp-units](#mp-units)), so it needs no
+specialization of `implicitly_scalable`:
+
+```cpp
+static_assert( std::is_convertible_v<quantity<m, safe_int<short>>, quantity<m, safe_int<int>>>);
+static_assert(!std::is_convertible_v<quantity<m, safe_int<int>>, quantity<m, safe_int<short>>>);
+static_assert( std::is_constructible_v<quantity<m, safe_int<short>>, quantity<m, safe_int<int>>>);
+```
+
+The last line shows a difference from integer types. For `short`, the rule removes the converting
+constructor, so direct initialization such as `quantity<m, short> s(q);` is ill-formed too, and the
+conversion has to be written with `value_cast`. For `safe_int<short>`, the constructor is only
+`explicit`, so direct initialization compiles without `value_cast`. In direct initialization, the
+check moves from compile time to run time. The compiler no longer rejects a conversion that can
+change a value, and `safe_int` checks the value when the conversion happens.
 
 [@MP-UNITS] implements the proposed rule on its version 3 line, which implements [@P3045R10_PRE].
 [@MP-UNITS] keeps the rule of `std::chrono` in its 2.x releases, because the change breaks existing
@@ -380,8 +383,8 @@ has them on more. The drawbacks that follow from the dependence on the implement
   ```
 
 - It differs from `std::chrono`. `quantity<s, int>` from `std::chrono::seconds`, whose
-  representation is a signed integer type of at least 35 bits, becomes explicit where `int` is
-  narrower than that type.
+  representation is a signed integer type of at least 35 bits, is rejected where `int` is narrower
+  than that type.
 
 Each of these costs is a compile-time error. The conversion in the [Introduction](#introduction)
 compiles and gives a wrong value at run time. Each of them also requires an explicit conversion that
