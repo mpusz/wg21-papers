@@ -23,6 +23,12 @@ toc-depth: 3
 - "Rank or width" was folded into [Integer conversion rank](#alt-rank), which now follows
   [The widths of the types](#alt-width).
 - Shorter sections on [@P0870R8] and [@P2509R1].
+- [Proposal](#proposal) also adds the rule to `$RepConstructibleFrom$` and `$RepAssignableFrom$`,
+  so that `in<ToRep>()` and the construction from and the assignment of a number reject the same
+  conversions as the converting constructor.
+- Two quantities, two points, and a quantity and a number now compare exactly when their types are
+  integer types (see [Proposal](#proposal)). A negative value compares correctly with an unsigned
+  one, and the rule doesn't make `==` or `<=>` of such a pair ill-formed.
 
 ## R0
 
@@ -55,6 +61,10 @@ narrowing from a non-constant expression of one integer type to another, and it 
 trait. The paper also describes a rule based on the integer conversion rank, which gives the same
 answer on every implementation for more pairs of types, and explains why it is rejected.
 
+This paper also proposes that two quantities with integer representation types compare exactly, as
+mathematical integers. This fixes code that compiles today and gives a wrong answer, such as
+`-1 * m < 1u * m`, which is `false` in [@P3045R10_PRE].
+
 
 # Current design {#current-design}
 
@@ -75,7 +85,8 @@ another rule, and a conversion that isn't implicit has to be written with `value
 rounding policy.
 
 A unit conversion that overflows the destination, such as `quantity<mm, std::int16_t>` from
-`std::int16_t{100} * m`, is a separate question, and this paper doesn't change it.
+`std::int16_t{100} * m`, is a separate question, and this paper doesn't change how a conversion
+handles it.
 
 
 # Existing practice {#existing-practice}
@@ -339,8 +350,114 @@ check moves from compile time to run time. The compiler no longer rejects a conv
 change a value, and `safe_int` checks the value when the conversion happens.
 
 [@MP-UNITS] implements the proposed rule on its version 3 line, which implements [@P3045R10_PRE].
-[@MP-UNITS] keeps the rule of `std::chrono` in its 2.x releases, because the change breaks existing
-code such as `quantity<m, short> q = 42 * m;`.
+Its 2.x releases keep the rule of `std::chrono`, because the change breaks existing code such as
+`quantity<m, short> q = 42 * m;`.
+
+The converting constructor isn't the only place where [@P3045R10_PRE] converts a representation
+value. `in<ToRep>()` and `in<ToRep>(ToU)` convert it to `ToRep`. A quantity constructed from a
+number and a reference converts the number to its representation type, and so does a dimensionless
+quantity constructed from a number or assigned one. These are constrained with the exposition-only
+`$RepConstructibleFrom$` and `$RepAssignableFrom$`, which [@P3045R10_PRE] uses without defining.
+This paper proposes the definitions below. The first two conjuncts of each match [@MP-UNITS], and
+the last one is the rule:
+
+```cpp
+template<typename T, typename Arg>
+concept $RepConstructibleFrom$ =  // exposition only
+  constructible_from<T, Arg> &&
+  (treat_as_floating_point<T> || !treat_as_floating_point<remove_cvref_t<Arg>>) &&
+  $integer-value-preserving$<remove_cvref_t<Arg>, T>;
+
+template<typename T, typename Arg>
+concept $RepAssignableFrom$ =  // exposition only
+  assignable_from<T&, Arg> &&
+  (treat_as_floating_point<T> || !treat_as_floating_point<remove_cvref_t<Arg>>) &&
+  $integer-value-preserving$<remove_cvref_t<Arg>, T>;
+```
+
+Without the last conjunct, `q.in<short>()` for a `quantity<m, int>` would satisfy its constraint
+and then fail to compile in the body that [@MP-UNITS] gives it, which constructs the result with
+the converting constructor that the rule removes. The construction from a number would still
+compile and wrap. With it, the lines marked `error` are ill-formed where `short` is narrower than
+`int`:
+
+```cpp
+void f(quantity<m, int> q, int i)
+{
+  auto a = q.in<short>();                          // error
+  auto b = q.in<short>(truncated);                 // OK
+  quantity<m, short> c(i, m);                      // error
+  quantity<m, short> d(static_cast<short>(i), m);  // OK
+  quantity<one, short> e = i;                      // error
+}
+```
+
+[@P3045R10_PRE] compares two quantities by converting both to their common quantity type, and this
+gives a wrong answer for a negative value today. When the representation types are integer types
+of different signedness, such as `int` and `unsigned`, the common representation type can be the
+unsigned one. A negative value then converts to a large positive one. Where `unsigned` has 32 bits,
+`-1 * m < 1u * m` compiles and is `false`, because `-1` converts to `4294967295u`. For the same
+reason, `-1 * m == 4294967295u * m` is `true`. The rule rejects the conversion of `int` to
+`unsigned`, so on its own it would make these comparisons ill-formed instead.
+
+This paper proposes that comparisons stop converting their operands when both representation types
+are integer types. `==` and `<=>` then compare the numerical values of both operands in the common
+unit as mathematical integers, which gives the results of `cmp_equal` and `cmp_less`
+([utility.intcmp]{.sref}). This changes the result of code that compiles today, and the new result
+is the correct one:
+
+```cpp
+static_assert(-1 * m < 1u * m);            // false in P3045R10
+static_assert(-1 * km < 1u * m);           // false in P3045R10
+static_assert(-1 * m != 4294967295u * m);  // false in P3045R10 where unsigned has 32 bits
+static_assert(1 * km == 1000u * m);
+```
+
+[@MP-UNITS] already compares quantities with integer representation types of different signedness
+this way on the development branches of 2.x and version 3, though not in a release yet.
+
+Because no operand is converted, an overflow of the conversion to the common unit doesn't affect the
+result either. `3'000'000 * km > 1 * m` is `true` even where `3'000'000'000` doesn't fit in an
+`int`. The common quantity type `common_type_t<Q1, Q2>` still has to exist, so
+`std::int8_t{1} * km == std::int8_t{1} * m` stays ill-formed, because `1 km` expressed in metres
+overflows `std::int8_t`. Only the conversion of each operand to the common quantity type is no
+longer required. For integer representation types, the unit of each operand has to scale to the
+common unit by an integral factor instead (`is_integral_scaling`). With the exposition-only
+`$CommonlyComparableQuantities$`, which [@P3045R10_PRE] also uses without defining, this paper
+proposes:
+
+```cpp
+template<typename Q, typename Other, typename CT>
+concept $ComparableIn$ =  // exposition only
+  (integral<typename Q::rep> && integral<typename Other::rep> && is_integral_scaling(Q::unit, CT::unit)) ||
+  (!(integral<typename Q::rep> && integral<typename Other::rep>) && constructible_from<CT, Q>);
+
+template<typename Q1, typename Q2>
+concept $CommonlyComparableQuantities$ =  // exposition only
+  delta_quantity<Q1> && delta_quantity<Q2> &&
+  requires { get_common_reference(Q1::reference, Q2::reference); typename common_type_t<Q1, Q2>; } &&
+  $ComparableIn$<Q1, Q2, common_type_t<Q1, Q2>> && $ComparableIn$<Q2, Q1, common_type_t<Q1, Q2>>;
+```
+
+Two points with the same absolute origin compare their offsets from a common origin. Their `==` and
+`<=>` require `equality_comparable_with` and `three_way_comparable_with` of their quantity types.
+The rule makes both `false` for `int` and `unsigned`, because the quantity type with the `int`
+representation no longer converts to their common type. Such a comparison compiles in
+[@P3045R10_PRE], so the rule alone would break it. This paper proposes that, when both
+representation types are integer types, these two requirements are replaced with
+`$CommonlyComparableQuantities$` of the quantity types. The offsets then compare by the same rule as
+two quantities. Where the two points are measured from different origins, an offset from the
+absolute origin is computed with an addition, and that addition follows the rule, as the arithmetic
+in [Costs](#costs) does.
+
+A dimensionless quantity also compares with a number. Its `==` requires only
+`equality_comparable_with<Rep1, Value>`, and [@MP-UNITS] compares the numerical value with the
+built-in `==`, so `4294967295u * one == -1` is `true` where `unsigned` has 32 bits. Its `<=>`
+requires `three_way_comparable_with<Rep1, Value>`, which `int` and `unsigned` don't satisfy. The
+built-in `<=>` rejects the conversion of `int` to `unsigned`, so `-1 * one < 1u` is ill-formed.
+This paper proposes that, when `Rep1` and `Value` are both integer types, `==` and `<=>` give the
+results of `cmp_equal` and `cmp_less`, and `<=>` doesn't require
+`three_way_comparable_with<Rep1, Value>`. Both comparisons are then well-formed and exact.
 
 
 # Costs {#costs}
@@ -352,13 +469,15 @@ has them on more. The drawbacks that follow from the dependence on the implement
 
 - Small integer values written as `int` literals are rejected. `quantity<m, short> q = 42 * m;`
   converts from `quantity<m, int>`, which is rejected where `short` is narrower than `int`. The rule
-  sees only the types, so it can't accept 42 and reject 100'000.
+  sees only the types, so it can't accept 42 and reject 100'000. The construction from a number
+  and a reference is rejected for the same reason.
 
   ```cpp
   quantity<m, short> q1 = 42 * m;                         // error where short is narrower than int
   quantity<m, short> q2 = short{42} * m;                  // OK
   quantity<m, short> q3 = value_cast<short>(42 * m);      // OK
   quantity<m, short> q4 = (42 * m).in<short>(truncated);  // OK
+  quantity<m, short> q5(42, m);                           // error where short is narrower than int
   ```
 
 - Integer promotion produces `int`. `a + b` for two `short` quantities is a quantity of `int`,
@@ -368,7 +487,11 @@ has them on more. The drawbacks that follow from the dependence on the implement
   to a quantity of `int` where `int` is wider, so the sum can't be assigned back to any unsigned
   quantity without an explicit conversion. A quantity of `unsigned` no longer adds to a quantity of
   a signed integer type that isn't wider than `unsigned`, such as `int`, as the conversion of one of
-  the operands to the common representation type changes the signedness.
+  the operands to the common representation type changes the signedness. Comparing them with `==`
+  and `<=>` stays valid, and gives the correct result for a negative value (see
+  [Proposal](#proposal)). But `equality_comparable_with` and `three_way_comparable_with` become
+  `false` for them, because they require a conversion to a common type, so `ranges::equal_to` and
+  `ranges::less` reject such a pair.
 
   ```cpp
   void f(quantity<m, short> s1, quantity<m, short> s2, quantity<m, unsigned> u, quantity<m, int> i)
@@ -406,6 +529,12 @@ source type.
    implementation, so `int` from `long` is implicit on Windows and rejected on 64-bit Linux)._
 
    [Taken only if poll 1 has consensus.]{.ednote}
+
+3. _In [@P3045R10_PRE], two quantities, two points, or a quantity and a number whose representation
+   types are integer types should compare exactly, with the results of `cmp_equal` and `cmp_less`
+   (as proposed: `-1 * m < 1u * m` becomes `true`)._
+
+   [Independent of polls 1 and 2: the comparison gives a wrong answer for a negative value today.]{.ednote}
 
 
 # Acknowledgments
