@@ -414,7 +414,8 @@ static_assert(1 * km == 1000u * m);
 ```
 
 [@MP-UNITS] already compares quantities with integer representation types of different signedness
-this way on the development branches of 2.x and version 3, though not in a release yet.
+this way on the development branches of 2.x and version 3, though not in a release yet. Its version
+3 line also compares two points, and a quantity with a number, as proposed below.
 
 Because no operand is converted, an overflow of the conversion to the common unit doesn't affect the
 result either. `3'000'000 * km > 1 * m` is `true` even where `3'000'000'000` doesn't fit in an
@@ -451,7 +452,7 @@ absolute origin is computed with an addition, and that addition follows the rule
 in [Costs](#costs) does.
 
 A dimensionless quantity also compares with a number. Its `==` requires only
-`equality_comparable_with<Rep1, Value>`, and [@MP-UNITS] compares the numerical value with the
+`equality_comparable_with<Rep1, Value>`, and [@MP-UNITS] 2.x compares the numerical value with the
 built-in `==`, so `4294967295u * one == -1` is `true` where `unsigned` has 32 bits. Its `<=>`
 requires `three_way_comparable_with<Rep1, Value>`, which `int` and `unsigned` don't satisfy. The
 built-in `<=>` rejects the conversion of `int` to `unsigned`, so `-1 * one < 1u` is ill-formed.
