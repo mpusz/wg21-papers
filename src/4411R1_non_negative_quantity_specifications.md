@@ -15,12 +15,20 @@ toc-depth: 3
 
 ## R1
 
-- The paper follows [@P3045R11_PRE] and [@P4185R3_PRE], and the examples use their spelling,
-  where the abstraction is a part of the quantity specification:
-  `point<isq::distance>[m](5.0)` instead of `point<isq::distance[m]>(5.0)`.
+- The paper is written against [@P3045R11_PRE] and uses its spelling, where the abstraction is a
+  part of the quantity specification: `point<isq::distance>[m](5.0)` instead of
+  `point<isq::distance[m]>(5.0)`. The chapters on absolute quantities follow [@P4185R3_PRE].
 - [Where the check runs](#absolute-check-sites): under [@P4185R3_PRE], an absolute never
   converts to a vector specification, so `isq::velocity(-3. * (m / s))` is ill-formed instead of
   unchecked.
+- [With and without absolute quantities](#with-absolutes) compares the same code under both
+  models, and [Enforcement on absolute quantities](#absolute-enforcement) now comes before
+  [What the tag gives with deltas and points](#deltas-and-points).
+- [Negative values written with a bare unit](#negative-bare-unit) moved here from the draft of
+  [@P4185R3_PRE], which no longer describes the sign check.
+- [Negation of a non-negative absolute](#absolute-negation) moved here from the draft of
+  [@P4185R3_PRE], where `-x` of an absolute is now always an absolute.
+- The polls are reduced to three: the design, the check on absolutes, and inference.
 
 ## R0
 
@@ -38,7 +46,7 @@ since the chapter "Non-negative quantities" of [@P4185R1]:
 - [Why the tag should come before the ISQ definitions](#before-isq) added,
 - [Inference from defining equations](#inference) rewritten for defining equations only, where
   [@P4185R1] concluded that inference can't be implemented correctly, and polled separately
-  from the tag (see [Straw polls](#polls)),
+  from the tag (see [Proposed polls](#polls)),
 - the claim of [@P4185R1] that wrapping scalars in `quantity<dimensionless>` can't preserve
   sign information corrected: a named child of `dimensionless` survives simplification and can
   express a sign in a defining equation (see [Signs that no dimension shows](#signed-coefficient)),
@@ -59,7 +67,7 @@ since the chapter "Non-negative quantities" of [@P4185R1]:
 # Introduction
 
 Many quantities can't be negative. No amount of mass, duration, or volume is below zero, and
-ISO 80000-3 defines _speed_ as the magnitude of _velocity_. [@P3045R10_PRE] has no way to
+ISO 80000-3 defines _speed_ as the magnitude of _velocity_. [@P3045R11_PRE] has no way to
 express this. This is why every function that relies on it repeats a precondition, and every
 reviewer has to guess which parameters carry the guarantee.
 
@@ -73,18 +81,23 @@ This paper proposes to record the domain once, in the definition of the quantity
   leaves its parent's domain but keeps its parent's kind and units, and
 - a compile-time query `is_non_negative(qs)`.
 
-All four are additions to [@P3045R10_PRE], which proposes the framework and no system of
+All four are additions to [@P3045R11_PRE], which proposes the framework and no system of
 quantities, so no definition in it changes meaning. The ISQ definitions of [@P4213R1_PRE], in the
 same mailing, already use `non_negative` and `possibly_negative`; if this paper isn't adopted,
 those tags are dropped. The four features are implemented in [@MP-UNITS].
 
-Three related features are proposed with their own polls. A point of a non-negative quantity,
-or of a quantity kind whose root is non-negative, measured from the true zero is checked
-automatically (see [Checked points](#checked-points)). Inference from
-defining equations would let a named derived quantity such as _mass density_ take the
-property from its equation. It has been prototyped but is not implemented in [@MP-UNITS]. If
-absolute quantities [@P4185R3_PRE] are adopted, the tag is also checked on their values (see
-[Enforcement on absolute quantities](#absolute-enforcement)).
+This paper doesn't depend on absolute quantities [@P4185R3_PRE], and it shows what the tag gives
+both with and without them. Without them, it gives the query, checks in generic code, and checked
+points (see [What the tag gives with deltas and points](#deltas-and-points)). An absolute is an
+amount measured from a true zero, which is what `non_negative` describes, so with absolute
+quantities the library also checks the tag on values, and the `>= 0` preconditions of
+[Motivation](#motivation) go away (see [Enforcement on absolute quantities](#absolute-enforcement)).
+
+The design includes a check on a point of a non-negative quantity, or of a quantity kind whose
+root is non-negative, measured from the true zero (see [Checked points](#checked-points)). Two
+related features have polls of their own: the check on absolute quantities, and inference from
+defining equations, which would let a named derived quantity such as _mass density_ take the
+property from its equation. Inference has been prototyped but is not implemented in [@MP-UNITS].
 
 We ask SG6 for a direction before the ISQ definitions of [@P4213R1_PRE] are reviewed,
 because the domain of a quantity is part of its definition.
@@ -148,13 +161,80 @@ for kinetic energies rejects a valid negative work, done against a force that op
 motion, and dropping it loses the check for kinetic energies. Only the type of the argument
 says which of the two it is.
 
-This paper addresses the last point. With absolute quantities [@P4185R3_PRE], it also removes
-the `>= 0` preconditions: a `quantity<isq::mass[kg]>` is then an absolute, checked when it is
-created (see [Enforcement on absolute quantities](#absolute-enforcement)), and `density` keeps
-only `pre(volume != 0 * m3)`, the one condition the domain doesn't cover. With deltas and points
-only, a `quantity<isq::mass>` may hold a negative difference of two masses, so the function still
-has to check. [What the tag gives with deltas and points](#deltas-and-points) describes the
-benefits of this paper in that case.
+## With and without absolute quantities {#with-absolutes}
+
+Without absolute quantities, the tag addresses the last point: generic code can ask a quantity for
+its domain (see [Domain checks in generic code](#generic-checks)). It doesn't change the two
+functions above. A `quantity<isq::mass[kg]>` may hold a negative difference of two masses, so
+`density` and `kinetic_energy` keep every precondition.
+
+With absolute quantities [@P4185R3_PRE], the other three points are addressed as well: the
+signature tells an amount from a signed difference, and the tag lets the library check the amount.
+A `quantity<isq::mass[kg]>` is then an absolute, an amount measured from zero, and a difference of
+two masses is a `quantity<delta<isq::mass>[kg]>`. The library checks an absolute of a non-negative
+quantity wherever a value that may be negative enters it (see
+[Where the check runs](#absolute-check-sites)), and the two functions become:
+
+```cpp
+quantity<isq::mass_density[kg / m3]> density(quantity<isq::mass[kg]> mass, quantity<isq::volume[m3]> volume)
+  pre(volume != 0 * m3)
+{
+  return isq::mass_density(mass / volume);  // checked
+}
+
+quantity<isq::kinetic_energy[J]> kinetic_energy(quantity<isq::mass[kg]> mass, quantity<isq::speed[m / s]> speed)
+{
+  return isq::kinetic_energy(mass * pow<2>(speed) / 2);  // checked
+}
+```
+
+The arguments were checked when the caller created them, and each result is checked when it
+becomes a named quantity, so the next function in the pipeline needs no precondition of its own:
+under a checking evaluation semantic, a negative value is diagnosed where it is created (a NaN
+isn't negative and passes, see [Where the check runs](#absolute-check-sites)).
+`volume != 0 * m3` is the one condition that the domain doesn't cover.
+
+A fuel tank shows the difference where a value changes. Without absolute quantities, a tank that
+stores its fuel as a `quantity<isq::mass[kg]>` has to guard its invariant in every member function.
+It could store a checked point instead (see [Checked points](#checked-points)), but every amount it
+takes is still a delta that nothing checks, and a parameter that may be negative looks like one
+that can't, whether or not _mass_ carries the tag:
+
+```cpp
+class fuel_tank {
+  quantity<isq::mass[kg]> fuel_;  // invariant: fuel_ >= 0 * kg
+public:
+  explicit fuel_tank(quantity<isq::mass[kg]> fuel) pre(fuel >= 0 * kg) : fuel_(fuel) {}
+
+  void burn(quantity<isq::mass[kg]> m) pre(m >= 0 * kg) pre(m <= fuel_) { fuel_ -= m; }
+
+  // a signed correction reported by a gauge
+  void correct(quantity<isq::mass[kg]> d) pre(fuel_ + d >= 0 * kg) { fuel_ += d; }
+};
+```
+
+With absolute quantities, the invariant is a property of the type of `fuel_`, and the signature
+of `correct` says that its argument is signed:
+
+```cpp
+class fuel_tank {
+  quantity<isq::mass[kg]> fuel_;
+public:
+  explicit fuel_tank(quantity<isq::mass[kg]> fuel) : fuel_(fuel) {}
+
+  void burn(quantity<isq::mass[kg]> m) pre(m <= fuel_) { fuel_ -= m.delta(); }  // checked
+
+  void correct(quantity<delta<isq::mass>[kg]> d) { fuel_ += d; }  // checked
+};
+```
+
+`burn` keeps `m <= fuel_` as a precondition, so that a violation is reported against the caller.
+Without it, the check in the body catches the same mistake, as it does in `correct`.
+
+In the prototype of [@P4185R3_PRE], the check also flagged values that the tests of [@MP-UNITS]
+stored as absolutes but meant as signed changes: negative durations passed to the rounding
+functions, a −3 m projection offset stored as a length, negative origin bounds, and negative inputs
+to the formatting tests (see also [Negative values written with a bare unit](#negative-bare-unit)).
 
 ## The domain belongs in the definition of the quantity {#domain-in-definition}
 
@@ -162,7 +242,7 @@ The ISQ decides the domain for some quantities: _speed_ is the magnitude of _vel
 _length_, _area_, and _volume_ measure extents. For others it is a decision that needs review
 (see [Why the tag should come before the ISQ definitions](#before-isq)).
 
-[@P3045R10_PRE] already records the character of a quantity in its definition. Whether a
+[@P3045R11_PRE] already records the character of a quantity in its definition. Whether a
 quantity is a scalar or a vector is stated once in its `quantity_spec`, inherited by its
 children, and checked by the library wherever it matters. We propose the same for the
 domain.
@@ -260,7 +340,7 @@ as `named_quantity_spec<isq::height, subkind>` is non-negative.
 
 Once a standard tags _mass_ `non_negative`, inheritance makes every child of _mass_
 non-negative. A quantity that is a mass but takes negative values then has no good place. In
-[@P3045R10_PRE] a unit belongs to a kind (the gram is defined for `kind_of<isq::mass>`), so
+[@P3045R11_PRE] a unit belongs to a kind (the gram is defined for `kind_of<isq::mass>`), so
 only a quantity of the _mass_ kind may use the kilogram:
 
 - as a child of _mass_, or as a nested kind under it, the quantity inherits `non_negative`,
@@ -374,12 +454,234 @@ The kind of a unit expression, such as `m / s`, is unnamed in the same way and n
 property either: `-1.0 * (m / s)` and `-1.0 * (mass / volume)` are the same case.
 
 
+# Enforcement on absolute quantities {#absolute-enforcement}
+
+_This chapter applies only if absolute quantities [@P4185R3_PRE] are adopted. It is polled
+separately, and the rest of the paper doesn't depend on it._
+
+An absolute of a non-negative quantity is the amount that `non_negative` describes, so with
+absolute quantities the tag can be checked on values, not only on points. [@P4185R3_PRE] doesn't
+constrain the sign of an absolute and leaves the check to this paper.
+
+## Where the check runs {#absolute-check-sites}
+
+A value is checked only when it is stored in an absolute whose quantity specification is
+non-negative: a named non-negative specification, or a quantity kind whose root is non-negative.
+A delta is never checked, and neither is an unnamed specification, such as `isq::mass / isq::volume`
+or the kind of a unit expression such as `m / s` (see [Expressions carry no flag](#expressions)).
+
+A value written with a bare unit is an absolute of a quantity kind, so it is checked when the root
+of the kind is non-negative. `quantity x = -10. * kg` carries `kind_of<isq::mass>` and is a
+contract violation, and so are `-1 * kg` and `-5. * K`, while `-5. * A` is not, because an electric
+current can be negative. A signed value of a kind is written as a delta: `delta<kg>(-10.)`, or
+`delta<K>(-5.)` for a temperature change.
+
+A vector or tensor quantity is never an absolute in [@P4185R3_PRE], so it is never checked, and
+an absolute never converts to one, so a conversion can't hide a negative absolute:
+`isq::velocity(-3. * (m / s))` and `isq::displacement(-5. * m)` are both ill-formed. The signed
+values are spelled `delta<m / s>(-3.)` and `delta<m>(-5.)`.
+
+The check runs at four kinds of sites:
+
+1. Construction from a number, `-10. * kg` included, or from a value whose specification is not
+   non-negative: from an expression, as in `isq::mass_density(mass / volume)`, or from a
+   `possibly_negative` specification, as in the implicit conversion of an `effective_mass` to a
+   `mass`.
+2. `.absolute()` on a delta.
+3. Addition and subtraction of anything but a non-negative absolute, `+=`, `-=`, and `--`
+   included. The result is still an absolute, and the other operand can take it below zero.
+4. Multiplication and division by a number, `*=` and `/=` included: `-1.0 * mass` is still a
+   mass. Negation is not such a site, because the negation of a non-negative absolute is a delta
+   (see [Negation of a non-negative absolute](#absolute-negation)).
+
+The check is skipped where the operands already guarantee the sign:
+
+- a conversion of a non-negative absolute to another unit or to another non-negative
+  specification, as in `isq::mass(10. * kg)`, when the target representation is the same type,
+  a floating-point type, an unsigned type, or a signed integer type wide enough for every value
+  of the source (a `height` stored in a `length` isn't checked again, while a conversion to any
+  other signed integer type is),
+- the sum of two non-negative absolutes, `+=` of one, and `++`,
+- `*=` and `/=` by a non-negative absolute of dimension one, and
+- the remainder of a non-negative dividend.
+
+The skips are decided from the types alone, so they assume that the arithmetic of the
+representation doesn't overflow. In the prototype, an integer representation that overflows in
+a sum, in `++`, or in a unit conversion can wrap below zero without a check (for example, `+=`
+on a `std::int8_t` mass). This is a gap of the prototype and not proposed behavior.
+
+```cpp
+quantity load    = 10. * kg;                                   // site 1: kind_of<isq::mass>
+quantity cargo   = isq::mass(load);                            // not checked: load is non-negative
+quantity copy    = cargo;                                      // not checked
+quantity fuel    = isq::mass(500. * kg);                       // site 1
+fuel -= delta<isq::mass>[kg](150.);                            // site 3: 350 kg
+fuel *= 2.;                                                    // site 4: 700 kg
+quantity spare   = (fuel - cargo).absolute();                  // site 2: 690 kg
+quantity deficit = fuel.delta() - delta<isq::mass>[kg](800.);  // a delta, not checked: -100 kg
+```
+
+A negative value is a contract violation, as a point below its floor is (see
+[Checked points](#checked-points)), so it follows the evaluation semantic in effect, during
+constant evaluation as well. If the representation has the `constraint_violation_handler` of
+[@P4412R0_PRE], a negative value is reported to the handler instead, and if the handler returns,
+the value is stored. The check is written as `!(value < 0)`, so a NaN, which isn't negative,
+passes it, as it passes the floor of a point.
+
+A negative value can be stored in a delta (`deficit` in the example), or in an absolute of a
+signed quantity, such as an electric current or a quantity declared `possibly_negative`. A bare
+unit doesn't avoid the check.
+
+## Negation of a non-negative absolute {#absolute-negation}
+
+In [@P4185R3_PRE], `-x` of an absolute is an absolute, as `-1 * x` is, because negation keeps the
+zero. For a non-negative quantity, that result is a negative amount, which the check rejects
+whenever `x` is positive. We propose that `-x` of an absolute be a delta when the quantity
+specification of `x` is non-negative, when it is a kind whose root is non-negative, or when it is
+an unnamed derived specification or the kind of one, whose sign the library doesn't infer from a
+quantity equation. The negation of a mass is then the change that removes that mass, while the
+negation of a current stays a current. The root of the kind of a unit expression is unnamed, so
+`-(2. * (kg / m3))` is a delta, as `-(isq::mass(2. * kg) / isq::volume(1. * m3))` is. A kind takes
+the domain of its root, so `-(5. * A)` keeps the absolute abstraction and `-(2. * kg)` doesn't:
+
+```cpp
+quantity<isq::electric_current[A]> I1 = ..., I2 = ...;
+quantity<isq::electric_current[A]> I3 = -(I1 + I2);  // an absolute current, as in P4185R3
+
+quantity<isq::kinetic_energy[J]> Ek = ...;
+quantity<isq::thermodynamic_temperature[K]> T = ...;
+auto ratio = -Ek / T;    // delta<kinetic_energy> / absolute<temperature> = delta<...>
+auto Ek2 = abs(-Ek);     // the magnitude of a delta is an absolute again
+```
+
+The cost is that the result type of `-x` depends on the quantity specification, so generic code
+that negates an absolute has to allow for both outcomes, and generic code that needs a delta
+writes `-x.delta()`. Adopting this rule after [@P4185R3_PRE] also changes the type of `-mass` in
+existing code, from an absolute to a delta, which affects `auto` deduction and overload
+resolution.
+
+`-1 * x` scales an absolute by a number and stays an absolute, so it can differ in type from `-x`:
+the check rejects `-1 * isq::mass[kg]` and `-1 * kg`, each a negative amount, while
+`-(1 * isq::mass[kg])` and `-(1 * kg)` are deltas.
+
+## Negative values written with a bare unit {#negative-bare-unit}
+
+Users will hit this consequence of the check first, and SG6 is asked to discuss it explicitly.
+Code that writes `-5. * K` to mean "5 K colder" is a contract violation, and the change has to be
+written as a delta:
+
+```cpp
+quantity t1 = -5. * K;           // ✗ contract violation: a temperature 5 K below absolute zero
+quantity t2 = delta<K>(-5.);     // ✓ a temperature change of -5 K
+
+quantity o1 = -3. * m;           // ✗ contract violation: a negative length
+quantity o2 = delta<m>(-3.);     // ✓ an offset of -3 m
+
+quantity e1 = -1. * s;           // ✗ contract violation: a negative duration
+quantity e2 = delta<s>(-1.);     // ✓ one second earlier
+```
+
+The rule follows from [@P4185R3_PRE]: `28 * K` is a temperature, so `-5. * K` is a temperature
+below absolute zero, and a value doesn't change its abstraction with its sign. The cost is that the
+shortest spelling of a signed change in a unit of a non-negative kind is now wrong. In the tests of
+[@MP-UNITS], the check changed about 300 lines, nearly all of them negative literals such as
+`-42 * m` used as signed numbers and now written `delta<m>(-42)`. In a constant expression
+evaluated under a terminating contract semantic (enforce or quick-enforce), such as
+`constexpr quantity t = -5. * K;`, the violation fails to compile, and under observe it is only
+diagnosed. At run time it is a contract violation only when the check runs, and under a semantic
+that doesn't check, the negative absolute is stored. Values of a kind that admits negative values,
+such as `-5. * A`, are unaffected.
+
+Operator grouping makes the rule reach further than these three lines suggest.
+[@P3045R11_PRE] extended the multiply syntax from `number * unit` to `quantity * unit` and
+`quantity / unit` (see its chapter "Multiply syntax commutativity"), so `1 * m / s` is two
+operations, and its intermediate result `1 * m` is a quantity of its own. That intermediate can
+fail the check where the whole expression wouldn't, and the same happens before a conversion to a
+signed quantity:
+
+```cpp
+quantity v1 = -1. * m / s;               // ✗ contract violation: (-1. * m) is a negative length
+quantity v2 = -1. * (m / s);             // unchecked, as the kind of m / s is never non-negative,
+                                         //   but still a negative absolute
+quantity v3 = delta<m / s>(-1.);         // ✓ a signed velocity component is a change
+
+quantity v4 = isq::velocity(-1. * (m / s));      // ✗ ill-formed: an absolute never converts to a vector
+quantity v5 = isq::velocity(delta<m / s>(-1.));  // ✓
+
+quantity q1 = -1. * s * A;               // ✗ contract violation: (-1. * s) is a negative duration
+quantity q2 = -1. * A * s;               // ✓ (-1. * A) is a current, which can be negative
+
+quantity a1 = isq::altitude(-5. * m);    // ✗ contract violation: -5. * m is a negative length
+quantity a2 = isq::altitude[m](-5.);     // ✓ altitude is signed
+quantity a3 = -5. * isq::altitude[m];    // ✓
+```
+
+`v1` and `v2` are both wrong spellings of a signed value, and `v2` passes only because the kind of
+a unit expression carries no sign, just as an expression of quantity specifications carries none
+(see [Expressions carry no flag](#expressions)). The parentheses, or the order of the units,
+decide whether the mistake is caught. `v4` is ill-formed at compile time, whatever the sign of the
+value and the grouping of the units. Three options are possible:
+
+- keeping the multiply syntax of [@P3045R11_PRE], and teaching that a signed value of a
+  non-negative kind is a delta: `v1` and `q1` are then run-time violations that point at that
+  spelling;
+- restricting the multiply syntax to `number * unit`, so that `quantity * unit` and
+  `quantity / unit` are ill-formed: `v1` and `q1` become compile-time errors, at the cost of
+  writing every `42 * m / s` as `42 * (m / s)` in existing code, which the extension of
+  [@P3045R11_PRE] was added to avoid;
+- not checking a value written with a bare unit at all, which also leaves `-5. * K` unchecked.
+
+The author doesn't propose any of them. The first keeps a defect that only a negative value
+reaches, and only when the check runs. The second reverses a decision of [@P3045R11_PRE] and
+changes a large amount of existing code. The multiply syntax already has known problems that
+[@P3045R10_PRE] records. The order of operations in `quantity * unit` and `quantity / unit`
+surprises users, as `60 * km / 2 * h` shows in [Potential surprises during units
+composition](https://wg21.link/p3045r10#potential-surprises-during-units-composition),
+which also explains why [@MP-UNITS] gave up the second option once before. Whether to extend the
+syntax further is an open question in
+[Multiply syntax commutativity](https://wg21.link/p3045r10#multiply-syntax-commutativity). This
+interaction adds to those problems, and it may be a reason to revise the design. The author asks
+SG6 to decide the final design of the multiply syntax with all of these issues in view, rather than
+this one alone.
+
+## Why the checks can't be elided further {#absolute-elision}
+
+The quotient of two non-negative absolutes is never negative, so it is tempting to skip the
+check when such a quotient becomes a named quantity, as in `isq::mass_density(mass / volume)` in
+`density` (see [With and without absolute quantities](#with-absolutes)).
+
+`mass / volume` itself isn't checked, because its specification is an expression (see
+[Expressions carry no flag](#expressions)). The check runs when the quotient becomes a
+_mass density_. Skipping it would need the type of `mass / volume` to prove the sign, and it
+can't: `-1.0 * (mass / volume)` has the same type. A correct computation can also give a
+negative value of a type built only from non-negative quantities. The mass flow rate through a
+surface is $\rho v A \cos\theta$. _Mass density_, _speed_, and _area_ are non-negative, and the
+rate is negative when the fluid crosses the surface in the opposite direction:
+
+```cpp
+quantity flow = rho * v * A * std::cos(theta);  // theta in radians, as a double; negative for theta > 90°
+static_assert(std::is_same_v<decltype(flow), decltype(rho * v * A)>);
+```
+
+A check at `*` that trusts non-negative factors rejects `flow`, a valid value. Skipping the
+check where the value enters a named non-negative quantity instead accepts
+`isq::mass_density(-1.0 * (mass / volume))`. A product with a number, whose sign is unknown,
+could be made a delta, as the negation of a non-negative absolute is, but
+[@P4185R3_PRE] keeps a product of an absolute and a number an absolute, so that `2. * fuel` stays
+an amount. An absolute of an expression can also be built directly from a negative number.
+
+[Inference from defining equations](#inference) doesn't change this. It decides at compile time
+that _mass density_ is non-negative, so `isq::mass_density(...)` checks. It says nothing about
+the value passed to it.
+
+
 # What the tag gives with deltas and points {#deltas-and-points}
 
-[@P3045R10_PRE] has two abstractions: a delta (`quantity<R, Rep>`) and a point
-(`quantity<point<R, PO>, Rep>`). A delta is a difference. The difference of two masses is a
-signed value with the type `quantity<isq::mass>`, so the library can't reject a negative delta
-of a non-negative quantity.
+Deltas and points exist with or without absolute quantities. A delta is a change, which may have
+either sign, and is never checked. A point measured from the true zero of a non-negative quantity
+is checked. Without absolute quantities, a difference of two masses has the same type as a mass,
+so the check on points, the query, and checks in generic code are all that the tag gives, and
+[What the tag doesn't do](#limits) lists the gaps that absolute quantities close.
 
 ## Checked points {#checked-points}
 
@@ -517,7 +819,7 @@ quantity.
 
 The helper is correct only where the author knows the parameter is an amount. A delta of a
 non-negative quantity may be negative (a mass lost in a reaction), and with deltas only, its
-type doesn't say so. `-12.0 * m` is such a delta in [@P3045R10_PRE]: the library doesn't check
+type doesn't say so. `-12.0 * m` is such a delta in [@P3045R11_PRE]: the library doesn't check
 it, while `in_domain` rejects it, because `kind_of<isq::length>` takes the domain of _length_.
 
 ## What the tag doesn't do {#limits}
@@ -537,129 +839,9 @@ a difference, and the library has no other type for an amount measured from a tr
 checked on its values. This paper doesn't depend on it.
 
 
-# Enforcement on absolute quantities {#absolute-enforcement}
-
-_This section applies only if absolute quantities [@P4185R3_PRE] are adopted. Nothing else in
-this paper depends on them._
-
-[@P4185R3_PRE] proposes a third abstraction, the absolute quantity: an amount measured from the
-true zero of its quantity. `quantity<isq::mass[kg]>` becomes an absolute, and a difference of two
-masses is a `quantity<delta<isq::mass>[kg]>`. An absolute of a non-negative quantity is the
-amount that `non_negative` describes, so with absolute quantities the tag can be checked on
-values, not only on points. [@P4185R3_PRE] leaves these questions to this paper.
-
-## Where the check runs {#absolute-check-sites}
-
-A value is checked only when it is stored in an absolute whose quantity specification is
-non-negative: a named non-negative specification, or a quantity kind whose root is non-negative.
-A delta is never checked, and neither is an unnamed specification, such as `isq::mass / isq::volume`
-or the kind of a unit expression such as `m / s` (see [Expressions carry no flag](#expressions)).
-
-A value written with a bare unit is an absolute of a quantity kind, so it is checked when the root
-of the kind is non-negative. `quantity x = -10. * kg` carries `kind_of<isq::mass>` and is a
-contract violation, and so are `-1 * kg` and `-5. * K`, while `-5. * A` is not, because an electric
-current can be negative. A signed value of a kind is written as a delta: `delta<kg>(-10.)`, or
-`delta<K>(-5.)` for a temperature change.
-
-A vector or tensor value written with a bare unit, as in `vec * (m / s)`, is ill-formed. The
-representation type doesn't change the abstraction a reference names, so such a value doesn't
-become a delta of the kind. It is written as `delta<m / s>(vec)`, or with a named vector
-specification, as in `delta<isq::velocity>[m / s](vec)`. Under [@P4185R3_PRE], an absolute never
-converts to a vector or tensor specification, so a conversion to one can't hide a negative
-absolute: `isq::velocity(-3. * (m / s))` and `isq::displacement(-5. * m)` are both ill-formed. The
-signed values are spelled `delta<m>(-5.)` and `delta<m / s>(-3.)`.
-
-The check runs at four kinds of sites:
-
-1. Construction from a number, `-10. * kg` included, or from a value whose specification is not
-   non-negative: from an expression, as in `isq::mass_density(mass / volume)`, or from a
-   `possibly_negative` specification, as in the implicit conversion of an `effective_mass` to a
-   `mass`.
-2. `.absolute()` on a delta.
-3. Addition and subtraction of anything but a non-negative absolute, `+=`, `-=`, and `--`
-   included. The result is still an absolute, and the other operand can take it below zero.
-4. Multiplication and division by a number, `*=` and `/=` included: `-1.0 * mass` is still a
-   mass. Negation is not such a site: [@P4185R3_PRE] makes the negation of a non-negative
-   absolute a delta, so `-mass` is a delta.
-
-The check is skipped where the operands already guarantee the sign:
-
-- a conversion of a non-negative absolute to another unit or to another non-negative
-  specification, as in `isq::mass(10. * kg)`, when the target representation is the same type,
-  a floating-point type, an unsigned type, or a signed integer type wide enough for every value
-  of the source (a `height` stored in a `length` isn't checked again, while a conversion to any
-  other signed integer type is),
-- the sum of two non-negative absolutes, `+=` of one, and `++`,
-- `*=` and `/=` by a non-negative absolute of dimension one, and
-- the remainder of a non-negative dividend.
-
-The skips are decided from the types alone, so they assume that the arithmetic of the
-representation doesn't overflow. In the prototype, an integer representation that overflows in
-a sum, in `++`, or in a unit conversion can wrap below zero without a check (for example, `+=`
-on a `std::int8_t` mass). This is a gap of the prototype and not proposed behavior.
-
-```cpp
-quantity load    = 10. * kg;                                   // site 1: kind_of<isq::mass>
-quantity cargo   = isq::mass(load);                            // not checked: load is non-negative
-quantity copy    = cargo;                                      // not checked
-quantity fuel    = isq::mass(500. * kg);                       // site 1
-fuel -= delta<isq::mass>[kg](150.);                            // site 3: 350 kg
-fuel *= 2.;                                                    // site 4: 700 kg
-quantity spare   = (fuel - cargo).absolute();                  // site 2: 690 kg
-quantity deficit = fuel.delta() - delta<isq::mass>[kg](800.);  // a delta, not checked: -100 kg
-```
-
-A negative value is a contract violation, as a point below its floor is (see
-[Checked points](#checked-points)), so it follows the evaluation semantic in effect, during
-constant evaluation as well. If the representation has the `constraint_violation_handler` of
-[@P4412R0_PRE], a negative value is reported to the handler instead, and if the handler returns,
-the value is stored. The check is written as `!(value < 0)`, so a NaN, which isn't negative,
-passes it, as it passes the floor of a point.
-
-A negative value can be stored in a delta (`deficit` in the example), or in an absolute of a
-signed quantity, such as an electric current or a quantity declared `possibly_negative`. A bare
-unit doesn't avoid the check.
-
-## Why the checks can't be elided further {#absolute-elision}
-
-The quotient of two non-negative absolutes is never negative, so it is tempting to skip the
-check when such a quotient becomes a named quantity:
-
-```cpp
-quantity<isq::mass_density[kg / m3]> density(quantity<isq::mass[kg]> mass, quantity<isq::volume[m3]> volume)
-{
-  return isq::mass_density(mass / volume);  // checked
-}
-```
-
-`mass / volume` itself isn't checked, because its specification is an expression (see
-[Expressions carry no flag](#expressions)). The check runs when the quotient becomes a
-_mass density_. Skipping it would need the type of `mass / volume` to prove the sign, and it
-can't: `-1.0 * (mass / volume)` has the same type. A correct computation can also give a
-negative value of a type built only from non-negative quantities. The mass flow rate through a
-surface is $\rho v A \cos\theta$. _Mass density_, _speed_, and _area_ are non-negative, and the
-rate is negative when the fluid crosses the surface in the opposite direction:
-
-```cpp
-quantity flow = rho * v * A * std::cos(theta);  // theta in radians, as a double; negative for theta > 90°
-static_assert(std::is_same_v<decltype(flow), decltype(rho * v * A)>);
-```
-
-A check at `*` that trusts non-negative factors rejects `flow`, a valid value. Skipping the
-check where the value enters a named non-negative quantity instead accepts
-`isq::mass_density(-1.0 * (mass / volume))`. A product with a number, whose sign is unknown,
-could be made a delta, as negation of a non-negative absolute is in [@P4185R3_PRE], but
-[@P4185R3_PRE] keeps a product of an absolute and a number an absolute, so that `2. * fuel` stays
-an amount. An absolute of an expression can also be built directly from a negative number.
-
-[Inference from defining equations](#inference) doesn't change this. It decides at compile time
-that _mass density_ is non-negative, so `isq::mass_density(...)` checks. It says nothing about
-the value passed to it.
-
-
 # Why the tag should come before the ISQ definitions {#before-isq}
 
-[@P3045R10_PRE] proposes the framework and no system of quantities. [@P4213R1_PRE] proposes the
+[@P3045R11_PRE] proposes the framework and no system of quantities. [@P4213R1_PRE] proposes the
 ISQ and SI definitions needed for the SI, and its synopsis already uses `non_negative` with a
 note that the tags can be dropped if this feature is not accepted. Deciding the feature first
 matters for three reasons.
@@ -667,7 +849,7 @@ matters for three reasons.
 1. Adding a domain later changes the behavior of valid programs. Once a
    `quantity<point<isq::length>[m]>` measured from the natural origin is allowed to hold
    `-1 m`, tagging `isq::length` in a later standard turns that program into a contract
-   violation if points measured from a natural origin are checked (the third poll). So does
+   violation, because points measured from a natural origin are checked. So does
    `point<m>(-1.)`, because the kind of the metre takes the domain of _length_.
 
 2. The domain shapes the hierarchy. In [@MP-UNITS], _height_ is a non-negative child of a
@@ -690,7 +872,7 @@ matters for three reasons.
    lists 40 ISQ names, and later parts of the ISQ add several hundred. Reviewing each one for its
    domain in a second pass repeats the work.
 
-The feature is a pure addition to [@P3045R10_PRE]: a `named_quantity_spec` already accepts
+The feature is a pure addition to [@P3045R11_PRE]: a `named_quantity_spec` already accepts
 properties that are not quantity specifications (`subkind` and the character values), and the
 two tags are two more.
 
@@ -891,7 +1073,7 @@ At Brno 2026, SG6 reviewed [@P4185R1]:
 
 # Impact on other papers {#impact}
 
-**[@P3045R10_PRE].** The synopsis gains two property tags next to `subkind` and one query:
+**[@P3045R11_PRE].** The synopsis gains two property tags next to `subkind` and one query:
 
 ```cpp
 namespace std {
@@ -947,9 +1129,8 @@ paper.
 **[@P4185R3_PRE].** This paper replaces the chapter of [@P4185R1] on non-negative quantities.
 [@P4185R3_PRE] no longer contains it and doesn't depend on non-negativity. If both papers are
 adopted, absolute quantities are checked as described in
-[Enforcement on absolute quantities](#absolute-enforcement): a value written with a bare unit is
-an absolute of its kind and is checked when the root of the kind is non-negative, and a vector or
-tensor value can't be written with a bare unit and is spelled as a delta.
+[Enforcement on absolute quantities](#absolute-enforcement), and `-x` of a non-negative absolute is
+a delta instead of an absolute (see [Negation of a non-negative absolute](#absolute-negation)).
 
 
 # Implementation experience {#implementation}
@@ -995,20 +1176,18 @@ inferred property.
    a placeholder.
 
 
-# Straw polls {#polls}
+# Proposed polls {#polls}
 
-1. _SG6 recommends adding the `non_negative` and `possibly_negative` properties of `quantity_spec`,
-   with inheritance and the `is_non_negative` query as proposed in this paper, to the quantities and
-   units library._
-2. _SG6 recommends that the ISQ definitions proposed for standardization state the domain of each
-   quantity with these properties._
-3. _A point of a non-negative quantity, a quantity kind with a non-negative root included, measured
-   from a natural origin should be checked, as described in [Checked points](#checked-points)._
-4. _If absolute quantities [@P4185R3_PRE] are adopted, an absolute of a non-negative quantity, a
-   value written with a bare unit of a non-negative kind included, should be checked as described
-   in [Enforcement on absolute quantities](#absolute-enforcement)._
-5. _Encourage more work on inferring non-negativity from defining equations, as described in this
-   paper._
+## SG6
+
+1. _SG6 supports adding the `non_negative` and `possibly_negative` properties of `quantity_spec` to
+   [@P3045R11_PRE] as proposed in P4411R1: inheritance, the `is_non_negative` query, and the check
+   on points measured from a natural origin._
+2. _If poll 1 passes and absolute quantities [@P4185R3_PRE] are adopted, an absolute of a
+   non-negative quantity should be checked, and its negation should be a delta, as proposed in
+   P4411R1._
+3. _SG6 encourages more work on inferring non-negativity from defining equations, as described in
+   P4411R1._
 
 
 # Acknowledgements

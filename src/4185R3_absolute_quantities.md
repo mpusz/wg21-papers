@@ -23,16 +23,22 @@ toc-depth: 3
   compute a scalar from vectors, such as a scalar product, are proposed in [@P4487R0].
 - `delta<QS>` is the specification of a delta of `QS`, distinct from the plain `QS` of an absolute
   (see [The abstraction in the quantity specification](#absolute-spec)).
-- A plain `QS[U]` is always an absolute, and is ill-formed for a vector or tensor specification
-  and for an offset unit. In R2 the plain reference of a vector specification was a delta (see
-  [Scalar and vector quantities](#absolute-scalar-vector)).
+- A plain `QS[U]` of a scalar specification is an absolute, and a plain reference of an offset
+  unit is ill-formed. The plain reference of a vector or tensor specification names the vector or
+  tensor itself, a delta, as in R2, but an absolute no longer converts to it, as R2 allowed (see
+  [Scalar, vector, and tensor quantities](#absolute-scalar-vector)). A new section,
+  [Alternative: an explicit `delta` for a vector](#absolute-vector-plain), compares this with
+  requiring `delta<QS>` for a vector or tensor.
 - A vector or tensor result is a delta. Everything that measures a size is an absolute: `abs()`,
   `hypot()`, `magnitude()`, and `modulus()`. A power of a delta is a delta, an even one included,
   where R2 made an even power an absolute. `abs()` and `hypot()` of a vector specification are
-  ill-formed (see [Products and quotients of two deltas]).
-- The kind of a unit expression is never non-negative, so `-1. * (m / s)` isn't checked (see
-  [Sign of an absolute quantity](#absolute-sign)). A new
-  [For discussion](#absolute-negative-bare-unit) section proposes a poll on the multiply syntax.
+  ill-formed, as [@P4487R0] asks (see [Products and quotients of two deltas]).
+- `-x` of an absolute is an absolute, as `-1 * x` is, because negation keeps the zero (see
+  [Unary negation](#absolute-negation)). R2 made it a delta, for every absolute or, with
+  [@P4411R0_PRE], for a non-negative one. That refinement moved to [@P4411R1_PRE].
+- The sign check of absolutes, including values written with a bare unit and their interaction
+  with the multiply syntax, is described in [@P4411R1_PRE], and this paper only
+  cross-references its consequences (see [Sign of an absolute quantity](#absolute-sign)).
 - `quantity_of` is implemented in the prototype, and [What generic code needs] reports the cost.
 - [Impact on P3045R11](#absolute-impact) lists the breaking changes that follow from the above.
 
@@ -254,9 +260,9 @@ quantity result = moisture_loss(total_initial, total_initial - total_dried);
 // Compiles. Wrong.
 ```
 
-Defining `total_mass` and `mass_loss` as children of `isq::mass` would prevent the swap, since a
-parent converts to a child only explicitly. But `total_initial - total_dried` then yields a
-`total_mass`, and every correct call site needs an explicit conversion to `mass_loss`.
+Defining `total_mass` and `mass_loss` as children of `isq::mass` would prevent the swap, since two
+siblings convert to each other only with `quantity_cast`. But `total_initial - total_dried` then
+yields a `total_mass`, and every correct call site needs a `quantity_cast` to `mass_loss`.
 
 Both values are masses, possibly measured with the same instrument, and what differs is their
 _role_: `total` is a reading anchored at true zero, and `water_lost` is the difference of two such
@@ -289,10 +295,10 @@ units (because they must remain anchored to absolute zero, not a conventional or
 be negative where the physics allows it (see [Sign of an absolute quantity](#absolute-sign)).
 
 ::: note
-For a quantity that can be negative, an absolute and a delta share the same mathematical
-structure: both are vector spaces with a distinguished zero element. The type distinction encodes
-the physical interpretation. An absolute is a ratio-scale measurement anchored at true physical
-zero, and a delta is a change with no physical zero anchor. Where the values of a quantity can't be
+For a quantity that can be negative, an absolute and a delta share the same mathematical structure:
+both are vector spaces with a distinguished zero element. The type distinction encodes the physical
+interpretation. An absolute is a ratio-scale measurement anchored at true physical zero, and a delta
+of a scalar is a change with no physical zero anchor. Where the values of a quantity can't be
 negative, its absolutes form a convex cone `[0, +∞)`, which is closed under addition but not under
 negation, and is therefore not a vector space.
 :::
@@ -355,17 +361,20 @@ and `quantity<point<isq::altitude, msl>[m]>`. `msl` stands for a user-defined or
 level, in the examples of this paper.
 
 The multiply syntax, `value * R` and `value / R`, and the call `R(value)` with a plain reference
-`R` always create an absolute, or are ill-formed when `R` has none. A delta is created with
+`R` create what `R` names: an absolute for a unit or a specification of scalar character, and the
+vector or tensor itself for a specification of vector or tensor character. They are ill-formed
+for an offset unit. A delta is created with
 `delta<R>(value)` and a point with `point<R>(value)`, so `20 * delta<m>` is ill-formed. Multiplying
 or dividing an absolute or a delta by a unit keeps its abstraction: `delta<m>(5.) / s` is a delta.
 A constructor that names the reference, as in `quantity{5., delta<m>}`, creates what the reference
 names.
 
-A plain reference that has no absolute is ill-formed: it creates no value and names no quantity
-type. That is the case for an offset unit, such as `deg_C`, and for a quantity specification of
-vector or tensor character (see [Scalar and vector quantities](#absolute-scalar-vector)). Such a
-quantity is always written as a delta or as a point: `delta<deg_C>(5)` and `point<deg_C>(20)`, or
-`delta<isq::velocity>[m / s](vec)`.
+The plain reference of an offset unit, such as `deg_C`, has no absolute and is ill-formed: it
+creates no value and names no quantity type. Such a quantity is always written as a delta or as a
+point: `delta<deg_C>(5)` and `point<deg_C>(20)`. A quantity specification of vector or tensor
+character has no absolute either, and its plain reference names the vector or tensor itself:
+`isq::velocity[m / s](vec)` is a velocity (see
+[Scalar, vector, and tensor quantities](#absolute-scalar-vector)).
 
 A bare unit means an amount. `20 * kg` is an absolute of the quantity kind `kind_of<isq::mass>`,
 whatever its sign. A signed change of a kind is written as a delta, as in `delta<m>(-5.)` or
@@ -381,18 +390,19 @@ A specification is bound to a unit as before, as in `delta<isq::width>[m]` and
 `delta<kind_of<isq::length>>[m]`. There, a plain `QS[U]` names the same delta as `delta<QS>[U]`
 for a unit without an offset, and is ill-formed for an offset unit.
 
-This paper changes one thing: a plain specification, such as `isq::height` or
-`kind_of<isq::length>`, becomes the specification of an absolute, so `QS[U]` and `delta<QS>[U]` name
-two different quantities, an amount and a change. `delta<QS>` is the quantity ISO 80000 writes with
-a Δ, as in ΔT. An absolute and a delta of `QS` are the
-same node of the quantity tree, with the same interface, and differ only in their abstraction. The
-type of a reference names the unit, not the kind: `delta<m>` is a `delta_<si::metre>`, and
-`delta<isq::height>[m]` a `delta_<isq::height, si::metre>`. `delta<>` takes a plain specification
-or a unit, as in [@P3045R11_PRE], and an absolute isn't a kind either.
+This paper changes one thing: a plain specification of scalar character, such as `isq::height`, or a
+kind, such as `kind_of<isq::length>`, becomes the specification of an absolute, so `QS[U]` and
+`delta<QS>[U]` name two different quantities, an amount and a change. `delta<QS>` is the quantity
+ISO 80000 writes with a Δ, as in ΔT. A specification of vector or tensor character has no absolute,
+so its plain form stays the delta of [@P3045R11_PRE], and `delta<QS>` names the same specification.
+An absolute and a delta of `QS` are the same node of the quantity tree, with the same interface, and
+differ only in their abstraction. The type of a reference names the unit, not the kind: `delta<m>`
+is a `delta_<si::metre>`, and `delta<isq::height>[m]` a `delta_<isq::height, si::metre>`. `delta<>`
+takes a plain specification or a unit, as in [@P3045R11_PRE], and an absolute isn't a kind either.
 
 Calling a plain specification with a quantity replaces its specification and keeps its
 abstraction: `isq::height(delta<m>(5.))` is a delta of height, the same as
-`delta<isq::height>(delta<m>(5.))`, and `isq::velocity(delta<m / s>(5.))` is a delta of velocity.
+`delta<isq::height>(delta<m>(5.))`, and `isq::velocity(delta<m / s>(5.))` is a velocity.
 
 A product or a quotient with a delta operand is the delta of the result, so `delta<isq::length> /
 isq::time` is `delta<isq::length / isq::time>`, and so is a power of a delta (see
@@ -412,53 +422,80 @@ origin (the floor of a building, the GPS epoch, the freezing point of water) has
 For time, a duration has an absolute, and an instant is a point measured from an epoch, as
 `std::chrono` measures a `time_point` from the epoch of its clock.
 
-## Scalar and vector quantities {#absolute-scalar-vector}
+## Scalar, vector, and tensor quantities {#absolute-scalar-vector}
 
 Absolute quantities are always **scalar**: they are ratio-scale magnitudes anchored at a
 physically meaningful true zero, and the concept of direction, which would require an
 orientation relative to a reference frame and not just a reference zero, has no place in the
-model. Vector quantities live in a vector space. They have a mathematical zero (the zero vector,
-representing no displacement), but not a ratio-scale physical anchor. They represent
-displacements from a reference and therefore fall in the **delta** abstraction, unless they are
-measured from an origin as points. Points carry a concrete origin and may be scalar or vector
+model. Vector and tensor quantities live in a vector space. They have a zero (the zero vector or
+tensor), which may even be a physical one, but not a ratio scale, so they fall in the **delta**
+abstraction, unless they are measured from an origin as points. A vector such as a displacement
+represents a change from a reference. Points carry a concrete origin and may be of any character,
 depending on the space they inhabit.
 
-| Abstraction  | Scalar                             | Vector                                            |
-|:-------------|:-----------------------------------|:--------------------------------------------------|
-| **Point**    | `point<time>`, `point<altitude>`   | `point<position_vector>`, `point<velocity>`       |
-| **Delta**    | `delta<duration>`, `delta<height>` | `delta<displacement>`, `delta<velocity>`          |
-| **Absolute** | `duration`, `height`, `mass`       | _(none, `magnitude()` gives a scalar absolute)_   |
+| Abstraction  | Scalar                             | Vector                                          | Tensor                    |
+|:-------------|:-----------------------------------|:------------------------------------------------|:--------------------------|
+| **Point**    | `point<time>`, `point<altitude>`   | `point<position_vector>`, `point<velocity>`     | _(rare)_                  |
+| **Delta**    | `delta<duration>`, `delta<height>` | `displacement`, `velocity` (always deltas)      | `stress` (always a delta) |
+| **Absolute** | `duration`, `height`, `mass`       | _(none, `magnitude()` gives a scalar absolute)_ | _(none, as for a vector)_ |
+
+An unstressed body has zero stress, so a tensor can have a physical zero. It still isn't an
+absolute, because the ratio scale of an absolute needs a scalar: for a vector or a tensor, the
+character decides the abstraction, whatever its zero. Being a delta then means having no absolute,
+not necessarily being a change: a displacement is a change of position, but a stress describes the
+state of a body and a force an interaction, and neither is the difference of two states. A stress is
+written `isq::stress[Pa](t)`, and its norm, `magnitude()`, is an absolute scalar.
 
 A specification of vector or tensor character, such as `isq::velocity`, has no absolute, so its
-plain reference `isq::velocity[m / s]` is ill-formed in any representation, as the plain reference
-of an offset unit is. A vector quantity is a delta or a point, and the specification states which:
-`delta<isq::velocity>[m / s](vec)` is a velocity and `point<isq::position_vector>[m](vec)` a
-position. A velocity along one axis, stored in a `double`, is a delta too. A scalar specification
-in this paper is one of scalar character, whatever the type of the representation.
+plain reference names the vector or tensor itself, a delta, and `delta<isq::velocity>[m / s]` is the
+same reference. `isq::velocity[m / s](vec)`, `vec * isq::velocity[m / s]`, and
+`quantity<isq::velocity[m / s], vec3>` are velocities, and `point<isq::position_vector>[m](vec)` is
+a position, while `isq::position_vector[m](vec)` is the vector of that point from the origin, as ISO
+80000-3 defines a position vector. The direction is in the number, and the specification says that
+the number may have one, while the unit only measures each component. A velocity along one axis,
+stored in a `double`, is a velocity too: in `-9.81 * isq::acceleration[m / s2]`, the sign is a
+direction along an axis of the frame. A scalar specification in this paper is one of scalar
+character, whatever the type of the representation.
 
 An absolute therefore never converts to a vector or tensor specification, even explicitly:
-`isq::velocity(5. * m / s)`, `quantity_cast<delta<isq::velocity>>(5. * m / s)`, and
-`quantity<delta<isq::velocity>[m / s]> v = 5. * m / s;` are ill-formed. A velocity is made from a
-delta, as in `isq::velocity(delta<m / s>(5.))`, or from `q.delta()` of an absolute `q` meant as a
-change. For the same reason, `+`, `-`, `==`, and `<` don't accept an absolute together with a
-delta whose common specification is of vector or tensor character.
+`isq::velocity(5. * m / s)`, `quantity_cast<isq::velocity>(5. * m / s)`, and
+`quantity<isq::velocity[m / s]> v = 5. * m / s;` are ill-formed: `5. * m / s` is an amount, and an
+amount has no direction. A velocity is written as one, as in `isq::velocity[m / s](5.)`, or made
+from a delta, as in `isq::velocity(delta<m / s>(5.))`, or from `q.delta()` of an absolute `q`
+meant as a change. For the same reason, `+`, `-`, `==`, and `<` don't accept an absolute together
+with a delta whose common specification is of vector or tensor character.
+
+The pitfall of this rule is that the same multiply syntax creates a scalar absolute or a vector,
+and only the specification tells which:
+
+```cpp
+quantity a = 40 * m;                         // an absolute, a scalar
+quantity h = 40 * isq::height[m];            // an absolute, a scalar
+quantity d = 40 * isq::displacement[m];      // a vector along one axis, a delta
+// quantity<isq::displacement[m]> d2 = a;    // ✗ an absolute never converts to a vector
+// bool b = (a == d);                        // ✗ an absolute and a vector don't compare
+```
+
+`isq::height` is a scalar and `isq::displacement` a vector, and nothing in the spelling shows it.
+A wrong guess fails to compile only if it meets a quantity of the other character, as in the last
+two lines. If
+[@P4411R1_PRE] is adopted, its sign check also differs: `-40 * m` is a contract violation, while
+`-40 * isq::displacement[m]` is a vector pointing the other way.
 
 A bare unit such as `m`, `N`, or `m / s` names a quantity kind, and its plain reference is always
 that of an absolute of the kind. So `isq::force(5. * N)` is ill-formed. A force is written
-`delta<isq::force>[N](5.)`, or `isq::force(delta<N>(5.))` when a delta of the kind already exists.
-A vector value can't be stored under a bare unit (`vec * (m / s)` is ill-formed,
-`delta<m / s>(vec)` isn't), and `point<m>(vec)` is ill-formed, as a vector point needs a vector
-specification. A vector result is a delta: `(2. * m) * vec` is a delta. A delta of a
-vector or tensor specification has no `.absolute()`, and its size is `magnitude()`, an absolute
-scalar. A component of a vector delta is a delta along an axis, though its representation is a
-scalar.
+`isq::force[N](5.)`, or `isq::force(delta<N>(5.))` when a delta of the kind already exists.
+A vector value is never an absolute of a bare unit: `vec * (m / s)` is ill-formed, while
+`delta<m / s>(vec)` and `point<m>(vec)` aren't. A vector result is a delta: `(2. * m) * vec` is a
+delta. A delta of a vector or tensor specification has no `.absolute()`, and its size is
+`magnitude()`, an absolute scalar. A component of a vector delta is a delta along an axis, though
+its representation is a scalar.
 
 Whether the scalar is real or complex doesn't decide the abstraction: a complex scalar (an
 impedance, a complex power) has a true zero and is an absolute, and `modulus()` of it is specified
-as a real absolute (not yet in the prototype). `conj()`, `real()`, and `imag()` keep the
-abstraction of their operand: the conjugate or a part of an absolute is an absolute with the same
-zero, and that of a delta is a delta. `make_complex()` of two absolutes is an absolute, and of a
-delta a delta.
+as a real absolute. `conj()`, `real()`, and `imag()` keep the abstraction of their operand: the
+conjugate or a part of an absolute is an absolute with the same zero, and that of a delta is a
+delta. `make_complex()` of two absolutes is an absolute, and of a delta a delta.
 
 The character of a quantity is otherwise the business of [@P3045R11_PRE]: a quantity never converts
 to one of another character, even explicitly, and `magnitude()` gives the scalar of a vector. The
@@ -466,6 +503,52 @@ scalars the ISQ defines from vectors or tensors, such as work, are computed with
 [@P4487R0], such as a scalar product. This paper adds only the abstraction of their results:
 `magnitude()` and `modulus()` give an absolute, a vector or tensor result, such as `unit_vector()`,
 is a delta, and the products follow the rule of [Products and quotients of two deltas].
+
+### Alternative: an explicit `delta` for a vector {#absolute-vector-plain}
+
+This paper lets the plain reference of a vector or tensor specification name the vector or tensor
+itself (option B below). The alternative makes that reference ill-formed, so a force has to be
+written with an explicit `delta` (option A). The prototype implements option A.
+
+- **Option A**: `isq::force[N]` is ill-formed, and a force is written `delta<isq::force>[N](f)` and
+  stored in `quantity<delta<isq::force>[N]>`.
+- **Option B** (proposed): `isq::force[N](f)`, `f * isq::force[N]`, and `quantity<isq::force[N]>`
+  name a force, and `delta<isq::force>[N]` is the same reference as `isq::force[N]`.
+
+`delta<QS>` is the quantity ISO 80000 writes with a Δ, a change. A force increment ΔF, such as a
+load step, and a strain increment Δε, as in incremental plasticity, are a force and a strain too,
+but each is the change of one. Under option A, `delta<isq::force>` and `delta<isq::strain>` read as
+ΔF and Δε where F and ε are meant. A scalar needs `delta` to tell a change from an amount, while a
+vector or a tensor has no absolute, so besides a point, its delta is the only abstraction it has,
+and its plain name is unambiguous.
+
+Option B is the plain-reference rule of [@P4185R2] without the conversion from an absolute that R2
+also allowed: there, `isq::velocity(5. * m / s)` turned an absolute into a velocity along one
+axis. The rules below hold under both options:
+
+```cpp
+// quantity f = vec{1, 2, 3} * N;                  // ✗ an absolute of a kind is a scalar
+// quantity<m, vec> q;                             // ✗ an absolute of a kind is a scalar
+// quantity f = isq::force(42. * N);               // ✗ an absolute never converts to a vector
+// quantity<isq::force[N]> f = 42. * N;            // ✗ ditto (under option A, isq::force[N] is ill-formed anyway)
+quantity d = delta<N>(vec{1, 2, 3});               // a delta of the kind, which has no character yet
+quantity F = magnitude(isq::force)(42. * N);       // the magnitude of a force, a non-negative absolute
+quantity p = point<isq::position_vector>[m](vec{1, 2, 3});  // a position is a point
+```
+
+| Criterion                            | Option B (proposed): the plain reference names the vector                                                                                                                                                                                        | Option A: explicit `delta`                                                                                                                               |
+|:-------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Spelling a force                     | `isq::force[N](f)`, `f * isq::force[N]`, `quantity<isq::force[N]>`                                                                                                                                                                               | `delta<isq::force>[N](f)`, `quantity<delta<isq::force>[N]>`                                                                                              |
+| What `delta<QS>` means               | ΔQS for a scalar. For a vector or a tensor, the same as `QS`: a change of a force is a force, so `isq::force` names both, and `delta` is needed only where an amount exists to tell apart from its change: a scalar specification or a bare unit | ISO 80000's ΔQS for a scalar, but required for a vector itself: `delta<isq::force>` reads as ΔF and `delta<isq::strain>` as Δε, where F and ε are meant  |
+| What a plain reference names         | An absolute for a unit or a scalar specification, the vector or tensor itself otherwise (an offset unit stays ill-formed)                                                                                                                        | Always an absolute, and ill-formed when there is none                                                                                                    |
+| The multiply syntax                  | Creates what the plain reference names: `-9.81 * isq::acceleration[m / s2]` is a 1D vector, and its sign is a direction                                                                                                                          | Always creates an absolute                                                                                                                               |
+| Reading `40. * isq::X[U]`            | Depends on the character of `X` (`velocity` or `speed`, `displacement` or `height`), and a wrong guess fails to compile if it reaches a conversion between characters                                                                            | The abstraction is visible without knowing `X`                                                                                                           |
+| A vector specification of a position | `isq::position_vector[m](v)` is a delta, the vector of a point from the origin, as ISO 80000-3 defines a position vector, and the position itself is `point<isq::position_vector>[m](v)`                                                         | `point<>` or `delta<>` has to be written: `isq::position_vector[m](v)` is ill-formed                                                                     |
+| Generic code on `quantity<QS[U]>`    | An absolute or a vector, by the character of `QS`. The operations then differ by character, as they already do for `delta<QS>` under both options                                                                                                | An absolute, or ill-formed for a vector or tensor `QS`                                                                                                   |
+| Concepts                             | `quantity_of<Q, isq::velocity>` and `quantity_of<Q, delta<isq::velocity>>` are the same, and `delta_quantity` holds for `quantity<isq::force[N]>`                                                                                                | `quantity_of<Q, isq::velocity>` matches nothing, and a velocity is `quantity_of<Q, delta<isq::velocity>>`                                                |
+| Types                                | Two spellings of one type: `delta<QS>` of a vector or tensor `QS` has to be the same type as `QS`, or generic code sees two                                                                                                                      | One spelling per type                                                                                                                                    |
+| Code written for [@P3045R11_PRE]     | Vector spellings stay as they are                                                                                                                                                                                                                | About 60 spellings of a vector type and 60 vector values changed in the prototype (see [Implementation experience](#absolute-implementation-experience)) |
+| Implementation                       | The rule of [@P4185R2], which also had the conversion from an absolute that both options reject. It isn't in the current prototype                                                                                                               | In the prototype                                                                                                                                         |
 
 ## Conversions between abstractions {#absolute-conversions}
 
@@ -481,8 +564,8 @@ adds the rules for the absolute abstraction:
 3. A quantity kind has no character of its own. A delta of a kind admits any character, and an
    absolute of a kind is a scalar.
 4. A quantity kind converts to any specification of its tree, within its abstraction, and a delta
-   of a kind may become a delta of a vector specification, as in
-   `quantity<delta<isq::velocity>[m / s]> v = delta<m / s>(5.);`.
+   of a kind may become a quantity of a vector specification, as in
+   `quantity<isq::velocity[m / s]> v = delta<m / s>(5.);`.
 5. Between two absolutes, the hierarchy of [@P3045R11_PRE] decides, as it does between two deltas.
 
 |     From\\To |                                     Point                                     |                                                         Absolute                                                         |                              Delta                              |
@@ -556,10 +639,10 @@ what overloads and the rules of the model dispatch on.
 the concept accepts what a parameter of the corresponding concrete type accepts, so it follows the
 rules of [Conversions between abstractions](#absolute-conversions):
 
-| `V`         | `quantity_of<Q, V>` matches                             | as a parameter of type   |
-|-------------|---------------------------------------------------------|--------------------------|
-| `QS`        | absolutes of `QS`; nothing for a vector or tensor `QS`  | `quantity<QS[U]>`        |
-| `delta<QS>` | deltas of `QS`, and absolutes of `QS` for a scalar `QS` | `quantity<delta<QS>[U]>` |
+| `V`         | `quantity_of<Q, V>` matches                                   | as a parameter of type   |
+|-------------|---------------------------------------------------------------|--------------------------|
+| `QS`        | absolutes of `QS`; as `delta<QS>` for a vector or tensor `QS` | `quantity<QS[U]>`        |
+| `delta<QS>` | deltas of `QS`, and absolutes of `QS` for a scalar `QS`       | `quantity<delta<QS>[U]>` |
 
 `point<QS>` and `point<QS, PO>` match points as in [@P3045R11_PRE]. A function that needs an
 amount, such as $E = kT$ with a thermodynamic temperature, constrains its parameter with
@@ -568,9 +651,8 @@ is by a concrete `quantity<isq::thermodynamic_temperature[K]>` parameter. A func
 change, such as an average speed from a distance traveled and an elapsed time, uses
 `quantity_of<Q, delta<isq::length>>`, and an absolute is accepted, as it would convert to a
 concrete delta parameter. A specification of vector or tensor character has no absolute, so
-`quantity_of<Q, isq::velocity>` matches nothing, and a function that takes a velocity asks for
-`quantity_of<Q, delta<isq::velocity>>`. That doesn't match an absolute such as `5. * m / s`, which
-doesn't convert to a velocity.
+`quantity_of<Q, isq::velocity>` is the same as `quantity_of<Q, delta<isq::velocity>>` and matches
+velocities. Neither matches an absolute such as `5. * m / s`, which doesn't convert to a velocity.
 
 `delta_quantity<Q>` asks whether `Q` is a delta, and `quantity_of<Q, delta<QS>>` whether it can be
 used as one. A template that wants a change and should accept an absolute uses the latter, or
@@ -591,8 +673,8 @@ and the rule for a delta operand is given in [Products and quotients of two delt
 
 The following tables give the result abstraction of each operation. The absolute rows and columns
 of addition and subtraction apply to scalar specifications only (see
-[Scalar and vector quantities](#absolute-scalar-vector)). Multiplication takes any character: an
-absolute mass times a vector acceleration is a vector delta.
+[Scalar, vector, and tensor quantities](#absolute-scalar-vector)). Multiplication takes any
+character: an absolute mass times a vector acceleration is a vector delta.
 
 ### Addition
 
@@ -664,7 +746,7 @@ quantity transferred = (before - after).absolute();  // quantity<isq::mass[kg]>
 | `abs(delta)`              | Absolute | Of a real scalar specification; ill-formed for a vector specification                     |
 | `pow<N>(delta)`           | Delta    | Any `N`: a power doesn't measure a size, even where it can't be negative                  |
 | `modulus(complex_scalar)` | Absolute | Modulus of a complex number                                                               |
-| `magnitude(delta_vector)` | Absolute | Magnitude of a vector delta (the magnitude of a velocity is a speed)                      |
+| `delta.magnitude()`       | Absolute | Magnitude of a vector delta (the magnitude of a velocity is a speed)                      |
 | `a % b`, `fmod(a, b)`     | Dividend | The abstraction of the dividend, whose sign the remainder has                             |
 | `remainder(a, b)`         | Delta    | The remainder can be negative whatever the signs of the operands                          |
 | `hypot(x, y)`             | Absolute | Of a scalar specification, as for `abs`; ill-formed for a vector specification            |
@@ -696,16 +778,16 @@ power can't be negative, but the sign doesn't decide the abstraction, as
 [the zero-anchor principle](#abs-delta-rationale) explains. Only an operation that measures a size
 makes an absolute of a delta: `abs(Δx)`, `hypot(Δx, Δy)`, `magnitude()` of a vector, and
 `modulus()` of a complex scalar. `hypot(x, 0)` equals `abs(x)`, and `hypot(x2 - x1, y2 - y1)` is
-the same distance as `magnitude(r2 - r1)` for vector positions, so all of them are absolutes. The
+the same distance as `(r2 - r1).magnitude()` for vector positions, so all of them are absolutes. The
 cost is that `sqrt(pow<2>(Δx) + pow<2>(Δy))` is a delta while `hypot(Δx, Δy)` is an absolute. So a
 variance computed as the square of a delta, such as the variance of an estimate in the Kalman
 filter examples, is a delta, and the Kalman gain, a ratio of two
 variances, needs `.absolute()`.
 
 A power of a quantity of a vector specification is ill-formed in [@P3045R11_PRE], even one stored
-in a `double`, and this paper makes `abs()` and `hypot()` of it ill-formed too: they are scalar
-operations, and the size of a vector is its `magnitude()`. The square of a velocity along one axis
-is written `pow<2>(v.magnitude())`, an absolute, because `v.magnitude()` is one.
+in a `double`, and [@P4487R0] asks that `abs()` and `hypot()` of it be ill-formed too: they are
+scalar operations, and the size of a vector is its `magnitude()`. The square of a velocity along
+one axis is written `pow<2>(v.magnitude())`, an absolute, because `v.magnitude()` is one.
 
 ### Compound assignment {#absolute-compound}
 
@@ -718,149 +800,28 @@ delta. Without that rule, `a -= b` would turn a delta into an absolute without `
 An absolute quantity is anchored at a true zero, and nothing in this paper constrains its sign.
 An electric current is positive or negative relative to the reference direction chosen for it, and
 under the load sign convention a reactive power is positive for an inductive load and negative for
-a capacitive one, while both have a physically meaningful zero. If [@P4411R1_PRE] is adopted,
-absolute quantities are where its `non_negative` tag is checked on values, and
-[@P4411R1_PRE] describes where the checks run and why they can't be elided further.
+a capacitive one, while both have a physically meaningful zero.
 
-With [@P4411R1_PRE], the abstraction decides which values its check applies to. A delta is never
-checked, as a change can have either sign. An absolute is checked when its quantity specification is
-non-negative. A quantity kind `kind_of<QS>` is defined only for a root `QS` and takes the domain of
-that root, so `kind_of<isq::length>`, `kind_of<isq::mass>`, and
-`kind_of<isq::thermodynamic_temperature>` are non-negative, while `kind_of<isq::electric_current>`
-isn't. A value written with a bare unit is an absolute of a kind, so `-5. * m` and `-5. * K` are
-contract violations, and a signed value is written `delta<m>(-5.)` or `delta<K>(-5.)`. An unnamed
-specification, such as `isq::mass / isq::volume` or the kind of a unit expression such as `m / s`,
-is never non-negative, because the domain is stated in the definition of a named quantity, and an
-unnamed specification has no definition. The checks of points and of `possibly_negative`
-specifications are specified in [@P4411R1_PRE]: a point is checked when its own specification is
-non-negative and the chain of its origins ends at a true zero, so `point<deg_C>(-300.)` is a
-violation through `ice_point`, and a point measured from an `independent_point_origin`, such as an
-epoch or a tare, never is. A `possibly_negative` specification under a non-negative parent, such as
-_effective mass_ under _mass_, keeps the units and the natural origin of its parent and is never
-checked.
-
-### For discussion: a negative value written with a bare unit {#absolute-negative-bare-unit}
-
-This consequence of the model is the one users will hit first, and SG6 is asked to discuss it
-explicitly. With absolute quantities and [@P4411R1_PRE] adopted, a value written with a bare unit
-is a checked absolute of its kind. Code that writes `-5. * K` to mean "5 K colder" is a contract
-violation, and the change has to be written as a delta:
-
-```cpp
-quantity t1 = -5. * K;           // ✗ contract violation: a temperature 5 K below absolute zero
-quantity t2 = delta<K>(-5.);     // ✓ a temperature change of -5 K
-
-quantity o1 = -3. * m;           // ✗ contract violation: a negative length
-quantity o2 = delta<m>(-3.);     // ✓ an offset of -3 m
-
-quantity e1 = -1. * s;           // ✗ contract violation: a negative duration
-quantity e2 = delta<s>(-1.);     // ✓ one second earlier
-```
-
-The rule is consistent with the rest of the model: `28 * K` is a temperature, so `-5. * K` is a
-temperature below absolute zero, and a value doesn't change its abstraction with its sign. The
-cost is that the shortest spelling of a signed change in a unit of a non-negative kind is now
-wrong. In a constant expression evaluated under a terminating contract semantic (enforce or
-quick-enforce), such as `constexpr quantity t = -5. * K;`, the violation fails to compile, and under
-observe it is only diagnosed. At run time it is a contract violation only when the check runs, and
-under a semantic that doesn't check, the negative absolute is stored. The prototype implements this
-check: with gsl-lite as its contract backend, `constexpr quantity t = -5. * K;` doesn't compile, and
-`-5. * K`, `-1 * kg`, and `-1. * s` evaluated at run time terminate. Values of a kind that admits
-negative values, such as `-5. * A`, are unaffected.
-
-Operator grouping makes the rule reach further than these three lines suggest.
-[@P3045R11_PRE] extended the multiply syntax from `number * unit` to `quantity * unit` and
-`quantity / unit` (see its chapter "Multiply syntax commutativity"), so `1 * m / s` is two
-operations, and its intermediate result `1 * m` is a quantity of its own. With checked absolutes,
-that intermediate can fail where the whole expression wouldn't, and the same happens before a
-conversion to a signed quantity:
-
-```cpp
-quantity v1 = -1. * m / s;               // ✗ contract violation: (-1. * m) is a negative length
-quantity v2 = -1. * (m / s);             // unchecked, as the kind of m / s is never non-negative,
-                                         //   but still a negative absolute
-quantity v3 = delta<m / s>(-1.);         // ✓ a signed velocity component is a change
-
-quantity v4 = isq::velocity(-1. * (m / s));      // ✗ ill-formed: an absolute never converts to a vector
-quantity v5 = isq::velocity(delta<m / s>(-1.));  // ✓
-
-quantity q1 = -1. * s * A;               // ✗ contract violation: (-1. * s) is a negative duration
-quantity q2 = -1. * A * s;               // ✓ an electric charge can be negative
-
-quantity a1 = isq::altitude(-5. * m);    // ✗ contract violation: -5. * m is a negative length
-quantity a2 = isq::altitude[m](-5.);     // ✓ altitude is signed
-quantity a3 = -5. * isq::altitude[m];    // ✓
-```
-
-Under the model, `v1` and `v2` are both wrong spellings of a signed value, and `v2` passes only
-because the kind of a unit expression carries no sign, just as an expression of quantity
-specifications carries none. The parentheses, or the order of the units, decide whether the mistake
-is caught. `v4` is ill-formed at compile time, whatever the sign of the value and the grouping of
-the units, as is `isq::displacement(-5. * m)`. Three options are possible:
-
-- keeping the multiply syntax of [@P3045R11_PRE], and teaching that a signed value of a
-  non-negative kind is a delta: `v1` and `q1` are then run-time violations that point at that
-  spelling;
-- restricting the multiply syntax to `number * unit`, so that `quantity * unit` and
-  `quantity / unit` are ill-formed: `v1` and `q1` become compile-time errors, at the cost of
-  writing every `42 * m / s` as `42 * (m / s)` in existing code, which the extension of
-  [@P3045R11_PRE] was added to avoid;
-- not checking a value written with a bare unit at all, which also leaves `-5. * K` unchecked.
-
-The author doesn't propose any of them. The first keeps a defect that only a negative value
-reaches, and only when the check runs. The second reverses a decision of [@P3045R11_PRE] and changes
-a large amount of existing code. The multiply syntax already has known problems that
-[@P3045R10_PRE] records. The order of operations in `quantity * unit` and `quantity / unit`
-surprises users, as `60 * km / 2 * h` shows in [Potential surprises during units
-composition](https://wg21.link/p3045r10#potential-surprises-during-units-composition),
-which also explains why [@MP-UNITS] gave up the second option once before. Whether to extend the
-syntax further is an open question in
-[Multiply syntax commutativity](https://wg21.link/p3045r10#multiply-syntax-commutativity). This
-interaction adds to those problems, and it may be a reason to revise the design. The author asks
-SG6 to decide the final design of the multiply syntax with all of these issues in view, rather than
-this one alone.
+Whether a quantity can be negative is stated by the `non_negative` tag of [@P4411R1_PRE], and
+absolute quantities are where that paper checks it on values. Which values are checked, what that
+means for a negative value written with a bare unit, such as `-5. * K`, and why some checks can't be
+skipped are described in [@P4411R1_PRE].
 
 ### Unary negation {#absolute-negation}
 
-The negation of an amount is the change that cancels it, so `-mass` is never a mass, while the
-negation of an electric current is a current flowing the other way. Which of the two applies
-depends on whether the quantity can be negative, which is what the `non_negative` tag of
-[@P4411R1_PRE] states. The rule for `-x` therefore depends on whether that paper is adopted.
-
-**If [@P4411R1_PRE] is adopted,** `-x` keeps the absolute abstraction when the quantity
-specification of `x`, named or the kind of a named root, admits negative values. It yields a
-delta for a `non_negative` specification, a kind whose root is `non_negative`, and an unnamed
-derived specification or the kind of one, whose sign the library doesn't infer from a quantity
-equation. The root of the kind of a unit expression is unnamed, so `-(2. * (kg / m3))` is a delta,
-as `-(isq::mass(2. * kg) / isq::volume(1. * m3))` is. A kind takes the domain of its root, so
-`-(5. * A)` keeps the absolute abstraction and `-(2. * kg)` doesn't:
+`-x` of an absolute is an absolute, and `-x` of a delta is a delta. Negation reflects a value
+around the true zero of its scale and leaves that zero where it is, so by
+[the zero-anchor principle](#abs-delta-rationale) the result keeps the abstraction of its operand,
+as `-1 * x` does. The negation of an electric current is a current flowing the other way:
 
 ```cpp
 quantity<isq::electric_current[A]> I1 = ..., I2 = ...;
 quantity<isq::electric_current[A]> I3 = -(I1 + I2);  // an absolute current, as Kirchhoff's law needs
-
-quantity<isq::kinetic_energy[J]> Ek = ...;
-quantity<isq::thermodynamic_temperature[K]> T = ...;
-auto ratio = -Ek / T;    // delta<kinetic_energy> / absolute<temperature> = delta<...>
-auto Ek2 = abs(-Ek);     // the magnitude of a delta is an absolute again
 ```
 
-The cost is that the result type of `-x` depends on the quantity specification, so generic code
-that negates an absolute has to allow for both outcomes. Algebraically equal spellings can differ as
-well: `-I1 - I2` subtracts an absolute from an absolute and is a delta (see
-[Algebraic-equivalence asymmetry](#abs-algebraic-equivalence)). The abstraction already depends on the
-specification elsewhere, as a vector specification is never an absolute, and generic code that
-needs a delta writes `-x.delta()`.
-
-**Without [@P4411R1_PRE],** no specification has the tag, so the rule above can't tell a mass from
-a current and would make `-mass` an absolute. `-x` is then a delta for every absolute. The result
-type follows from the abstraction of the operand alone, and the cost falls on quantities whose
-absolutes can be negative, such as electric current, electric charge, or reactive power: in
-`I3 = -(I1 + I2)` the right-hand side is a delta, and storing it in a current needs `.absolute()`.
-
-Under either rule, `-1 * x` scales an absolute by a number and stays an absolute, so it can differ
-in type from `-x`. If [@P4411R1_PRE] is adopted, its sign check rejects `-1 * isq::mass[kg]` and
-`-1 * kg`, each a negative amount, while `-(1 * isq::mass[kg])` and `-(1 * kg)` are deltas.
+The same rule makes `-mass` a negative absolute mass, as `-1 * mass` is. Whether the negation of
+a quantity that can't be negative should be a delta instead depends on the domain of the quantity,
+which this paper doesn't state. [@P4411R1_PRE] proposes that refinement.
 
 ## Design rationale: the zero-anchor principle {#abs-delta-rationale}
 
@@ -922,7 +883,7 @@ the prototype does.
 
 The model is the problem. A delta is a change of something, and the change this maneuver makes to
 the tank is −600 kg, not +600 kg. The mass the maneuver burns is an amount: it is measured from
-zero and can't be negative, so it is an absolute, and the change to the tank is `-consumption`.
+zero and can't be negative, so it is an absolute, and the change to the tank is minus that amount.
 Modeled this way, `abs − abs → delta` gives the signed balance, and code that has to react to a
 deficit turns it into an amount only after checking its sign:
 
@@ -1163,30 +1124,23 @@ This is a breaking change to the initial proposal:
    `speed * quantity{std::chrono::seconds{5}}` is a delta distance, and storing it in a
    `quantity<m>` needs `.absolute()`. A `time_point` stays a point.
 6. A quantity of a vector or tensor specification is never an absolute (see
-   [Scalar and vector quantities](#absolute-scalar-vector)). A vector type is spelled
-   `quantity<delta<isq::velocity>[m / s], vec3>` instead of `quantity<isq::velocity[m / s], vec3>`,
-   and a vector value is created with `delta<isq::velocity>[m / s](vec)` or `delta<m>(vec)`
-   instead of `vec * isq::velocity[m / s]` or `vec * m`. `isq::velocity(5. * m / s)`,
-   `isq::force(5. * N)`, `isq::weight(mass * g)` with an absolute `mass` and an acceleration `g`
-   given as an absolute of its kind, and `point<m>(vec)` become ill-formed, and
-   `quantity_of<Q, isq::velocity>` matches nothing, and generic code that takes a velocity is
-   constrained with `quantity_of<Q, delta<isq::velocity>>`.
+   [Scalar, vector, and tensor quantities](#absolute-scalar-vector)). Its spelling doesn't change:
+   `quantity<isq::velocity[m / s], vec3>` and `vec * isq::velocity[m / s]` stay as they are, and
+   `delta<isq::velocity>` names the same reference. A vector value of a bare unit is created with
+   `delta<m>(vec)` instead of `vec * m`. `isq::velocity(5. * m / s)`, `isq::force(5. * N)`,
+   `isq::weight(mass * g)` with an absolute `mass` and an acceleration `g` given as an absolute of
+   its kind become ill-formed.
 7. A value of a bare unit is an absolute of its kind. If [@P4411R1_PRE] is adopted, a negative
    value of a non-negative kind, such as `-5. * K` written for a temperature change, is a contract
-   violation, and the change is written `delta<K>(-5.)` (see
-   [For discussion](#absolute-negative-bare-unit)).
-8. `-x` on an absolute is a delta when its quantity specification doesn't admit negative values or
-   is an unnamed derived specification or the kind of one, and for every absolute if
-   [@P4411R1_PRE] isn't adopted
-   (see [Unary negation](#absolute-negation)).
-9. Compound assignment keeps the abstraction of its left operand, so `a -= b` with two absolutes
+   violation, and the change is written `delta<K>(-5.)` (see [@P4411R1_PRE]).
+8. Compound assignment keeps the abstraction of its left operand, so `a -= b` with two absolutes
    is ill-formed (see [Compound assignment](#absolute-compound)).
-10. A product or a quotient of two deltas is a delta, so a value such as `(x2 - x1) * (y2 - y1)`
+9. A product or a quotient of two deltas is a delta, so a value such as `(x2 - x1) * (y2 - y1)`
    stored in a `quantity<isq::area[m2]>` needs `.absolute()` (see
    [Products and quotients of two deltas]).
-11. `remainder(a, b)` of two absolutes returns a delta, while `a % b` and `fmod(a, b)` keep the
+10. `remainder(a, b)` of two absolutes returns a delta, while `a % b` and `fmod(a, b)` keep the
    abstraction of the dividend.
-12. This paper proposes renaming `absolute_point_origin` to `independent_point_origin` (see
+11. This paper proposes renaming `absolute_point_origin` to `independent_point_origin` (see
    [Open questions](#absolute-impl-open)).
 
 Code that uses `quantity` for absolute amounts (mass, distance, speed) keeps its meaning, because
@@ -1202,11 +1156,13 @@ Most of the library changed mechanically. In the tests and the examples, most ch
 reason: the previous model couldn't express what the code meant. An amount and a change were the
 same type, so code written for that model had to approximate its intent. With three abstractions,
 each of those approximations was replaced by what the code meant, and some of them turned out to be
-real errors (see [The model finds real errors]). The rules of [Scalar and vector
-quantities](#absolute-scalar-vector) alone changed about 60 spellings of a vector type to
-`quantity<delta<QS>[U], Rep>`, about 60 values of a vector specification written as `value * QS[U]`,
-9 conversions from an absolute into a vector specification, and 33 point constructions in the Kalman
-filter examples. A few questions remain open for SG6 (see [Open questions](#absolute-impl-open)).
+real errors (see [The model finds real errors]). The prototype implements the
+[alternative](#absolute-vector-plain), an explicit `delta` for a vector, and its vector rules alone
+changed about 60 spellings of a vector type to `quantity<delta<QS>[U], Rep>`, about 60 values of a
+vector specification written as `value * QS[U]`, 9 conversions from an absolute into a vector
+specification, and 33 point constructions in the Kalman filter examples. Under the rule this paper
+proposes, the first two groups stay as they are in [@P3045R11_PRE]. The prototype doesn't
+implement that rule yet. A few questions remain open for SG6 (see [Open questions](#absolute-impl-open)).
 
 ### The model finds real errors
 
@@ -1214,12 +1170,6 @@ The rule `absolute − absolute → delta` exposed category errors in the librar
 functions stored the difference of two positions back into a position type: `floor` and `ceil`,
 `wrap_to_range` and `reflect_in_range`, and the canonical form of a spherical vector.
 
-Together with the `non_negative` check of [@P4411R1_PRE], the model also found signed changes stored
-as absolutes in the tests: negative durations fed to the rounding functions, a −3 m projection
-offset stored as a length, negative origin bounds, and negative and NaN inputs of formatting tests.
-Checking values written with a bare unit changed about 300 more lines of the tests, nearly all of
-them negative literals such as `-42 * m` used as signed numbers and now written `delta<m>(-42)`, and
-the glide computer example, whose sink rates are written `delta<m / s>(-0.7389)`.
 In the examples it found three modeling errors:
 
 - A rate of climb, a child of `speed`, was an absolute, but a sinking glider has a negative rate
@@ -1267,11 +1217,10 @@ quantity kind and "base" names base quantities and units. This paper proposes
 1. _SG6 supports adding absolute quantities to [@P3045R11_PRE] as proposed in P4185R3: a third
    abstraction of the `quantity` class template next to deltas and points, the default meaning of
    `quantity<R>`, with a delta spelled `quantity<delta<R>>`._
-2. _If poll 1 passes, `absolute_point_origin` should be renamed to `independent_point_origin`._
-3. _If poll 1 passes and [@P4411R1_PRE] is adopted, the design of the multiply syntax of
-   [@P3045R11_PRE] should be revisited, with the interaction described in
-   [For discussion](#absolute-negative-bare-unit) added to the issues [@P3045R10_PRE] already
-   records, before it is final._
+2. _If poll 1 passes, the plain reference of a vector or tensor specification should name the
+   vector or tensor itself, as proposed, and not be ill-formed (see
+   [Alternative: an explicit `delta` for a vector](#absolute-vector-plain))._
+3. _If poll 1 passes, `absolute_point_origin` should be renamed to `independent_point_origin`._
 
 # Acknowledgments
 

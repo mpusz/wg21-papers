@@ -8,9 +8,14 @@
     },
     "MD013": {
         "line_length": 100,
-        "code_block_line_length": 118
+        "code_block_line_length": 133,
+        "tables": false
     },
+    "MD024": { "siblings_only": true },
     "MD025": false,
+    "MD060": {
+        "style": "aligned"
+    },
     "MD032": true,
     "MD033": {
         "allowed_elements": [
