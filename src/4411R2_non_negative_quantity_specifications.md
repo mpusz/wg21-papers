@@ -13,6 +13,17 @@ toc-depth: 3
 
 # Revision history
 
+## R2
+
+- [Cases from P4185R1](#inference-p4185r1) brings back the cases with which [@P4185R1] argued
+  that no inference rule is correct. They were not carried over when non-negativity moved out of
+  [@P4185R2_PRE]: the Planck function, Helmholtz and Gibbs energy defined by subtraction, and
+  reactive power with RMS factors. The section shows what [The rule](#inference-rule) gives for
+  each of them.
+- [Two cases that break a simpler rule](#inference-pitfalls) and
+  [Call-site arithmetic](#call-site) bring back `pow<2>(electric_current)`,
+  `U * I * std::sin(phi)`, and `efficiency * power` from the same analysis.
+
 ## R1
 
 - The paper is written against [@P3045R11_PRE] and uses its spelling, where the abstraction is a
@@ -935,10 +946,12 @@ quantity prod = q1 * q2;  // value: -0.4
 static_assert(prod.quantity_spec == pow<2>(signed_coefficient));
 ```
 
-The type doesn't record whether its two factors were one value, so the rule treats $Q^{2}$ like
-$Q$. In the ISQ definitions of [@MP-UNITS] this costs one explicit tag: _non-active power_ is
-defined through the $\sqrt{S^2}$ idiom, and the tag isn't there yet. _Kinetic energy_ is not
-such a case. It is non-negative because _mass_ and _speed_ are.
+The type doesn't record whether its two factors were one value, so the rule treats $Q^{2}$ like $Q$.
+[@P4185R1] proposed the opposite, with `pow<2>(electric_current)` as its example: the square of a
+real scalar can't be negative. That holds for a square, but not for the product of two independent
+currents, which has the same type. In the ISQ definitions of [@MP-UNITS] this costs one explicit
+tag: _non-active power_ is defined through the $\sqrt{S^2}$ idiom, and the tag isn't there yet.
+_Kinetic energy_ is not such a case. It is non-negative because _mass_ and _speed_ are.
 
 ## Signs that no dimension shows {#signed-coefficient}
 
@@ -957,6 +970,44 @@ only explicitly.
 Negating an already signed quantity needs nothing. The Massieu function $J = -A/T$ negates the
 Helmholtz energy, which is signed because _energy_ is, so $A/T$ infers a signed result with no
 annotation.
+
+## Cases from P4185R1 {#inference-p4185r1}
+
+[@P4185R1] concluded that no inference rule is correct, and gave the cases below as evidence.
+The rule of this paper has to get each of them right. The definitions are those of the V3 branch
+of [@MP-UNITS].
+
+| Quantity         | Equation                                    | Definition in [@MP-UNITS]                      | Result of [The rule](#inference-rule) |
+|------------------|---------------------------------------------|------------------------------------------------|---------------------------------------|
+| Speed            | $v = l / t$                                 | `length / time`                                | non-negative                          |
+| Mass density     | $\rho = m / V$                              | `mass / volume`                                | non-negative                          |
+| Helmholtz energy | $A = U - T \cdot S$                         | a child of _internal energy_, no equation      | signed, from _energy_                 |
+| Gibbs energy     | $G = H - T \cdot S$                         | a child of _enthalpy_, no equation             | signed, from _energy_                 |
+| Massieu function | $J = -A / T$                                | `Helmholtz_energy / thermodynamic_temperature` | signed, as $A$ is                     |
+| Planck function  | $Y = -G / T$                                | `Gibbs_energy / thermodynamic_temperature`     | signed, as $G$ is                     |
+| Reactive power   | $Q = U_\text{rms} I_\text{rms} \sin\varphi$ | see below                                      | signed only with `signed_coefficient` |
+
+_Speed_ and _mass density_ are the cases inference is for: every factor is non-negative, so the
+explicit tag each of them carries today becomes redundant.
+
+_Helmholtz energy_ and _Gibbs energy_ are defined by subtraction, which a defining equation of
+[@MP-UNITS] can't express. Their dimension is $M L^2 T^{-2}$, the dimension of the non-negative
+_kinetic energy_, so a rule that read dimensions would make both non-negative. This rule never
+reads a dimension. Neither quantity has an equation, so each takes the domain of its parent, and
+the chain ends at _energy_, which is `possibly_negative`.
+
+The _Massieu function_ and the _Planck function_ are defined by negation. The minus sign is lost
+in the definitions above, but nothing depends on it: the numerator is signed, so the quotient is
+signed too, which is the domain of $J$ and $Y$.
+
+Reactive power is the case that needs an annotation. $U_\text{rms}$ and $I_\text{rms}$ are
+non-negative by construction, so if a library defines them as non-negative quantities and
+reactive power as their product, the rule infers that reactive power is non-negative. That is
+wrong, as $\sin\varphi$ is negative for a capacitive load. The sign comes from a factor of
+dimension one, so the definition has to contain the `signed_coefficient` of
+[Signs that no dimension shows](#signed-coefficient). [@MP-UNITS] defines reactive power as
+$M L^2 T^{-3}$ with no named factors, and the rule infers non-negative from that as well (see
+[Audit of the reference implementation](#audit)).
 
 ## Audit of the reference implementation {#audit}
 
@@ -1006,13 +1057,15 @@ Inference applies to defining equations only. The expression types of
 [Expressions carry no flag](#expressions) stay unflagged, because the raw numbers in an
 expression are invisible to the type.
 
-Dividing a non-negative quantity by another one gives a non-negative result. For a named
-quantity the type shows it: the definition of _mass density_ proves its domain at compile time,
-which is what inference does. For a value computed in user code, it can't. `mass / volume` and
-`-1.0 * (mass / volume)` share a type, so the type can't carry the proof. A quotient of deltas
-is a delta, and deltas are not checked, so there is nothing to skip. With absolute quantities,
-the checks that can be skipped are listed in [Where the check runs](#absolute-check-sites), and
-[Why the checks can't be elided further](#absolute-elision) explains why the others stay.
+Dividing a non-negative quantity by another one gives a non-negative result. For a named quantity
+the type shows it: the definition of _mass density_ proves its domain at compile time, which is what
+inference does. For a value computed in user code, it can't. `mass / volume` and `-1.0 * (mass /
+volume)` share a type, so the type can't carry the proof. The same goes for `U * I * std::sin(phi)`,
+and for `efficiency * power` when `efficiency` is a `double` that may be above 1 or below 0: a raw
+number of unknown sign takes part, and the type doesn't show it. A quotient of deltas is a delta,
+and deltas are not checked, so there is nothing to skip. With absolute quantities, the checks that
+can be skipped are listed in [Where the check runs](#absolute-check-sites), and [Why the checks
+can't be elided further](#absolute-elision) explains why the others stay.
 
 
 # Review feedback {#feedback}
