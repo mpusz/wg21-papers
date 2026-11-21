@@ -1,5 +1,5 @@
 ---
-title: "Implicit Conversions Between Integer Representation Types"
+title: "Value-Preserving Conversions of Representation Types"
 document: P4408R2
 date: today
 audience:
@@ -13,6 +13,23 @@ toc-depth: 3
 
 
 # Revision history
+
+## R2
+
+- SG6 asked for one rule for every conversion of a representation value: value preservation as
+  defined by [@P2509R1]. The paper now proposes that rule for all representation types, so
+  integer to floating-point and floating-point to floating-point conversions are covered too, and
+  the title no longer says "integer".
+- The requirement to keep every integer to floating-point conversion implicit is dropped.
+  `quantity<m, float> f = 1 * m;` now needs an explicit conversion (see [Costs](#costs)).
+- `treat_as_floating_point` is removed. Whether a unit conversion by a non-integral factor may be
+  implicit is decided by `numeric_limits<T>::is_exact` (see [The unit factor](#unit-factor)).
+- [Representation types defined by users](#user-types) describes how a representation type that
+  isn't an arithmetic type takes part.
+- The rule of [The widths of the types](#alt-width), proposed in R1, is now an alternative. For a
+  pair of integer types, it gives the same answer as the proposed rule.
+- `safe_int<short>` from `safe_int<int>` no longer compiles with direct initialization. It needs
+  `value_cast`, as `short` from `int` does.
 
 ## R1
 
@@ -46,20 +63,25 @@ Consider a distance stored in a 16-bit integer to save memory:
 quantity<m, std::int16_t> d = 100'000 * m;
 ```
 
-This compiles in [@P3045R10_PRE], and `d` holds -31072 m. The library rejects a conversion that
-truncates a fraction, such as `quantity<m, int>` from `1.5 * m`, and a unit conversion by a
-non-integral factor, such as `quantity<km, int>` from `1500 * m`. It accepts the conversion above
-because it follows the rule of `std::chrono::duration`, which doesn't compare integer types.
+This compiles in [@P3045R10_PRE], and `d` holds -31072 m. So do these, and each changes the value:
 
-Quantities are often stored in small integer types. Sensor readings, register values, and
-fixed-point formats use 8-bit and 16-bit integers, and this is where such a wraparound does harm.
+```cpp
+quantity<m, float> f1 = 16'777'217 * m;  // f1 holds 16'777'216 m: float has 24 binary digits
+quantity<m, float> f2 = 0.1 * m;         // f2 holds the float nearest to the double nearest to 0.1
+```
 
-This paper proposes that a conversion between two integer representation types be implicit when, and
-only when, the destination can represent every value of the source on the implementation that
-compiles it. This is the answer that list initialization ([dcl.init.list]{.sref}) gives for
-narrowing from a non-constant expression of one integer type to another, and it needs no new type
-trait. The paper also describes a rule based on the integer conversion rank, which gives the same
-answer on every implementation for more pairs of types, and explains why it is rejected.
+The library rejects a conversion that truncates a fraction, such as `quantity<m, int>` from
+`1.5 * m`, and a unit conversion by a non-integral factor to an integer type, such as
+`quantity<km, int>` from `1500 * m`. It accepts the conversions above because it follows the rule
+of `std::chrono::duration`, which doesn't compare the representation types beyond asking whether
+the destination is a floating-point type.
+
+This paper proposes that a conversion of a representation value be implicit when, and only when,
+it is value-preserving: every value of the source type is represented exactly in the destination
+type, on the implementation that compiles it. This is the definition of
+`is_value_preserving_convertible` proposed in [@P2509R1], and of the term "value-preserving" that
+the standard already uses for `std::simd` in [simd.general]{.sref}. The paper doesn't define a rule
+of its own.
 
 This paper also proposes that two quantities with integer representation types compare exactly, as
 mathematical integers. This fixes code that compiles today and gives a wrong answer, such as
@@ -78,11 +100,17 @@ constexpr bool implicitly_scalable =
   (!treat_as_floating_point<FromRep> && is_integral_scaling(FromUnit, ToUnit));
 ```
 
-A conversion to a floating-point type is always implicit. A conversion between integer types is
-implicit when the unit changes by an integral factor, and the representation types play no
-other role. A user can specialize `implicitly_scalable` for a representation type that needs
-another rule, and a conversion that isn't implicit has to be written with `value_cast` or with a
-rounding policy.
+A conversion to a floating-point type is always implicit, whatever the source type. A conversion
+between integer types is implicit when the unit changes by an integral factor, and the
+representation types play no other role. A user can specialize `implicitly_scalable` for a
+representation type that needs another rule, and a conversion that isn't implicit has to be written
+with `value_cast` or with a rounding policy.
+
+`treat_as_floating_point` is a specializable variable template whose default applies
+`std::chrono::treat_as_floating_point_v` to the underlying element type of the representation
+type. Besides `implicitly_scalable`, [@P3045R10_PRE] uses it to choose how a value is scaled by a
+unit magnitude, to disable `%` for floating-point types, and in an example of a range-validated
+representation type.
 
 A unit conversion that overflows the destination, such as `quantity<mm, std::int16_t>` from
 `std::int16_t{100} * m`, is a separate question, and this paper doesn't change how a conversion
@@ -95,16 +123,29 @@ handles it.
 
 `duration<Rep2, Period2>` converts implicitly to `duration<Rep, Period>` when
 `treat_as_floating_point_v<Rep>` is `true`, or when the period ratio is integral and
-`treat_as_floating_point_v<Rep2>` is `false` ([time.duration.cons]{.sref}). The integer types
+`treat_as_floating_point_v<Rep2>` is `false` ([time.duration.cons]{.sref}). The representation types
 themselves are not compared, so these conversions are all implicit:
 
 ```cpp
 static_assert(std::is_convertible_v<duration<int>, duration<short>>);
 static_assert(std::is_convertible_v<duration<long long>, duration<int>>);
 static_assert(std::is_convertible_v<duration<int>, duration<unsigned>>);
+static_assert(std::is_convertible_v<duration<double>, duration<float>>);
 
 duration<std::int16_t> d = duration<int>{100'000};  // d.count() == -31072 where int has 32 bits
 ```
+
+## The rest of the standard library {#std-practice}
+
+The converting constructor of `std::complex<T>` from `std::complex<X>` is `explicit` when the
+floating-point conversion rank of `T` is lower than that of `X`
+([complex.members]{.sref}). [conv.rank]{.sref} orders floating-point types by the inclusion of
+their sets of values, so this is a value-preserving rule for floating-point types, though one that
+uses the rank: `long double` to `double` is `explicit` even where both have the same set of values.
+
+[simd.general]{.sref} defines a value-preserving conversion: "The conversion from an arithmetic type
+`U` to a vectorizable type `T` is value-preserving if all possible values of `U` can be represented
+with type `T`." [@P2509R1] cites this definition as matching the intent of its trait.
 
 ## Au
 
@@ -127,83 +168,48 @@ Quantity<Meters, unsigned>     c = meters(-1);
 Its `safe_int<T>` representation tests whether every value of the source type fits in the
 destination type, using the ranges of the two types. It uses the answer to skip a runtime range
 check that can't fail, and to decide whether its converting constructor is `explicit`, so
-`safe_int<int>` from `safe_int<long>` is implicit on Windows and explicit on 64-bit Linux. This
-paper proposes the same answer for conversions between integer representation types of `quantity`.
+`safe_int<int>` from `safe_int<long>` is implicit on Windows and explicit on 64-bit Linux.
+`safe_int<T>` specializes `numeric_limits`, so the trait of [@P2509R1] gives the same answer for it.
 
 
 # What the rule has to do {#requirements}
 
-1. **Reject a conversion between integer representation types that can change the value.**
-   `std::int16_t` from `int` is the case that corrupts data in the [Introduction](#introduction).
-2. **Keep integer to floating-point conversions implicit.** `quantity<m> d = 1 * m;` converts
-   `quantity<m, int>` to `quantity<m, double>`, and `double` is the
-   default representation type. Rejecting it would break a very common conversion in the
-   library, and `std::chrono` makes it implicit too.
-3. **Need nothing that the standard doesn't have.** The rule has to be specifiable in
-   [@P3045R10_PRE] without waiting for another proposal.
+1. **Reject an implicit conversion of a representation value that can change the value.** This
+   includes `std::int16_t` from `int`, which corrupts data in the [Introduction](#introduction),
+   `float` from a 32-bit `int`, and `float` from `double`.
+2. **Use the definition of value preservation of the standard library.** A library-specific rule
+   would answer the same question differently from `std::simd` and from the trait proposed in
+   [@P2509R1], and users of both would have to learn two answers.
+3. **Let representation types defined by users take part without a library-specific trait.** A
+   numeric type describes itself with `numeric_limits`, and a wrapper with its own conversions.
 
-A fourth property divides the alternatives below: whether the same code may compile on one
-implementation and not on another. [Alternatives](#alternatives) explains why every rule that meets
-requirement 1 depends on the implementation, and [Integer conversion rank](#alt-rank) explains
-why this paper prefers the rule of [The widths of the types](#alt-width) to one that, for most pairs
-of standard integer types, depends on the implementation less.
+Every rule that meets requirement 1 depends on the implementation, because the sets of values of
+the arithmetic types do (see [Drawbacks of every non-portable rule](#non-portable-drawbacks)).
 
 
 # Alternatives {#alternatives}
 
-The alternatives split in two. A rule that, like the one of `std::chrono`, asks only whether a
-representation type is a floating-point one gives the same answer on every implementation. A rule
-that meets requirement 1 can't, because it has to compare the integer types, and common type names
-denote different types on different implementations (see [Drawbacks of every non-portable
-rule](#non-portable-drawbacks)). This holds even for the strictest such rule, which makes every
-conversion between two distinct integer types explicit: `long long` and `std::int64_t` are the same
-type on some implementations and distinct types on others. That rule also rejects more conversions
-between integer types than any rule below.
-
 ## The portable rule of `std::chrono` {#alt-chrono}
 
-This rule meets requirements 2 and 3, gives the same answer on every implementation, and it is
-already familiar to anyone who uses `std::chrono`. It accepts `std::int16_t` from `int`, so it fails
+This rule gives the same answer on every implementation, and it is already familiar to anyone who
+uses `std::chrono`. It accepts `std::int16_t` from `int` and `float` from `double`, so it fails
 requirement 1.
 
-## Non-portable rules {#non-portable}
-
-Each rule below meets requirement 1. [Drawbacks of every non-portable rule](#non-portable-drawbacks)
-describes what they have in common.
-
-### A narrowing trait, P0870 {#alt-p0870}
+## A narrowing trait, P0870 {#alt-p0870}
 
 [@P0870R8] proposes a trait that tells whether a conversion is narrowing in the sense of list
-initialization ([dcl.init.list]{.sref}). In 2026, LEWG voted to forward it to LWG for C++29, to be
-confirmed by an electronic poll. It is close to being part of the standard, but it isn't in it
-yet, so it fails requirement 3.
+initialization ([dcl.init.list]{.sref}). Narrowing is a property of the types and of the source
+expression, not of the sets of values. A conversion from an integer type to a floating-point type is
+narrowing unless the source is a constant expression whose value converts exactly, and a type trait
+sees no value, so `double` from a 32-bit `int` would need an explicit conversion although it changes
+no value. A conversion from `long double` to `double` is narrowing even where the two types have the
+same set of values. [@P2509R1] discusses the difference between the two traits. The narrowing trait
+fails requirement 1 in the other direction: it rejects conversions that preserve every value.
 
-Used for every pair of representation types, it also fails requirement 2. A conversion from an
-integer type to a floating-point type is narrowing unless the source is a constant expression whose
-value converts exactly, and a type trait sees no value. `quantity<m> d = 1 * m;` would need
-`value_cast<double>(1 * m)`.
+## The widths of the types {#alt-width}
 
-[The widths of the types](#alt-width) uses the same check that the trait is built on, list
-initialization, but applies it to pairs of integer types only. It doesn't have to wait for the
-trait.
-
-### A value-preservation trait, P2509 {#alt-p2509}
-
-[@P2509R1] proposes `is_value_preserving_convertible<From, To>`, which is `true` when every value of
-`From` is represented exactly in `To`. Its motivation cites [@P2980R1], the proposed quantities and
-units library, as a use case. For a pair of integer types, both this trait and the one of
-[@P0870R8] give the answer this paper proposes.
-
-It fails requirement 2. `double` from `std::int64_t` and `float` from `int` where `int` has 32 bits
-aren't value-preserving, so `quantity<m, float> f = 1 * m;` would need an explicit conversion. It
-also fails requirement 3, and it isn't close to the standard. SG6 polled it in 2022 with weak
-consensus (2/1/4/1/0) and the comment that more motivation was needed, and reviewed R1 at Sofia 2025
-without a poll. It needs a revision.
-
-### The widths of the types {#alt-width}
-
-A conversion between two integer types is implicit when it isn't narrowing in the sense of list
-initialization ([dcl.init.list]{.sref}):
+R1 of this paper proposed this rule for pairs of integer types. A conversion between two integer
+types is implicit when it isn't narrowing in the sense of list initialization:
 
 ```cpp
 template<typename From, typename To>
@@ -215,182 +221,253 @@ constexpr bool $integer-value-preserving$<From, To> = requires(From f) { To{f}; 
 
 `f` isn't a constant expression, and for such a source [dcl.init.list]{.sref} makes a conversion
 between integer types narrowing exactly when the destination can't represent every value of the
-source. That is requirement 1, and checking it needs nothing outside the standard. Whether a
-conversion is narrowing depends on the widths of the types: `int i{l};` for a non-constant `long l`
-is well-formed on Windows and ill-formed on 64-bit Linux. The type that an
-integer type promotes to can represent every value of it, so the rule needs no special case for
-promotion. It meets requirements 1, 2, and 3.
+source. For a pair of integer types, this is the answer of the proposed rule. It covers no other
+pair, so it fails requirement 1 for `float` from `int` and from `double`, and it is a rule of this
+library, so it fails requirement 2.
 
-A library can compute the same answer from `numeric_limits<From>` and `numeric_limits<To>`, by
-checking that `min()` and `max()` of `From` are within those of `To`. The comparison has to be
-sign-aware, such as with `cmp_less_equal`, because the built-in `<=` can convert a signed operand to
-an unsigned type first.
-
-### Integer conversion rank {#alt-rank}
+## Integer conversion rank {#alt-rank}
 
 A conversion between two integer types is implicit when both are signed or both are unsigned and
 the integer conversion rank of `To` isn't lower than that of `From` ([conv.rank]{.sref}), or when
-`To` is the type that `From` promotes to ([conv.prom]{.sref}). The promotion case is needed
-because the arithmetic operators convert both operands to the type of the result:
+`To` is the type that `From` promotes to ([conv.prom]{.sref}). For most pairs of standard integer
+types, it gives the same answer on every implementation: `int` from `long`, for example, is
+rejected everywhere.
 
-```cpp
-auto c = std::uint8_t{10} * m + std::uint8_t{20} * m;  // error without the promotion case: the sum is an int quantity,
-                                                       // and int from std::uint8_t changes the signedness
-```
-
-A rank that isn't lower implies a width that isn't smaller, so every conversion that this rule
-accepts, [the width rule](#alt-width) accepts too. No standard trait exposes the rank, but a library
-can find it for the standard integer types by listing them.
-
-It meets requirements 1, 2, and 3. For most pairs of standard integer types, it gives the same
-answer on every implementation. `int` from `long`, for example, is rejected everywhere. It still
-depends on the implementation in three ways. The type that a type of lower rank than `int` promotes
-to is `int` or `unsigned int`, depending on the widths. Which extended integer types exist is
-implementation-defined, and so is the relative rank of two of them with the same width. And the
-names and expressions listed in [Drawbacks of every non-portable rule](#non-portable-drawbacks)
-still have different types on different implementations.
-
-This paper rejects it because it also rejects conversions that can't change any value of the
-source type on the implementation at hand, and that [the width rule](#alt-width) accepts. The rank
-rule requires the same signedness because a signed type of higher rank isn't always wider than an
-unsigned one (`short` and `unsigned char` can both have 16 bits, as where `CHAR_BIT` is 16). So it
-rejects a conversion from an unsigned type to a wider signed one, other than promotion. It also
-rejects a conversion to a type of lower rank where both types have the same width:
+It is rejected because it also rejects conversions that can't change any value of the source type
+on the implementation at hand, and those that preserve every value are what requirement 1 asks to
+keep implicit:
 
 ```cpp
 void f(quantity<m, long> l, quantity<m, unsigned> u, quantity<m, std::uint16_t> u16)
 {
-  quantity<m, int> a = l;     // rank: error everywhere   width: OK on Windows, error on 64-bit Linux
-  quantity<m, long> b = u;    // rank: error everywhere   width: OK where long is wider than unsigned
-  quantity<m, long> c = u16;  // rank: error everywhere   width: OK everywhere
+  quantity<m, int> a = l;     // rank: error everywhere   proposed: OK on Windows, error on 64-bit Linux
+  quantity<m, long> b = u;    // rank: error everywhere   proposed: OK where long is wider than unsigned
+  quantity<m, long> c = u16;  // rank: error everywhere   proposed: OK everywhere
 }
 ```
 
 An explicit conversion tells a reader that a value can change there. Users who meet a rule that
 requires one where no value can change may write explicit conversions by habit, and then those stop
-telling the reader anything. The width rule requires one only where the source type has a value
-that the destination can't represent. That still includes `quantity<m, short> q = 42 * m;` (see
-[Costs](#costs)). Where its answer depends on the implementation, as for `int` from `long`, ported
-code fails to compile exactly on the implementation where the conversion can change a value, and
-that is the code to review.
+telling the reader anything. The same answer on every implementation doesn't extend to the
+`<cstdint>` aliases either: the rank rule rejects `std::int64_t` from `long long` on 64-bit Linux,
+where `std::int64_t` is `long`, of lower rank, and accepts it on Windows, where both are the same
+type.
 
-The same answer on every implementation doesn't extend to the `<cstdint>` aliases, which code that
-cares about the widths of its integers often uses. For them, the rank rule can be less portable than
-the width rule. The rank rule rejects `std::int64_t` from `long long` on 64-bit Linux, where
-`std::int64_t` is `long`, of lower rank, and accepts it on Windows, where both are the same type.
-The width rule accepts it on both.
-
-### Drawbacks of every non-portable rule {#non-portable-drawbacks}
+## Drawbacks of every non-portable rule {#non-portable-drawbacks}
 
 Whether a conversion is implicit decides whether a program is well-formed, and which overloads are
 viable. Under a non-portable rule, both can change when the program moves to another implementation,
 because type names, and the types of some expressions, denote different types on different
 implementations: the `<cstdint>` aliases, `std::size_t`, integer literals, and the results of
-integer promotion. `std::int64_t` is `long` on 64-bit Linux and `long long` on Windows.
+integer promotion. `std::int64_t` is `long` on 64-bit Linux and `long long` on Windows. The sets of
+values differ too: `long double` has 64 binary digits on x86-64 Linux and 53 with MSVC.
 
 ```cpp
-void f(quantity<m, std::uint16_t> a, quantity<m, std::uint16_t> b)
+void f(quantity<m, std::uint16_t> a, quantity<m, std::uint16_t> b, quantity<m, long> l)
 {
   quantity<m, int> sum = a + b;      // OK where int is wider than 16 bits (the sum is int), error where it has 16 (sum is unsigned)
   quantity<m, int> q = 100'000 * m;  // OK where int is wider than 16 bits, error where it has 16 (the literal is long)
+  quantity<m> d = l;                 // OK where long has 32 bits (Windows), error where it has 64 (64-bit Linux)
 }
 ```
 
+Where the answer depends on the implementation, ported code fails to compile exactly on the
+implementation where the conversion can change a value, and that is the code to review.
+
 
 # Proposal {#proposal}
+
+## Value preservation of the representation types {#value-preserving}
+
+The proposed rule uses the exposition-only `$value-preserving$<From, To>`:
+
+```cpp
+template<typename T>
+constexpr bool $bounded-number$ =  // exposition only
+  numeric_limits<T>::is_specialized && numeric_limits<T>::is_bounded;
+
+template<typename From, typename To>
+constexpr bool $value-preserving$ = @_see below_@;  // exposition only
+```
+
+1. If `$bounded-number$<From> && $bounded-number$<To>` is `true`, `$value-preserving$<From, To>` is
+   `true` if and only if `is_convertible_v<From, To>` is `true` and each value of `From` is
+   represented exactly by the result of the implicit conversion to `To`, special values such as
+   infinities and NaNs included. This is the specification of `is_value_preserving_convertible_v`
+   in [@P2509R1], including its precondition. If that paper is adopted, this case becomes
+   `is_value_preserving_convertible_v<From, To>`.
+2. Otherwise, if `From` or `To` has an element type other than itself, `$value-preserving$<From, To>`
+   is `convertible_to<From, To> && $value-preserving$<E(From), E(To)>`, where `E(T)` is the element
+   type of `T`: `representation_underlying_type_t<T>` applied until it yields the type it was
+   applied to.
+3. Otherwise, `$value-preserving$<From, To>` is `convertible_to<From, To>`.
+
+For the arithmetic types, case 1 gives:
+
+| From → To                     | Value-preserving                                    |
+|-------------------------------|-----------------------------------------------------|
+| `int` → `short`               | no where `short` is narrower than `int`             |
+| `short` → `int`               | yes                                                 |
+| `int` → `unsigned`            | no                                                  |
+| `int` → `float`               | no where `int` has more than 24 binary digits       |
+| `int` → `double`              | yes where `int` has at most 53 binary digits        |
+| `std::int64_t` → `double`     | no                                                  |
+| `std::int64_t` → `long double`| yes where `long double` has 64 binary digits        |
+| `float` → `double`            | yes                                                 |
+| `double` → `float`            | no                                                  |
+| `long double` → `double`      | yes where both have the same set of values          |
+| floating-point → integer      | no                                                  |
+
+## The unit factor {#unit-factor}
+
+[@P2509R1] answers whether the conversion of the representation type preserves values. A conversion
+of a quantity also multiplies the value by the factor between the two units, which the trait
+doesn't see. For a type that represents its values exactly, such as an integer or a fixed-point
+type, an integral factor keeps every value, and any other factor truncates. For a floating-point
+type, every factor rounds to the nearest representable value, which is the nature of the type and
+which [@P3045R10_PRE] accepts implicitly today. The proposed rule takes this distinction from
+`numeric_limits`, which the trait of [@P2509R1] is specified with:
+
+```cpp
+template<typename T>
+constexpr bool $inexact$ =  // exposition only
+  numeric_limits<$E$>::is_specialized && !numeric_limits<$E$>::is_exact;
+```
+
+where `$E$` is `T` if `numeric_limits<T>::is_specialized` is `true`, and `E(T)` otherwise. The
+check of `is_specialized` is needed: in the primary template of `numeric_limits`, `is_exact` is
+`false`, so without the check every type the library knows nothing about would be treated as
+inexact, and every unit factor would be implicit for it.
+
+## The rule {#rule}
 
 Change the default of `implicitly_scalable` in [@P3045R10_PRE] to:
 
 ```cpp
 template<unit auto FromUnit, typename FromRep, unit auto ToUnit, typename ToRep>
 constexpr bool implicitly_scalable =
-  treat_as_floating_point<ToRep> ||
-  (!treat_as_floating_point<FromRep> && is_integral_scaling(FromUnit, ToUnit) &&
-   $integer-value-preserving$<FromRep, ToRep>);
+  $value-preserving$<FromRep, ToRep> && (is_integral_scaling(FromUnit, ToUnit) || $inexact$<ToRep>);
 ```
 
-where `$integer-value-preserving$` is the exposition-only variable template of
-[The widths of the types](#alt-width).
+Compared with the current default, `!treat_as_floating_point<FromRep>` is covered by
+`$value-preserving$`, as no conversion from a floating-point type to an exact type preserves
+values, and `treat_as_floating_point<ToRep>` is replaced with `$inexact$<ToRep>`, which no longer
+makes a conversion implicit on its own:
+
+```cpp
+void f(quantity<m, int> i, quantity<m, double> d, quantity<mm, int> mm_i)
+{
+  quantity<km, double> a = i;      // OK: int → double preserves values, double rounds 1/1000
+  quantity<m, float>   b = i;      // error where int has more than 24 binary digits
+  quantity<m, float>   c = d;      // error: double → float
+  quantity<m, int>     e = mm_i;   // error: 1/1000 truncates an int, as today
+  quantity<mm, int>    g = i;      // OK: integral factor, as today
+}
+```
 
 `implicitly_scalable` constrains the converting constructor of `quantity`, as the corresponding
 constraint does for `std::chrono::duration` ([time.duration.cons]{.sref}), so the rule applies to
 every conversion between quantities: initialization, assignment, compound assignment, function
 arguments and return values, and the conversion of the operands of `+`, `-`, and `%` to their common
 quantity type. A conversion that it rejects is written with `value_cast`, such as
-`value_cast<short>(q)`.
-
-`bool` and the character types `char`, `wchar_t`, `char8_t`, `char16_t`, and `char32_t` are integer
-types too, but [@P3045R10_PRE] doesn't accept them as representation types, so the rule doesn't
-apply to them. `signed char` and `unsigned char` are a signed and an unsigned integer type
-([basic.fundamental]{.sref}) that programs use for small numbers. They remain valid representation
-types, so `std::int8_t` and `std::uint8_t` are covered. A type that `is_integral` doesn't recognize,
-such as `__int128` with libstdc++ before GCC 16 in a strict standard mode, keeps the current rule
-unless `implicitly_scalable` is specialized for it.
-
-The rule covers pairs of integer types only. For a class type, whether `To{f}` is valid depends on
-its constructors (or its members, for an aggregate), and not on whether the conversion can change a
-value. Such a type keeps the current rule, and decides itself whether a conversion is implicit. The
-converting constructor of `quantity` in [@P3045R10_PRE] is `explicit` when
-`convertible_to<FromRep, ToRep>` is `false`. The
-`safe_int` of [@MP-UNITS] has a converting constructor that is `explicit` when the destination
-can't represent every value of the source (see [mp-units](#mp-units)), so it needs no
-specialization of `implicitly_scalable`:
-
-```cpp
-static_assert( std::is_convertible_v<quantity<m, safe_int<short>>, quantity<m, safe_int<int>>>);
-static_assert(!std::is_convertible_v<quantity<m, safe_int<int>>, quantity<m, safe_int<short>>>);
-static_assert( std::is_constructible_v<quantity<m, safe_int<short>>, quantity<m, safe_int<int>>>);
-```
-
-The last line shows a difference from integer types. For `short`, the rule removes the converting
-constructor, so direct initialization such as `quantity<m, short> s(q);` is ill-formed too, and the
-conversion has to be written with `value_cast`. For `safe_int<short>`, the constructor is only
-`explicit`, so direct initialization compiles without `value_cast`. In direct initialization, the
-check moves from compile time to run time. The compiler no longer rejects a conversion that can
-change a value, and `safe_int` checks the value when the conversion happens.
-
-[@MP-UNITS] implements the proposed rule on its version 3 line, which implements [@P3045R10_PRE].
-Its 2.x releases keep the rule of `std::chrono`, because the change breaks existing code such as
-`quantity<m, short> q = 42 * m;`.
+`value_cast<float>(q)`. A unit conversion that overflows the destination remains out of scope, as
+in `std::chrono`.
 
 The converting constructor isn't the only place where [@P3045R10_PRE] converts a representation
 value. `in<ToRep>()` and `in<ToRep>(ToU)` convert it to `ToRep`. A quantity constructed from a
 number and a reference converts the number to its representation type, and so does a dimensionless
 quantity constructed from a number or assigned one. These are constrained with the exposition-only
 `$RepConstructibleFrom$` and `$RepAssignableFrom$`, which [@P3045R10_PRE] uses without defining.
-This paper proposes the definitions below. The first two conjuncts of each match [@MP-UNITS], and
-the last one is the rule:
+This paper proposes:
 
 ```cpp
 template<typename T, typename Arg>
 concept $RepConstructibleFrom$ =  // exposition only
-  constructible_from<T, Arg> &&
-  (treat_as_floating_point<T> || !treat_as_floating_point<remove_cvref_t<Arg>>) &&
-  $integer-value-preserving$<remove_cvref_t<Arg>, T>;
+  constructible_from<T, Arg> && $value-preserving$<remove_cvref_t<Arg>, T>;
 
 template<typename T, typename Arg>
 concept $RepAssignableFrom$ =  // exposition only
-  assignable_from<T&, Arg> &&
-  (treat_as_floating_point<T> || !treat_as_floating_point<remove_cvref_t<Arg>>) &&
-  $integer-value-preserving$<remove_cvref_t<Arg>, T>;
+  assignable_from<T&, Arg> && $value-preserving$<remove_cvref_t<Arg>, T>;
 ```
 
-Without the last conjunct, `q.in<short>()` for a `quantity<m, int>` would satisfy its constraint
-and then fail to compile in the body that [@MP-UNITS] gives it, which constructs the result with
-the converting constructor that the rule removes. The construction from a number would still
-compile and wrap. With it, the lines marked `error` are ill-formed where `short` is narrower than
-`int`:
+With them, the lines marked `error` are ill-formed where `short` is narrower than `int` and `float`
+has fewer binary digits than `int`:
 
 ```cpp
-void f(quantity<m, int> q, int i)
+void f(quantity<m, int> q, int i, double x)
 {
   auto a = q.in<short>();                          // error
   auto b = q.in<short>(truncated);                 // OK
   quantity<m, short> c(i, m);                      // error
   quantity<m, short> d(static_cast<short>(i), m);  // OK
   quantity<one, short> e = i;                      // error
+  quantity<m, float> g(x, m);                      // error: double → float
+  quantity<m, float> h(static_cast<float>(x), m);  // OK
 }
 ```
+
+## Representation types defined by users {#user-types}
+
+A representation type that isn't an arithmetic type takes part in one of three ways, in this order:
+
+1. **It specializes `numeric_limits`**, with `is_specialized` and `is_bounded` both `true`. The
+   definition of [@P2509R1] applies to it directly, as to an arithmetic type, and `is_exact` tells
+   whether it rounds. This is how [@P2509R1] expects a type defined by a user to take part, and how
+   it does for the fixed-precision types of numeric libraries.
+2. **It exposes an element type** through `representation_underlying_type`, such as the
+   `value_type` of `std::complex<double>` or of a vector of `double`. The rule applies to the
+   element types, and the conversion between the two representation types themselves has to be
+   implicit.
+3. **Neither.** A conversion is implicit when the representation type converts implicitly and the
+   unit factor is integral. This is what such a type gets today, as `treat_as_floating_point` is
+   `false` for it by default.
+
+`implicitly_scalable` stays specializable, to override the answer for a pair of representation
+types and units, as in the examples of [@P3045R10_PRE] for decimal types. A type that wants a
+non-integral factor to be implicit although it represents values exactly, such as a decimal
+fixed-point type that rounds, specializes `implicitly_scalable`, not `numeric_limits`: setting
+`is_exact` to `false` would misdescribe the type to every other user of `numeric_limits`.
+
+Some consequences:
+
+```cpp
+using power_f = quantity<isq::complex_power[V * A], std::complex<float>>;
+using power_d = quantity<isq::complex_power[V * A], std::complex<double>>;
+static_assert( std::is_convertible_v<power_f, power_d>);
+static_assert(!std::is_convertible_v<power_d, power_f>);
+static_assert( std::is_convertible_v<quantity<m, safe_int<short>>, quantity<m, safe_int<int>>>);
+static_assert(!std::is_constructible_v<quantity<m, safe_int<short>>, quantity<m, safe_int<int>>>);
+```
+
+The last line differs from R1. `safe_int<int>` doesn't convert implicitly to `safe_int<short>`, so
+the conversion isn't value-preserving under [@P2509R1], and the converting constructor of
+`quantity` is removed, as it is for `short` from `int`. The conversion is written with `value_cast`,
+and `safe_int` checks the value when it happens.
+
+In [@P3045R10_PRE], the converting constructor of `quantity` is `explicit` when
+`convertible_to<Rep2, rep>` is `false`. Under the proposed rule, no representation conversion that
+isn't implicit satisfies the constraint of that constructor, so this part of its `explicit`
+specifier has no effect, and it can be removed.
+
+## `treat_as_floating_point` is removed {#remove-tafp}
+
+`implicitly_scalable` was the main use of `treat_as_floating_point`. Its other uses in
+[@P3045R10_PRE] change as follows:
+
+- The scaling of a value by a unit magnitude chooses the floating-point path with
+  `$inexact$<T>` instead of `treat_as_floating_point`.
+- `%` and `%=` require `!$inexact$` of both representation types instead of
+  `!treat_as_floating_point`.
+- The example of a range-validated representation type requires `floating_point<T>`.
+
+A representation type that specializes `treat_as_floating_point` today specializes
+`numeric_limits` instead. It needs that specialization already for `quantity::min()` and
+`quantity::max()`.
+
+[@MP-UNITS] implements the rule of R1 on its version 3 line.
+[Its implementation of the rule of R2 is in progress.]{.ednote}
+
+## Exact comparisons of integer representation types {#comparisons}
 
 [@P3045R10_PRE] compares two quantities by converting both to their common quantity type, and this
 gives a wrong answer for a negative value today. When the representation types are integer types
@@ -460,12 +537,15 @@ This paper proposes that, when `Rep1` and `Value` are both integer types, `==` a
 results of `cmp_equal` and `cmp_less`, and `<=>` doesn't require
 `three_way_comparable_with<Rep1, Value>`. Both comparisons are then well-formed and exact.
 
+The comparisons of an integer with a floating-point representation type are not changed. Their
+operands convert to the common type, and where that conversion isn't value-preserving, such as for
+`long` and `double` on 64-bit Linux, the comparison is ill-formed.
+
 
 # Costs {#costs}
 
-The rule rejects conversions that [@P3045R10_PRE] accepts today. Every rule that meets requirement 1
-has each of these costs on some implementation, and the rule of [Integer conversion rank](#alt-rank)
-has them on more. The drawbacks that follow from the dependence on the implementation are listed in
+The rule rejects conversions that [@P3045R10_PRE] accepts today. The drawbacks that follow from the
+dependence on the implementation are listed in
 [Drawbacks of every non-portable rule](#non-portable-drawbacks).
 
 - Small integer values written as `int` literals are rejected. `quantity<m, short> q = 42 * m;`
@@ -481,21 +561,36 @@ has them on more. The drawbacks that follow from the dependence on the implement
   quantity<m, short> q5(42, m);                           // error where short is narrower than int
   ```
 
+- `float` representation types need literals of their own type. An `int` literal times a unit is a
+  quantity of `int`, a `double` literal gives one of `double`, and neither converts implicitly to a
+  quantity of `float`:
+
+  ```cpp
+  quantity<m, float> f1 = 1 * m;                    // error where int has more than 24 binary digits
+  quantity<m, float> f2 = 1.5 * m;                  // error: double → float
+  quantity<m, float> f3 = 1.5f * m;                 // OK
+  quantity<m, float> f4 = value_cast<float>(1 * m); // OK
+  ```
+
+- 64-bit integers don't convert implicitly to `double`. Where `long` has 64 bits, as on 64-bit
+  Linux, `quantity<m> d = n * m;` with a `long` or a `std::size_t` `n` needs an explicit conversion,
+  and so does `quantity<s>` from `std::chrono::seconds` wherever its representation type has more
+  than 53 binary digits. `std::chrono` makes `duration<double>` from `seconds` implicit.
 - Integer promotion produces `int`. `a + b` for two `short` quantities is a quantity of `int`,
   because `short + short` is `int`. Where `short` is narrower than `int`, assigning the result back
   to a `short` quantity now needs an explicit conversion, such as `value_cast<short>(a + b)`, and so
-  does `q += 1 * m` when `q` has a `short` representation. Two `unsigned short` quantities also add
-  to a quantity of `int` where `int` is wider, so the sum can't be assigned back to any unsigned
-  quantity without an explicit conversion. A quantity of `unsigned` no longer adds to a quantity of
-  a signed integer type that isn't wider than `unsigned`, such as `int`, as the conversion of one of
-  the operands to the common representation type changes the signedness. Comparing them with `==`
-  and `<=>` stays valid, and gives the correct result for a negative value (see
-  [Proposal](#proposal)). But `equality_comparable_with` and `three_way_comparable_with` become
-  `false` for them, because they require a conversion to a common type, so `ranges::equal_to` and
-  `ranges::less` reject such a pair.
+  does `q += 1 * m` when `q` has a `short` representation. A quantity of `unsigned` no longer adds to
+  a quantity of a signed integer type that isn't wider than `unsigned`, such as `int`, as the
+  conversion of one of the operands to the common representation type changes the signedness.
+  Comparing them with `==` and `<=>` stays valid, and gives the correct result for a negative value
+  (see [Exact comparisons](#comparisons)). But `equality_comparable_with` and
+  `three_way_comparable_with` become `false` for them, because they require a conversion to a common
+  type, so `ranges::equal_to` and `ranges::less` reject such a pair. Mixed arithmetic of a 64-bit
+  integer and a `double` quantity is rejected the same way.
 
   ```cpp
-  void f(quantity<m, short> s1, quantity<m, short> s2, quantity<m, unsigned> u, quantity<m, int> i)
+  void f(quantity<m, short> s1, quantity<m, short> s2, quantity<m, unsigned> u, quantity<m, int> i,
+         quantity<m, long> l, quantity<m> d)
   {
     auto sum = s1 + s2;               // OK: quantity<m, int>
     quantity<m, short> s3 = s1 + s2;  // error where short is narrower than int
@@ -503,31 +598,31 @@ has them on more. The drawbacks that follow from the dependence on the implement
     s1 += 1 * m;                      // error where short is narrower than int
     s1 += value_cast<short>(1 * m);   // OK
     auto mixed = u + i;               // error
+    auto ld = l + d;                  // error where long has 64 bits
   }
   ```
 
-- It differs from `std::chrono`. `quantity<s, int>` from `std::chrono::seconds`, whose
-  representation is a signed integer type of at least 35 bits, is rejected where `int` is narrower
-  than that type.
+- A representation type that specializes `treat_as_floating_point` has to specialize
+  `numeric_limits` instead (see [`treat_as_floating_point` is removed](#remove-tafp)).
 
-Each of these costs is a compile-time error. The conversion in the [Introduction](#introduction)
-compiles and gives a wrong value at run time. Each of them also requires an explicit conversion that
+Each of these costs is a compile-time error. The conversions in the [Introduction](#introduction)
+compile and give a wrong value at run time. Each of them also requires an explicit conversion that
 the user may know to be safe for the values at hand. A user who meets enough of them may write
 explicit conversions by habit, and then an explicit conversion no longer tells a reader where a
-value can change. The width rule keeps this to the conversions that can change a value of their
+value can change. The proposed rule keeps this to the conversions that can change a value of their
 source type.
 
 
 # Straw polls
 
-1. _An implicit conversion between integer representation types that can change the value, such as
-   `quantity<m, std::int16_t>` from `100'000 * m`, should be rejected. This means leaving
-   [the portable rule of `std::chrono`](#alt-chrono) for one of the
-   [non-portable rules](#non-portable): the same code may compile on one implementation and not on
-   another._
-2. _[@P3045R10_PRE] should use the rule of [The widths of the types](#alt-width) (as proposed:
-   implicit when the destination can represent every value of the source on the given
-   implementation, so `int` from `long` is implicit on Windows and rejected on 64-bit Linux)._
+1. _An implicit conversion of a representation value in [@P3045R10_PRE] should be value-preserving
+   as [@P2509R1] defines it, for every pair of representation types (as proposed: `float` from a
+   32-bit `int` and from `double` need an explicit conversion). This means leaving
+   [the portable rule of `std::chrono`](#alt-chrono): the same code may compile on one
+   implementation and not on another._
+2. _Whether a unit conversion by a non-integral factor may be implicit should be decided by
+   `numeric_limits<T>::is_exact`, and `treat_as_floating_point` should be removed from
+   [@P3045R10_PRE]._
 
    [Taken only if poll 1 has consensus.]{.ednote}
 
@@ -544,7 +639,7 @@ Special thanks and recognition goes to [The C++ Alliance](https://cppalliance.or
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
 
 The author also thanks **Giuseppe D'Angelo** for his work on detecting narrowing and
-value-changing conversions in [@P0870R8] and [@P2509R1].
+value-changing conversions in [@P0870R8] and [@P2509R1], which this revision builds on.
 
 ---
 references:
