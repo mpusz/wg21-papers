@@ -27,6 +27,22 @@ header-includes:
 
 # Revision history
 
+## R1
+
+- The examples use the spelling of [@P3045R11_PRE], where the origin of a point is part of its
+  quantity specification (see [Introduction]). `point<QS>[U]` is measured from the
+  natural origin of `QS` and is ill-formed with a unit whose origin isn't that natural origin,
+  such as `deg_C` (see [Interaction with non-negative quantities](#non-negative)).
+- `si::absolute_zero` is the natural origin of thermodynamic temperature in [@P3045R11_PRE], so
+  the floor of a temperature point no longer depends on [@P4185R3_PRE]. Bounded variants as
+  sibling quantities can't subtract each other's points, as [@P3045R11_PRE] doesn't convert
+  between points of sibling specifications (see [Bounded variants](#bounds-no-hierarchy)).
+- With absolute quantities, a bound written as `-90. * deg` is an absolute, so the proposed
+  policies and `exclusive_bound` take an absolute or a delta as a bound (see
+  [Proposed interface](#interface)), and so do the user-defined policies of
+  [Writing a policy](#writing-a-policy).
+- [@P4185R3_PRE] is cited instead of [@P4185R2], and [@P4411R1_PRE] instead of [@P4411R0_PRE].
+
 ## R0
 
 Initial revision. The design was presented as Section 8 "Range-validated quantity points" of
@@ -57,9 +73,11 @@ Changes since that section:
 - `is_within_bounds` and `try_make` added, for a delta and an origin and for a point of
   another type (see [Validating a value before construction](#bounds-query)),
 - exactness rule for bounds and offsets added (see [Bounds the point can hold](#exactness)),
-- a point is default-constructible only where its origin lies within its range (see
+- a point at a bounded origin is default-constructed at its origin, also by default-initialization,
+  and is default-constructible only where its origin lies within its range (see
   [Where the bounds apply](#where)),
-- `numeric_limits` at a bounded origin limited to what the bounds define (see
+- `numeric_limits` at a bounded origin offers a special value only where it lies within the range
+  (see
   [`min()`, `max()`, and `numeric_limits`](#limits)), and a point origin takes at most one
   argument after the quantity specification or the origin point, a bounds policy (see
   [Bounds on an origin](#origin-bounds)),
@@ -98,13 +116,15 @@ inline constexpr struct prime_meridian
   : absolute_point_origin<geo_longitude, wrap_to_range{-180. * deg, 180. * deg}> {} prime_meridian;
 
 template<typename T = double>
-using longitude = quantity<point<geo_longitude[deg], prime_meridian>, T>;
+using longitude = quantity<point<geo_longitude, prime_meridian>[deg], T>;
 
 longitude<> lon = prime_meridian + 270. * deg;   // stored as -90°
 ```
 
 The feature is an addition to [@P3045R10_PRE]. An origin without a bounds policy behaves as
-it does there.
+it does there. The examples use the spelling of [@P3045R11_PRE], which moves the origin of a point
+into its quantity specification: `point<geo_longitude, prime_meridian>[deg]` is
+`point<geo_longitude[deg], prime_meridian>` of [@P3045R10_PRE].
 
 
 # Motivation {#motivation}
@@ -181,13 +201,14 @@ inline constexpr struct ice_point_sensor
                           check_in_range{delta<deg_C>(-40.), delta<deg_C>(85.)}> {} ice_point_sensor;
 ```
 
-The bounds are deltas from the origin they are attached to, not points. They are
-written in any unit, and the policy converts them to the unit and
+The bounds are values measured from the origin they are attached to, not points. With absolute
+quantities [@P4185R3_PRE], a bound is an absolute or a delta, and a bound written as `-90. * deg`
+is an absolute. The bounds are written in any unit, and the policy converts them to the unit and
 representation of the value it tests. Bounds given in degrees work for a point stored in
 radians:
 
 ```cpp
-quantity<point<geo_longitude[rad], prime_meridian>> lon{4. * rad, prime_meridian};
+quantity<point<geo_longitude, prime_meridian>[rad]> lon{4. * rad, prime_meridian};
 // 4 rad is about 229.2°, so the stored value is about -130.8°, or -2.283 rad
 ```
 
@@ -201,7 +222,7 @@ inline constexpr struct trim_zero
 ```
 
 A bounds policy is a template argument, so it adds no storage to the point. The point type
-`quantity<point<R, PO>, Rep>` is as large as `Rep`, and it stays trivially copyable whenever
+`quantity<point<QS, PO>[U], Rep>` is as large as `Rep`, and it stays trivially copyable whenever
 `Rep` is.
 
 ## Where the bounds apply {#where}
@@ -218,19 +239,23 @@ The binary operators `point + quantity`, `point - quantity`, `origin + quantity`
 `point - point` or of `delta_from()` is a delta, not a point, and isn't checked.
 
 Value-initialization, as in `T{}` and `std::vector<T>(n)`, stores a zero delta, which is the origin
-itself, without applying the policy. We propose that a point be default-constructible only where its
-origin lies within the range of the policy that construction applies. As in the nesting rule of
-[Bounds of their own](#hierarchy), the range is that of the policy's `min` and `max`, with the `max`
-of `wrap_to_range` always excluded, so the answer is known at compile time for every policy. A
-user-defined policy whose test is narrower than its `min` and `max`, as in
-[the bands example](#bands), can still reject or move the zero delta when zero falls in a gap of its
-domain. At an origin with `check_in_range{10. * m, 20. * m}`, the point type isn't
-`std::default_initializable`: `std::vector<T>(n)`, `resize(n)`, and `std::map::operator[]` don't
-compile for it, while `std::vector<T>(n, value)` and `resize(n, value)` do. An origin with
+itself, without applying the policy. Default-initialization, as in `T t;`, would leave the delta
+indeterminate. We propose that a point whose origin has bounds, its own or inherited, be
+default-constructed at its origin by both forms, so that it never holds an indeterminate value. Such
+a point type isn't trivially default-constructible, but it stays trivially copyable. We also propose
+that it be default-constructible only where its origin lies within the range of the policy that
+construction applies. As in the nesting rule of [Bounds of their own](#hierarchy), the range is that
+of the policy's `min` and `max`, with the `max` of `wrap_to_range` always excluded, so the answer is
+known at compile time for every policy. A user-defined policy whose test is narrower than its `min`
+and `max`, as in [the bands example](#bands), can still reject or move the zero delta when zero
+falls in a gap of its domain. At an origin with `check_in_range{10. * m, 20. * m}`, the point type
+isn't `std::default_initializable`: `std::vector<T>(n)`, `resize(n)`, and `std::map::operator[]`
+don't compile for it, while `std::vector<T>(n, value)` and `resize(n, value)` do. An origin with
 `check_in_range{0. * m, 10. * m}` and a wrapping origin such as `prime_meridian` keep the default
-constructor, and so does a point that [@P4411R0_PRE] floors at zero when it is measured from the
-natural origin (see [Interaction with non-negative quantities](#non-negative)).
-Default-initialization, `T t;`, leaves the value indeterminate, as it does for the representation.
+constructor, and so does a point that [@P4411R1_PRE] floors at zero when it is measured from the
+natural origin (see [Interaction with non-negative quantities](#non-negative)). A point whose origin
+has no bounds keeps the defaulted constructor, and its default-initialization leaves the value
+indeterminate, as it does for the representation.
 
 ## Checking and adjusting policies {#policy-kinds}
 
@@ -296,7 +321,7 @@ is compared, and the range would be checked somewhere else than declared:
 inline constexpr struct tape_start
   : absolute_point_origin<isq::length, check_in_range{16'777'217 * m, 20'000'000 * m}> {} tape_start;
 
-quantity<point<isq::length[m], tape_start>, float> p{16'777'216.f * m, tape_start};
+quantity<point<isq::length, tape_start>[m], float> p{16'777'216.f * m, tape_start};
 // as a float, the lower bound is 16'777'216 m, so a value below the declared one passes
 ```
 
@@ -320,7 +345,7 @@ common type of the value and the offset into the frame of the ancestor, and each
 exact in that type only. A point stored in `int` kilometers, measured from an origin without
 bounds that lies `1'500 * m` above an origin with
 `check_in_range{delta<m>(-500), delta<m>(12'000)}`, is checked in `int` meters. The same holds
-for the floor of [@P4411R0_PRE] (see [Interaction with non-negative quantities](#non-negative)):
+for the floor of [@P4411R1_PRE] (see [Interaction with non-negative quantities](#non-negative)):
 a point in degrees Celsius is measured from `si::ice_point`, 273.15 K above the true zero, which
 no `int` in degrees Celsius holds. Its check runs in `int` millikelvin, so `point<deg_C>(-273)`
 is accepted and `point<deg_C>(-274)` is rejected exactly.
@@ -350,9 +375,9 @@ The rule has a cost for a `float` point. `0.1 * m` is a `double`, and the `doubl
 inline constexpr struct tape_end : absolute_point_origin<isq::length, check_in_range{0.1 * m, 10. * m}> {} tape_end;
 inline constexpr struct tape_end_f : absolute_point_origin<isq::length, check_in_range{0.1f * m, 10.f * m}> {} tape_end_f;
 
-quantity<point<isq::length[m], tape_end>> a{0.5 * m, tape_end};               // OK
-quantity<point<isq::length[m], tape_end_f>, float> b{0.5f * m, tape_end_f};   // OK
-// quantity<point<isq::length[m], tape_end>, float> c{0.5f * m, tape_end};    // ill-formed
+quantity<point<isq::length, tape_end>[m]> a{0.5 * m, tape_end};               // OK
+quantity<point<isq::length, tape_end_f>[m], float> b{0.5f * m, tape_end_f};   // OK
+// quantity<point<isq::length, tape_end>[m], float> c{0.5f * m, tape_end};    // ill-formed
 ```
 
 The `float` point needs an origin with bounds written as `float`, such as `tape_end_f`. A
@@ -385,11 +410,12 @@ value has no position after it is wrapped or reflected, so the wrapping and refl
 policies return NaN for an infinite or NaN input.
 
 `wrap_to_range` and `reflect_in_range` bring any finite value into the range, however far outside it
-lies. For an integral representation they take the exact remainder, provided that the period fits in
-the representation. For a floating-point one they subtract multiples of the period that double in
-size, so a value far outside the range doesn't need a step per period. A wrapped value never equals
-`max`: a floating-point result that rounds onto `max` is stored as `min`, which is the same point of
-the circle.
+lies. When the representation is an integer type, they compute the exact remainder in the
+corresponding unsigned type, so the range may span the whole domain of the representation. Another
+representation with an exact remainder needs the period to fit in it. For a floating-point
+representation they subtract multiples of the period that double in size, so a value far outside the
+range doesn't need a step per period. A wrapped value never equals `max`: a floating-point result
+that rounds onto `max` is stored as `min`, which is the same point of the circle.
 
 ## Contract semantics {#contracts}
 
@@ -406,7 +432,7 @@ constructor from a value and an origin:
 template<quantity_reference auto R, representation_of<get_quantity_spec(R)> Rep>
 class quantity {
 public:
-  // a member of a point only, where R is point<R2, PO>
+  // a member of a point only, where R is point<QS, PO>[U]
   template<typename FwdQ>
   constexpr quantity(FwdQ&& q, decltype(PO) origin)
     pre(/* q satisfies the checking policy applied at PO,
@@ -572,9 +598,9 @@ provides `min()` for an excluded lower end or `max()` for an excluded upper end.
 provided for a point whose bounds and offset aren't exact in its own quantity type, even where
 an inherited check is exact in the common type (see [Bounds the point can hold](#exactness)).
 
-A point that [@P4411R0_PRE] floors at zero reports as its `min()` the true zero, translated into
+A point that [@P4411R1_PRE] floors at zero reports as its `min()` the true zero, translated into
 its frame, or the lower bound of its origin's range where that is higher, provided that the value is
-exact in its quantity type. For `quantity<point<isq::distance[m]>>` it is 0 m, and for
+exact in its quantity type. For `quantity<point<isq::distance>[m]>` it is 0 m, and for
 `quantity<point<deg_C>>` it is -273.15 °C. `lowest()` of `numeric_limits` returns `min()` wherever
 `min()` exists. `quantity<point<deg_C>, int>` has no `min()`, and its `lowest()` is -273 °C, the
 lowest value that the floor accepts. A floored point without `min()` has no `lowest()` when its
@@ -588,7 +614,7 @@ rounds, and the rounded value may be one that the ancestor rejects:
 inline constexpr struct strip_start : absolute_point_origin<isq::length, check_in_range{0.1 * m, 0.9 * m}> {} strip_start;
 inline constexpr struct strip_mark : relative_point_origin<strip_start + 0.7 * m> {} strip_mark;
 
-using strip_point = quantity<point<isq::length[m], strip_mark>>;
+using strip_point = quantity<point<isq::length, strip_mark>[m]>;
 
 // 0.1 m - 0.7 m = -0.6 m, but -0.6 m + 0.7 m rounds to 0.09999999999999998 m
 static_assert(strip_point::min().delta_from(strip_mark) == delta<m>(-0.5999999999999999));
@@ -609,11 +635,19 @@ The other members of `numeric_limits`, `epsilon()`, `round_error()`, `infinity()
 origin with bounds, its own or inherited, the policy would check or change that value. At an origin
 with `check_in_range`, `quiet_NaN()` would violate the precondition in a `noexcept` function, and at
 an origin with `clamp_to_range{10. * deg, 20. * deg}`, `infinity()` would return 20° and `epsilon()`
-10°. We propose that `numeric_limits` not provide these members for a point whose origin has bounds,
-even where a policy accepts the value, and that `has_infinity`, `has_quiet_NaN`,
-`has_signaling_NaN`, and `is_iec559` be `false` there.
+10°. We propose that `numeric_limits` provide each of these members for a point whose origin has
+bounds only where its value lies within the range that the policy's `min` and `max` declare, the
+rule of default construction. A NaN lies in no range, and `+∞` lies in exactly those without an
+upper end. At an origin with `check_non_negative`, `infinity()`, `epsilon()`, `round_error()`, and
+`denorm_min()` are therefore provided and the NaNs aren't. With
+`check_in_range{-10. * deg, 10. * deg}` only the three finite ones are. The range decides even where
+the policy would keep the value: `clamp_to_range` stores a NaN unchanged, but no NaN is in its
+range. Running a policy on a NaN or an infinity isn't portable in a constant expression either.
+`has_infinity`, `has_quiet_NaN`, and `has_signaling_NaN` are `true` exactly where the matching
+member is provided. `is_iec559` is `false` wherever bounds apply, since a range doesn't hold every
+value of the format.
 
-The floor of [@P4411R0_PRE] isn't a bound of an origin, so a point that it floors keeps these
+The floor of [@P4411R1_PRE] isn't a bound of an origin, so a point that it floors keeps these
 members. Its `quiet_NaN()` and `signaling_NaN()` are built without the floor check, and reading
 the number back in the point's own unit doesn't check it again.
 
@@ -634,8 +668,8 @@ inline constexpr struct mean_sea_level
 
 inline constexpr struct runway : relative_point_origin<mean_sea_level + 1'600. * m> {} runway;
 
-quantity<point<isq::altitude[m], runway>> a{8'000. * m, runway};   // OK: 9'600 m above sea level
-quantity<point<isq::altitude[m], runway>> b{11'000. * m, runway};  // violation: 12'600 m
+quantity<point<isq::altitude, runway>[m]> a{8'000. * m, runway};   // OK: 9'600 m above sea level
+quantity<point<isq::altitude, runway>[m]> b{11'000. * m, runway};  // violation: 12'600 m
 ```
 
 The policy runs once, on one translated value, however many origins lie between the point
@@ -716,20 +750,23 @@ which policy wins when they disagree, for example when a child clamps and its pa
 
 ## Interaction with non-negative quantities {#non-negative}
 
-[@P4411R0_PRE] proposes a `non_negative` property of a quantity specification, and with it a
+[@P4411R1_PRE] proposes a `non_negative` property of a quantity specification, and with it a
 floor at zero for points. A point is floored when its own quantity specification is
 non-negative, where a quantity kind `kind_of<QS>` takes the domain of its root `QS`, and when the
 chain of its origins ends at a natural origin, unless its representation is a complex number. The
-floor rejects a point below the true zero:
+floor rejects a point below the true zero.
+
+A point spelled without an origin, such as `point<isq::distance>[m]`, is measured from the natural
+origin of its quantity specification:
 
 ```cpp
-quantity d1 = point<isq::distance[m]>(5.);   // OK
-quantity d2 = point<isq::distance[m]>(-1.);  // contract violation
+quantity d1 = point<isq::distance>[m](5.);   // OK
+quantity d2 = point<isq::distance>[m](-1.);  // contract violation
 quantity d3 = point<m>(-5.);                 // contract violation: kind_of<isq::length> is non-negative
-quantity a1 = point<isq::altitude[m]>(-5.);  // OK: altitude is possibly_negative
+quantity a1 = point<isq::altitude>[m](-5.);  // OK: altitude is possibly_negative
 ```
 
-The floor is a property of the quantity. [@P4411R0_PRE] specifies it, and it isn't one of the
+The floor is a property of the quantity. [@P4411R1_PRE] specifies it, and it isn't one of the
 policies of this paper. The policies stay properties of origins, and the user attaches
 `check_non_negative` or `clamp_non_negative` to an origin like any other policy. A point measured
 from an origin of the user's own, whose chain doesn't end at a natural origin, isn't floored. A
@@ -741,7 +778,7 @@ inline constexpr struct tare : absolute_point_origin<isq::mass> {} tare;
 quantity net = tare - 0.3 * kg;  // OK: 0.3 kg below the tare
 ```
 
-Temperature needs no policy on any origin. [@P4185R2_PRE] defines `si::absolute_zero` as the
+Temperature needs no policy on any origin. [@P3045R11_PRE] defines `si::absolute_zero` as the
 natural origin of thermodynamic temperature under a name of its own, and `si::ice_point` stays a
 relative origin defined from it. The chain of a point in degrees Celsius therefore ends at the
 natural origin, and the point is floored at the true zero (see
@@ -752,8 +789,8 @@ quantity t1 = point<deg_C>(-40.);   // OK
 quantity t2 = point<deg_C>(-300.);  // contract violation: 26.85 K below the true zero
 ```
 
-Without [@P4185R2_PRE], `si::absolute_zero` is the `absolute_point_origin` of [@P3045R10_PRE],
-and a point in kelvin or degrees Celsius isn't floored.
+In [@P3045R10_PRE], `si::absolute_zero` is an `absolute_point_origin` of its own, and a point in
+kelvin or degrees Celsius isn't floored.
 
 Both apply when a floored point is measured from an origin with a policy, its own or inherited.
 The policy runs first, and the floor then checks the value to be stored, so the result of a clamp
@@ -766,19 +803,19 @@ gets both checks:
 inline constexpr struct shelf
   : relative_point_origin<natural_point_origin<isq::length> + 5. * m, check_in_range{delta<m>(-10.), delta<m>(15.)}> {} shelf;
 
-quantity<point<isq::height[m], shelf>> h1{delta<m>(-3.), shelf};    // OK: 2 m above the true zero
-quantity<point<isq::height[m], shelf>> h2{delta<m>(-7.), shelf};    // contract violation: below the floor
-quantity<point<isq::altitude[m], shelf>> a1{delta<m>(-7.), shelf};  // OK: an altitude isn't floored
+quantity<point<isq::height, shelf>[m]> h1{delta<m>(-3.), shelf};    // OK: 2 m above the true zero
+quantity<point<isq::height, shelf>[m]> h2{delta<m>(-7.), shelf};    // contract violation: below the floor
+quantity<point<isq::altitude, shelf>[m]> a1{delta<m>(-7.), shelf};  // OK: an altitude isn't floored
 ```
 
 The floor tests that the value isn't negative, as the sign check of an absolute in
-[@P4411R0_PRE] does, and a NaN isn't negative, so it passes the floor. Whether a NaN is valid is a
+[@P4411R1_PRE] does, and a NaN isn't negative, so it passes the floor. Whether a NaN is valid is a
 question of range: `check_in_range`, and `check_non_negative` attached to an origin, reject it. An
 adjusting policy that stores NaN, as `nan_outside_range` of
 [NaN for a value outside the physics](#nan-policy) does at `ambient_zero`, stores it at a
 floored point too.
 
-Nothing in this paper depends on [@P4411R0_PRE]. Without it, no point is floored, and a user
+Nothing in this paper depends on [@P4411R1_PRE]. Without it, no point is floored, and a user
 attaches `check_non_negative` to an origin explicitly.
 
 
@@ -794,8 +831,8 @@ A policy is a structural type with:
 - a return type of `bool` for a checking policy or a delta for an adjusting one.
 
 Every example below was compiled and run against [@MP-UNITS] master, respelled to its
-`quantity_point<R, PO, Rep>`. The one that uses `contract_assert` needs GCC 16 with
-`-fcontracts`.
+`quantity_point<R, PO, Rep>`, and against the prototype of [@P4185R3_PRE] as written here. The one
+that uses `contract_assert` needs GCC 16 with `-fcontracts`.
 
 ## A domain that isn't an interval {#bands}
 
@@ -867,7 +904,7 @@ A value in a non-negative domain often comes out slightly negative because of ro
 policy can tell the two apart:
 
 ```cpp
-template<delta_quantity Q>
+template<linear_quantity Q>
 struct snap_within_tolerance {
   Q min;
   Q max;
@@ -902,7 +939,7 @@ an object the policy points or refers to. Such state behaves as a global does, a
 checked by the policy shares it: at the origin, at the origins that inherit its bounds, and at any
 other origin that uses the same policy. This paper doesn't propose per-object state:
 
-- State stored in the point makes `sizeof(quantity<point<R, PO>, Rep>)` larger than
+- State stored in the point makes `sizeof(quantity<point<QS, PO>[U], Rep>)` larger than
   `sizeof(Rep)`, for every point at the origin.
 - Bounds known only at runtime can't be checked by the nesting rule and can't be reported by
   `min()`, `max()`, and `numeric_limits`, which are static.
@@ -931,7 +968,7 @@ with a user-defined checking policy that receives the whole value and tests, for
 the interval of one standard uncertainty around the estimate overlaps the domain:
 
 ```cpp
-template<delta_quantity Q>
+template<linear_quantity Q>
 struct overlaps_range {
   Q min;
   Q max;
@@ -945,7 +982,7 @@ struct overlaps_range {
 
 inline constexpr struct scale_zero : absolute_point_origin<isq::mass, overlaps_range{0. * kg, 1000. * kg}> {} scale_zero;
 
-using reading = quantity<point<isq::mass[kg], scale_zero>, uncertain<double>>;
+using reading = quantity<point<isq::mass, scale_zero>[kg], uncertain<double>>;
 
 static_assert(reading::is_within_bounds(delta<kg>(uncertain{-0.2, 0.5}), scale_zero));
 static_assert(!reading::is_within_bounds(delta<kg>(uncertain{-0.9, 0.5}), scale_zero));
@@ -1014,9 +1051,9 @@ own bounds. This fails on several counts:
    own elevation. A relative origin per site holds it. An elevation known only at runtime
    is out of scope for both designs.
 3. Subtracting two points of one variant must yield the same delta quantity for both variants.
-   If it does, `altitude_msl - altitude_agl` also yields that delta and silently ignores
-   the offset between the frames. Separate deltas per variant fix that and break every
-   algorithm written for the shared delta. With origins, subtracting two points measured from
+   [@P3045R11_PRE] doesn't convert between points of sibling specifications, so
+   `altitude_msl - altitude_agl` doesn't compile, and no conversion between the two variants can
+   apply the offset between the frames. With origins, subtracting two points measured from
    related origins applies the offset between them, and points measured from unrelated
    origins can't be subtracted at all.
 4. The ISQ defines _altitude_ without a range. The range of a particular coordinate system or
@@ -1056,7 +1093,7 @@ template<point_quantity auto QP, auto... Args>
 struct relative_point_origin : @$point-origin-interface$@ {};
 
 // excluded end of a range
-template<delta_quantity Q>
+template<linear_quantity Q>
 struct exclusive_bound {
   Q value;
 };
@@ -1077,7 +1114,7 @@ struct check_non_negative {
 };
 
 // adjusting policies
-template<delta_quantity Q>
+template<linear_quantity Q>
 struct clamp_to_range {
   Q min;
   Q max;
@@ -1091,7 +1128,7 @@ struct clamp_non_negative {
   constexpr V operator()(V v) const;
 };
 
-template<delta_quantity Q>
+template<linear_quantity Q>
 struct wrap_to_range {
   Q min;
   exclusive_bound<Q> max;
@@ -1101,7 +1138,7 @@ struct wrap_to_range {
   constexpr V operator()(V v) const;
 };
 
-template<delta_quantity Q>
+template<linear_quantity Q>
 struct reflect_in_range {
   Q min;
   Q max;
@@ -1123,18 +1160,19 @@ template<quantity_reference auto R, representation_of<get_quantity_spec(R)> Rep>
 class quantity {
 public:
   // ...
-  // members of a point only, where R is point<R2, PO>
-  quantity() requires @_see below_@ = default;
+  // members of a point only, where R is point<QS, PO>[U]
+  quantity() requires @_see below_@ = default;  // a point without bounds
+  constexpr quantity() requires @_see below_@;  // a point with bounds: stores a zero delta
   template<typename FwdQ>
     static constexpr bool is_within_bounds(FwdQ&& q, decltype(PO) po);
   template<typename FwdQ>
-    static constexpr bool is_within_bounds(FwdQ&& q);  // PO == default_point_origin(R2)
+    static constexpr bool is_within_bounds(FwdQ&& q);  // PO is the origin of a type that names none, like point<QS>[U] or point<U>
   template<typename QP>
     static constexpr bool is_within_bounds(const QP& qp);
   template<typename FwdQ>
     static constexpr expected<quantity, bounds_violation> try_make(FwdQ&& q, decltype(PO) po);
   template<typename FwdQ>
-    static constexpr expected<quantity, bounds_violation> try_make(FwdQ&& q);  // PO == default_point_origin(R2)
+    static constexpr expected<quantity, bounds_violation> try_make(FwdQ&& q);  // as above
   template<typename QP>
     static constexpr expected<quantity, bounds_violation> try_make(const QP& qp);
 };
@@ -1142,11 +1180,14 @@ public:
 }
 ```
 
-`Args` of a point origin is empty or a single bounds policy. The default constructor of a point is
-offered only where its origin lies within its range, as described in
-[Where the bounds apply](#where). `$range-bound$` is satisfied by a delta and by a specialization of
-`exclusive_bound`. `$zero-bound$` is an exposition-only type that represents zero in any unit. The
-deduction guides of `clamp_to_range`, `reflect_in_range`, and `wrap_to_range` reject
+`Args` of a point origin is empty or a single bounds policy. A point whose origin has no bounds has
+the defaulted constructor. A point whose origin has bounds has the other one, which initializes the
+delta to zero, and it is offered only where its origin lies within its range, as described in [Where
+the bounds apply](#where). `$range-bound$` is satisfied by an absolute, a delta, and a
+specialization of `exclusive_bound`. `linear_quantity`, the concept of an absolute or a delta, is
+proposed in [@P4185R3_PRE]. Without absolute quantities, a bound is a delta, and `linear_quantity`
+above reads `delta_quantity`. `$zero-bound$` is an exposition-only type that represents zero in any
+unit. The deduction guides of `clamp_to_range`, `reflect_in_range`, and `wrap_to_range` reject
 `exclusive_bound` where [Excluded ends](#exclusive-bound) says so. The static `min()` and `max()` of
 the point type gain the constraints of [`min()`, `max()`, and `numeric_limits`](#limits). The
 constructors from a delta, the default constructor, `is_within_bounds`, `try_make`, `min()`, and
@@ -1174,37 +1215,44 @@ public:
     requires requires { quantity<R, Rep>::min(); };
 
   // changed for a point at a bounded origin
-  static constexpr bool has_infinity = !@$bounded-point$@<R> && numeric_limits<Rep>::has_infinity;
-  static constexpr bool has_quiet_NaN = !@$bounded-point$@<R> && numeric_limits<Rep>::has_quiet_NaN;
-  static constexpr bool has_signaling_NaN = !@$bounded-point$@<R> && numeric_limits<Rep>::has_signaling_NaN;
-  static constexpr bool is_iec559 = !@$bounded-point$@<R> && numeric_limits<Rep>::is_iec559;
-
   static constexpr quantity<R, Rep> epsilon() noexcept
-    requires (!@$bounded-point$@<R>) && requires { numeric_limits<Rep>::epsilon(); };
+    requires requires { numeric_limits<Rep>::epsilon(); } && @$in-range$@<R>(epsilon-value);
   static constexpr quantity<R, Rep> round_error() noexcept
-    requires (!@$bounded-point$@<R>) && requires { numeric_limits<Rep>::round_error(); };
+    requires requires { numeric_limits<Rep>::round_error(); } && @$in-range$@<R>(round-error-value);
   static constexpr quantity<R, Rep> infinity() noexcept
-    requires (!@$bounded-point$@<R>) && requires { numeric_limits<Rep>::infinity(); };
+    requires requires { numeric_limits<Rep>::infinity(); } && @$in-range$@<R>(infinity-value);
   static constexpr quantity<R, Rep> quiet_NaN() noexcept
-    requires (!@$bounded-point$@<R>) && requires { numeric_limits<Rep>::quiet_NaN(); };
+    requires requires { numeric_limits<Rep>::quiet_NaN(); } && @$in-range$@<R>(quiet-NaN-value);
   static constexpr quantity<R, Rep> signaling_NaN() noexcept
-    requires (!@$bounded-point$@<R>) && requires { numeric_limits<Rep>::signaling_NaN(); };
+    requires requires { numeric_limits<Rep>::signaling_NaN(); } && @$in-range$@<R>(quiet-NaN-value);
   static constexpr quantity<R, Rep> denorm_min() noexcept
-    requires (!@$bounded-point$@<R>) && requires { numeric_limits<Rep>::denorm_min(); };
+    requires requires { numeric_limits<Rep>::denorm_min(); } && @$in-range$@<R>(denorm-min-value);
+
+  static constexpr bool has_infinity = numeric_limits<Rep>::has_infinity && requires { infinity(); };
+  static constexpr bool has_quiet_NaN = numeric_limits<Rep>::has_quiet_NaN && requires { quiet_NaN(); };
+  static constexpr bool has_signaling_NaN =
+    numeric_limits<Rep>::has_signaling_NaN && requires { signaling_NaN(); };
+  static constexpr bool is_iec559 = !@$bounded-point$@<R> && numeric_limits<Rep>::is_iec559;
 };
 
 }
 ```
 
-`$bounded-point$<R>` is `true` when `R` is `point<R2, PO>` and `PO`, or one of its ancestors, has
-bounds. The floor of [@P4411R0_PRE] doesn't make a point a `$bounded-point$`.
+`$bounded-point$<R>` is `true` when `R` is `point<QS, PO>[U]` and `PO`, or one of its ancestors, has
+bounds. `$in-range$<R>(v)` is `true` when `$bounded-point$<R>` is `false`. Otherwise it is `true`
+when the value `v` of the representation, as a delta from `PO`, lies within the range that the `min`
+and `max` of those bounds declare. That is never the case for a NaN, and for `+∞` exactly when the
+range has no upper end. A finite value follows the rule of the default constructor. `epsilon-value`
+and the other names stand for the value of the matching member of `numeric_limits<Rep>`. The floor
+of [@P4411R1_PRE] doesn't make a point a `$bounded-point$`.
 
 
 # Implementation experience {#implementation}
 
 The design is implemented in [@MP-UNITS]: on its master branch in the `quantity_point<R, PO, Rep>`
-spelling of the 2.x releases, and on its version 3 branch, which implements [@P3045R10_PRE], in
-the spelling of this paper. It has been public since April 2026 [@MP-UNITS-BLOG]. It was prompted
+spelling of the 2.x releases, and on its version 3 branch, which implements [@P3045R10_PRE]. The
+prototype of absolute quantities [@P4185R3_PRE], built on the version 3 branch, implements it in
+the spelling of this paper. The design has been public since April 2026 [@MP-UNITS-BLOG]. It was prompted
 by feedback at Croydon 2026 and by a user of geodetic coordinates who found no way to express the
 different wrapping rules of latitude and longitude [@MP-UNITS-782].
 
@@ -1297,25 +1345,25 @@ Author preference is option 1.
 
 # Straw polls {#polls}
 
-1. _The bounds of a quantity point belong to its point origin, as proposed in P4412R0._
-2. _The six policies of P4412R0 (`check_in_range`, `check_non_negative`, `clamp_to_range`,
+1. _The bounds of a quantity point belong to its point origin, as proposed in P4412R1._
+2. _The six policies of P4412R1 (`check_in_range`, `check_non_negative`, `clamp_to_range`,
    `clamp_non_negative`, `wrap_to_range`, `reflect_in_range`) and `exclusive_bound` should be
    the initial vocabulary, with user-defined checking and adjusting policies distinguished by
    the return type of their call operator._
 3. _A value that a checking policy rejects should violate a precondition of the operation that
-   stores it, as proposed in P4412R0._
+   stores it, as proposed in P4412R1._
 4. _`constraint_violation_handler<Rep>` should be provided so that a representation type can
    opt into checks in every build mode._
 5. _The static member functions `is_within_bounds` and `try_make` should be provided as
-   proposed in P4412R0._
+   proposed in P4412R1._
 6. _Every bound, and the offset to a bounded ancestor for a representation that isn't a
    floating-point one, should be required to be exact in the quantity type of the point, or, for
    an inherited checking policy, in the common type of the value and the offset, as proposed in
-   P4412R0 (option 1 of "Exactness for floating-point points")._
+   P4412R1 (option 1 of "Exactness for floating-point points")._
 7. _The bounds of a relative point origin should be required at compile time to lie within the
-   bounds of its nearest bounded ancestor, as proposed in P4412R0 (see "Nested cyclic origins"
+   bounds of its nearest bounded ancestor, as proposed in P4412R1 (see "Nested cyclic origins"
    for cyclic ancestors)._
-8. _Forward P4412R0 to LEWG with the recommendation to adopt it together with
+8. _Forward P4412R1 to LEWG with the recommendation to adopt it together with
    [@P3045R10_PRE]._
 
 
@@ -1330,6 +1378,13 @@ reviews for the questions that shaped this paper, and the user who opened [@MP-U
 ---
 references:
 
+- id: P3045R11_PRE
+  citation-label: P3045R11
+  author:
+    - family: Pusz
+      given: Mateusz
+  title: "Quantities and units library"
+  URL: <https://wg21.link/p3045r11>
 - id: P3045R10_PRE
   citation-label: P3045R10
   author:
@@ -1344,13 +1399,20 @@ references:
       given: Mateusz
   title: "Non-Negative Quantity Specifications"
   URL: <https://wg21.link/p4411r0>
-- id: P4185R2_PRE
-  citation-label: P4185R2
+- id: P4411R1_PRE
+  citation-label: P4411R1
+  author:
+    - family: Pusz
+      given: Mateusz
+  title: "Non-Negative Quantity Specifications"
+  URL: <https://wg21.link/p4411r1>
+- id: P4185R3_PRE
+  citation-label: P4185R3
   author:
     - family: Pusz
       given: Mateusz
   title: "Absolute Quantities"
-  URL: <https://wg21.link/p4185r2>
+  URL: <https://wg21.link/p4185r3>
 - id: MP-UNITS
   citation-label: mp-units
   title: "mp-units - A Physical Quantities and Units library for C++"
