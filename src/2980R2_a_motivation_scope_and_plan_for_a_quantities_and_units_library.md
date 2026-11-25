@@ -5,7 +5,7 @@ date: today
 audience:
   - Library Evolution Working Group
 author:
-  - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
+  - name: Mateusz Pusz
     email: <mateusz.pusz@gmail.com>
   - name: Dominik Berner
     email: <dominik.berner@gmail.com>
@@ -376,7 +376,7 @@ and hertz (a unit of frequency in the [@SI]) can be defined:
 
 ```cpp
 inline constexpr struct second : named_unit<"s", kind_of<isq::time>> {} second;
-inline constexpr struct hertz : named_unit<"Hz", 1 / second, kind_of<isq::frequency>> {} hertz;
+inline constexpr struct hertz : named_unit<"Hz", one / second, kind_of<isq::frequency>> {} hertz;
 ```
 
 ## Broad industry value
@@ -518,7 +518,7 @@ _Note: The code examples presented in this paper may not exactly reflect the fin
 design that is going to be proposed in the follow-up papers. We are still doing some small
 fine-tuning to improve the library._
 
-So far, no papers have been submitted on a working interface of physical quantities and units.
+[@P3045R10_PRE] proposes the interface of the library.
 To allow the reader to better understand the features and scope of the library, this chapter
 presents a few simple examples.
 
@@ -528,7 +528,7 @@ Let's start with a really simple example presenting basic operations that every 
 and units library should provide:
 
 ```cpp
-#include <mp-units/systems/si/si.h>
+import mp_units;
 
 using namespace mp_units;
 using namespace mp_units::si::unit_symbols;
@@ -536,7 +536,7 @@ using namespace mp_units::si::unit_symbols;
 // simple numeric operations
 static_assert(10 * km / 2 == 5 * km);
 
-// unit conversions
+// conversions to common units
 static_assert(1 * h == 3600 * s);
 static_assert(1 * km + 1 * m == 1001 * m);
 
@@ -559,17 +559,12 @@ Try it in [the Compiler Explorer](https://godbolt.org/z/sYfoPzTvT).
 The next example serves as a showcase of various features available in the [@MP-UNITS] library.
 
 ```cpp
-#include <mp-units/format.h>
-#include <mp-units/ostream.h>
-#include <mp-units/systems/international/international.h>
-#include <mp-units/systems/isq/isq.h>
-#include <mp-units/systems/si/si.h>
-#include <iostream>
+import mp_units;
+import std;
 
 using namespace mp_units;
 
-constexpr QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto d,
-                                                QuantityOf<isq::time> auto t)
+constexpr quantity_of<isq::speed> auto avg_speed(quantity_of<isq::length> auto d, quantity_of<isq::time> auto t)
 {
   return d / t;
 }
@@ -577,121 +572,27 @@ constexpr QuantityOf<isq::speed> auto avg_speed(QuantityOf<isq::length> auto d,
 int main()
 {
   using namespace mp_units::si::unit_symbols;
-  using namespace mp_units::international::unit_symbols;
+  using namespace mp_units::yard_pound::unit_symbols;
 
   constexpr quantity v1 = 110 * km / h;
   constexpr quantity v2 = 70 * mph;
-  constexpr quantity v3 = avg_speed(220. * km, 2 * h);
-  constexpr quantity v4 = avg_speed(isq::distance(140. * mi), 2 * isq::duration[h]);
+  constexpr quantity v3 = avg_speed(220. * isq::distance[km], 2 * h);
+  constexpr quantity v4 = avg_speed(isq::distance(140. * mi), 2 * h);
   constexpr quantity v5 = v3.in(m / s);
   constexpr quantity v6 = value_cast<m / s>(v4);
   constexpr quantity v7 = value_cast<int>(v6);
 
-  std::cout << v1 << '\n';                // 110 km/h
-  std::cout << v2 << '\n';                // 70 mi/h
-  std::println("{}", v3);                 // 110 km/h
-  std::println("{:*^14}", v4);            // ***70 mi/h****
-  std::println("{:%Q in %q}", v5);        // 30.5556 in m/s
-  std::println("{0:%Q} in {0:%q}", v6);   // 31.2928 in m/s
-  std::println("{:%Q}", v7);              // 31
+  std::cout << v1 << '\n';                                        // 110 km/h
+  std::cout << std::setw(10) << std::setfill('*') << v2 << '\n';  // ***70 mi/h
+  std::cout << std::format("{:*^10}\n", v3);                      // *110 km/h*
+  std::println("{:%N in %U}", v4);                                // 70 in mi/h
+  std::println("{::N[.2f]}", v5);                                 // 30.56 m/s
+  std::println("{::N[.2f]U[n]}", v6);                             // 31.29 m s⁻¹
+  std::println("{:%N}", v7);                                      // 31
 }
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/3E7q5P6jq).
-
-## Bridge across the Rhine
-
-The following example codifies the history of a famous issue during the construction of a bridge across
-the Rhine River between the German and Swiss parts of the town Laufenburg [@HOCHRHEINBRÜCKE].
-It also nicely presents how [the Affine Space is being modeled in the library](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/).
-
-
-```cpp
-#include <mp-units/ostream.h>
-#include <mp-units/quantity_point.h>
-#include <mp-units/systems/isq/space_and_time.h>
-#include <mp-units/systems/si/si.h>
-#include <iostream>
-
-using namespace mp_units;
-using namespace mp_units::si::unit_symbols;
-
-constexpr struct amsterdam_sea_level : absolute_point_origin<isq::altitude> {
-} amsterdam_sea_level;
-
-constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level + isq::altitude(-27 * cm)> {
-} mediterranean_sea_level;
-
-using altitude_DE = quantity_point<isq::altitude[m], amsterdam_sea_level>;
-using altitude_CH = quantity_point<isq::altitude[m], mediterranean_sea_level>;
-
-template<auto R, typename Rep>
-std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_DE::point_origin, Rep> alt)
-{
-  return os << alt.quantity_ref_from(alt.point_origin) << " AMSL(DE)";
-}
-
-template<auto R, typename Rep>
-std::ostream& operator<<(std::ostream& os, quantity_point<R, altitude_CH::point_origin, Rep> alt)
-{
-  return os << alt.quantity_ref_from(alt.point_origin) << " AMSL(CH)";
-}
-
-int main()
-{
-  // expected bridge altitude in a specific reference system
-  quantity_point expected_bridge_alt = amsterdam_sea_level + isq::altitude(330 * m);
-
-  // some nearest landmark altitudes on both sides of the river
-  // equal but not equal ;-)
-  altitude_DE landmark_alt_DE = altitude_DE::point_origin + 300 * m;
-  altitude_CH landmark_alt_CH = altitude_CH::point_origin + 300 * m;
-
-  // artifical deltas from landmarks of the bridge base on both sides of the river
-  quantity delta_DE = isq::height(3 * m);
-  quantity delta_CH = isq::height(-2 * m);
-
-  // artificial altitude of the bridge base on both sides of the river
-  quantity_point bridge_base_alt_DE = landmark_alt_DE + delta_DE;
-  quantity_point bridge_base_alt_CH = landmark_alt_CH + delta_CH;
-
-  // artificial height of the required bridge pilar height on both sides of the river
-  quantity bridge_pilar_height_DE = expected_bridge_alt - bridge_base_alt_DE;
-  quantity bridge_pilar_height_CH = expected_bridge_alt - bridge_base_alt_CH;
-
-  std::cout << "Bridge pillars height:\n";
-  std::cout << "- Germany:     " << bridge_pilar_height_DE << '\n';
-  std::cout << "- Switzerland: " << bridge_pilar_height_CH << '\n';
-
-  // artificial bridge altitude on both sides of the river in both systems
-  quantity_point bridge_road_alt_DE = bridge_base_alt_DE + bridge_pilar_height_DE;
-  quantity_point bridge_road_alt_CH = bridge_base_alt_CH + bridge_pilar_height_CH;
-
-  std::cout << "Bridge road altitude:\n";
-  std::cout << "- Germany:     " << bridge_road_alt_DE << '\n';
-  std::cout << "- Switzerland: " << bridge_road_alt_CH << '\n';
-
-  std::cout << "Bridge road altitude relative to the Amsterdam Sea Level:\n";
-  std::cout << "- Germany:     " << bridge_road_alt_DE - amsterdam_sea_level << '\n';
-  std::cout << "- Switzerland: " << bridge_road_alt_CH - amsterdam_sea_level << '\n';
-}
-```
-
-The above provides the following text output:
-
-```text
-Bridge pillars height:
-- Germany:     27 m
-- Switzerland: 3227 cm
-Bridge road altitude:
-- Germany:     330 m AMSL(DE)
-- Switzerland: 33027 cm AMSL(CH)
-Bridge road altitude relative to the Amsterdam Sea Level:
-- Germany:     330 m
-- Switzerland: 33000 cm
-```
-
-Try it in [the Compiler Explorer](https://godbolt.org/z/c17TWGhc5).
+Try it in [the Compiler Explorer](https://godbolt.org/z/aPe7naKrE).
 
 ## Storage tank
 
@@ -704,22 +605,8 @@ when needed, and
 - [interoperability with `std::chrono::duration`](https://mpusz.github.io/mp-units/2.1/users_guide/framework_basics/concepts/#QuantityLike).
 
 ```cpp
-#include <mp-units/chrono.h>
-#include <mp-units/format.h>
-#include <mp-units/math.h>
-#include <mp-units/systems/isq/isq.h>
-#include <mp-units/systems/si/si.h>
-#include <cassert>
-#include <chrono>
-#include <format>
-#include <numbers>
-#include <utility>
-
-// allows standard gravity (acceleration) and weight (force) to be expressed with scalar representation
-// types instead of requiring the usage of Linear Algebra library for this simple example
-template<class T>
-  requires mp_units::is_scalar<T>
-inline constexpr bool mp_units::is_vector<T> = true;
+import mp_units;
+import std;
 
 namespace {
 
@@ -727,12 +614,13 @@ using namespace mp_units;
 using namespace mp_units::si::unit_symbols;
 
 // add a custom quantity type of kind isq::length
-inline constexpr struct horizontal_length : quantity_spec<isq::length> {} horizontal_length;
+inline constexpr struct horizontal_length : named_quantity_spec<isq::length> {} horizontal_length;
 
-// add a custom derived quantity type of kind isq::area with a constrained quantity equation
-inline constexpr struct horizontal_area : quantity_spec<isq::area, horizontal_length * isq::width> {} horizontal_area;
+// add a custom derived quantity type of kind isq::area
+// with a constrained quantity equation
+inline constexpr struct horizontal_area : named_quantity_spec<isq::area, horizontal_length * isq::width> {} horizontal_area;
 
-inline constexpr auto g = 1 * si::standard_gravity;
+inline constexpr auto g = 1 * codata::standard_gravity;
 inline constexpr auto air_density = isq::mass_density(1.225 * kg / m3);
 
 class StorageTank {
@@ -751,16 +639,16 @@ public:
     density_ = density;
   }
 
-  [[nodiscard]] constexpr QuantityOf<isq::weight> auto filled_weight() const
+  [[nodiscard]] constexpr quantity_of<isq::weight> auto filled_weight() const
   {
     const auto volume = isq::volume(base_ * height_);
-    const QuantityOf<isq::mass> auto mass = density_ * volume;
+    const quantity_of<isq::mass> auto mass = density_ * volume;
     return isq::weight(mass * g);
   }
 
   [[nodiscard]] constexpr quantity<isq::height[m]> fill_level(const quantity<isq::mass[kg]>& measured_mass) const
   {
-    return height_ * measured_mass * g / filled_weight();
+    return height_ * measured_mass * g / filled_weight().magnitude();
   }
 
   [[nodiscard]] constexpr quantity<isq::volume[m3]> spare_capacity(const quantity<isq::mass[kg]>& measured_mass) const
@@ -772,8 +660,7 @@ public:
 
 class CylindricalStorageTank : public StorageTank {
 public:
-  constexpr CylindricalStorageTank(const quantity<isq::radius[m]>& radius,
-                                   const quantity<isq::height[m]>& height) :
+  constexpr CylindricalStorageTank(const quantity<isq::radius[m]>& radius, const quantity<isq::height[m]>& height) :
       StorageTank(quantity_cast<horizontal_area>(std::numbers::pi * pow<2>(radius)), height)
   {
   }
@@ -781,8 +668,7 @@ public:
 
 class RectangularStorageTank : public StorageTank {
 public:
-  constexpr RectangularStorageTank(const quantity<horizontal_length[m]>& length,
-                                   const quantity<isq::width[m]>& width,
+  constexpr RectangularStorageTank(const quantity<horizontal_length[m]>& length, const quantity<isq::width[m]>& width,
                                    const quantity<isq::height[m]>& height) :
       StorageTank(length * width, height)
   {
@@ -794,7 +680,7 @@ public:
 
 int main()
 {
-  const auto height = isq::height(200 * mm);
+  const quantity height = isq::height(200 * mm);
   auto tank = RectangularStorageTank(horizontal_length(1'000 * mm), isq::width(500 * mm), height);
   tank.set_contents_density(1'000 * kg / m3);
 
@@ -802,15 +688,15 @@ int main()
   const quantity fill_time = value_cast<int>(quantity{duration});  // time since starting fill
   const quantity measured_mass = 20. * kg;                         // measured mass at fill_time
 
-  const auto fill_level = tank.fill_level(measured_mass);
-  const auto spare_capacity = tank.spare_capacity(measured_mass);
-  const auto filled_weight = tank.filled_weight();
+  const quantity fill_level = tank.fill_level(measured_mass);
+  const quantity spare_capacity = tank.spare_capacity(measured_mass);
+  const quantity filled_weight = tank.filled_weight();
 
-  const QuantityOf<isq::mass_change_rate> auto input_flow_rate = measured_mass / fill_time;
-  const QuantityOf<isq::speed> auto float_rise_rate = fill_level / fill_time;
-  const QuantityOf<isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
+  const quantity_of<isq::mass_change_rate> auto input_flow_rate = measured_mass / fill_time;
+  const quantity_of<isq::speed> auto float_rise_rate = fill_level / fill_time;
+  const quantity_of<isq::time> auto fill_time_left = (height / fill_level - 1 * one) * fill_time;
 
-  const auto fill_ratio = fill_level / height;
+  const quantity fill_ratio = fill_level / height;
 
   std::println("fill height at {} = {} ({} full)", fill_time, fill_level, fill_ratio.in(percent));
   std::println("fill weight at {} = {} ({})", fill_time, filled_weight, filled_weight.in(N));
@@ -828,57 +714,233 @@ fill height at 200 s = 0.04 m (20 % full)
 fill weight at 200 s = 100 g₀ kg (980.665 N)
 spare capacity at 200 s = 0.08 m³
 input flow rate = 0.1 kg/s
-float rise rate = 0.0002 m/s
+float rise rate = 2e-04 m/s
 tank full E.T.A. at current flow rate = 800 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/cx8Pr6ne9).
+Try it in [the Compiler Explorer](https://godbolt.org/z/c7ErThsEY).
+
+## Bridge across the Rhine
+
+The following example codifies the history of a famous issue during the construction of a bridge across
+the Rhine River between the German and Swiss parts of the town Laufenburg [@HOCHRHEINBRÜCKE].
+It also nicely presents how [the Affine Space is being modeled in the library](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/).
+
+
+```cpp
+import mp_units;
+import std;
+
+using namespace mp_units;
+using namespace mp_units::si::unit_symbols;
+
+constexpr struct amsterdam_sea_level : absolute_point_origin<isq::altitude> {
+} amsterdam_sea_level;
+
+constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level - 27 * cm> {
+} mediterranean_sea_level;
+
+using altitude_DE = quantity<point<isq::altitude, amsterdam_sea_level>[m]>;
+using altitude_CH = quantity<point<isq::altitude, mediterranean_sea_level>[m]>;
+
+template<auto R, typename Rep>
+  requires(quantity<R, Rep>::point_origin == altitude_DE::point_origin)
+std::ostream& operator<<(std::ostream& os, const quantity<R, Rep>& alt)
+{
+  return os << alt.delta_from(altitude_DE::point_origin) << " AMSL(DE)";
+}
+
+template<auto R, typename Rep>
+  requires(quantity<R, Rep>::point_origin == altitude_CH::point_origin)
+std::ostream& operator<<(std::ostream& os, const quantity<R, Rep>& alt)
+{
+  return os << alt.delta_from(altitude_CH::point_origin) << " AMSL(CH)";
+}
+
+template<auto R, typename Rep>
+  requires(quantity<R, Rep>::point_origin == altitude_DE::point_origin)
+struct std::formatter<quantity<R, Rep>> : formatter<typename quantity<R, Rep>::quantity_type> {
+  template<typename FormatContext>
+  auto format(const quantity<R, Rep>& alt, FormatContext& ctx) const
+  {
+    formatter<typename quantity<R, Rep>::quantity_type>::format(alt.delta_from(altitude_DE::point_origin), ctx);
+    return std::format_to(ctx.out(), " AMSL(DE)");
+  }
+};
+
+template<auto R, typename Rep>
+  requires(quantity<R, Rep>::point_origin == altitude_CH::point_origin)
+struct std::formatter<quantity<R, Rep>> : formatter<typename quantity<R, Rep>::quantity_type> {
+  template<typename FormatContext>
+  auto format(const quantity<R, Rep>& alt, FormatContext& ctx) const
+  {
+    formatter<typename quantity<R, Rep>::quantity_type>::format(alt.delta_from(altitude_CH::point_origin), ctx);
+    return std::format_to(ctx.out(), " AMSL(CH)");
+  }
+};
+
+int main()
+{
+  // expected bridge altitude in a specific reference system
+  quantity expected_bridge_alt = amsterdam_sea_level + 330 * m;
+
+  // some nearest landmark altitudes on both sides of the river
+  // equal but not equal ;-)
+  altitude_DE landmark_alt_DE = altitude_DE::point_origin + 300 * m;
+  altitude_CH landmark_alt_CH = altitude_CH::point_origin + 300 * m;
+
+  // artifical deltas from landmarks of the bridge base on both sides of the river
+  quantity delta_DE = isq::altitude(3 * m);
+  quantity delta_CH = isq::altitude(-2 * m);
+
+  // artificial altitude of the bridge base on both sides of the river
+  quantity bridge_base_alt_DE = landmark_alt_DE + delta_DE;
+  quantity bridge_base_alt_CH = landmark_alt_CH + delta_CH;
+
+  // artificial height of the required bridge pilar height on both sides of the river
+  quantity bridge_pilar_height_DE = expected_bridge_alt - bridge_base_alt_DE;
+  quantity bridge_pilar_height_CH = expected_bridge_alt - bridge_base_alt_CH;
+
+  std::println("Bridge pillars height:");
+  std::println("- Germany:     {}", bridge_pilar_height_DE);
+  std::println("- Switzerland: {}", bridge_pilar_height_CH);
+
+  // artificial bridge altitude on both sides of the river in both systems
+  quantity bridge_road_alt_DE = bridge_base_alt_DE + bridge_pilar_height_DE;
+  quantity bridge_road_alt_CH = bridge_base_alt_CH + bridge_pilar_height_CH;
+
+  std::println("Bridge road altitude:");
+  std::println("- Germany:     {}", bridge_road_alt_DE);
+  std::println("- Switzerland: {}", bridge_road_alt_CH);
+
+  std::println("Bridge road altitude relative to the Amsterdam Sea Level:");
+  std::println("- Germany:     {}", bridge_road_alt_DE.delta_from(amsterdam_sea_level));
+  std::println("- Switzerland: {}", bridge_road_alt_CH.delta_from(amsterdam_sea_level));
+}
+```
+
+The above provides the following text output:
+
+```text
+Bridge pillars height:
+- Germany:     27 m
+- Switzerland: 3227 cm
+Bridge road altitude:
+- Germany:     330 m AMSL(DE)
+- Switzerland: 33027 cm AMSL(CH)
+Bridge road altitude relative to the Amsterdam Sea Level:
+- Germany:     330 m
+- Switzerland: 33000 cm
+```
+
+Try it in [the Compiler Explorer](https://godbolt.org/z/oEW1vfeMG).
 
 ## User defined quantities and units
 
-Users can easily define new quantities and units for domain-specific
-use-cases.  This example from digital signal processing will show how to
-define custom units for counting
-[digital samples](https://en.wikipedia.org/wiki/Sampling_(signal_processing))
-and how they can be converted to time measured in milliseconds:
+Users can easily define new quantities and units for domain-specific use-cases. This example from
+digital signal processing domain will show how to define custom strongly typed dimensionless
+quantities, units for them, and how they can be converted to time measured in milliseconds:
 
 ```cpp
-#include <mp-units/format.h>
-#include <mp-units/systems/isq/isq.h>
-#include <mp-units/systems/si/si.h>
-#include <format>
-
-namespace dsp_dsq {
+import mp_units;
+import std;
 
 using namespace mp_units;
 
-inline constexpr struct SampleCount : quantity_spec<dimensionless, is_kind> {} SampleCount;
-inline constexpr struct SampleDuration : quantity_spec<isq::time> {} SampleDuration;
-inline constexpr struct SamplingRate : quantity_spec<isq::frequency, SampleCount / isq::time> {} SamplingRate;
+namespace ni {
 
+// quantities
+inline constexpr struct SampleCount : named_quantity_spec<dimensionless, subkind> {} SampleCount;
+inline constexpr struct SampleDuration : named_quantity_spec<isq::time> {} SampleDuration;
+inline constexpr struct SamplingRate : named_quantity_spec<isq::frequency, SampleCount / isq::time> {} SamplingRate;
+
+inline constexpr struct UnitSampleAmount : named_quantity_spec<dimensionless, subkind> {} UnitSampleAmount;
+inline constexpr auto Amplitude = UnitSampleAmount;
+inline constexpr auto Level = UnitSampleAmount;
+inline constexpr struct Power : named_quantity_spec<Level * Level> {} Power;
+
+inline constexpr struct MIDIClock : named_quantity_spec<dimensionless, subkind> {} MIDIClock;
+
+inline constexpr struct BeatCount : named_quantity_spec<dimensionless, subkind> {} BeatCount;
+inline constexpr struct BeatDuration : named_quantity_spec<isq::time> {} BeatDuration;
+inline constexpr struct Tempo : named_quantity_spec<isq::frequency, BeatCount / isq::time> {} Tempo;
+
+// units
 inline constexpr struct Sample : named_unit<"Smpl", one, kind_of<SampleCount>> {} Sample;
+inline constexpr struct SampleValue : named_unit<"PCM", one, kind_of<UnitSampleAmount>> {} SampleValue;
+inline constexpr struct MIDIPulse : named_unit<"p", one, kind_of<MIDIClock>> {} MIDIPulse;
+
+inline constexpr struct QuarterNote : named_unit<"q", one, kind_of<BeatCount>> {} QuarterNote;
+inline constexpr struct HalfNote : named_unit<"h", mag<2> * QuarterNote> {} HalfNote;
+inline constexpr struct DottedHalfNote : named_unit<"h.", mag<3> * QuarterNote> {} DottedHalfNote;
+inline constexpr struct WholeNote : named_unit<"w", mag<4> * QuarterNote> {} WholeNote;
+inline constexpr struct EightNote : named_unit<"8th", mag_ratio<1, 2> * QuarterNote> {} EightNote;
+inline constexpr struct DottedQuarterNote : named_unit<"q.", mag<3> * EightNote> {} DottedQuarterNote;
+inline constexpr struct QuarterNoteTriplet : named_unit<"qt", mag_ratio<1, 3> * HalfNote> {} QuarterNoteTriplet;
+inline constexpr struct SixteenthNote : named_unit<"16th", mag_ratio<1, 2> * EightNote> {} SixteenthNote;
+inline constexpr struct DottedEightNote : named_unit<"q.", mag<3> * SixteenthNote> {} DottedEightNote;
+
+inline constexpr auto Beat = QuarterNote;
+
+inline constexpr struct BeatsPerMinute : named_unit<"bpm", Beat / si::minute> {} BeatsPerMinute;
+inline constexpr struct MIDIPulsePerQuarter : named_unit<"ppqn", MIDIPulse / QuarterNote> {} MIDIPulsePerQuarter;
 
 namespace unit_symbols {
+
 inline constexpr auto Smpl = Sample;
+inline constexpr auto pcm = SampleValue;
+inline constexpr auto p = MIDIPulse;
+
+inline constexpr auto n_wd = 3 * HalfNote;
+inline constexpr auto n_w = WholeNote;
+inline constexpr auto n_hd = DottedHalfNote;
+inline constexpr auto n_h = HalfNote;
+inline constexpr auto n_qd = DottedQuarterNote;
+inline constexpr auto n_q = QuarterNote;
+inline constexpr auto n_qt = QuarterNoteTriplet;
+inline constexpr auto n_8thd = DottedEightNote;
+inline constexpr auto n_8th = EightNote;
+inline constexpr auto n_16th = SixteenthNote;
+
+}
+
+quantity<BeatsPerMinute, float> GetTempo()
+{
+  return 110 * BeatsPerMinute;
+}
+
+quantity<MIDIPulsePerQuarter, unsigned> GetPPQN()
+{
+  return 960u * MIDIPulse / QuarterNote;
+}
+
+quantity<MIDIPulse, unsigned> GetTransportPos()
+{
+  return 15836u * MIDIPulse;
+}
+
+quantity<SamplingRate[si::hertz], float> GetSampleRate()
+{
+  return 44100.f * si::hertz;
 }
 
 }
 
 int main()
 {
-  using namespace dsp_dsq::unit_symbols;
+  using namespace ni::unit_symbols;
   using namespace mp_units::si::unit_symbols;
 
-  const auto sr1 = 44100.f * Hz;
+  const auto sr1 = ni::GetSampleRate();
   const auto sr2 = 48000.f * Smpl / s;
 
-  const auto bufferSize = 512 * Smpl;
+  const auto samples = 512 * Smpl;
 
-  const auto sampleTime1 = (bufferSize / sr1).in(s);
-  const auto sampleTime2 = (bufferSize / sr2).in(ms);
+  const auto sampleTime1 = (samples / sr1).in(s);
+  const auto sampleTime2 = (samples / sr2).in(ms);
 
   const auto sampleDuration1 = (1 / sr1).in(ms);
-  const auto sampleDuration2 = dsp_dsq::SampleDuration(1 / sr2).in(ms);
+  const auto sampleDuration2 = (1 / sr2).in(ms);
 
   const auto rampTime = 35.f * ms;
   const auto rampSamples1 = value_cast<int>((rampTime * sr1).in(Smpl));
@@ -887,14 +949,41 @@ int main()
   std::println("Sample rate 1 is: {}", sr1);
   std::println("Sample rate 2 is: {}", sr2);
 
-  std::println("{} @ {} is {}", bufferSize, sr1, sampleTime1);
-  std::println("{} @ {} is {}", bufferSize, sr2, sampleTime2);
+  std::println("{} @ {} is {::N[.5f]}", samples, sr1, sampleTime1);
+  std::println("{} @ {} is {::N[.5f]}", samples, sr2, sampleTime2);
 
-  std::println("One sample @ {} is {}", sr1, sampleDuration1);
-  std::println("One sample @ {} is {}", sr2, sampleDuration2);
+  std::println("One sample @ {} is {::N[.5f]}", sr1, sampleDuration1);
+  std::println("One sample @ {} is {::N[.5f]}", sr2, sampleDuration2);
 
   std::println("{} is {} @ {}", rampTime, rampSamples1, sr1);
   std::println("{} is {} @ {}", rampTime, rampSamples2, sr2);
+
+  auto sampleValue = -0.4f * pcm;
+  auto power1 = sampleValue * sampleValue;
+  auto power2 = -0.2 * pow<2>(pcm);
+
+  auto tempo = ni::GetTempo();
+  auto reverbBeats = 1 * n_qd;
+  auto reverbTime = reverbBeats / tempo;
+
+  auto pulsePerQuarter = value_cast<float>(ni::GetPPQN());
+  auto transportPosition = ni::GetTransportPos();
+  auto transportBeats = (transportPosition / pulsePerQuarter).in(n_q);
+  auto transportTime = (transportBeats / tempo).in(s);
+
+  std::println("SampleValue is: {}", sampleValue);
+  std::println("Power 1 is: {}", power1);
+  std::println("Power 2 is: {}", power2);
+
+  std::println("Tempo is: {}", tempo);
+  std::println("Reverb Beats is: {}", reverbBeats);
+  std::println("Reverb Time is: {}", reverbTime.in(s));
+  std::println("Pulse Per Quarter is: {}", pulsePerQuarter);
+  std::println("Transport Position is: {}", transportPosition);
+  std::println("Transport Beats is: {}", transportBeats);
+  std::println("Transport Time is: {}", transportTime);
+
+  // auto error = 1 * Smpl + 1 * pcm + 1 * p + 1 * Beat;  // Compile-time error
 }
 ```
 
@@ -904,14 +993,28 @@ The above code outputs:
 Sample rate 1 is: 44100 Hz
 Sample rate 2 is: 48000 Smpl/s
 512 Smpl @ 44100 Hz is 0.01161 s
-512 Smpl @ 48000 Smpl/s is 10.6667 ms
-One sample @ 44100 Hz is 0.0226757 ms
-One sample @ 48000 Smpl/s is 0.0208333 ms
+512 Smpl @ 48000 Smpl/s is 10.66667 ms
+One sample @ 44100 Hz is 0.02268 ms
+One sample @ 48000 Smpl/s is 0.02083 ms
 35 ms is 1543 Smpl @ 44100 Hz
 35 ms is 1680 Smpl @ 48000 Smpl/s
+SampleValue is: -0.4 PCM
+Power 1 is: 0.16000001 PCM²
+Power 2 is: -0.2 PCM²
+Tempo is: 110 bpm
+Reverb Beats is: 1 q.
+Reverb Time is: 0.8181818 s
+Pulse Per Quarter is: 960 ppqn
+Transport Position is: 15836 p
+Transport Beats is: 16.495832 q
+Transport Time is: 8.997726 s
 ```
 
-Try it in [the Compiler Explorer](https://godbolt.org/z/KeT3MsfcG).
+Try it in [the Compiler Explorer](https://godbolt.org/z/MvGTc5Eva).
+
+_Note: More about this example can be found in
+["Exploration of Strongly-typed Units in C++: A Case Study from Digital Audio"](https://www.youtube.com/watch?v=oxnCdIfC4Z4)
+CppCon 2023 talk by Roth Michaels._
 
 
 # Scope
@@ -933,8 +1036,8 @@ a few steps).
 
 | Feature                                  | Priority | Description                                                                                                                                               |
 |------------------------------------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Core library                             |    1     | `std::quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them                                    |
-| The Affine Space                         |    1     | `std::quantity_point`, absolute and relative point origins                                                                                                |
+| Core library                             |    1     | `quantity`, expression templates, dimensions, quantity specifications, units, _references_, and concepts for them                                         |
+| The Affine Space                         |    1     | Points (`quantity<point<R, PO>>`), absolute and relative point origins                                                                                    |
 | Quantity kinds                           |    1     | Support quantities of the same dimension that should be distinct, e.g., `frequency`, `activity`, and `modulation_rate`, or `energy` and `moment_of_force` |
 | Various quantities of the same kind      |    1     | Support quantities of the same kind that should be distinct, e.g., `width`, `height`, `wavelength` (all of the kind `length`)                             |
 | Vector and tensor representation types   |    2     | Support for quantities of vector and tensor representation types                                                                                          |
@@ -945,22 +1048,22 @@ a few steps).
 | Dimensions text output                   |    2     | Text output for dimension variables                                                                                                                       |
 | `std::format` support                    |    1     | Custom grammar and support for all the standard formatting facilities                                                                                     |
 | `std::ostream` support                   |    1     | Stream insertion operators support                                                                                                                        |
-| `std::chrono` support                    |    2     | Customization points that enable support for `std::chrono_duration` and `std::chrono_time_point` and other external libraries                             |
+| `std::chrono` support                    |    2     | Customization points that enable support for `std::chrono::duration` and `std::chrono::time_point` and other external libraries                           |
 
 <!-- markdownlint-enable MD013 -->
 
 In the above table:
 
-- `std::quantity` is a class template that is the workhorse of the library.
+- `quantity` is a class template that is the workhorse of the library.
   It is an incompatible generalization of `std::chrono::duration`.
 - Expression templates are used to provide user-friendly error messages and great debugging experience.
   More information on this subject can be found in [@P2982R0].
 - Quantity specifications include at least the following information: quantity type, quantity character,
   quantity equation (in case of derived quantities), quantity kind, and dimension.
-- References (temporary name to be bikeshedded) are numeric wrappers over a quantity specification and
-  a unit.
-- `std::quantity_point` is an incompatible generalization of `std::chrono::time_point`.
-- Absolute point origin is a compile-time constant defining an absolute origin for `std::quantity_point`
+- References (temporary name to be bikeshedded) combine a quantity specification and a unit.
+- A point, `quantity<point<R, PO>>`, is an incompatible generalization of
+  `std::chrono::time_point`.
+- Absolute point origin is a compile-time constant defining an absolute origin for points
   of a specific quantity type.
 - Relative point origin is a compile-time constant defining an origin relative to another point origin.
 
@@ -968,24 +1071,25 @@ Below, we provide a short overview of estimated additional framework-related cos
 providing support for the following features (based on our current implementation experience):
 
 - Quantity kinds
-    - `is_kind` tag type
+    - `subkind` tag type
     - additional conversion rules to improve safety
 - Quantities of the same kind
     - `kind_of<QS>` class and variable templates
     - additional conversion rules to improve safety
-    - `common_quantity_spec()` function that finds a common node in the hierarchy tree
+    - `get_common_quantity_spec()` function that finds a common node in the hierarchy tree
 - Vector and tensor representation types
-    - `quantity_character` enum
-    - `is_scalar<T>`, `is_vector<T>`, `is_tensor<T>` customizations points
-    - a few concepts (e.g. `RepresentationOf<Ch>`, `VectorRepresntation<T>`, ...)
+    - `quantity_tensor_order` and `quantity_field` enums, and the `quantity_character` class
+    - `tensor_order<T>` and `numeric_field<T>` customization points
+    - a few concepts (e.g. `representation_of<T, V>`, ...)
 - Logarithmic units
     - the design is TBD
 - Natural units
-    - `system_reference` class template
+    - none, the system is defined with quantity specifications and units
 - Polymorphic unit
     - the design is TBD
 
-_Note 1:_ There is no built-in support to output `quantity_point` as text.
+_Note 1:_ Text output of a point is provided only when its origin is the default one for its
+reference.
 
 _Note 2:_ As long as the C++ Standard doesn't provide a generic facility to parse localized text,
 we do not plan to propose any support for doing that for physical quantities and their units.
@@ -1045,15 +1149,22 @@ in other domains that we can get in the future from other authors.
 
 <!-- markdownlint-disable MD013 -->
 
-| Feature                      | Priority | Description                                                                                                        |
-|------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------|
-| `fixed_string`               |    1     | String-like structural type with inline storage (can be used as an NTTP)                                           |
-| Compile-time prime numbers   |    1     | Compile-time facilities to break any integral value to a product of prime numbers and their powers                 |
-| Value-preserving conversions |    1     | Type trait stating if the conversion from one type to another is value preserving or not ([@P0870R5], [@P2509R0]?) |
-| Number concepts              |    2     | Concepts for vector- and point-space numbers ([@P3003R0])                                                          |
-| Bounded numeric types        |    3     | Numerical type wrappers with values bounded to a provided interval (optionally with a wraparound semantics)        |
+| Feature                      | Priority |         Papers         | Description                                                                                                |
+|------------------------------|:--------:|:----------------------:|------------------------------------------------------------------------------------------------------------|
+| `fixed_string`               |    1     |       [@P3094R0]       | String-like structural type with inline storage (can be used as an NTTP).                                  |
+| Nested entities formatting   |    1     |    [@P4413R0_PRE]      | Possibility to override the format string in the parse and format contexts.                                |
+| Compile-time prime numbers   |    2     |       [@P3133R0]       | Compile-time facilities to break any integral value to a product of prime numbers and their powers.        |
+| Value-preserving conversions |    2     | [@P0870R5], [@P2509R0] | Type trait stating if the conversion from one type to another is value preserving or not.                  |
+| Number concepts              |    2     |       [@P3003R0]       | Concepts for vector- and point-space numbers.                                                              |
+| Bounded numeric types        |    3     |       [@P2993R0]       | Numerical type wrappers with values bounded to a provided interval (optionally with wraparound semantics). |
 
 <!-- markdownlint-enable MD013 -->
+
+Priorities used above:
+
+1. Mandatory to implement the library or exposed in its public interfaces.
+2. Functional extension/improvement to the framework design but worse alternatives are currently available.
+3. Not needed for the library's implementation but improves its use cases.
 
 
 # Plan for standardization
@@ -1092,7 +1203,7 @@ by LEWG will help to keep the efforts on track.
 
 # Acknowledgements
 
-Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting
+Special thanks and recognition goes to [The C++ Alliance](https://cppalliance.org) for supporting
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
 
 We would also like to thank Peter Sommerlad for providing valuable feedback that helped us shape
@@ -1179,6 +1290,20 @@ references:
   citation-label: nholthaus/units
   title: "UNITS - A compile-time, header-only, dimensional analysis and unit conversion library built on c++14 with no dependencies."
   URL: <https://github.com/nholthaus/units>
+- id: P3045R10_PRE
+  citation-label: P3045R10
+  author:
+    - family: Pusz
+      given: Mateusz
+  title: "Quantities and units library"
+  URL: <https://wg21.link/p3045r10>
+- id: P4413R0_PRE
+  citation-label: P4413R0
+  author:
+    - family: Pusz
+      given: Mateusz
+  title: "Composing formatters: redirecting a format context and narrowing a parse context"
+  URL: <https://wg21.link/p4413r0>
 - id: SI
   citation-label: SI
   title: "SI Brochure: The International System of Units (SI)"
