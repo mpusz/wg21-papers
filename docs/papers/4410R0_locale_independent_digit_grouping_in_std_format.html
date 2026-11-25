@@ -1,0 +1,3037 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2026-11-25" />
+  <title>Locale-independent digit grouping in `std::format`</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ background-color: #f6f8fa; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { } 
+code span.al { color: #ff0000; } 
+code span.an { } 
+code span.at { } 
+code span.bn { color: #9f6807; } 
+code span.bu { color: #9f6807; } 
+code span.cf { color: #00607c; } 
+code span.ch { color: #9f6807; } 
+code span.cn { } 
+code span.co { color: #6a737d; font-style: italic; } 
+code span.cv { color: #6a737d; font-style: italic; } 
+code span.do { color: #6a737d; } 
+code span.dt { color: #00607c; } 
+code span.dv { color: #9f6807; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #9f6807; } 
+code span.fu { } 
+code span.im { } 
+code span.in { color: #6a737d; } 
+code span.kw { color: #00607c; } 
+code span.op { color: #7b3e91; } 
+code span.ot { } 
+code span.pp { color: #6f4e37; } 
+code span.re { } 
+code span.sc { color: #9f6807; } 
+code span.ss { color: #9f6807; } 
+code span.st { color: #9f6807; } 
+code span.va { } 
+code span.vs { color: #9f6807; } 
+code span.wa { color: #6a737d; font-weight: bold; } 
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+} </style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+text-align: justify;
+}
+@media screen and (max-width: 30em) {
+body {
+margin: 1.5em;
+}
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: yellow; }
+:target .codeblock { background-color: yellow; }
+:target .sourceCode { background-color: yellow; }
+:target ul { background-color: yellow; }
+p:has(> span.marginalizedparent > a.marginalized:target),
+li:has(> span.marginalizedparent > a.marginalized:target) {
+background-color: yellow;
+}
+a.marginalized:target { background-color: transparent; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+</style>
+  <style type="text/css">:root {
+color-scheme: light;
+--unchanged-color: #898887;
+--add-color: #006e28;
+--rm-color: #bf0303;
+--note-color: #0000ff;
+--not-proposed-color: #7151a8;
+--not-proposed-bg-color: rgba(113, 81, 168, 0.06);
+}
+.document-info {
+display: inline-flex;
+align-items: center;
+gap: 0.3rem;
+}
+.document-link {
+display: inline-block;
+padding: 0 0.4em;
+border: 1px solid var(--toc-border, #d9e1e7);
+border-radius: 0.4rem;
+color: var(--toc-muted, #66727d);
+font: 600 0.8em/1 sans-serif;
+text-decoration: none;
+vertical-align: text-bottom;
+}
+.document-link:hover {
+border-color: var(--toc-hover-border, #bdc9d2);
+background: var(--toc-hover-bg, #f2f6f8);
+color: var(--toc-hover-text, #244d6b);
+}
+.document-link:focus-visible {
+outline: 2px solid var(--toc-accent, #2878b5);
+outline-offset: 1px;
+}
+table thead tr {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+table tbody tr {
+border-bottom: 1px solid black;
+}
+.cmptable {
+width: 100%;
+}
+
+ins, del {
+text-decoration-thickness: 1px;
+}
+
+ins {
+text-underline-offset: 3.5px;
+}
+.add {
+color: var(--add-color);
+}
+.rm {
+color: var(--rm-color);
+}
+code.diff {
+color: var(--unchanged-color);
+}
+code.diff span.va {
+color: var(--add-color);
+}
+code.diff span.st {
+color: var(--rm-color);
+}
+.ednote,
+.draftnote {
+color: var(--note-color);
+}
+
+div.sourceCode {
+padding: 0.5em;
+}
+div.sourceCode:has(> pre.not_proposed) {
+padding: 0.65em 0.8em 0.65em 1.1em;
+border-left: 0.25em solid var(--not-proposed-color);
+background-color: var(--not-proposed-bg-color);
+}
+div.sourceCode:has(> pre.not_proposed)::before {
+content: "\2298\2002 Not proposed";
+display: block;
+margin-bottom: 0.8em;
+color: var(--not-proposed-color);
+font: 600 0.95rem/1.2 sans-serif;
+}
+</style>
+  <style type="text/css">
+#title-block-header > table {
+border: none;
+float: right;
+}
+#title-block-header > table tbody tr {
+border-bottom: none;
+}
+details.collapsed > summary {
+list-style: none;
+cursor: pointer;
+}
+details.collapsed > summary::-webkit-details-marker {
+display: none;
+}
+details.collapsed > summary .collapse-marker {
+--collapse-marker-offset: 0.15em;
+display: inline-block;
+width: 0;
+margin-right: 0.5em;
+height: 0;
+border-top: 0.3em solid transparent;
+border-bottom: 0.3em solid transparent;
+border-left: 0.45em solid currentColor;
+transform: translateX(var(--collapse-marker-offset));
+transform-origin: 0.15em center;
+vertical-align: 0.1em;
+}
+details.collapsed > summary .collapse-marker:first-child {
+--collapse-marker-offset: 0.075em;
+width: calc(35pt - 0.45em);
+margin-right: 0.25em;
+}
+details.collapsed[open] > summary .collapse-marker {
+transform: translateX(var(--collapse-marker-offset)) rotate(90deg);
+}
+details.collapsed > summary > :is(h1, h2, h3, h4, h5, h6) {
+margin-bottom: 0;
+}
+body[data-syntax-highlighting="off"] code.sourceCode:not(.diff) span:not(.add, .rm, .co, .cv, .do, .in) {
+color: inherit !important;
+font-style: inherit !important;
+font-weight: inherit !important;
+text-decoration: inherit !important;
+}
+body[data-deleted-text="hide"] .rm del {
+display: none !important;
+}
+</style>
+  <style type="text/css">
+:root {
+--toc-width: 19rem;
+--toc-right: clamp(1rem, 2vw, 2.5rem);
+--toc-top: 9.5rem;
+--toc-accent: #2878b5;
+--toc-active-bg: #eaf4fb;
+--toc-active-text: #175f91;
+--toc-border: #d9e1e7;
+--toc-heading: #4d5c68;
+--toc-hover-bg: #f2f6f8;
+--toc-hover-border: #bdc9d2;
+--toc-hover-text: #244d6b;
+--toc-muted: #66727d;
+--toc-rail: #dfe6eb;
+--toc-section-number: #89949d;
+--toc-scrollbar: #b8c3cc;
+--toc-surface: rgba(255, 255, 255, 0.96);
+--toc-panel-shadow:
+0 0.75rem 2.25rem rgba(30, 55, 75, 0.08),
+0 0.125rem 0.4rem rgba(30, 55, 75, 0.05);
+--view-controls-bg: rgba(255, 255, 255, 0.96);
+--view-controls-border: #b7c0c8;
+--view-controls-color: #22303c;
+--view-controls-hover: #f3f6f8;
+--view-controls-shadow: 0 0.2rem 0.8rem rgba(34, 48, 60, 0.12);
+}
+
+.view-controls {
+position: sticky;
+top: 0.75rem;
+z-index: 1000;
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+gap: 0.35rem;
+width: fit-content;
+margin-left: auto;
+margin-bottom: 1rem;
+padding: 0.45rem 0.8rem;
+border: 1px solid var(--view-controls-border);
+border-radius: 999px;
+background: var(--view-controls-bg);
+color: var(--view-controls-color);
+font: 600 0.9rem/1.1 sans-serif;
+box-shadow: var(--view-controls-shadow);
+}
+.view-controls:hover {
+background: var(--view-controls-hover);
+}
+.view-controls label {
+display: flex;
+align-items: center;
+gap: 0.45rem;
+}
+.view-controls input {
+margin: 0;
+}
+.view-controls span {
+white-space: nowrap;
+}
+.theme-switcher {
+display: flex;
+align-self: stretch;
+min-width: 0;
+margin: 0 0 0.15rem;
+padding: 0.15rem;
+border: 1px solid var(--toc-border);
+border-radius: 0.5rem;
+}
+.theme-switcher legend {
+position: absolute;
+width: 1px;
+height: 1px;
+padding: 0;
+overflow: hidden;
+clip: rect(0, 0, 0, 0);
+white-space: nowrap;
+border: 0;
+}
+.theme-switcher button {
+display: inline-flex;
+min-width: 0;
+align-items: center;
+justify-content: center;
+gap: 0.3rem;
+flex: 1;
+padding: 0.3rem 0.4rem;
+border: 0;
+border-radius: 0.35rem;
+background: transparent;
+color: var(--toc-muted);
+font: inherit;
+cursor: pointer;
+}
+.theme-switcher button:hover {
+background: var(--toc-hover-bg);
+color: var(--toc-hover-text);
+}
+.theme-switcher button:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 1px;
+}
+.theme-switcher button[aria-pressed="true"] {
+background: var(--toc-active-bg);
+color: var(--toc-active-text);
+font-weight: 600;
+}
+.theme-icon {
+font-size: 0.9rem;
+line-height: 1;
+}
+.table-of-contents .toc-progress {
+display: none;
+}
+.toc-mobile-bar,
+.toc-dialog,
+.toc-mobile-title,
+.toc-mobile-trigger,
+.toc-expand-toggle {
+display: none;
+}
+
+@media screen and (max-width: 89.999em) {
+html,
+body {
+max-width: 100%;
+}
+html {
+overflow-x: hidden;
+overflow-x: clip;
+}
+.wrapper {
+max-width: 100%;
+}
+.wrapper div.sourceCode {
+max-width: 100%;
+box-sizing: border-box;
+}
+
+.wrapper .table-wrapper {
+max-width: 100%;
+overflow-x: auto;
+overscroll-behavior-inline: contain;
+}
+body.toc-ready .table-of-contents {
+display: none;
+}
+body.toc-ready :is(h1, h2, h3, h4, h5, h6)[id] {
+scroll-margin-top: 4.5rem;
+}
+body.toc-menu-open {
+overflow: hidden;
+}
+body.toc-ready .toc-mobile-bar {
+position: fixed;
+inset: 0 0 auto;
+z-index: 1100;
+display: flex;
+align-items: center;
+gap: 1rem;
+height: 3.5rem;
+box-sizing: border-box;
+padding:
+0.5rem max(1rem, env(safe-area-inset-right))
+0.5rem max(1rem, env(safe-area-inset-left));
+border-bottom: 1px solid var(--toc-border);
+background: var(--toc-surface);
+box-shadow: 0 0.25rem 1rem rgba(30, 55, 75, 0.08);
+backdrop-filter: blur(0.85rem);
+font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+sans-serif;
+}
+.toc-mobile-bar .view-controls {
+position: static;
+z-index: auto;
+flex-direction: row;
+align-items: center;
+gap: 0.35rem;
+width: auto;
+margin: 0;
+padding: 0;
+border: 0;
+border-radius: 0;
+background: transparent;
+color: var(--toc-muted);
+box-shadow: none;
+font: 600 0.72rem/1 ui-sans-serif, -apple-system, BlinkMacSystemFont,
+"Segoe UI", sans-serif;
+}
+.toc-mobile-bar .view-controls:hover {
+background: transparent;
+}
+.toc-mobile-bar .view-controls label {
+gap: 0.35rem;
+padding: 0.45rem 0.55rem;
+border: 1px solid var(--toc-border);
+border-radius: 0.6rem;
+background: transparent;
+cursor: pointer;
+}
+.toc-mobile-bar .view-controls label:hover {
+border-color: var(--toc-hover-border);
+background: var(--toc-hover-bg);
+color: var(--toc-hover-text);
+}
+.toc-mobile-bar .view-controls input {
+accent-color: var(--toc-accent);
+}
+.toc-mobile-bar .view-controls input:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 2px;
+}
+.toc-mobile-bar .theme-switcher {
+align-self: center;
+margin: 0;
+}
+body[data-syntax-highlighting="off"]
+.toc-mobile-bar label[for="no-syntax-highlighting-toggle"],
+body[data-deleted-text="hide"]
+.toc-mobile-bar label[for="hide-deleted-text-toggle"] {
+border-color: color-mix(in srgb,
+var(--toc-accent) 35%, var(--toc-border));
+background: var(--toc-active-bg);
+color: var(--toc-active-text);
+}
+body.toc-ready .toc-mobile-title {
+display: block;
+min-width: 0;
+flex: 1;
+overflow: hidden;
+color: var(--toc-heading);
+font-size: 0.9rem;
+font-weight: 600;
+line-height: 1.2;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+body.toc-ready .toc-mobile-trigger {
+display: inline-flex;
+align-items: center;
+gap: 0.5rem;
+flex: 0 0 auto;
+padding: 0.45rem 0.65rem;
+border: 1px solid var(--toc-border);
+border-radius: 0.6rem;
+background: transparent;
+color: var(--toc-heading);
+font: 600 0.78rem/1 ui-sans-serif, -apple-system, BlinkMacSystemFont,
+"Segoe UI", sans-serif;
+cursor: pointer;
+}
+.toc-mobile-trigger:hover {
+border-color: var(--toc-hover-border);
+background: var(--toc-hover-bg);
+}
+.toc-mobile-trigger:focus-visible,
+.toc-dialog-close:focus-visible,
+.toc-dialog a:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 2px;
+}
+.toc-menu-icon {
+position: relative;
+width: 1rem;
+height: 0.7rem;
+flex: 0 0 auto;
+border-top: 2px solid currentColor;
+border-bottom: 2px solid currentColor;
+box-sizing: border-box;
+}
+.toc-menu-icon::after {
+content: "";
+position: absolute;
+top: 50%;
+left: 0;
+width: 100%;
+border-top: 2px solid currentColor;
+transform: translateY(-50%);
+}
+.toc-dialog[open] {
+position: fixed;
+inset: 0;
+z-index: 1200;
+display: flex;
+flex-direction: column;
+width: min(32rem, calc(100vw - 2rem));
+max-width: none;
+max-height: min(46rem, calc(100dvh - 2rem));
+box-sizing: border-box;
+margin: auto;
+padding: 0;
+overflow: hidden;
+border: 1px solid var(--toc-border);
+border-radius: 1rem;
+background: var(--toc-surface);
+color: var(--toc-muted);
+box-shadow: 0 1.5rem 5rem rgba(20, 35, 45, 0.28);
+font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+sans-serif;
+text-align: left;
+hyphens: none;
+}
+.toc-dialog::backdrop {
+background: rgba(20, 30, 38, 0.45);
+backdrop-filter: blur(0.15rem);
+}
+.toc-dialog-header {
+display: flex;
+flex: 0 0 auto;
+align-items: flex-start;
+gap: 1rem;
+padding: 1rem 1rem 0.9rem 1.15rem;
+border-bottom: 1px solid var(--toc-border);
+}
+.toc-dialog-heading {
+min-width: 0;
+flex: 1;
+}
+.toc-dialog-eyebrow {
+margin: 0 0 0.3rem;
+color: var(--toc-accent);
+font-size: 0.68rem;
+font-weight: 700;
+letter-spacing: 0.11em;
+line-height: 1;
+text-transform: uppercase;
+}
+.toc-dialog-title {
+margin: 0;
+overflow: hidden;
+color: var(--toc-heading);
+font-size: 1rem;
+font-weight: 650;
+line-height: 1.25;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.toc-dialog-close {
+display: grid;
+width: 2rem;
+height: 2rem;
+flex: 0 0 auto;
+place-items: center;
+padding: 0;
+border: 0;
+border-radius: 50%;
+background: transparent;
+color: var(--toc-muted);
+font: 400 1.5rem/1 sans-serif;
+cursor: pointer;
+}
+.toc-dialog-close:hover {
+background: var(--toc-hover-bg);
+color: var(--toc-heading);
+}
+.toc-dialog-nav {
+min-height: 0;
+
+flex: 1 1 auto;
+overflow-y: auto;
+overscroll-behavior: contain;
+padding: 0.75rem 0.8rem 1rem;
+scrollbar-width: thin;
+scrollbar-color: var(--toc-scrollbar) transparent;
+}
+.toc-dialog ul {
+padding-left: 0;
+margin: 0;
+list-style: none;
+}
+.toc-dialog ul ul {
+position: relative;
+padding-left: 0.9rem;
+margin: 0.15rem 0 0.25rem 0.65rem;
+}
+.toc-dialog ul ul::before {
+content: "";
+position: absolute;
+top: 0.2rem;
+bottom: 0.2rem;
+left: 0;
+width: 1px;
+background: var(--toc-rail);
+}
+.toc-dialog li,
+.toc-dialog li > ul {
+display: block;
+margin-top: 0;
+margin-bottom: 0;
+}
+.toc-dialog li::before {
+display: none;
+}
+.toc-dialog a {
+display: block;
+margin: 0.0625rem 0;
+padding: 0.38rem 0.55rem 0.38rem 0.65rem;
+border-left: 2px solid transparent;
+border-radius: 0 0.45rem 0.45rem 0;
+color: var(--toc-muted);
+font-size: 0.875rem;
+line-height: 1.35;
+text-decoration: none;
+overflow-wrap: anywhere;
+}
+.toc-dialog a:hover {
+color: var(--toc-hover-text);
+background: var(--toc-hover-bg);
+}
+.toc-dialog a.active {
+border-left-color: var(--toc-accent);
+background: var(--toc-active-bg);
+color: var(--toc-active-text);
+font-weight: 600;
+}
+.toc-dialog .toc-section-number {
+color: var(--toc-section-number);
+font-variant-numeric: tabular-nums;
+}
+.toc-dialog code,
+.toc-dialog code span {
+color: inherit !important;
+background: transparent !important;
+font-size: 0.96em;
+font-weight: inherit;
+}
+}
+@media screen and (max-width: 30em) {
+a.self-link {
+left: -1.5rem;
+width: 1.5rem;
+}
+body.toc-ready {
+padding-top: 3.25rem;
+}
+.toc-mobile-trigger-label {
+position: absolute;
+width: 1px;
+height: 1px;
+padding: 0;
+overflow: hidden;
+clip: rect(0, 0, 0, 0);
+white-space: nowrap;
+border: 0;
+}
+.toc-mobile-trigger {
+padding-inline: 0.6rem;
+}
+.toc-dialog[open] {
+width: calc(100vw - 1rem);
+max-height: calc(100dvh - 1rem);
+border-radius: 0.875rem;
+}
+}
+@media screen and (max-width: 47.999em) {
+body.toc-ready .toc-mobile-title {
+display: none;
+}
+.toc-mobile-bar .view-controls {
+min-width: 0;
+flex: 1;
+}
+.toc-mobile-bar .view-controls label {
+justify-content: center;
+min-width: 0;
+flex: 1;
+}
+.toc-mobile-bar .theme-label {
+display: none;
+}
+.toc-mobile-bar .theme-switcher button {
+flex: 0 0 auto;
+padding-inline: 0.35rem;
+}
+}
+@media screen and (max-width: 35.999em) {
+.toc-mobile-bar .view-controls > label > span {
+font-size: 0;
+}
+.toc-mobile-bar label[for="no-syntax-highlighting-toggle"] span::after {
+content: "No highlight";
+font-size: 0.72rem;
+}
+.toc-mobile-bar label[for="hide-deleted-text-toggle"] span::after {
+content: "Hide deleted";
+font-size: 0.72rem;
+}
+}
+@media screen and (min-width: 90em) {
+.toc-mobile-bar {
+display: block;
+}
+
+body.has-toc {
+margin-right: calc(
+var(--toc-right) + var(--toc-width) + 2rem
+);
+}
+
+body.has-toc .view-controls {
+position: fixed;
+top: 1rem;
+right: var(--toc-right);
+width: var(--toc-width);
+box-sizing: border-box;
+margin: 0;
+padding: 0.6rem 0.75rem;
+border-color: var(--toc-border);
+border-radius: 0.875rem;
+background: var(--toc-surface);
+color: var(--toc-muted);
+box-shadow: var(--toc-panel-shadow);
+backdrop-filter: blur(0.75rem);
+font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+sans-serif;
+font-size: 0.825rem;
+font-weight: 400;
+line-height: 1.38;
+}
+body.has-toc .view-controls:hover {
+background: var(--toc-surface);
+}
+body.has-toc .view-controls label {
+align-self: stretch;
+padding: 0.3rem 0.55rem 0.3rem 0.6rem;
+border-left: 2px solid transparent;
+border-radius: 0 0.4rem 0.4rem 0;
+cursor: pointer;
+transition:
+background-color 120ms ease,
+color 120ms ease;
+}
+body.has-toc .view-controls label:hover {
+background: var(--toc-hover-bg);
+color: var(--toc-hover-text);
+}
+body.has-toc .view-controls input {
+accent-color: var(--toc-accent);
+}
+body.has-toc .view-controls input:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 2px;
+}
+.table-of-contents {
+position: fixed;
+top: var(--toc-top);
+right: var(--toc-right);
+width: var(--toc-width);
+max-height: calc(100vh - var(--toc-top) - 1.5rem);
+box-sizing: border-box;
+overflow-y: auto;
+overscroll-behavior: contain;
+border: 1px solid var(--toc-border);
+border-radius: 0.875rem;
+background: var(--toc-surface);
+box-shadow: var(--toc-panel-shadow);
+scrollbar-width: thin;
+scrollbar-color: var(--toc-scrollbar) transparent;
+font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+sans-serif;
+font-size: 0.825rem;
+line-height: 1.38;
+text-align: left;
+hyphens: none;
+color: var(--toc-muted);
+}
+.table-of-contents .toc-chrome {
+position: sticky;
+top: 0;
+z-index: 2;
+padding: 0.9rem 0.95rem 0.7rem;
+border-bottom: 1px solid var(--toc-border);
+background: var(--toc-surface);
+backdrop-filter: blur(0.75rem);
+}
+.table-of-contents .toc-title-row {
+display: flex;
+align-items: center;
+gap: 0.75rem;
+}
+.table-of-contents .table-of-contents-title {
+display: flex;
+align-items: center;
+gap: 0.55rem;
+min-width: 0;
+flex: 1;
+font-size: 0.72rem;
+font-weight: 700;
+line-height: 1;
+letter-spacing: 0.11em;
+text-transform: uppercase;
+color: #4d5c68;
+border-bottom: none !important;
+margin: 0;
+}
+.table-of-contents .toc-expand-toggle {
+display: inline-flex;
+min-width: 4.7rem;
+align-items: center;
+justify-content: center;
+flex: 0 0 auto;
+padding: 0.3rem 0.45rem;
+border: 1px solid var(--toc-border);
+border-radius: 0.45rem;
+background: transparent;
+color: var(--toc-muted);
+font: 600 0.68rem/1 ui-sans-serif, -apple-system, BlinkMacSystemFont,
+"Segoe UI", sans-serif;
+cursor: pointer;
+transition:
+background-color 120ms ease,
+border-color 120ms ease,
+color 120ms ease;
+}
+.table-of-contents .toc-expand-toggle[hidden] {
+display: none;
+}
+.table-of-contents .toc-expand-toggle:hover {
+border-color: var(--toc-hover-border);
+background: var(--toc-hover-bg);
+color: var(--toc-hover-text);
+}
+.table-of-contents .toc-expand-toggle:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 2px;
+}
+.table-of-contents .table-of-contents-title::before {
+content: "";
+width: 0.45rem;
+height: 0.45rem;
+flex: 0 0 auto;
+border-radius: 50%;
+background: var(--toc-accent);
+box-shadow: 0 0 0 0.2rem color-mix(in srgb,
+var(--toc-accent) 14%, transparent);
+}
+.table-of-contents .toc-progress {
+display: block;
+height: 0.1875rem;
+margin-top: 0.75rem;
+overflow: hidden;
+border-radius: 999px;
+background: var(--toc-rail);
+}
+.table-of-contents .toc-progress-bar {
+display: block;
+width: 100%;
+height: 100%;
+border-radius: inherit;
+background: var(--toc-accent);
+transform: scaleX(0);
+transform-origin: left center;
+}
+.table-of-contents > ul {
+padding: 0.65rem 0.75rem 0.8rem;
+margin: 0;
+}
+.table-of-contents ul ul {
+position: relative;
+padding-left: 0.85rem;
+margin: 0.15rem 0 0.25rem 0.55rem;
+}
+.table-of-contents ul ul::before {
+content: "";
+position: absolute;
+top: 0.15rem;
+bottom: 0.2rem;
+left: 0;
+width: 1px;
+background: var(--toc-rail);
+}
+
+body.toc-ready .table-of-contents li > ul {
+display: none;
+}
+body.toc-ready .table-of-contents li.active-path > ul {
+display: block;
+}
+body.toc-ready .table-of-contents.toc-expanded li > ul {
+display: block;
+}
+.table-of-contents li {
+margin: 0;
+}
+.table-of-contents li::before {
+display: none;
+}
+.table-of-contents a {
+display: block;
+margin: 0.0625rem 0;
+padding: 0.3rem 0.55rem 0.3rem 0.6rem;
+border-left: 2px solid transparent;
+border-radius: 0 0.4rem 0.4rem 0;
+color: var(--toc-muted);
+text-decoration: none;
+overflow-wrap: anywhere;
+transition:
+background-color 120ms ease,
+border-color 120ms ease,
+color 120ms ease;
+}
+.table-of-contents a:hover {
+color: var(--toc-hover-text);
+background: var(--toc-hover-bg);
+}
+.table-of-contents a:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 1px;
+}
+.table-of-contents a.active {
+color: var(--toc-active-text);
+border-left-color: var(--toc-accent);
+background: var(--toc-active-bg);
+font-weight: 600;
+}
+.table-of-contents .toc-section-number {
+color: var(--toc-section-number);
+font-weight: 400;
+font-variant-numeric: tabular-nums;
+margin-right: 0.2em;
+}
+.table-of-contents a.active .toc-section-number {
+color: inherit;
+opacity: 0.78;
+}
+
+.table-of-contents code,
+.table-of-contents code span {
+color: inherit !important;
+background: transparent !important;
+font-size: 0.96em;
+font-weight: inherit;
+}
+}
+@media screen and (min-width: 90em) and (prefers-reduced-motion: reduce) {
+.table-of-contents a {
+transition: none;
+}
+.table-of-contents .toc-expand-toggle {
+transition: none;
+}
+}
+@media print {
+.view-controls,
+.toc-mobile-bar,
+.toc-dialog {
+display: none;
+}
+}
+</style>
+  <style id="dark-theme-styles" media="screen and (prefers-color-scheme: dark)">
+
+body {
+background-color: #171717;
+color: #e0e0e0;
+}
+span.mjx-mstyle { color: #e0e0e0 !important }
+a:link { color: #74bdff; }
+a:visited { color: #c38aff; }
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+span.phantom { color: #171717; }
+a.index:before { color: #e0e0e0; background-color: #4b6353; }
+.comment { color: #40f040; }
+.footnote .comment { color: #60ff60; }
+.example .comment { color: #60ff60; }
+.note .comment { color: #60ff60; }
+span.keyword { color: #32eade; }
+span.parenthesis { color: #ff7070; }
+span.curlybracket { color: #ff7070; }
+span.squarebracket { color: #ff7070; }
+span.literal { color: #ffd867; }
+span.literalterminal { color: #ffd867; }
+span.operator { color: #dac6d9; }
+span.anglebracket { color: #dac6d9; }
+span.preprocessordirective { color: #c28c68; }
+table { border-color: #e0e0e0; }
+td.border { border-color: #e0e0e0; }
+td.border { border-left-color: #e0e0e0; }
+tr.rowsep, td.cline { border-top-color: #e0e0e0; }
+tr.capsep { border-top-color: #e0e0e0; }
+th { border-bottom-color: #e0e0e0; }
+.footnoteSeparator { background-color: #e0e0e0; }
+text { fill: #e0e0e0; }
+path { stroke: #e0e0e0; }
+polygon { stroke: #e0e0e0; fill: #e0e0e0; }
+ellipse { stroke: #e0e0e0; }
+:target { background-color: #4b6345; color: #ffffff; }
+:target .codeblock { background-color: #4b6345; }
+:target ul { background-color: #4b6345; }
+:target a:link { color: #9fcdff; }
+:target a:visited { color: #d39aff; }
+:target a.hidden_link { text-decoration: none; color: inherit; }
+:target span.keyword { color: #52faee; }
+:target span.parenthesis { color: #ff4060; font-weight: bold; }
+:target span.curlybracket { color: #ff4060; font-weight: bold; }
+:target span.squarebracket { color: #ff4060; font-weight: bold; }
+:target span.literal { color: #ffe070; }
+:target span.literalterminal { color: #ffe070; }
+:target span.operator { color: #ffffff; }
+:target span.anglebracket { color: #ffffff; }
+:target span.preprocessordirective { color: #e0968f; }
+:target .comment { color: #75ff20; }
+:target .footnote .comment { color: #75ff20; }
+:target .example .comment { color: #75ff20; }
+:target .note .comment { color: #75ff20; }
+
+:root {
+color-scheme: dark;
+--unchanged-color: #e0e0e0;
+--add-color: #d0fddd;
+--rm-color: #ff9b98;
+--note-color: #6699ff;
+--not-proposed-color: #c2a4f5;
+--not-proposed-bg-color: rgba(194, 164, 245, 0.07);
+}
+table thead tr {
+border-bottom-color: #e0e0e0;
+}
+table tbody tr {
+border-bottom-color: #e0e0e0;
+}
+div.sourceCode {
+background-color: rgba(255, 255, 255, 0.03);
+}
+mark {
+background-color: #665c00;
+color: #ffffff;
+}
+code span.al,
+code span.er {
+color: #ff7070;
+}
+code span.cf,
+code span.dt,
+code span.kw {
+color: #32eade;
+}
+code span.bn,
+code span.bu,
+code span.ch,
+code span.dv,
+code span.fl,
+code span.sc,
+code span.ss,
+code span.st,
+code span.vs {
+color: #ffd867;
+}
+code span.co,
+code span.cv,
+code span.do,
+code span.in,
+code span.wa {
+color: #60ff60;
+}
+code span.op {
+color: #dac6d9;
+}
+code span.pp {
+color: #c28c68;
+}
+:target .sourceCode,
+p:has(> span.marginalizedparent > a.marginalized:target),
+li:has(> span.marginalizedparent > a.marginalized:target) {
+background-color: #4b6345;
+}
+
+:root {
+--toc-accent: #62b0eb;
+--toc-active-bg: rgba(70, 145, 200, 0.16);
+--toc-active-text: #84c7f5;
+--toc-border: #3b454e;
+--toc-heading: #d2d9de;
+--toc-hover-bg: rgba(255, 255, 255, 0.055);
+--toc-hover-border: #59636c;
+--toc-hover-text: #dceaf4;
+--toc-muted: #abb5bd;
+--toc-panel-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.28);
+--toc-rail: #414b54;
+--toc-section-number: #7f8a93;
+--toc-scrollbar: #59636c;
+--toc-surface: rgba(28, 28, 28, 0.96);
+--view-controls-bg: rgba(37, 37, 37, 0.96);
+--view-controls-border: #59636c;
+--view-controls-color: #e0e0e0;
+--view-controls-hover: #303030;
+--view-controls-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.4);
+} </style>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const darkStyles = document.getElementById('dark-theme-styles');
+      const storageKey = 'mpark-wg21-theme';
+      const themes = new Set(['system', 'light', 'dark']);
+
+      let theme = 'system';
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (themes.has(stored)) theme = stored;
+      } catch (_) {
+        // Local storage may be unavailable for local files or restricted contexts.
+      }
+
+      function applyTheme(value, persist) {
+        theme = value;
+        root.dataset.theme = value;
+        darkStyles.media = value === 'dark'
+          ? 'screen'
+          : value === 'light' ? 'not all' : 'screen and (prefers-color-scheme: dark)';
+
+        for (const button of document.querySelectorAll('button[data-theme-value]')) {
+          button.setAttribute('aria-pressed', String(button.dataset.themeValue === value));
+        }
+
+        if (!persist) return;
+        try {
+          if (value === 'system') {
+            localStorage.removeItem(storageKey);
+          } else {
+            localStorage.setItem(storageKey, value);
+          }
+        } catch (_) {
+          // The selected theme still applies for this page.
+        }
+      }
+
+      applyTheme(theme, false);
+      document.addEventListener('DOMContentLoaded', () => {
+        applyTheme(theme, false);
+        for (const button of document.querySelectorAll('button[data-theme-value]')) {
+          button.addEventListener('click', () => applyTheme(button.dataset.themeValue, true));
+        }
+      });
+    })();  </script>
+  <link href="data:image/vnd.microsoft.icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  
+</head>
+<body class="has-toc" data-syntax-highlighting="on" data-deleted-text="show">
+<header class="toc-mobile-bar">
+<div class="toc-mobile-title">Locale-independent digit grouping in
+<code class="sourceCode cpp">std<span class="op">::</span>format</code></div>
+<form class="view-controls">
+<fieldset class="theme-switcher">
+<legend>Theme</legend>
+<button type="button" data-theme-value="system" aria-label="Use system theme" aria-pressed="true" title="Use system theme">
+<span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">System</span>
+</button>
+<button type="button" data-theme-value="light" aria-label="Use light theme" aria-pressed="false" title="Use light theme">
+<span class="theme-icon" aria-hidden="true">☀</span><span class="theme-label">Light</span>
+</button>
+<button type="button" data-theme-value="dark" aria-label="Use dark theme" aria-pressed="false" title="Use dark theme">
+<span class="theme-icon" aria-hidden="true">☾</span><span class="theme-label">Dark</span>
+</button>
+</fieldset>
+<label for="no-syntax-highlighting-toggle">
+<input id="no-syntax-highlighting-toggle" type="checkbox"></input>
+<span>No syntax highlighting</span>
+</label>
+<label for="hide-deleted-text-toggle">
+<input id="hide-deleted-text-toggle" type="checkbox"></input>
+<span>Hide deleted text</span>
+</label>
+</form>
+<button class="toc-mobile-trigger" type="button" aria-label="Open table of contents" aria-expanded="false" aria-controls="toc-dialog">
+<span class="toc-menu-icon" aria-hidden="true"></span>
+<span class="toc-mobile-trigger-label">Contents</span>
+</button>
+</header>
+<dialog id="toc-dialog" class="toc-dialog" aria-modal="true" aria-labelledby="toc-dialog-title">
+<header class="toc-dialog-header">
+<div class="toc-dialog-heading">
+<div class="toc-dialog-eyebrow">Contents</div>
+<h2 id="toc-dialog-title" class="toc-dialog-title">Locale-independent
+digit grouping in
+<code class="sourceCode cpp">std<span class="op">::</span>format</code></h2>
+</div>
+<button class="toc-dialog-close" type="button" aria-label="Close table of contents">×</button>
+</header>
+<nav class="toc-dialog-nav" aria-label="Table of contents">
+</nav>
+</dialog>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Locale-independent digit
+grouping in
+<code class="sourceCode cpp">std<span class="op">::</span>format</code></h1>
+<table>
+  <tr>
+    <td>Document #:</td>
+    <td>
+      <span class="document-info">
+        <span>P4410R0</span>
+      <a class="document-link" href="https://wg21.link/P4410">Latest</a>
+      <a class="document-link" href="https://wg21.link/P4410/status">Status</a>
+      </span>
+    </td>
+  </tr>
+  <tr>
+    <td>Date:</td>
+    <td>2026-11-25</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project:</td>
+    <td>Programming Language C++</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Audience:</td>
+    <td>
+      SG16 Unicode<br>
+      Library Evolution Working Group<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to:</td>
+    <td>
+      Mateusz Pusz<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateusz.pusz@gmail.com</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+</header>
+<div style="clear:both">
+<nav id="TOC" class="table-of-contents" role="doc-toc" aria-label="Table of contents">
+<div class="toc-chrome">
+<div class="toc-title-row">
+<h1 id="toctitle" class="table-of-contents-title">Contents</h1>
+<button class="toc-expand-toggle" type="button" hidden aria-expanded="false">Expand</button>
+</div>
+<div class="toc-progress" aria-hidden="true"><span class="toc-progress-bar"></span></div>
+</div>
+<ul>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">1</span> Introduction</a></li>
+<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">2</span> Motivation</a>
+<ul>
+<li><a href="#numbers-with-many-digits" id="toc-numbers-with-many-digits"><span class="toc-section-number">2.1</span> Numbers with many digits</a></li>
+<li><a href="#the-l-option-cant-express-the-rule" id="toc-the-l-option-cant-express-the-rule"><span class="toc-section-number">2.2</span> The
+<code class="sourceCode cpp">L</code> option can’t express the
+rule</a></li>
+<li><a href="#comma-grouping-needs-a-locale-too" id="toc-comma-grouping-needs-a-locale-too"><span class="toc-section-number">2.3</span> Comma grouping needs a locale
+too</a></li>
+<li><a href="#quantities-and-units" id="toc-quantities-and-units"><span class="toc-section-number">2.4</span> Quantities and units</a></li>
+</ul></li>
+<li><a href="#what-the-standards-say" id="toc-what-the-standards-say"><span class="toc-section-number">3</span> What the standards say</a></li>
+<li><a href="#prior-art" id="toc-prior-art"><span class="toc-section-number">4</span> Prior art</a>
+<ul>
+<li><a href="#other-languages-and-libraries" id="toc-other-languages-and-libraries"><span class="toc-section-number">4.1</span> Other languages and
+libraries</a></li>
+<li><a href="#wg21" id="toc-wg21"><span class="toc-section-number">4.2</span> WG21</a></li>
+</ul></li>
+<li><a href="#design" id="toc-design"><span class="toc-section-number">5</span> Design</a>
+<ul>
+<li><a href="#spelling-and-position" id="toc-spelling-and-position"><span class="toc-section-number">5.1</span> Spelling and position</a></li>
+<li><a href="#separators" id="toc-separators"><span class="toc-section-number">5.2</span> Separators</a></li>
+<li><a href="#types-and-presentation-types" id="toc-types-and-presentation-types"><span class="toc-section-number">5.3</span> Types and presentation
+types</a></li>
+<li><a href="#the-iso-separator-character" id="toc-the-iso-separator-character"><span class="toc-section-number">5.4</span> The ISO separator
+character</a></li>
+<li><a href="#width-and-zero-padding" id="toc-width-and-zero-padding"><span class="toc-section-number">5.5</span> Width and zero padding</a></li>
+<li><a href="#interaction-with-l" id="toc-interaction-with-l"><span class="toc-section-number">5.6</span> Interaction with
+<code class="sourceCode cpp">L</code></a></li>
+<li><a href="#the-four-digit-exception" id="toc-the-four-digit-exception"><span class="toc-section-number">5.7</span> The four-digit exception</a></li>
+<li><a href="#the-decimal-marker" id="toc-the-decimal-marker"><span class="toc-section-number">5.8</span> The decimal marker</a></li>
+</ul></li>
+<li><a href="#impact-on-existing-code" id="toc-impact-on-existing-code"><span class="toc-section-number">6</span> Impact on existing code</a></li>
+<li><a href="#implementation-experience" id="toc-implementation-experience"><span class="toc-section-number">7</span> Implementation experience</a></li>
+<li><a href="#polls" id="toc-polls"><span class="toc-section-number">8</span> Proposed polls</a>
+<ul>
+<li><a href="#sg16" id="toc-sg16"><span class="toc-section-number">8.1</span> SG16</a></li>
+<li><a href="#lewg" id="toc-lewg"><span class="toc-section-number">8.2</span> LEWG</a></li>
+</ul></li>
+<li><a href="#wording" id="toc-wording"><span class="toc-section-number">9</span> Wording</a>
+<ul>
+<li><a href="#format.string.std" id="toc-format.string.std"><span class="toc-section-number">9.1</span> <span>28.5.2.2 Standard format
+specifiers [format.string.std]</span></a></li>
+<li><a href="#format.formatter.spec" id="toc-format.formatter.spec"><span class="toc-section-number">9.2</span> <span>28.5.6.4 Formatter
+specializations [format.formatter.spec]</span></a></li>
+<li><a href="#version.syn" id="toc-version.syn"><span class="toc-section-number">9.3</span> <span>17.3.2 Header
+&lt;version&gt; synopsis [version.syn]</span></a></li>
+<li><a href="#wording-bibliography" id="toc-wording-bibliography"><span class="toc-section-number">9.4</span> Bibliography</a></li>
+</ul></li>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">10</span> Acknowledgements</a></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">11</span> References</a></li>
+</ul>
+</nav>
+<h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction<a href="#introduction" class="self-link"></a></h1>
+<p>ISO 80000-1 <span class="citation" data-cites="ISO80000-1"><a href="https://www.iso.org/standard/76921.html">[ISO 80000-1]</a></span>
+and the SI Brochure <span class="citation" data-cites="SI"><a href="https://www.bipm.org/en/publications/si-brochure">[SI]</a></span>
+specify how to group the digits of a number with many digits. The digits
+are separated into groups of three, counting from the decimal sign
+towards the left and towards the right, and the groups are separated by
+a small space:</p>
+<pre class="text"><code>299 792 458        1.602 176 634e-19        43 279.168 29</code></pre>
+<p>Software more often groups only the integer part, with a comma.
+Python’s <code class="sourceCode cpp"><span class="op">,</span></code>
+option and {fmt}’s <code class="sourceCode cpp">group_digits</code>
+print
+<code class="sourceCode cpp"><span class="dv">1</span><span class="op">,</span><span class="dv">234</span><span class="op">,</span><span class="dv">567</span></code>,
+and so do the POSIX <code class="sourceCode cpp">printf</code>
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> flag
+and Java’s <code class="sourceCode cpp"><span class="op">,</span></code>
+flag in an <code class="sourceCode cpp">en_US</code> locale. C++ itself
+writes
+<code class="sourceCode cpp"><span class="dv">1&#39;234&#39;567</span></code>
+in its literals.</p>
+<p><code class="sourceCode cpp">std<span class="op">::</span>format</code>
+can’t produce the last two numbers of the ISO example, and it can
+produce the others only through a locale. Its only grouping facility is
+the <code class="sourceCode cpp">L</code> option, which asks the locale.
+The locale decides the group sizes and the separator, and the result
+never groups the fractional part.</p>
+<p>The quantities and units library <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> lists this
+grouping as a dependency.</p>
+<p>This paper proposes a new
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> option
+for the standard format specification <span>28.5.2.2 Standard format
+specifiers <a href="https://eel.is/c++draft/format.string.std" title="28.5.2.2 Standard format specifiers">[format.string.std]</a></span>,
+optionally followed by the separator:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:&#39;}&quot;</span><span class="op">,</span> <span class="dv">299&#39;792&#39;458</span><span class="op">);</span>            <span class="co">// &quot;299 792 458&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:&#39;.6f}&quot;</span><span class="op">,</span> <span class="fl">1234567.891234</span><span class="op">);</span>      <span class="co">// &quot;1 234 567.891 234&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:&#39;.9e}&quot;</span><span class="op">,</span> <span class="fl">1.602176634e-19</span><span class="op">);</span>     <span class="co">// &quot;1.602 176 634e-19&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:&#39;,.2f}&quot;</span><span class="op">,</span> <span class="fl">1234567.891234</span><span class="op">);</span>     <span class="co">// &quot;1,234,567.89&quot;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:&#39;&#39;}&quot;</span><span class="op">,</span> <span class="dv">299&#39;792&#39;458</span><span class="op">);</span>           <span class="co">// &quot;299&#39;792&#39;458&quot;</span></span></code></pre></div>
+<p><code class="sourceCode cpp"><span class="ch">&#39;</span></code>
+alone follows ISO 80000. When the literal encoding of the character type
+is a Unicode encoding, the separator is U+202F NARROW NO-BREAK SPACE.
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39; </span><span class="er">}</span></code>
+does the same with U+0020 SPACE, for output that should stay in ASCII.
+<code class="sourceCode cpp"><span class="ch">&#39;,</span></code>,
+<code class="sourceCode cpp"><span class="ch">&#39;_</span></code>, and
+<code class="sourceCode cpp"><span class="ch">&#39;</span><span class="er">&#39;</span></code>
+group only the integer part, as Python’s
+<code class="sourceCode cpp"><span class="op">,</span></code> and
+<code class="sourceCode cpp">_</code> do by default.</p>
+<p>Without <code class="sourceCode cpp">L</code>, the option doesn’t
+depend on a locale. This is why it also works in constant evaluation for
+integers. <span class="citation" data-cites="P3391R2"><a href="https://wg21.link/p3391r2">[P3391R2]</a></span> made
+<code class="sourceCode cpp">std<span class="op">::</span>format</code>
+usable in constant evaluation for integers but not for floating-point
+types, whose <code class="sourceCode cpp">to_chars</code> overloads are
+not
+<code class="sourceCode cpp"><span class="kw">constexpr</span></code>.</p>
+<h1 data-number="2" id="motivation"><span class="header-section-number">2</span> Motivation<a href="#motivation" class="self-link"></a></h1>
+<h2 data-number="2.1" id="numbers-with-many-digits"><span class="header-section-number">2.1</span> Numbers with many digits<a href="#numbers-with-many-digits" class="self-link"></a></h2>
+<p>Since C++14, a programmer can make a long number readable in the
+source code with a digit separator. In the output, the same number comes
+out ungrouped:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> std<span class="op">::</span><span class="dt">int64_t</span> c <span class="op">=</span> <span class="dv">299&#39;792&#39;458</span><span class="op">;</span>          <span class="co">// speed of light in m/s</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">double</span> N_A <span class="op">=</span> <span class="fl">6.022&#39;140&#39;76e23</span><span class="op">;</span>          <span class="co">// Avogadro constant in 1/mol</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">double</span> e <span class="op">=</span> <span class="fl">1.602&#39;176&#39;634e-19</span><span class="op">;</span>          <span class="co">// elementary charge in C</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;</span><span class="sc">{}</span><span class="st">&quot;</span><span class="op">,</span> c<span class="op">);</span>                           <span class="co">// 299792458</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;</span><span class="sc">{}</span><span class="st">&quot;</span><span class="op">,</span> N_A<span class="op">);</span>                         <span class="co">// 6.02214076e+23</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;</span><span class="sc">{:.8e}</span><span class="st">&quot;</span><span class="op">,</span> e<span class="op">);</span>                       <span class="co">// 1.60217663e-19</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;</span><span class="sc">{:.9f}</span><span class="st">&quot;</span><span class="op">,</span> <span class="fl">1234567.891234567</span><span class="op">);</span>       <span class="co">// 1234567.891234567</span></span></code></pre></div>
+<p>The concise notation for a value with its standard uncertainty, given
+in ISO 80000-1:2022, 7.2.4, quotes the value down to the last digit of
+the uncertainty, and its own example is grouped:
+<code class="sourceCode cpp">l <span class="op">=</span> <span class="dv">23</span><span class="op">,</span><span class="dv">478</span> <span class="dv">2</span><span class="op">(</span><span class="dv">32</span><span class="op">)</span> m</code>.
+CODATA publishes the Newtonian constant of gravitation as
+<code class="sourceCode cpp"><span class="fl">6.674</span> <span class="dv">30</span><span class="op">(</span><span class="dv">15</span><span class="op">)</span> × <span class="dv">10</span>⁻¹¹ m³ kg⁻¹ s⁻²</code>.
+Both group the digits after the decimal sign.</p>
+<h2 data-number="2.2" id="the-l-option-cant-express-the-rule"><span class="header-section-number">2.2</span> The
+<code class="sourceCode cpp">L</code> option can’t express the rule<a href="#the-l-option-cant-express-the-rule" class="self-link"></a></h2>
+<p>The only way to get any grouping out of
+<code class="sourceCode cpp">std<span class="op">::</span>format</code>
+today is the <code class="sourceCode cpp">L</code> option
+(<span>28.5.2.2 Standard format specifiers <a href="https://eel.is/c++draft/format.string.std#17" title="28.5.2.2 Standard format specifiers, paragraph 17">[format.string.std]/17</a></span>),
+which inserts separators “as if obtained with
+<code class="sourceCode cpp">numpunct<span class="op">&lt;</span>charT<span class="op">&gt;::</span>grouping</code>
+and
+<code class="sourceCode cpp">numpunct<span class="op">&lt;</span>charT<span class="op">&gt;::</span>thousands_sep</code>”.
+Each of the three decisions that ISO 80000 fixes is left to the locale
+instead:</p>
+<ol type="1">
+<li><strong>Group sizes.</strong>
+<code class="sourceCode cpp">en_US</code> groups by three, but
+<code class="sourceCode cpp">en_IN</code> writes
+<code class="sourceCode cpp"><span class="dv">12</span><span class="op">,</span><span class="dv">34</span><span class="op">,</span><span class="dv">567</span></code>.</li>
+<li><strong>The separator.</strong>
+<code class="sourceCode cpp">en_US</code> uses a comma,
+<code class="sourceCode cpp">de_CH</code> an apostrophe,
+<code class="sourceCode cpp">fr_FR</code> a narrow no-break space. ISO
+80000-1 forbids “a point or a comma or […] any other means”.</li>
+<li><strong>The fractional part.</strong>
+<code class="sourceCode cpp">numpunct</code> has no notion of grouping
+digits after the radix separator. No
+<code class="sourceCode cpp">numpunct</code> facet can produce
+<code class="sourceCode cpp"><span class="fl">0.567</span> <span class="dv">8</span></code>.</li>
+</ol>
+<p>If we write our own <code class="sourceCode cpp">numpunct</code>
+facet to get groups of three, we meet one more limit.
+<code class="sourceCode cpp">thousands_sep<span class="op">()</span></code>
+returns a single <code class="sourceCode cpp">charT</code>. For
+<code class="sourceCode cpp"><span class="dt">char</span></code>, the
+separator therefore can’t be U+202F (three code units in UTF-8). The
+fractional part still stays ungrouped:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> iso_grouping <span class="op">:</span> std<span class="op">::</span>numpunct<span class="op">&lt;</span><span class="dt">char</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> do_thousands_sep<span class="op">()</span> <span class="kw">const</span> <span class="kw">override</span> <span class="op">{</span> <span class="cf">return</span> <span class="ch">&#39; &#39;</span><span class="op">;</span> <span class="op">}</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>string do_grouping<span class="op">()</span> <span class="kw">const</span> <span class="kw">override</span> <span class="op">{</span> <span class="cf">return</span> <span class="st">&quot;</span><span class="er">\3</span><span class="st">&quot;</span><span class="op">;</span> <span class="op">}</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> std<span class="op">::</span>locale loc<span class="op">(</span>std<span class="op">::</span>locale<span class="op">::</span>classic<span class="op">(),</span> <span class="kw">new</span> iso_grouping<span class="op">);</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;</span><span class="sc">{}</span><span class="st">&quot;</span><span class="op">,</span> std<span class="op">::</span>format<span class="op">(</span>loc<span class="op">,</span> <span class="st">&quot;</span><span class="sc">{:L}</span><span class="st">&quot;</span><span class="op">,</span> <span class="dv">299&#39;792&#39;458</span><span class="op">));</span>          <span class="co">// 299 792 458</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>println<span class="op">(</span><span class="st">&quot;</span><span class="sc">{}</span><span class="st">&quot;</span><span class="op">,</span> std<span class="op">::</span>format<span class="op">(</span>loc<span class="op">,</span> <span class="st">&quot;</span><span class="sc">{:.6Lf}</span><span class="st">&quot;</span><span class="op">,</span> <span class="fl">1234567.891234567</span><span class="op">));</span> <span class="co">// 1 234 567.891235</span></span></code></pre></div>
+<p>The named locales that happen to use a narrow space don’t help
+<code class="sourceCode cpp"><span class="dt">char</span></code> output
+either. libstdc++ reads U+202F from glibc’s
+<code class="sourceCode cpp">fr_FR<span class="op">.</span>UTF<span class="op">-</span><span class="dv">8</span></code>
+and narrows it to U+0020 for
+<code class="sourceCode cpp">numpunct<span class="op">&lt;</span><span class="dt">char</span><span class="op">&gt;</span></code>
+<span class="citation" data-cites="GCC87642"><a href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87642">[GCC PR
+87642]</a></span>. Only
+<code class="sourceCode cpp"><span class="dt">wchar_t</span></code>
+output keeps it:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span>std<span class="op">::</span>locale<span class="op">(</span><span class="st">&quot;fr_FR.UTF-8&quot;</span><span class="op">),</span> <span class="st">&quot;</span><span class="sc">{:.6Lf}</span><span class="st">&quot;</span><span class="op">,</span> <span class="fl">1234567.891234</span><span class="op">);</span>    <span class="co">// &quot;1 234 567,891234&quot; (U+0020)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span>std<span class="op">::</span>locale<span class="op">(</span><span class="st">&quot;fr_FR.UTF-8&quot;</span><span class="op">),</span> <span class="st">L&quot;</span><span class="sc">{:.6Lf}</span><span class="st">&quot;</span><span class="op">,</span> <span class="fl">1234567.891234</span><span class="op">);</span>   <span class="co">// L&quot;1 234 567,891234&quot;</span></span></code></pre></div>
+<p>An implementation may convert the locale’s separator to the literal
+encoding for an implementation-defined set of locales (<span>28.5.2.2
+Standard format specifiers <a href="https://eel.is/c++draft/format.string.std#17" title="28.5.2.2 Standard format specifiers, paragraph 17">[format.string.std]/17</a></span>),
+but neither libstdc++ nor libc++ does it for
+<code class="sourceCode cpp">fr_FR</code>, and libc++ prints a comma for
+<code class="sourceCode cpp">de_CH</code>.</p>
+<p>Finally, the same paragraph says that “a call to
+<code class="sourceCode cpp">format</code> on a given formatter
+specialization is not a constant subexpression if the locale-specific
+form is specified”.
+<code class="sourceCode cpp">std<span class="op">::</span>format</code>
+can’t produce a grouped number at compile time today.</p>
+<h2 data-number="2.3" id="comma-grouping-needs-a-locale-too"><span class="header-section-number">2.3</span> Comma grouping needs a locale
+too<a href="#comma-grouping-needs-a-locale-too" class="self-link"></a></h2>
+<p>A simpler request is
+<code class="sourceCode cpp"><span class="dv">1</span><span class="op">,</span><span class="dv">234</span><span class="op">,</span><span class="dv">567</span></code>.
+With
+<code class="sourceCode cpp">std<span class="op">::</span>format</code>,
+it needs a locale that groups by three with a comma, and the program has
+to name one:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span>std<span class="op">::</span>locale<span class="op">(</span><span class="st">&quot;en_US.UTF-8&quot;</span><span class="op">),</span> <span class="st">&quot;</span><span class="sc">{:L}</span><span class="st">&quot;</span><span class="op">,</span> <span class="dv">1234567</span><span class="op">);</span>    <span class="co">// &quot;1,234,567&quot;</span></span></code></pre></div>
+<p>The result depends on which locales are installed. Constructing a
+locale that isn’t installed throws
+<code class="sourceCode cpp">std<span class="op">::</span>runtime_error</code>.
+Using
+<code class="sourceCode cpp">std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;</span><span class="sc">{:L}</span><span class="st">&quot;</span><span class="op">,</span> <span class="dv">1234567</span><span class="op">)</span></code>
+instead depends on the global locale, which a library shouldn’t change.
+Python solved the same problem with its
+<code class="sourceCode cpp"><span class="op">,</span></code> option
+<span class="citation" data-cites="PEP378"><a href="https://peps.python.org/pep-0378/">[PEP 378]</a></span>, whose
+stated goal is “a simple, non-locale aware way to format a number with a
+thousands separator”. The maintainer of {fmt} answers the same request
+with “use a locale or
+<code class="sourceCode cpp">fmt<span class="op">::</span>group_digits</code>”
+<span class="citation" data-cites="FMT3929 FMT3840"><a href="https://github.com/fmtlib/fmt/issues/3840">[fmt#3840]</a>,<a href="https://github.com/fmtlib/fmt/issues/3929">[fmt#3929]</a></span>,
+and one user reported locale-based formatting as about 100 times slower
+in their benchmark <span class="citation" data-cites="FMT4284"><a href="https://github.com/fmtlib/fmt/issues/4284">[fmt#4284]</a></span>.</p>
+<h2 data-number="2.4" id="quantities-and-units"><span class="header-section-number">2.4</span> Quantities and units<a href="#quantities-and-units" class="self-link"></a></h2>
+<p>The quantities and units library <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> prints a
+quantity as its numerical value followed by its unit, both as ISO 80000
+specifies. The numerical value is formatted by the
+<code class="sourceCode cpp">std<span class="op">::</span>formatter</code>
+of the representation type, with the spec in
+<code class="sourceCode cpp">N<span class="op">[...]</span></code>
+forwarded to it unchanged
+(<code class="sourceCode cpp"><span class="op">{::</span>N<span class="op">[</span><span class="fl">.2</span><span class="bu">f</span><span class="op">]}</span></code>).
+<span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> lists grouping
+in
+<code class="sourceCode cpp">std<span class="op">-</span>format<span class="op">-</span>spec</code>
+as a dependency. With this proposal,
+<code class="sourceCode cpp"><span class="op">{::</span>N<span class="op">[</span><span class="ch">&#39;.</span><span class="er">2f]}</span></code>
+would group the number, with no change to the library.</p>
+<p>The library can also print a unit in the basic character set:
+<code class="sourceCode cpp"><span class="op">{::</span>U<span class="op">[</span>P<span class="op">]}</span></code>
+prints
+<code class="sourceCode cpp"><span class="dv">42</span> kohm</code>
+instead of
+<code class="sourceCode cpp"><span class="dv">42</span> kΩ</code>. A
+terminal or a log may be unable to display Unicode, or users may prefer
+ASCII because they find it easier to read, or easier to process with
+other tools later. In either case, a U+202F in the number defeats the
+purpose, even when the program uses UTF-8.
+<code class="sourceCode cpp"><span class="op">{::</span>N<span class="op">[</span><span class="ch">&#39; </span><span class="er">.2f]U[P]}</span></code>
+keeps the whole output in ASCII, at the cost of a separator that looks
+like the space before the unit.</p>
+<h1 data-number="3" id="what-the-standards-say"><span class="header-section-number">3</span> What the standards say<a href="#what-the-standards-say" class="self-link"></a></h1>
+<p>ISO 80000-1:2022, 7.2.1 <span class="citation" data-cites="ISO80000-1"><a href="https://www.iso.org/standard/76921.html">[ISO
+80000-1]</a></span>:</p>
+<blockquote>
+<p>To facilitate the reading of numbers with many digits, these may be
+separated into groups of three, counting from the decimal sign towards
+the left and the right. No group shall contain more than three digits.
+Where such separation into groups of three is used, the groups shall be
+separated by a small space and not by a point or a comma or by any other
+means.</p>
+<p>EXAMPLE 1 1 234,567 8 rather than 1 234,5678<br />
+0,567 8 rather than 0,5678</p>
+<p>In the case where there is no decimal part (and thus no decimal
+sign), the counting shall be from the right-most digit towards the
+left.</p>
+<p>[…]</p>
+<p>The separation into groups of three should not be used for ordinal
+numbers used as reference numbers, e.g. ISO 80000-1. The year shall
+always be written without a space, e.g., 1935.</p>
+</blockquote>
+<p>Clause 7.2.2 adds that “the decimal sign is either a comma or a point
+on the line”.</p>
+<p>The SI Brochure, 9th edition, 5.4.4 <span class="citation" data-cites="SI"><a href="https://www.bipm.org/en/publications/si-brochure">[SI]</a></span>,
+states the same rule and adds an exception for four digits:</p>
+<blockquote>
+<p>Following the 9th CGPM (1948, Resolution 7) and the 22nd CGPM (2003,
+Resolution 10), for numbers with many digits the digits may be divided
+into groups of three by a space, in order to facilitate reading. Neither
+dots nor commas are ever inserted in the spaces between groups. For
+example, 43 279.168 29 but not 43,279.168,29. However, when there are
+only four digits before or after the decimal marker, it is customary not
+to use a space to isolate a single digit. The practice of grouping
+digits in this way is a matter of choice; it is not always followed in
+certain specialized applications such as engineering drawings, financial
+statements and scripts to be read by a computer. For example, either
+3279.1683 or 3 279.168 3.</p>
+<p>For numbers in a table, the format used should not vary within one
+column.</p>
+</blockquote>
+<p>The committee draft of IEC 80000-16 <span class="citation" data-cites="IEC80000-16"><a href="https://www.iec.ch">[IEC CD
+80000-16]</a></span>, 4.5.3, has the same four-digit exception, with “1
+234 or 1234” and “1 234,567 8 or 1234,5678” as examples. NIST SP 811
+<span class="citation" data-cites="NIST811"><a href="https://www.nist.gov/pml/special-publication-811">[NIST SP
+811]</a></span>, 10.5.3, asks for “a thin, fixed space” and drops the
+four-digit exception “when uniformity in a table is desired”. The IUPAC
+Green Book <span class="citation" data-cites="IUPAC-GB"><a href="https://iupac.org/wp-content/uploads/2019/05/IUPAC-GB3-2012-2ndPrinting-PDFsearchable.pdf">[IUPAC
+Green Book]</a></span>, 4.1, also asks for a thin space and recommends
+the four-digit exception.</p>
+<p>None of them requires grouping. This paper therefore proposes an
+option and doesn’t change the default output.</p>
+<h1 data-number="4" id="prior-art"><span class="header-section-number">4</span> Prior art<a href="#prior-art" class="self-link"></a></h1>
+<h2 data-number="4.1" id="other-languages-and-libraries"><span class="header-section-number">4.1</span> Other languages and libraries<a href="#other-languages-and-libraries" class="self-link"></a></h2>
+<p>Most of the facilities below group only the integer part, and most
+take the separator from the locale. Among the facilities below, only
+Python and siunitx group the fractional part without a locale. Python
+uses <code class="sourceCode cpp"><span class="op">,</span></code> or
+<code class="sourceCode cpp">_</code>.</p>
+<p>Python added locale-independent grouping in PEP 378 <span class="citation" data-cites="PEP378"><a href="https://peps.python.org/pep-0378/">[PEP 378]</a></span> (Raymond
+Hettinger, Python 3.1) with the
+<code class="sourceCode cpp"><span class="op">,</span></code> option,
+and PEP 515 <span class="citation" data-cites="PEP515"><a href="https://peps.python.org/pep-0515/">[PEP 515]</a></span> (Georg
+Brandl and Serhiy Storchaka, Python 3.6) added
+<code class="sourceCode cpp">_</code>, which groups by four for
+<code class="sourceCode cpp">b</code>,
+<code class="sourceCode cpp">o</code>,
+<code class="sourceCode cpp">x</code>, and
+<code class="sourceCode cpp">X</code>. PEP 378 kept the locale-aware
+<code class="sourceCode cpp">n</code> presentation type separate, so
+<code class="sourceCode cpp"><span class="op">,</span></code> always
+gives the same output. Python 3.14 extended both options to the
+fractional part <span class="citation" data-cites="CPYTHON87790"><a href="https://github.com/python/cpython/issues/87790">[cpython#87790]</a></span>
+(Sergey B Kirpichev), with a second grouping character after the
+precision. The discussion that led to it quoted NIST SP 811 and ISO
+80000-1. Python 3.14.4 prints:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">format</span>(<span class="fl">1234567.891234</span>, <span class="st">&#39;,&#39;</span>)       <span class="co"># &#39;1,234,567.891234&#39;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">format</span>(<span class="fl">1234567.891234</span>, <span class="st">&#39;_.6_f&#39;</span>)   <span class="co"># &#39;1_234_567.891_234&#39;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">format</span>(<span class="fl">1234567.891234</span>, <span class="st">&#39;.10_e&#39;</span>)   <span class="co"># &#39;1.234_567_891_2e+06&#39;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">format</span>(<span class="dv">1234567</span>, <span class="st">&#39;015,&#39;</span>)           <span class="co"># &#39;000,001,234,567&#39;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">format</span>(<span class="dv">1</span>, <span class="st">&#39;04,&#39;</span>)                  <span class="co"># &#39;0,001&#39;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="bu">format</span>(<span class="dv">1234567</span>, <span class="st">&#39;,x&#39;</span>)             <span class="co"># ValueError: Cannot specify &#39;,&#39; with &#39;x&#39;.</span></span></code></pre></div>
+<p>The rejected alternative in PEP 378, proposed by Eric Smith, let the
+user choose the separator, including a space (U+0020 or U+00A0).</p>
+<p>{fmt} <span class="citation" data-cites="FMT"><a href="https://github.com/fmtlib/fmt">[{fmt}]</a></span> has
+<code class="sourceCode cpp">fmt<span class="op">::</span>group_digits</code>,
+which groups integers by three with a comma and doesn’t use a locale.
+For any other separator its maintainer points users to a locale <span class="citation" data-cites="FMT3929 FMT3840"><a href="https://github.com/fmtlib/fmt/issues/3840">[fmt#3840]</a>,<a href="https://github.com/fmtlib/fmt/issues/3929">[fmt#3929]</a></span>.
+{fmt} 10 added
+<code class="sourceCode cpp">fmt<span class="op">::</span>format_facet</code>
+so that a locale can carry a separator longer than one code unit, but
+the separator is applied only to integers.</p>
+<p>POSIX <code class="sourceCode cpp">printf</code> has the
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> flag.
+It uses the locale’s grouping and only groups “the integer portion” of a
+decimal conversion. ISO C doesn’t have it, and LWG 826 <span class="citation" data-cites="LWG826"><a href="https://cplusplus.github.io/LWG/issue826">[LWG 826]</a></span>
+closed a request to add it to C++ as NAD, suggesting a paper.</p>
+<p>Java
+(<code class="sourceCode cpp">java<span class="op">.</span>util<span class="op">.</span>Formatter</code>
+with <code class="sourceCode cpp"><span class="op">,</span></code>, and
+<code class="sourceCode cpp">DecimalFormat</code>), .NET (the
+<code class="sourceCode cpp">N</code> format), and
+<code class="sourceCode cpp">Intl<span class="op">.</span>NumberFormat</code>
+in JavaScript group only the integer part with the locale’s separator.
+Rust’s
+<code class="sourceCode cpp">std<span class="op">::</span>fmt</code> has
+no grouping at all.</p>
+<p>ICU’s
+<code class="sourceCode cpp">group<span class="op">-</span>min2</code>
+strategy <span class="citation" data-cites="ICU-SKELETONS"><a href="https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html">[ICU
+number skeletons]</a></span> implements the four-digit exception for the
+integer part, and CLDR’s
+<code class="sourceCode cpp">minimumGroupingDigits</code> <span class="citation" data-cites="CLDR-NUMBERS"><a href="https://www.unicode.org/reports/tr35/tr35-numbers.html">[UTS]</a></span>
+enables it per locale, for example 2 for Polish and Spanish and 1 for
+French. Since CLDR 34 <span class="citation" data-cites="CLDR34"><a href="https://cldr.unicode.org/downloads/cldr-34">[CLDR 34]</a></span>,
+French uses U+202F as its grouping separator. CLDR’s number patterns
+allow a grouping separator in the fractional part, “most commonly done
+where the grouping separator character is a thin, non-breaking space
+(U+202F), such as ‘1.618 033 988 75’”.</p>
+<p>The LaTeX package siunitx <span class="citation" data-cites="SIUNITX"><a href="https://ctan.org/pkg/siunitx">[siunitx]</a></span> (Joseph Wright)
+groups both parts of a number by default, with a thin space. Its
+<code class="sourceCode cpp">group<span class="op">-</span>digits</code>
+option selects the integer part, the fractional part, both, or neither,
+and
+<code class="sourceCode cpp">group<span class="op">-</span>separator</code>
+selects the separator. Its
+<code class="sourceCode cpp">group<span class="op">-</span>minimum<span class="op">-</span>digits</code>
+defaults to 5 and is applied to each part separately, so
+<code class="sourceCode cpp">\num<span class="op">{</span><span class="dv">1234</span><span class="op">}</span></code>
+prints <code class="sourceCode cpp"><span class="dv">1234</span></code>
+and
+<code class="sourceCode cpp">\num<span class="op">{</span><span class="fl">12345.67890</span><span class="op">}</span></code>
+prints
+<code class="sourceCode cpp"><span class="dv">12</span> <span class="fl">345.678</span> <span class="dv">90</span></code>.</p>
+<h2 data-number="4.2" id="wg21"><span class="header-section-number">4.2</span> WG21<a href="#wg21" class="self-link"></a></h2>
+<p><span class="citation" data-cites="P0645R10"><a href="https://wg21.link/p0645r10">[P0645R10]</a></span> took its format
+syntax from Python but not the
+<code class="sourceCode cpp"><span class="op">,</span></code> and
+<code class="sourceCode cpp">_</code> options. It kept locale behavior
+behind a separate presentation type, later replaced with the
+<code class="sourceCode cpp">L</code> option by <span class="citation" data-cites="P1892R1"><a href="https://wg21.link/p1892r1">[P1892R1]</a></span>. LWG 2117 <span class="citation" data-cites="LWG2117"><a href="https://cplusplus.github.io/LWG/issue2117">[LWG 2117]</a></span>
+asked for a way to turn grouping on and off in iostreams and is still
+open. The author found no paper proposing a grouping option for
+<code class="sourceCode cpp">std<span class="op">::</span>format</code>.</p>
+<h1 data-number="5" id="design"><span class="header-section-number">5</span> Design<a href="#design" class="self-link"></a></h1>
+<h2 data-number="5.1" id="spelling-and-position"><span class="header-section-number">5.1</span> Spelling and position<a href="#spelling-and-position" class="self-link"></a></h2>
+<p>The option is
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code>, the
+digit separator of C++ literals since C++14 <span class="citation" data-cites="N3781"><a href="https://wg21.link/n3781">[N3781]</a></span>,
+optionally followed by the separator character. It goes between the
+width and the precision:</p>
+<pre class="text"><code>std-format-spec :
+    fill-and-align(opt) sign(opt) #(opt) 0(opt) width(opt) grouping(opt) precision(opt) L(opt) type(opt)
+grouping :
+    &#39; grouping-separator(opt)
+grouping-separator : one of
+    space , _ &#39;</code></pre>
+<p>This is where Python puts
+<code class="sourceCode cpp"><span class="op">,</span></code> and
+<code class="sourceCode cpp">_</code>:
+<code class="sourceCode cpp"><span class="op">{:,</span><span class="fl">.2</span><span class="bu">f</span><span class="op">}</span></code>
+in Python becomes
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;,</span><span class="er">.2f}</span></code>
+in C++. There is no ambiguity with a fill character. A fill comes first
+and is always followed by an alignment, so
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;^</span><span class="er">12</span><span class="ch">&#39;</span><span class="op">}</span></code>
+centers a grouped number in apostrophes. A
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code>
+followed by an alignment is a fill, so
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;&gt;</span><span class="er">12}</span></code>
+pads with apostrophes and doesn’t group.
+<code class="sourceCode cpp"><span class="op">.</span></code> isn’t a
+separator, so
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;.</span><span class="er">2f}</span></code>
+means grouping with a precision of 2. No existing option of
+<code class="sourceCode cpp">std<span class="op">-</span>format<span class="op">-</span>spec</code>
+uses <code class="sourceCode cpp"><span class="ch">&#39;</span></code>,
+and the author found no proposal that does.</p>
+<p>The alternatives considered:</p>
+<ul>
+<li>Python’s spelling,
+<code class="sourceCode cpp"><span class="op">,</span></code> and
+<code class="sourceCode cpp">_</code> without an introducer.
+<code class="sourceCode cpp"><span class="op">{:,}</span></code> would
+read the same as in Python, but the ISO form and the space form still
+need a spelling. Without a width, a space after the colon is the
+<em>sign</em> option
+(<code class="sourceCode cpp"><span class="op">{:</span> <span class="op">}</span></code>),
+so the space form needs an introducer. One introducer for every form
+keeps the grammar to one slot.</li>
+<li>After the precision, next to <code class="sourceCode cpp">L</code>.
+The two options are related, as discussed in <a href="#interaction-with-l">Interaction with
+<code class="sourceCode cpp">L</code></a>, but
+<code class="sourceCode cpp"><span class="op">{:</span><span class="fl">.3</span><span class="er">&#39;</span><span class="bu">L</span><span class="er">f</span><span class="op">}</span></code>
+puts the grouping between two options that have nothing to do with
+it.</li>
+<li>A letter, for example <code class="sourceCode cpp">I</code> for
+“international”. It reads well next to
+<code class="sourceCode cpp">L</code>, but apart from the presentation
+types no option spelled as a letter changes the digits.</li>
+</ul>
+<h2 data-number="5.2" id="separators"><span class="header-section-number">5.2</span> Separators<a href="#separators" class="self-link"></a></h2>
+<div class="table-wrapper">
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 52%" />
+<col style="width: 26%" />
+<col style="width: 10%" />
+</colgroup>
+<thead>
+<tr>
+<th><div style="text-align:center">
+<strong>Spec</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Separator</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Fractional part grouped</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>With <code class="sourceCode cpp">L</code></strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;}</span></code></td>
+<td>U+202F, or U+0020 if the encoding isn’t Unicode</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">valid</td>
+</tr>
+<tr>
+<td><code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39; </span><span class="er">}</span></code></td>
+<td>U+0020</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">valid</td>
+</tr>
+<tr>
+<td><code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;,</span><span class="er">}</span></code></td>
+<td><code class="sourceCode cpp"><span class="op">,</span></code></td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;">invalid</td>
+</tr>
+<tr>
+<td><code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;_</span><span class="er">}</span></code></td>
+<td><code class="sourceCode cpp">_</code></td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;">invalid</td>
+</tr>
+<tr>
+<td><code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;</span><span class="er">&#39;</span><span class="op">}</span></code></td>
+<td><code class="sourceCode cpp"><span class="ch">&#39;</span></code></td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;">invalid</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The two space forms follow ISO 80000 and the SI Brochure, which group
+both sides of the decimal marker.
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39; </span><span class="er">}</span></code>
+exists for output that should stay in ASCII even when the program uses a
+Unicode encoding, as in <a href="#quantities-and-units">Quantities and
+units</a>.</p>
+<p>The other three follow the conventions they come from, and all of
+them group only the integer part. The comma comes from Python and from
+the <code class="sourceCode cpp">en_US</code> conventions that POSIX,
+Java, and .NET read from the locale. The underscore comes from Python,
+and the apostrophe from C++ integer literals and from the
+<code class="sourceCode cpp">de<span class="op">-</span>CH</code> locale
+in CLDR. The SI Brochure gives
+<code class="sourceCode cpp"><span class="dv">43</span><span class="op">,</span><span class="fl">279.168</span><span class="op">,</span><span class="dv">29</span></code>
+as the example of what not to do. Python 3.14 groups the fractional part
+with a second option after the precision instead. Tying it to the
+separator keeps one option, at the cost of the separator also deciding
+which digits are grouped. If LEWG wants fractional grouping with a
+comma, a later revision can add Python’s syntax.</p>
+<p>A user who asks for
+<code class="sourceCode cpp"><span class="ch">&#39;,</span></code> with
+units gets output that ISO 80000 forbids. The option doesn’t prevent it,
+just as it doesn’t prevent grouping a year.</p>
+<h2 data-number="5.3" id="types-and-presentation-types"><span class="header-section-number">5.3</span> Types and presentation types<a href="#types-and-presentation-types" class="self-link"></a></h2>
+<p>Every form of the option is valid for:</p>
+<ul>
+<li>integer types other than
+<code class="sourceCode cpp"><span class="dt">bool</span></code>,
+<code class="sourceCode cpp"><span class="dt">char</span></code>, and
+<code class="sourceCode cpp">charT</code>, with no presentation type or
+<code class="sourceCode cpp">d</code>,</li>
+<li>floating-point types, with no presentation type or
+<code class="sourceCode cpp">f</code>,
+<code class="sourceCode cpp">F</code>,
+<code class="sourceCode cpp">e</code>,
+<code class="sourceCode cpp">E</code>,
+<code class="sourceCode cpp">g</code>, or
+<code class="sourceCode cpp">G</code>.</li>
+</ul>
+<p>For other types, and for <code class="sourceCode cpp">b</code>,
+<code class="sourceCode cpp">B</code>,
+<code class="sourceCode cpp">o</code>,
+<code class="sourceCode cpp">x</code>,
+<code class="sourceCode cpp">X</code>,
+<code class="sourceCode cpp">a</code>,
+<code class="sourceCode cpp">A</code>,
+<code class="sourceCode cpp">c</code>, and
+<code class="sourceCode cpp"><span class="op">?</span></code>, the
+format string is ill-formed. This includes
+<code class="sourceCode cpp"><span class="dt">bool</span></code>,
+<code class="sourceCode cpp"><span class="dt">char</span></code>, and
+<code class="sourceCode cpp">charT</code> formatted with
+<code class="sourceCode cpp">d</code>, which the
+<code class="sourceCode cpp"><span class="dv">0</span></code> option
+allows. Python’s <code class="sourceCode cpp">_</code> groups binary,
+octal, and hexadecimal digits by four. Allowing these presentation types
+with groups of three would block that later, and making the group size
+depend on the presentation type needs its own discussion. A later
+proposal can add it.</p>
+<p>For <code class="sourceCode cpp">e</code>,
+<code class="sourceCode cpp">E</code>, and the exponent form of
+<code class="sourceCode cpp">g</code> and
+<code class="sourceCode cpp">G</code>, the significand is grouped and
+the exponent is not. Unless
+<code class="sourceCode cpp"><span class="dv">0</span></code> pads it,
+the integer part of the significand is a single digit, so with a space
+form only its fractional part is grouped:
+<code class="sourceCode cpp"><span class="fl">1.602</span> <span class="dv">176</span> <span class="fl">634e-19</span></code>.
+With <code class="sourceCode cpp"><span class="op">,</span></code>,
+<code class="sourceCode cpp">_</code>, or
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code>, an
+exponent form isn’t grouped unless
+<code class="sourceCode cpp"><span class="dv">0</span></code> pads it.
+An infinity or a NaN has no digits and is unaffected.</p>
+<h2 data-number="5.4" id="the-iso-separator-character"><span class="header-section-number">5.4</span> The ISO separator character<a href="#the-iso-separator-character" class="self-link"></a></h2>
+<p>ISO 80000-1 asks for “a small space”, NIST SP 811 for “a thin, fixed
+space”, and the SI Brochure for “a space”. This paper compares three
+candidates for
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code>
+alone:</p>
+<div class="table-wrapper">
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 28%" />
+<col style="width: 29%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Code point</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Name</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Line breaking <span class="citation" data-cites="UAX14"><a href="https://www.unicode.org/reports/tr14/">[UAX]</a></span></strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Width</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">U+2009</td>
+<td>THIN SPACE</td>
+<td style="text-align: center;">BA (break opportunity)</td>
+<td>1/5 to 1/6 em</td>
+</tr>
+<tr>
+<td style="text-align: center;">U+202F</td>
+<td>NARROW NO-BREAK SPACE</td>
+<td style="text-align: center;">GL (no break)</td>
+<td>the same as U+2009</td>
+</tr>
+<tr>
+<td style="text-align: center;">U+2007</td>
+<td>FIGURE SPACE</td>
+<td style="text-align: center;">GL (no break)</td>
+<td>the width of a digit</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>This paper proposes U+202F. A line break inside a number changes what
+the reader sees as the number, so the separator must not allow one.
+U+2009 does. U+2007 is the space UAX #14 recommends “in numbers”, but it
+is as wide as a digit, which is not the small space ISO 80000 asks for.
+U+202F is also what CLDR uses for French since version 34 and what
+glibc’s <code class="sourceCode cpp">fr_FR</code> locale provides.</p>
+<p>None of the three is in the East Asian wide ranges, so <span>28.5.2.2
+Standard format specifiers <a href="https://eel.is/c++draft/format.string.std#13" title="28.5.2.2 Standard format specifiers, paragraph 13">[format.string.std]/13</a></span>
+says an implementation should give each a field width of 1. In UTF-8,
+U+202F takes 3 code units and 1 column.</p>
+<p>This paper uses U+202F only for a Unicode encoding form, and it tests
+that with the condition <span>28.5.6.5 Formatting escaped characters and
+strings <a href="https://eel.is/c++draft/format.string.escaped" title="28.5.6.5 Formatting escaped characters and strings">[format.string.escaped]</a></span>
+already uses: the associated character encoding for
+<code class="sourceCode cpp">charT</code> (Table 12, <span>5.13.5 String
+literals <a href="https://eel.is/c++draft/lex.string" title="5.13.5 String literals">[lex.string]</a></span>). If it is UTF-8,
+UTF-16, or UTF-32, the separator is U+202F. Otherwise it is U+0020
+SPACE. The SI Brochure asks only for “a space”, and U+0020 exists in
+every encoding a C++ implementation supports.</p>
+<p>The literal encoding is fixed when the program is compiled, but the
+choice of output is not. A UTF-8 program may write to a terminal or a
+log that only shows ASCII, or its users may prefer ASCII output.
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39; </span><span class="er">}</span></code>
+lets the caller choose U+0020 in both cases.</p>
+<p>Grouping with U+0020 makes the end of a number ambiguous when a unit
+follows it
+(<code class="sourceCode cpp"><span class="dv">1</span> <span class="dv">234</span> <span class="dv">567</span> m</code>).
+This is one more reason to prefer U+202F where it is available.</p>
+<p>A grouped number is no longer a valid input for
+<code class="sourceCode cpp">from_chars</code> or
+<code class="sourceCode cpp">stod</code>. The SI Brochure already says
+that grouping is not always followed in “scripts to be read by a
+computer”, and the option is opt-in.</p>
+<h2 data-number="5.5" id="width-and-zero-padding"><span class="header-section-number">5.5</span> Width and zero padding<a href="#width-and-zero-padding" class="self-link"></a></h2>
+<p>The separators are part of the formatted output and count towards the
+estimated field width, one column each:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:*&gt;12&#39;}&quot;</span><span class="op">,</span> <span class="dv">1234567</span><span class="op">);</span>    <span class="co">// &quot;***1 234 567&quot;</span></span></code></pre></div>
+<p>The <code class="sourceCode cpp"><span class="dv">0</span></code>
+option inserts digits, so the zeros it adds are grouped with the rest.
+The number of zeros is the smallest one for which the field is at least
+as wide as requested. A separator is never the first character after the
+sign, so the result can be one column wider than requested. Python does
+the same:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:011&#39;}&quot;</span><span class="op">,</span> <span class="dv">1234</span><span class="op">);</span>       <span class="co">// &quot;000 001 234&quot;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:04&#39;}&quot;</span><span class="op">,</span> <span class="dv">1</span><span class="op">);</span>           <span class="co">// &quot;0 001&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:010&#39;}&quot;</span><span class="op">,</span> <span class="op">-</span><span class="dv">1234</span><span class="op">);</span>      <span class="co">// &quot;-0 001 234&quot;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:010&#39;,}&quot;</span><span class="op">,</span> <span class="dv">1234567</span><span class="op">);</span>   <span class="co">// &quot;01,234,567&quot;</span></span></code></pre></div>
+<p><code class="sourceCode cpp"><span class="ch">&#39;</span></code> and
+<code class="sourceCode cpp"><span class="dv">0</span></code> could
+instead be made mutually exclusive. This paper keeps both and groups the
+zeros. Leaving the padding zeros ungrouped gives
+<code class="sourceCode cpp"><span class="bn">0001</span> <span class="dv">234</span></code>
+and breaks the rule that no group has more than three digits. glibc,
+libstdc++, and {fmt} do that for <code class="sourceCode cpp">L</code>,
+but <code class="sourceCode cpp">L</code> doesn’t claim to follow ISO
+80000.</p>
+<h2 data-number="5.6" id="interaction-with-l"><span class="header-section-number">5.6</span> Interaction with
+<code class="sourceCode cpp">L</code><a href="#interaction-with-l" class="self-link"></a></h2>
+<p><code class="sourceCode cpp"><span class="ch">&#39;</span></code>
+without <code class="sourceCode cpp">L</code> never reads a locale. With
+<code class="sourceCode cpp">L</code>, the locale is the one passed to
+<code class="sourceCode cpp">format</code>, or the global locale
+otherwise, as for any use of <code class="sourceCode cpp">L</code>.</p>
+<p><code class="sourceCode cpp">L</code> does three things for a
+floating-point number: the locale chooses the group sizes, the group
+separator, and the radix separator. The two space forms replace the
+first two. When both are present, the locale provides only the radix
+separator:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span>std<span class="op">::</span>locale<span class="op">(</span><span class="st">&quot;de_DE.UTF-8&quot;</span><span class="op">),</span> <span class="st">&quot;{:&#39;.4Lf}&quot;</span><span class="op">,</span> <span class="fl">1234.5678</span><span class="op">);</span>   <span class="co">// &quot;1 234,567 8&quot;</span></span></code></pre></div>
+<p>Without a second new option, this gives the decimal comma that ISO
+80000-1 and the CGPM allow. Like any use of
+<code class="sourceCode cpp">L</code>, the combination is not a constant
+subexpression.</p>
+<p>For integers, <code class="sourceCode cpp">L</code> only controls
+grouping, so
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;L</span><span class="er">}</span></code>
+prints the same as
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;}</span></code>.
+Unlike
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;}</span></code>,
+it is not a constant subexpression.</p>
+<p><code class="sourceCode cpp"><span class="ch">&#39;,</span></code>,
+<code class="sourceCode cpp"><span class="ch">&#39;_</span></code>, and
+<code class="sourceCode cpp"><span class="ch">&#39;</span><span class="er">&#39;</span></code>
+can’t be combined with <code class="sourceCode cpp">L</code>. With a
+locale whose decimal marker is a comma,
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;,</span><span class="er">.1Lf}</span></code>
+of 1234.5 would print
+<code class="sourceCode cpp"><span class="dv">1</span><span class="op">,</span><span class="dv">234</span><span class="op">,</span><span class="dv">5</span></code>,
+which can be read in two ways.
+<code class="sourceCode cpp"><span class="ch">&#39;_</span></code> and
+<code class="sourceCode cpp"><span class="ch">&#39;</span><span class="er">&#39;</span></code>
+don’t have this problem. One rule for the three explicit separators
+keeps the option simple, and a later revision can relax it for
+<code class="sourceCode cpp"><span class="ch">&#39;_</span></code> and
+<code class="sourceCode cpp"><span class="ch">&#39;</span><span class="er">&#39;</span></code>.
+Python rejects both
+<code class="sourceCode cpp"><span class="op">,</span></code> and
+<code class="sourceCode cpp">_</code> with
+<code class="sourceCode cpp">n</code>. A user who wants the locale’s
+separator uses <code class="sourceCode cpp">L</code> alone. The locale’s
+separator together with grouping of the fractional part isn’t available.
+Neither <code class="sourceCode cpp">numpunct</code> nor ISO 80000
+describes it.</p>
+<p>If <code class="sourceCode cpp"><span class="ch">&#39;</span></code>
+and <code class="sourceCode cpp">L</code> were mutually exclusive in
+this revision, a user who wants the decimal comma would need a separate
+option, for example a
+<code class="sourceCode cpp"><span class="op">,</span></code> that
+selects the comma as the radix separator. The author prefers the
+combination because the locale already knows the decimal marker its
+users expect.</p>
+<h2 data-number="5.7" id="the-four-digit-exception"><span class="header-section-number">5.7</span> The four-digit exception<a href="#the-four-digit-exception" class="self-link"></a></h2>
+<p>ISO 80000-1:2022 has no four-digit exception: its example prints
+<code class="sourceCode cpp"><span class="dv">1</span> <span class="dv">234</span><span class="op">,</span><span class="dv">567</span> <span class="dv">8</span> rather than <span class="dv">1</span> <span class="dv">234</span><span class="op">,</span><span class="dv">5678</span></code>.
+The SI Brochure and the IEC 80000-16 draft make an exception for a
+four-digit integer or fractional part, and both say it is customary, not
+required. Under both documents, either form complies.</p>
+<p>This paper proposes to always group, with every separator:</p>
+<ul>
+<li>For the space forms, it follows ISO 80000-1.</li>
+<li>A number keeps the same shape in a column of a table. The SI
+Brochure itself asks that “the format used should not vary within one
+column”, and NIST SP 811 drops the exception for tables.</li>
+<li>When the output contains
+<code class="sourceCode cpp"><span class="dv">1234</span></code>, the
+reader can’t tell whether the option was ignored.</li>
+</ul>
+<p>If LEWG wants the exception, it should be a second option, so that
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> always
+means the same thing. ICU’s
+<code class="sourceCode cpp">group<span class="op">-</span>min2</code>
+(integer part only) and siunitx’s
+<code class="sourceCode cpp">group<span class="op">-</span>minimum<span class="op">-</span>digits</code>
+are precedents. The {fmt} prototype implements the exception behind a
+macro, to show that it costs little:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:&#39;}&quot;</span><span class="op">,</span> <span class="dv">1234</span><span class="op">);</span>           <span class="co">// &quot;1 234&quot;  (proposed)    &quot;1234&quot;  (with the exception)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:&#39;.4f}&quot;</span><span class="op">,</span> <span class="fl">1234.5678</span><span class="op">);</span>   <span class="co">// &quot;1 234.567 8&quot;          &quot;1234.5678&quot;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>format<span class="op">(</span><span class="st">&quot;{:&#39;.5f}&quot;</span><span class="op">,</span> <span class="fl">1234.5678</span><span class="op">);</span>   <span class="co">// &quot;1 234.567 80&quot;         &quot;1234.567 80&quot;</span></span></code></pre></div>
+<p>The rule that years are not grouped is left to the user. A formatter
+doesn’t know whether an integer is a year.</p>
+<h2 data-number="5.8" id="the-decimal-marker"><span class="header-section-number">5.8</span> The decimal marker<a href="#the-decimal-marker" class="self-link"></a></h2>
+<p>This paper doesn’t propose a new option for the decimal marker. The
+point is the default, and the comma is available through
+<code class="sourceCode cpp">L</code> as described above.</p>
+<h1 data-number="6" id="impact-on-existing-code"><span class="header-section-number">6</span> Impact on existing code<a href="#impact-on-existing-code" class="self-link"></a></h1>
+<p>None. Today a
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> that
+is not a fill character is ill-formed in a
+<code class="sourceCode cpp">std<span class="op">-</span>format<span class="op">-</span>spec</code>,
+so no valid format string changes meaning. User-defined formatters that
+delegate to the standard arithmetic formatters, such as the one in <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span>, get the option
+automatically.</p>
+<h1 data-number="7" id="implementation-experience"><span class="header-section-number">7</span> Implementation experience<a href="#implementation-experience" class="self-link"></a></h1>
+<p>The design is implemented in a draft pull request to {fmt} <span class="citation" data-cites="FMT-ISO-GROUPING"><a href="https://github.com/fmtlib/fmt/pull/4997">[fmt#4997]</a></span>,
+including every separator,
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> with
+<code class="sourceCode cpp"><span class="dv">0</span></code> and with
+<code class="sourceCode cpp">L</code>, the U+0020 fallback for
+<code class="sourceCode cpp"><span class="dt">char</span></code>, and
+the four-digit exception behind a macro. Its test suite passes with GCC
+16 and Clang 23, for
+<code class="sourceCode cpp"><span class="dt">char</span></code>,
+<code class="sourceCode cpp"><span class="dt">wchar_t</span></code>,
+<code class="sourceCode cpp"><span class="dt">char16_t</span></code>,
+and
+<code class="sourceCode cpp"><span class="dt">char32_t</span></code>.
+All outputs of the
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> option
+shown in this paper come from that branch.</p>
+<p>Parsing and width needed only small changes. The option is one more
+state between the width and the precision, and the checks of the
+presentation type stay
+<code class="sourceCode cpp"><span class="kw">constexpr</span></code>,
+so a checked format string reports
+<code class="sourceCode cpp"><span class="op">{:</span><span class="ch">&#39;x</span><span class="er">}</span></code>
+at compile time. {fmt} already passes the size in code units and the
+display width separately to its padding function, so a three-byte
+separator counts as one column.</p>
+<p>{fmt}’s grouping support, used for
+<code class="sourceCode cpp">L</code>, groups one run of digits from the
+right and is applied only to the integer digits of a floating-point
+number. The fixed form of small values, the exponent form, and the
+shortest round-trip form all reach the output through different code
+paths, and none of them groups the digits after the decimal point. The
+prototype therefore formats the number without grouping into a buffer
+and then inserts the separators and the padding. This costs one extra
+copy for floating-point values. A production implementation would group
+in the code that writes the significand.</p>
+<p>The prototype also found that
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> must
+be checked before the existing dispatch to the locale-specific path. For
+the combination with <code class="sourceCode cpp">L</code>, only
+<code class="sourceCode cpp">decimal_point</code> is read from the
+locale.</p>
+<h1 data-number="8" id="polls"><span class="header-section-number">8</span> Proposed polls<a href="#polls" class="self-link"></a></h1>
+<h2 data-number="8.1" id="sg16"><span class="header-section-number">8.1</span> SG16<a href="#sg16" class="self-link"></a></h2>
+<ol type="1">
+<li>U+202F NARROW NO-BREAK SPACE, rather than U+2009 THIN SPACE, is the
+right digit group separator for
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code>
+alone.</li>
+<li>When the associated character encoding for
+<code class="sourceCode cpp">charT</code> is not a Unicode encoding
+form, the separator of
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> alone
+should be U+0020 SPACE, rather than an implementation-defined character,
+and the format string should be well-formed.</li>
+</ol>
+<h2 data-number="8.2" id="lewg"><span class="header-section-number">8.2</span> LEWG<a href="#lewg" class="self-link"></a></h2>
+<ol type="1">
+<li>We want a locale-independent digit grouping option in
+<code class="sourceCode cpp">std<span class="op">-</span>format<span class="op">-</span>spec</code>.</li>
+<li><code class="sourceCode cpp"><span class="ch">&#39;</span></code>
+after the width is the right character and position for the option.</li>
+<li>The option should accept space,
+<code class="sourceCode cpp"><span class="op">,</span></code>,
+<code class="sourceCode cpp">_</code>, and
+<code class="sourceCode cpp"><span class="ch">&#39;</span></code> as
+explicit separators.</li>
+<li>Only the space forms should group the fractional part.</li>
+<li>The space forms combined with <code class="sourceCode cpp">L</code>
+should be valid and take only the decimal marker from the locale.</li>
+<li>The zeros inserted by
+<code class="sourceCode cpp"><span class="dv">0</span></code> should be
+grouped.</li>
+<li>We want a second option for the four-digit exception.</li>
+</ol>
+<h1 data-number="9" id="wording"><span class="header-section-number">9</span> Wording<a href="#wording" class="self-link"></a></h1>
+<p>The proposed changes are relative to <span class="citation" data-cites="N5054"><a href="https://wg21.link/n5054">[N5054]</a></span>.</p>
+<h2 data-number="9.1" id="format.string.std"><span class="header-section-number">9.1</span> <span>28.5.2.2 Standard format
+specifiers <a href="https://eel.is/c++draft/format.string.std" title="28.5.2.2 Standard format specifiers">[format.string.std]</a></span><a href="#format.string.std" class="self-link"></a></h2>
+<p>Modify the grammar in paragraph 1 as follows:</p>
+<!-- markdownlint-disable MD013 -->
+<blockquote>
+<div class="line-block"><em>std-format-spec</em> :<br />
+    <em>fill-and-align</em><sub>opt</sub> <em>sign</em><sub>opt</sub>
+<code class="sourceCode cpp"><span class="er">#</span></code><sub>opt</sub>
+<code class="sourceCode cpp"><span class="dv">0</span></code><sub>opt</sub>
+<em>width</em><sub>opt</sub> <span class="add"><ins><em>grouping</em><sub>opt</sub></ins></span>
+<em>precision</em><sub>opt</sub>
+<code class="sourceCode cpp">L</code><sub>opt</sub>
+<em>type</em><sub>opt</sub></div>
+<p>[…]</p>
+<div class="line-block"><em>width</em> :<br />
+    <em>positive-integer</em><br />
+    <code class="sourceCode cpp"><span class="op">{</span></code>
+<em>arg-id</em><sub>opt</sub>
+<code class="sourceCode cpp"><span class="op">}</span></code></div>
+<div class="add">
+<div class="line-block"><em>grouping</em> :<br />
+    <code class="sourceCode default cpp">&#39;</code>
+<em>grouping-separator</em><sub>opt</sub></div>
+<div class="line-block"><em>grouping-separator</em> : one of<br />
+    space <code class="sourceCode default cpp">,</code>
+<code class="sourceCode default cpp">_</code>
+<code class="sourceCode default cpp">&#39;</code></div>
+</div>
+<div class="line-block"><em>precision</em> :<br />
+    <code class="sourceCode cpp"><span class="op">.</span></code>
+<em>nonnegative-integer</em><br />
+    <code class="sourceCode cpp"><span class="op">.</span></code>
+<code class="sourceCode cpp"><span class="op">{</span></code>
+<em>arg-id</em><sub>opt</sub>
+<code class="sourceCode cpp"><span class="op">}</span></code></div>
+</blockquote>
+<!-- markdownlint-enable MD013 -->
+<p>Modify paragraph 8 as follows:</p>
+<blockquote>
+<p><span class="marginalizedparent"><a href="#pnum-1" id="pnum-1" class="marginalized">8</a></span> The
+<code class="sourceCode cpp"><span class="dv">0</span></code> option is
+valid for arithmetic types other than
+<code class="sourceCode cpp">charT</code> and
+<code class="sourceCode cpp"><span class="dt">bool</span></code>,
+pointer types, or when an integer presentation type is specified. For
+formatting arguments that have a value other than an infinity or a NaN,
+this option pads the formatted argument by inserting the
+<code class="sourceCode cpp"><span class="dv">0</span></code> character
+<em>n</em> times following the sign or base prefix indicators (if any)
+where <em>n</em> is
+<code class="sourceCode cpp"><span class="dv">0</span></code> if the
+<em>align</em> option is present and is the padding width otherwise.
+<span class="add"><ins>If the <em>grouping</em> option is also used and
+the <em>align</em> option is not present, the inserted
+<code class="sourceCode default cpp">0</code> characters are digits for
+the purposes of the <em>grouping</em> option, and <em>n</em> is instead
+the smallest value for which the field width of the result, including
+the inserted <code class="sourceCode default cpp">0</code> characters
+and the digit group separators, is not less than the minimum field
+width.</ins></span></p>
+<p><span class="ednote">[ Editor&#39;s note: <em>Example 3</em>: …
+]</span></p>
+<div class="add">
+<p>If the ordinary literal encoding is UTF-8:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode default cpp"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>string s5 = format(&quot;{:011&#39;}&quot;, 1234);          // value of s5 is &quot;000 001 234&quot;</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>string s6 = format(&quot;{:04&#39;}&quot;, 1);              // value of s6 is &quot;0 001&quot;</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>string s7 = format(&quot;{:010&#39;,}&quot;, 1234567);      // value of s7 is &quot;01,234,567&quot;</span></code></pre></div>
+</div>
+<p><span class="ednote">[ Editor&#39;s note: <em>- end example</em>
+]</span></p>
+</blockquote>
+<p>Add new paragraphs after paragraph 16:</p>
+<div class="add">
+<blockquote>
+<p><span class="marginalizedparent"><a href="#pnum-2" id="pnum-2" class="marginalized">16+1</a></span> The <em>grouping</em> option is
+valid for arithmetic types other than
+<code class="sourceCode default cpp">bool</code>,
+<code class="sourceCode default cpp">char</code>, and
+<code class="sourceCode default cpp">charT</code>. It is valid only if
+the <em>type</em> option is absent or is
+<code class="sourceCode default cpp">d</code> for integral types, and
+only if it is absent or is one of
+<code class="sourceCode default cpp">e</code>,
+<code class="sourceCode default cpp">E</code>,
+<code class="sourceCode default cpp">f</code>,
+<code class="sourceCode default cpp">F</code>,
+<code class="sourceCode default cpp">g</code>, or
+<code class="sourceCode default cpp">G</code> for floating-point types.
+If the <em>grouping-separator</em> is present and is not a space, the
+<em>grouping</em> option is not valid together with the
+<code class="sourceCode default cpp">L</code> option.</p>
+<p><span class="marginalizedparent"><a href="#pnum-3" id="pnum-3" class="marginalized">16+2</a></span> When the <em>grouping</em> option
+is used, the digits of the formatted argument, other than the digits of
+the exponent, are divided into groups and a digit group separator is
+inserted between adjacent groups:</p>
+<ul>
+<li><span class="marginalizedparent"><a href="#pnum-4" id="pnum-4" class="marginalized">(16+2.1)</a></span> the digits that precede the
+radix separator, or all of those digits if there is no radix separator,
+are divided into groups of three counting from the last of them towards
+the first;</li>
+<li><span class="marginalizedparent"><a href="#pnum-5" id="pnum-5" class="marginalized">(16+2.2)</a></span> if the
+<em>grouping-separator</em> is absent or is a space, the digits that
+follow the radix separator are divided into groups of three counting
+from the first of them towards the last.</li>
+</ul>
+<p>In each case, the last group formed contains one, two, or three
+digits.</p>
+<p><span class="marginalizedparent"><a href="#pnum-6" id="pnum-6" class="marginalized">16+3</a></span> If the <em>grouping-separator</em>
+is present, the digit group separator is the character it denotes.
+Otherwise, if the associated character encoding for
+<code class="sourceCode default cpp">charT</code> (Table 12) is UTF-8,
+UTF-16, or UTF-32, the digit group separator is U+202f narrow no-break
+space; otherwise, it is U+0020 space.</p>
+<p>[<em>Note</em>: Without a <em>grouping-separator</em>, this is the
+grouping specified by ISO 80000-1:2022, 7.2.1. Paragraph 13 recommends a
+field width of 1 for the digit group separator in UTF-8, UTF-16, and
+UTF-32. The digits of the exponent are not grouped. <em>- end
+note</em>]</p>
+<p>[<em>Example</em>: If the ordinary literal encoding is UTF-8:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode default cpp"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>string s0 = format(&quot;{:&#39;}&quot;, 1234567);             // value of s0 is &quot;1 234 567&quot;</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>string s1 = format(&quot;{:&#39;}&quot;, -1234);               // value of s1 is &quot;-1 234&quot;</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>string s2 = format(&quot;{:&#39;.6f}&quot;, 1234567.891234);   // value of s2 is &quot;1 234 567.891 234&quot;</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>string s3 = format(&quot;{:&#39;.6e}&quot;, 123456.789);       // value of s3 is &quot;1.234 568e+05&quot;</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>string s4 = format(&quot;{:*&gt;12&#39;}&quot;, 1234567);         // value of s4 is &quot;***1 234 567&quot;</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>string s5 = format(&quot;{:&#39; .6f}&quot;, 1234567.891234);  // value of s5 is &quot;1 234 567.891 234&quot;</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>string s6 = format(&quot;{:&#39;,.6f}&quot;, 1234567.891234);  // value of s6 is &quot;1,234,567.891234&quot;</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>string s7 = format(&quot;{:&#39;_}&quot;, 1234567);            // value of s7 is &quot;1_234_567&quot;</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>string s8 = format(&quot;{:&#39;&#39;}&quot;, 1234567);            // value of s8 is &quot;1&#39;234&#39;567&quot;</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>string s9 = format(&quot;{:&#39;x}&quot;, 1234567);            // error: invalid presentation type with grouping</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>string s10 = format(&quot;{:&#39;,L}&quot;, 1234567);          // error: grouping-separator with L</span></code></pre></div>
+<p><em>- end example</em>]</p>
+</blockquote>
+</div>
+<p>Modify paragraph 17 as follows:</p>
+<blockquote>
+<p><span class="marginalizedparent"><a href="#pnum-7" id="pnum-7" class="marginalized">17</a></span> When the
+<code class="sourceCode cpp">L</code> option is used, the form used for
+the conversion is called the locale-specific form. The
+<code class="sourceCode cpp">L</code> option is only valid for
+arithmetic types, and its effect depends upon the type. A call to
+<code class="sourceCode cpp">format</code> on a given formatter
+specialization is not a constant subexpression if the locale-specific
+form is specified.</p>
+<ul>
+<li><span class="marginalizedparent"><a href="#pnum-8" id="pnum-8" class="marginalized">(17.1)</a></span> For integral types, the
+locale-specific form causes the context’s locale to be used to insert
+the appropriate digit group separator characters as if obtained with
+<code class="sourceCode cpp">numpunct<span class="op">&lt;</span>charT<span class="op">&gt;::</span>grouping</code>
+and
+<code class="sourceCode cpp">numpunct<span class="op">&lt;</span>charT<span class="op">&gt;::</span>thousands_sep</code><span class="add"><ins>, unless the <em>grouping</em> option is also
+used</ins></span>.</li>
+<li><span class="marginalizedparent"><a href="#pnum-9" id="pnum-9" class="marginalized">(17.2)</a></span> For floating-point types, the
+locale-specific form causes the context’s locale to be used to insert
+the appropriate digit group and radix separator characters as if
+obtained with
+<code class="sourceCode cpp">numpunct<span class="op">&lt;</span>charT<span class="op">&gt;::</span>grouping</code>,
+<code class="sourceCode cpp">numpunct<span class="op">&lt;</span>charT<span class="op">&gt;::</span>thousands_sep</code>,
+and
+<code class="sourceCode cpp">numpunct<span class="op">&lt;</span>charT<span class="op">&gt;::</span>decimal_point</code><span class="add"><ins>. If the <em>grouping</em> option is also used, only
+the radix separator is obtained from the locale, and digit groups are
+formed as specified for the <em>grouping</em> option</ins></span>.</li>
+</ul>
+<p>[…]</p>
+</blockquote>
+<h2 data-number="9.2" id="format.formatter.spec"><span class="header-section-number">9.2</span> <span>28.5.6.4 Formatter
+specializations <a href="https://eel.is/c++draft/format.formatter.spec" title="28.5.6.4 Formatter specializations">[format.formatter.spec]</a></span><a href="#format.formatter.spec" class="self-link"></a></h2>
+<p><span class="ednote">[ Editor&#39;s note: No change is needed: the
+<code class="sourceCode default cpp">formatter</code> specializations
+for arithmetic types already interpret
+<code class="sourceCode default cpp">format-spec</code> as a
+<code class="sourceCode default cpp">std-format-spec</code>.
+]</span></p>
+<h2 data-number="9.3" id="version.syn"><span class="header-section-number">9.3</span> <span>17.3.2 Header
+&lt;version&gt; synopsis <a href="https://eel.is/c++draft/version.syn" title="17.3.2 Header &lt;version&gt; synopsis">[version.syn]</a></span><a href="#version.syn" class="self-link"></a></h2>
+<p>Bump the value of
+<code class="sourceCode cpp">__cpp_lib_format</code>:</p>
+<blockquote>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_format     </span><span class="add"><ins>2026XXL</ins></span><span class="pp">  </span><span class="co">// also in &lt;format&gt;</span></span></code></pre></div>
+</blockquote>
+<h2 data-number="9.4" id="wording-bibliography"><span class="header-section-number">9.4</span> Bibliography<a href="#wording-bibliography" class="self-link"></a></h2>
+<p>Add the following entry to the Bibliography:</p>
+<div class="add">
+<blockquote>
+<ul>
+<li>ISO 80000-1:2022, <em>Quantities and units — Part 1:
+General</em></li>
+</ul>
+</blockquote>
+</div>
+<h1 data-number="10" id="acknowledgements"><span class="header-section-number">10</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<p>Special thanks and recognition goes to <a href="https://cppalliance.org">The C++ Alliance</a> for supporting
+Mateusz’s membership in the ISO C++ Committee and the production of this
+proposal.</p>
+<h1 data-number="11" id="bibliography"><span class="header-section-number">11</span> References<a href="#bibliography" class="self-link"></a></h1>
+<div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
+<div id="ref-CLDR34" class="csl-entry" role="listitem">
+[CLDR 34] CLDR 34 Release Note. <a href="https://cldr.unicode.org/downloads/cldr-34"><div class="csl-indent">https://cldr.unicode.org/downloads/cldr-34</div></a>
+</div>
+<div id="ref-CPYTHON87790" class="csl-entry" role="listitem">
+[cpython#87790] Add underscore as a decimal separator for string
+formatting. <a href="https://github.com/python/cpython/issues/87790"><div class="csl-indent">https://github.com/python/cpython/issues/87790</div></a>
+</div>
+<div id="ref-FMT" class="csl-entry" role="listitem">
+[{fmt}] {fmt}: A modern formatting library. <a href="https://github.com/fmtlib/fmt"><div class="csl-indent">https://github.com/fmtlib/fmt</div></a>
+</div>
+<div id="ref-FMT3840" class="csl-entry" role="listitem">
+[fmt#3840] Custom thousand separator. <a href="https://github.com/fmtlib/fmt/issues/3840"><div class="csl-indent">https://github.com/fmtlib/fmt/issues/3840</div></a>
+</div>
+<div id="ref-FMT3929" class="csl-entry" role="listitem">
+[fmt#3929] It would be good to have a customizable separator in
+fmt::group_digits(…). <a href="https://github.com/fmtlib/fmt/issues/3929"><div class="csl-indent">https://github.com/fmtlib/fmt/issues/3929</div></a>
+</div>
+<div id="ref-FMT4284" class="csl-entry" role="listitem">
+[fmt#4284] FMT_STATIC_THOUSANDS_SEPARATOR removed. <a href="https://github.com/fmtlib/fmt/issues/4284"><div class="csl-indent">https://github.com/fmtlib/fmt/issues/4284</div></a>
+</div>
+<div id="ref-FMT-ISO-GROUPING" class="csl-entry" role="listitem">
+[fmt#4997] Add ’ format option for digit grouping. <a href="https://github.com/fmtlib/fmt/pull/4997"><div class="csl-indent">https://github.com/fmtlib/fmt/pull/4997</div></a>
+</div>
+<div id="ref-GCC87642" class="csl-entry" role="listitem">
+[GCC PR 87642] libstdc++: handle multibyte thousands separators from
+libc. <a href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87642"><div class="csl-indent">https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87642</div></a>
+</div>
+<div id="ref-ICU-SKELETONS" class="csl-entry" role="listitem">
+[ICU number skeletons] ICU User Guide: Number Skeletons. <a href="https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html"><div class="csl-indent">https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html</div></a>
+</div>
+<div id="ref-IEC80000-16" class="csl-entry" role="listitem">
+[IEC CD 80000-16] IEC CD 80000-16:2023 Quantities and units - Part 16
+(committee draft). <a href="https://www.iec.ch"><div class="csl-indent">https://www.iec.ch</div></a>
+</div>
+<div id="ref-ISO80000-1" class="csl-entry" role="listitem">
+[ISO 80000-1] ISO 80000-1:2022 Quantities and units - Part 1: General.
+<a href="https://www.iso.org/standard/76921.html"><div class="csl-indent">https://www.iso.org/standard/76921.html</div></a>
+</div>
+<div id="ref-IUPAC-GB" class="csl-entry" role="listitem">
+[IUPAC Green Book] Quantities, Units and Symbols in Physical Chemistry,
+3rd edition, 2nd printing. <a href="https://iupac.org/wp-content/uploads/2019/05/IUPAC-GB3-2012-2ndPrinting-PDFsearchable.pdf"><div class="csl-indent">https://iupac.org/wp-content/uploads/2019/05/IUPAC-GB3-2012-2ndPrinting-PDFsearchable.pdf</div></a>
+</div>
+<div id="ref-LWG2117" class="csl-entry" role="listitem">
+[LWG 2117] ios_base manipulators should have
+showgrouping/noshowgrouping. <a href="https://cplusplus.github.io/LWG/issue2117"><div class="csl-indent">https://cplusplus.github.io/LWG/issue2117</div></a>
+</div>
+<div id="ref-LWG826" class="csl-entry" role="listitem">
+[LWG 826] Equivalent of %’d, or rather, lack thereof? <a href="https://cplusplus.github.io/LWG/issue826"><div class="csl-indent">https://cplusplus.github.io/LWG/issue826</div></a>
+</div>
+<div id="ref-N3781" class="csl-entry" role="listitem">
+[N3781] L. Crowl, R. Smith, J. Snyder, D. Vandevoorde. 2013-09-25.
+Single-Quotation-Mark as a Digit Separator. <a href="https://wg21.link/n3781"><div class="csl-indent">https://wg21.link/n3781</div></a>
+</div>
+<div id="ref-N5054" class="csl-entry" role="listitem">
+[N5054] Thomas Köppe. 2026-07-16. Working Draft, Programming Languages —
+C++. <a href="https://wg21.link/n5054"><div class="csl-indent">https://wg21.link/n5054</div></a>
+</div>
+<div id="ref-NIST811" class="csl-entry" role="listitem">
+[NIST SP 811] NIST SP 811, Guide for the Use of the International System
+of Units (SI), 2008. <a href="https://www.nist.gov/pml/special-publication-811"><div class="csl-indent">https://www.nist.gov/pml/special-publication-811</div></a>
+</div>
+<div id="ref-P0645R10" class="csl-entry" role="listitem">
+[P0645R10] Victor Zverovich. 2019-07-18. Text Formatting. <a href="https://wg21.link/p0645r10"><div class="csl-indent">https://wg21.link/p0645r10</div></a>
+</div>
+<div id="ref-P1892R1" class="csl-entry" role="listitem">
+[P1892R1] Peter Brett. 2019-11-07. Extended locale-specific presentation
+specifiers for std::format. <a href="https://wg21.link/p1892r1"><div class="csl-indent">https://wg21.link/p1892r1</div></a>
+</div>
+<div id="ref-P3045R10_PRE" class="csl-entry" role="listitem">
+[P3045R10] Mateusz Pusz. Quantities and units library. <a href="https://wg21.link/p3045r10"><div class="csl-indent">https://wg21.link/p3045r10</div></a>
+</div>
+<div id="ref-P3391R2" class="csl-entry" role="listitem">
+[P3391R2] Barry Revzin. 2025-11-08. constexpr std::format. <a href="https://wg21.link/p3391r2"><div class="csl-indent">https://wg21.link/p3391r2</div></a>
+</div>
+<div id="ref-PEP378" class="csl-entry" role="listitem">
+[PEP 378] PEP 378 - Format Specifier for Thousands Separator. <a href="https://peps.python.org/pep-0378/"><div class="csl-indent">https://peps.python.org/pep-0378/</div></a>
+</div>
+<div id="ref-PEP515" class="csl-entry" role="listitem">
+[PEP 515] PEP 515 - Underscores in Numeric Literals. <a href="https://peps.python.org/pep-0515/"><div class="csl-indent">https://peps.python.org/pep-0515/</div></a>
+</div>
+<div id="ref-SI" class="csl-entry" role="listitem">
+[SI] The International System of Units (SI), 9th edition, 2019 (V4.01,
+2026). <a href="https://www.bipm.org/en/publications/si-brochure"><div class="csl-indent">https://www.bipm.org/en/publications/si-brochure</div></a>
+</div>
+<div id="ref-SIUNITX" class="csl-entry" role="listitem">
+[siunitx] siunitx - A comprehensive (SI) units package, v3.6.4. <a href="https://ctan.org/pkg/siunitx"><div class="csl-indent">https://ctan.org/pkg/siunitx</div></a>
+</div>
+<div id="ref-UAX14" class="csl-entry" role="listitem">
+[UAX] Unicode Standard Annex #14: Unicode Line Breaking Algorithm. <a href="https://www.unicode.org/reports/tr14/"><div class="csl-indent">https://www.unicode.org/reports/tr14/</div></a>
+</div>
+<div id="ref-CLDR-NUMBERS" class="csl-entry" role="listitem">
+[UTS] Unicode Locale Data Markup Language (LDML) Part 3: Numbers. <a href="https://www.unicode.org/reports/tr35/tr35-numbers.html"><div class="csl-indent">https://www.unicode.org/reports/tr35/tr35-numbers.html</div></a>
+</div>
+</div>
+</div>
+</div>
+<script>
+const body = document.body;
+const noSyntaxHighlightingCheckbox = document.getElementById('no-syntax-highlighting-toggle');
+noSyntaxHighlightingCheckbox.checked = false;
+noSyntaxHighlightingCheckbox.addEventListener('change', () => {
+  body.dataset.syntaxHighlighting = noSyntaxHighlightingCheckbox.checked ? 'off' : 'on';
+});
+
+const hideDeletedTextCheckbox = document.getElementById('hide-deleted-text-toggle');
+hideDeletedTextCheckbox.checked = false;
+hideDeletedTextCheckbox.addEventListener('change', () => {
+  body.dataset.deletedText = hideDeletedTextCheckbox.checked ? 'hide' : 'show';
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const toc = document.querySelector('[role="doc-toc"]');
+  if (!toc) return;
+
+  const sourceList = toc.querySelector(':scope > ul');
+  const chrome = toc.querySelector(':scope > .toc-chrome');
+  if (!sourceList || !chrome) return;
+
+  if (!sourceList.id) {
+    sourceList.id = (toc.id || 'toc') + '-outline';
+  }
+
+  const expandToggle = chrome.querySelector('.toc-expand-toggle');
+  const progressBar = chrome.querySelector('.toc-progress-bar');
+  if (!expandToggle || !progressBar) return;
+
+  expandToggle.setAttribute('aria-label', 'Expand table of contents');
+  expandToggle.setAttribute('aria-controls', sourceList.id);
+
+  const entries = Array.from(toc.querySelectorAll('a[href^="#"]'))
+    .map(link => ({
+      link,
+      target: document.getElementById(
+        decodeURIComponent(link.getAttribute('href')).slice(1))
+    }))
+    .filter(e => e.target);
+  if (entries.length === 0) return;
+
+  let active = null;
+  let sidebar = false;
+  let readingLine = 1;
+  const mobileBar = document.querySelector('.toc-mobile-bar');
+  const mobileDialog = document.querySelector('.toc-dialog');
+  const mobileTrigger = document.querySelector('.toc-mobile-trigger');
+  const closeButton = document.querySelector('.toc-dialog-close');
+  const dialogNav = document.querySelector('.toc-dialog-nav');
+  let mobileLinks = [];
+  let expansionPreference = null;
+
+  const hasNestedSections = Boolean(sourceList.querySelector('li > ul'));
+  expandToggle.hidden = !hasNestedSections;
+
+  function measureLayout() {
+    sidebar = getComputedStyle(toc).position === 'fixed';
+    readingLine =
+      (parseFloat(getComputedStyle(entries[0].target).scrollMarginTop) || 0) + 1;
+  }
+
+  function setExpanded(expanded) {
+    toc.classList.toggle('toc-expanded', expanded);
+    expandToggle.textContent = expanded ? 'Collapse' : 'Expand';
+    expandToggle.setAttribute('aria-expanded', String(expanded));
+    expandToggle.setAttribute(
+      'aria-label',
+      expanded
+        ? 'Collapse table of contents'
+        : 'Expand table of contents'
+    );
+    if (active) {
+      requestAnimationFrame(() => keepActiveEntryVisible(active.link));
+    }
+  }
+
+  // Prefer the complete outline whenever it fits without adding an inner
+  // scrollbar. This naturally accounts for viewport height and wrapping.
+  function updateDefaultExpansion() {
+    if (expansionPreference !== null || !sidebar || !hasNestedSections) {
+      return;
+    }
+
+    toc.classList.add('toc-expanded');
+    const expandedFits = toc.scrollHeight <= toc.clientHeight + 2;
+    setExpanded(expandedFits);
+  }
+
+  expandToggle.addEventListener('click', () => {
+    expansionPreference = !toc.classList.contains('toc-expanded');
+    setExpanded(expansionPreference);
+  });
+
+  function syncMobileActive(scrollToActive = false) {
+    const activeHref = active?.link.getAttribute('href');
+    let mobileActive = null;
+
+    for (const link of mobileLinks) {
+      const isActive = link.getAttribute('href') === activeHref;
+      link.classList.toggle('active', isActive);
+      if (isActive) {
+        link.setAttribute('aria-current', 'location');
+        mobileActive = link;
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    }
+
+    if (scrollToActive && mobileActive) {
+      requestAnimationFrame(() => {
+        mobileActive.scrollIntoView({ block: 'center', behavior: 'auto' });
+      });
+    }
+  }
+
+  function markMobileDialogClosed() {
+    document.body.classList.remove('toc-menu-open');
+    if (mobileTrigger) mobileTrigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function closeMobileDialog() {
+    if (!mobileDialog?.open) return;
+    if (typeof mobileDialog.close === 'function') {
+      mobileDialog.close();
+    } else {
+      mobileDialog.removeAttribute('open');
+      markMobileDialogClosed();
+    }
+  }
+
+  if (mobileBar && mobileDialog && mobileTrigger && closeButton && dialogNav) {
+    const mobileList = sourceList.cloneNode(true);
+    mobileList.removeAttribute('id');
+    for (const element of mobileList.querySelectorAll('[id]')) {
+      element.removeAttribute('id');
+    }
+    dialogNav.appendChild(mobileList);
+    mobileLinks = Array.from(dialogNav.querySelectorAll('a[href^="#"]'));
+
+    document.body.classList.add('toc-ready');
+
+    mobileTrigger.addEventListener('click', () => {
+      syncMobileActive();
+      document.body.classList.add('toc-menu-open');
+      mobileTrigger.setAttribute('aria-expanded', 'true');
+      if (typeof mobileDialog.showModal === 'function') {
+        mobileDialog.showModal();
+      } else {
+        mobileDialog.setAttribute('open', '');
+      }
+      syncMobileActive(true);
+    });
+    closeButton.addEventListener('click', closeMobileDialog);
+    mobileDialog.addEventListener('close', markMobileDialogClosed);
+    mobileDialog.addEventListener('click', event => {
+      if (event.target === mobileDialog) closeMobileDialog();
+    });
+    dialogNav.addEventListener('click', event => {
+      const link = event.target.closest('a[href^="#"]');
+      if (!link) return;
+
+      const target = document.getElementById(
+        decodeURIComponent(link.getAttribute('href')).slice(1));
+      if (!target) return;
+
+      event.preventDefault();
+      closeMobileDialog();
+      const href = link.getAttribute('href');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        history.pushState(null, '', href);
+        target.scrollIntoView();
+      }));
+    });
+  }
+
+  function keepActiveEntryVisible(link) {
+    if (!sidebar) return;
+
+    const tocRect = toc.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    const top = tocRect.top + chrome.offsetHeight + 8;
+    const bottom = tocRect.bottom - 8;
+
+    if (linkRect.top < top) {
+      toc.scrollBy({
+        top: linkRect.top - top
+      });
+    } else if (linkRect.bottom > bottom) {
+      toc.scrollBy({
+        top: linkRect.bottom - bottom
+      });
+    }
+  }
+
+  function update() {
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const fraction = scrollable > 0
+      ? Math.max(0, Math.min(1, window.scrollY / scrollable))
+      : 0;
+    progressBar.style.transform = 'scaleX(' + fraction + ')';
+
+    let current = entries[0];
+    for (const e of entries) {
+      // TOC entries are in document order, so stop at the first
+      // heading below the reading line.
+      if (e.target.getBoundingClientRect().top > readingLine) break;
+      current = e;
+    }
+    if (current === active) {
+      if (active) keepActiveEntryVisible(active.link);
+      return;
+    }
+
+    if (active) {
+      active.link.classList.remove('active');
+      active.link.removeAttribute('aria-current');
+    }
+    active = current;
+    if (active) {
+      active.link.classList.add('active');
+      active.link.setAttribute('aria-current', 'location');
+
+      const stalePath = new Set(toc.querySelectorAll('li.active-path'));
+      for (let n = active.link.parentElement; n && n !== toc; n = n.parentElement) {
+        if (n.tagName === 'LI') {
+          n.classList.add('active-path');
+          stalePath.delete(n);
+        }
+      }
+      for (const li of stalePath) li.classList.remove('active-path');
+      keepActiveEntryVisible(active.link);
+      syncMobileActive();
+    }
+  }
+
+  let queued = false;
+  function onScroll() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; update(); });
+  }
+
+  let expansionQueued = false;
+  function onResize() {
+    measureLayout();
+    if (sidebar) closeMobileDialog();
+    onScroll();
+    if (expansionPreference !== null || expansionQueued) return;
+    expansionQueued = true;
+    requestAnimationFrame(() => {
+      expansionQueued = false;
+      updateDefaultExpansion();
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onResize, { passive: true });
+  // Late layout shifts (images, MathJax, mermaid) move the headings.
+  window.addEventListener('load', () => {
+    measureLayout();
+    update();
+    updateDefaultExpansion();
+  });
+  measureLayout();
+  update();
+  updateDefaultExpansion();
+});</script>
+</body>
+</html>
