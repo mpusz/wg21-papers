@@ -6,7 +6,7 @@ audience:
   - SG6 Numerics
   - Library Evolution Working Group
 author:
-  - name: Mateusz Pusz ([Epam Systems](http://www.epam.com))
+  - name: Mateusz Pusz
     email: <mateusz.pusz@gmail.com>
 ---
 
@@ -14,15 +14,23 @@ author:
 
 ## Changes since [@P3788R0]
 
+Based on Kona 2025 SG6 Numerics feedback:
 
+- Replaced the `typename complex<T>::value_type` approach (which still caused silent narrowing)
+  with heterogeneous overloads using `std::common_type_t<T, U>`, following C's usual arithmetic
+  conversion rules. For example, `complex<float> * long double` now yields `complex<long double>`
+  instead of silently converting the scalar to `float`.
+- Scalar heterogeneous type support is now part of the main proposal (no longer optional).
+- Heterogeneous complex–complex support is likewise part of the main proposal.
 
 # Introduction
 
 This paper proposes a backward-compatible solution to fix the inconsistent behavior of
 `std::complex` binary operators with implicit conversions. The proposed changes:
 
-1. Enable implicit conversions for scalar operands in `std::complex` binary operations.
-2. Optionally support mixed-type complex operations.
+1. Enable heterogeneous scalar operands in `std::complex` binary operations, with result types
+   following C's usual arithmetic conversion rules.
+2. Support mixed-type complex operations.
 3. Maintain full backward compatibility with existing code.
 
 
@@ -71,8 +79,8 @@ concept RealScalarRepresentation = (!Quantity<T>) && RealScalar<T> && ScalableBy
 template<typename T>
 concept ComplexScalarRepresentation =
   (!Quantity<T>) && ComplexScalar<T> && requires(const T v, const scaling_factor_type_t<T> f) {
-    // TODO The below conversion to `T` is an exception compared to other representation types
-    // `std::complex<T>` * `U` do not work, but `std::complex<T>` is convertible from `U`
+    // TODO The below conversion to `T` is an exception compared to other representation types;
+    // `std::complex<T>` * `U` does not compile, but `std::complex<T>` is constructible from `U`
     { v* T(f) } -> std::common_with<T>;
     { T(f) * v } -> std::common_with<T>;
     { v / T(f) } -> std::common_with<T>;
@@ -85,9 +93,11 @@ template<typename T>
 concept VectorRepresentation = NotQuantity<T> && Vector<T> && ScalableByFactor<T>;
 ```
 
-As seen above, the general-purpose physical quantities and units library has to special-case
-the `std::complex` type to handle scaling of a quantity value between different units. This is
-wrong and should not be required for C++ Standard Library types.
+After this proposal, `v * f` works directly and `ComplexScalarRepresentation` can be unified
+with `RealScalarRepresentation` via `ScalableByFactor`. As shown above, the general-purpose
+physical quantities and units library currently has to special-case `std::complex` to handle
+scaling of a quantity value between different units. This should not be required for C++
+Standard Library types.
 
 
 # Problem statement
@@ -121,34 +131,66 @@ However, this would be an API break for any code that relies on them being decla
 scope, e.g., code that calls `std::operator*<float>(c, 3.14)`, or similar constructs.
 
 
-# Fixing conversions to `T` scalar function template parameters
+# Fixing heterogeneous scalar and complex operations
 
-We propose to fix the conversions to `T` in a similar way that [@P0558R1] fixed `std::atomic`
-interfaces. Instead of using type `T` as a function template parameter, we can use
-`typename std::complex<T>::value_type` instead:
-
-```cpp
-template<class T> constexpr complex<T> operator*(const complex<T>&, const complex<T>&);
-template<class T> constexpr complex<T> operator*(const complex<T>&, const typename complex<T>::value_type&);
-template<class T> constexpr complex<T> operator*(const typename complex<T>::value_type&, const complex<T>&);
-```
-
-This change does not break any existing code and enables implicit conversions for `T` parameters.
-
-
-# Fixing overloads with heterogeneous types
-
-If we want to allow operators to work on `complex` class templates with different value
-types, we can add additional overloads to handle that:
+The approach considered in [@P3788R0] — replacing the scalar parameter type `T` with
+`typename std::complex<T>::value_type` — enables implicit conversions but still forces a
+narrowing conversion when the scalar has a wider type. For example:
 
 ```cpp
-template<typename T>
-concept @_non-void_@ = (!is_void_v<T>);
-
-template<typename T, typename U>
-  requires requires(T t, U u) { { t * u } -> @_non-void_@; }
-auto operator*(complex<T>, complex<U>) -> complex<decltype(declval<T>() * declval<U>())>;
+std::complex<float> c{1.f, 2.f};
+auto r = c * 3.14;  // 3.14 is double; value_type approach converts it to float → precision loss
 ```
+
+This violates C's usual arithmetic conversion rules, where `float * double` yields `double`.
+The SG6 Numerics group at Kona 2025 identified this as unacceptable, noting that C specifies
+the result as `complex<longest_type>` when mixing precision levels.
+
+## Heterogeneous scalar overloads
+
+We propose adding new overloads with a second deduced template parameter `U` and returning
+`complex<common_type_t<T, U>>`:
+
+```cpp
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>>
+operator*(const complex<T>& lhs, const U& rhs);
+
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>>
+operator*(const U& lhs, const complex<T>& rhs);
+```
+
+The `$is-complex$` constraint prevents ambiguity with the complex–complex overloads below.
+When `T == U` these overloads have the same return type as the existing `complex<T>` overloads,
+so they are fully backward compatible. When `T != U`, the result follows the standard arithmetic
+conversion rules:
+
+| Expression | Result type |
+|---|---|
+| `complex<float> * double` | `complex<double>` |
+| `complex<float> * long double` | `complex<long double>` |
+| `complex<double> * float` | `complex<double>` |
+| `complex<double> * long double` | `complex<long double>` |
+
+Note: `std::complex` is specified only for floating-point value types. The behavior of these
+overloads for non-floating-point `U` (e.g., integer types) is unspecified.
+
+## Heterogeneous complex–complex overloads
+
+The same principle applies to operations between complex numbers of different value types:
+
+```cpp
+template<class T, class U>
+  requires requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>>
+operator*(const complex<T>& lhs, const complex<U>& rhs);
+```
+
+When `T == U` the existing single-parameter overload is more specialized (it constrains both
+arguments to the same `T`), so it is preferred by partial ordering and there is no ambiguity.
 
 
 # Impact on existing code
@@ -174,70 +216,80 @@ The proposed changes are relative to [@N5008].
 
 ## [complex.syn]{.sref}
 
-Modify the declarations in [complex.syn]{.sref} as follows:
+Add the following declarations to [complex.syn]{.sref} after the existing homogeneous overloads
+for each operator. The existing overloads are **unchanged**.
 
-```diff
-template<class T> constexpr complex<T> operator+(const complex<T>& lhs, const complex<T>& rhs);
-template<class T> constexpr complex<T> operator+(const complex<T>& lhs, const @[`T`]{.rm}[typename complex<T>::value_type]{.add}@& rhs);
-template<class T> constexpr complex<T> operator+(const @[`T`]{.rm}[typename complex<T>::value_type]{.add}@& lhs, const complex<T>& rhs);
+Let `$is-complex$<T>` be `true` if `T` is a specialization of `complex`, and `false` otherwise
+(exposition only).
 
-template<class T> constexpr complex<T> operator-(const complex<T>& lhs, const complex<T>& rhs);
-template<class T> constexpr complex<T> operator-(const complex<T>& lhs, const @[`T`]{.rm}[typename complex<T>::value_type]{.add}@& rhs);
-template<class T> constexpr complex<T> operator-(const @[`T`]{.rm}[typename complex<T>::value_type]{.add}@& lhs, const complex<T>& rhs);
+::: add
+```cpp
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator+(const complex<T>& lhs, const U& rhs);
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator+(const U& lhs, const complex<T>& rhs);
+template<class T, class U>
+  requires requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator+(const complex<T>& lhs, const complex<U>& rhs);
 
-template<class T> constexpr complex<T> operator*(const complex<T>& lhs, const complex<T>& rhs);
-template<class T> constexpr complex<T> operator*(const complex<T>& lhs, const @[`T`]{.rm}[typename complex<T>::value_type]{.add}@& rhs);
-template<class T> constexpr complex<T> operator*(const @[`T`]{.rm}[typename complex<T>::value_type]{.add}@& lhs, const complex<T>& rhs);
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator-(const complex<T>& lhs, const U& rhs);
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator-(const U& lhs, const complex<T>& rhs);
+template<class T, class U>
+  requires requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator-(const complex<T>& lhs, const complex<U>& rhs);
 
-template<class T> constexpr complex<T> operator/(const complex<T>& lhs, const complex<T>& rhs);
-template<class T> constexpr complex<T> operator/(const complex<T>& lhs, const @[`T`]{.rm}[typename complex<T>::value_type]{.add}@& rhs);
-template<class T> constexpr complex<T> operator/(const @[`T`]{.rm}[typename complex<T>::value_type]{.add}@& lhs, const complex<T>& rhs);
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator*(const complex<T>& lhs, const U& rhs);
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator*(const U& lhs, const complex<T>& rhs);
+template<class T, class U>
+  requires requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator*(const complex<T>& lhs, const complex<U>& rhs);
 
-template<class T> constexpr bool operator==(const complex<T>& lhs, const complex<T>& rhs);
-template<class T> constexpr bool operator==(const complex<T>& lhs, const @[`T`]{.rm}[typename complex<T>::value_type]{.add}@& rhs);
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator/(const complex<T>& lhs, const U& rhs);
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator/(const U& lhs, const complex<T>& rhs);
+template<class T, class U>
+  requires requires { typename common_type_t<T, U>; }
+constexpr complex<common_type_t<T, U>> operator/(const complex<T>& lhs, const complex<U>& rhs);
+
+template<class T, class U>
+  requires (!@$is-complex$@<U>) && requires { typename common_type_t<T, U>; }
+constexpr bool operator==(const complex<T>& lhs, const U& rhs);
+template<class T, class U>
+  requires requires { typename common_type_t<T, U>; }
+constexpr bool operator==(const complex<T>& lhs, const complex<U>& rhs);
 ```
+:::
 
 ## [complex.ops]{.sref}
 
-Modify the function specifications in [complex.ops]{.sref} to match the declarations. The semantics
-remain unchanged, only the parameter types are modified to enable template argument deduction
-with implicit conversions.
-
-For each affected function template, change the parameter type from `const T&` to
-`const typename complex<T>::value_type&` where applicable.
+Add corresponding specifications in [complex.ops]{.sref} for each new overload. Each new
+heterogeneous scalar overload converts both operands to `complex<common_type_t<T, U>>` and
+delegates to the corresponding homogeneous operation. Each new heterogeneous complex overload
+does the same for both complex arguments.
 
 ## Feature test macro
 
 Add the following feature test macro to [version.syn]{.sref}:
 
 ```diff
-+#define __cpp_lib_complex_implicit_conversions ??????L // also in <complex>
-```
-
-## Optional: Heterogeneous type support
-
-If the committee decides to support operations between complex numbers of different types,
-add the following overloads:
-
-```cpp
-template<typename T, typename U>
-constexpr auto operator+(complex<T>, complex<U>) -> complex<decltype(declval<T>() + declval<U>())>;
-
-template<typename T, typename U>
-constexpr auto operator-(complex<T>, complex<U>) -> complex<decltype(declval<T>() - declval<U>())>;
-
-template<typename T, typename U>
-constexpr auto operator*(complex<T>, complex<U>) -> complex<decltype(declval<T>() * declval<U>())>;
-
-template<typename T, typename U>
-constexpr auto operator/(complex<T>, complex<U>) -> complex<decltype(declval<T>() / declval<U>())>;
-
-template<typename T, equality_comparable_with<T> U>
-constexpr bool operator==(complex<T>, complex<U>);
++#define __cpp_lib_complex_mixed_arithmetic ??????L // also in <complex>
 ```
 
 
 # Acknowledgements
 
-Special thanks and recognition goes to [Epam Systems](http://www.epam.com) for supporting
+Special thanks and recognition goes to [The C++ Alliance](https://cppalliance.org) for supporting
 Mateusz's membership in the ISO C++ Committee and the production of this proposal.
