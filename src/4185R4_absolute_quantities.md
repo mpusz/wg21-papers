@@ -769,20 +769,27 @@ and `(Δa * Δb) / Δc` an absolute. Three alternative rules work for every grou
   reference then carries an integer instead of a flag.
 
 This paper proposes the first rule, which is the one the table above uses. In the examples of
-[@MP-UNITS], it costs four `.absolute()` calls, each after a quotient: a glide distance computed
-from two altitude differences, the durations of an aircraft tow and of a climb in a thermal, each a
-height change divided by a rate of climb, and the gain of a Kalman filter, a ratio of variances.
+[@MP-UNITS], it needs four `.absolute()` calls, each after a quotient. Three of them follow a
+quotient of two signed deltas: a glide distance computed from two altitude differences, and the
+durations of an aircraft tow and of a climb in a thermal, each a height change divided by a rate of
+climb. Each of these states that the quotient is non-negative: that the glide line meets the
+terrain, raised by the safety height, ahead of the glider, and, for a positive height gain, that the
+tow climbs and that the thermal is stronger than the glider's sink. If [@P4411R1_PRE] is adopted, a
+negative duration or distance is a contract violation, so the call also checks it. `abs()` would be
+wrong in each place, as it would turn a negative result, which is an error, into a plausible
+positive one. The fourth, on the gain of a Kalman filter, goes away when a standard deviation given
+as an input is modeled as an absolute, as explained below.
 
-A power follows the same rule: `pow<N>(Δx)` is a delta for every `N`, as `Δx * Δx` is. An even
-power can't be negative, but the sign doesn't decide the abstraction, as
+A power follows the same rule: `pow<N>(Δx)` is a delta for every `N`, as `Δx * Δx` is. An even power
+can't be negative, but the sign doesn't decide the abstraction, as
 [the zero-anchor principle](#abs-delta-rationale) explains. Only an operation that measures a size
-makes an absolute of a delta: `abs(Δx)`, `hypot(Δx, Δy)`, `magnitude()` of a vector, and
-`modulus()` of a complex scalar. `hypot(x, 0)` equals `abs(x)`, and `hypot(x2 - x1, y2 - y1)` is
-the same distance as `(r2 - r1).magnitude()` for vector positions, so all of them are absolutes. The
-cost is that `sqrt(pow<2>(Δx) + pow<2>(Δy))` is a delta while `hypot(Δx, Δy)` is an absolute. So a
-variance computed as the square of a delta, such as the variance of an estimate in the Kalman
-filter examples, is a delta, and the Kalman gain, a ratio of two
-variances, needs `.absolute()`.
+makes an absolute of a delta: `abs(Δx)`, `hypot(Δx, Δy)`, `magnitude()` of a vector, and `modulus()`
+of a complex scalar. `hypot(x, 0)` equals `abs(x)`, and `hypot(x2 - x1, y2 - y1)` is the same
+distance as `(r2 - r1).magnitude()` for vector positions, so all of them are absolutes. The cost is
+that `sqrt(pow<2>(Δx) + pow<2>(Δy))` is a delta while `hypot(Δx, Δy)` is an absolute. A variance
+computed from deltas is a delta, and `.absolute()` states once that it is a size of spread. A
+standard deviation given as an input is an absolute, as it is never negative and zero means no
+spread, and so are its square and the gain of a Kalman filter, a ratio of two variances.
 
 A power of a quantity of a vector specification is ill-formed in [@P3045R11_PRE], even one stored
 in a `double`, and [@P4487R0] asks that `abs()` and `hypot()` of it be ill-formed too: they are
