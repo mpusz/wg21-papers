@@ -42,3 +42,6 @@ src/generated/
 
 # personal, machine-specific agent notes (never committed: references a private repo)
 /CLAUDE.local.md
+
+# LaTeX wording build output
+/wording/build/
