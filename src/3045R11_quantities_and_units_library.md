@@ -41,6 +41,52 @@ header-includes:
 
 # Revision history
 
+## Changes since [@P3045R10]
+
+- The abstraction is spelled in the quantity specification. `point<QS, PO>` is the quantity
+  specification of a point measured from the origin `PO`, `point<QS>` of a point measured from the
+  natural origin of `QS`, and `delta<QS>` of a delta of `QS`. A reference binds one of them to a
+  unit, as in `point<isq::altitude, msl>[m]`, and `point<U, PO>` is its shorthand for a unit.
+  `delta<QS>[U]` is the reference `QS[U]`, except for an offset unit (`K`, `°C`, `°F`), for which
+  `QS[U]` is now ill-formed and a delta is spelled `delta<QS>[U]`. `delta<QS[U]>`,
+  `point<QS[U]>`, and `point<QS[U], PO>` are ill-formed. See [The affine space].
+- `point<QS>[U]` is ill-formed when the origin of `U` isn't the natural origin of `QS`, so a
+  point of a named quantity in degrees Celsius names `si::ice_point`. See [Temperature support].
+- A point converts along one branch of the hierarchy only: `point<isq::height>` and
+  `point<isq::width>` don't convert, even with `quantity_cast`, and have no common quantity
+  specification, while a point of _height_ and one of _length_ now subtract and convert. A point
+  converts to a point of another origin only when both share their absolute point origin. Two
+  natural origins are the same origin when the quantity of one converts implicitly to the other,
+  a relation that isn't transitive. See [Checks that come first].
+- `quantity_of<Q, point<QS>>` and `quantity_of<Q, point<QS, PO>>` match the points measured from an
+  origin compatible with the origin of the specification. See
+  [`quantity_of<T, V>`](#quantity_of-concept).
+- A quantity doesn't convert to a quantity of another character, even with `quantity_cast`, and
+  two such quantities have no common quantity specification. A quantity kind passes this check.
+  `isq::velocity` doesn't convert to `isq::speed`, while the result of `magnitude()` converts
+  implicitly to the nearest scalar quantity above the vector. See [Conversions between characters].
+- `operator*` requires that at most one operand is declared a vector or a tensor, `operator/` a
+  divisor that isn't one, and `inverse()`, `pow<>()`, `sqrt()`, and `cbrt()` a scalar. This holds
+  for quantity specifications, references, and quantities. See
+  [Arithmetic on vectors and tensors].
+- `magnitude(QS)` is the quantity specification of the result of `magnitude()`, and a quantity
+  equation may use it, as in `magnitude(force) / area`. The examples that multiplied a vector,
+  such as _torque_ times _angular velocity_, take its magnitude. The other character-specific
+  operations are proposed in [@P4487R0]. See [Character-specific operations].
+- The complex quantities example takes the parts with the free functions `real()`, `imag()`, and
+  `modulus()` of [@P4487R0] instead of member functions. See [Complex quantities].
+- The examples define a vector below the scalar that its magnitude is a special case of:
+  _displacement_ below _distance_ and _position vector_ below _radial distance_. See
+  [System of quantities is not only about kinds].
+- `get_common_unit`, `get_common_reference`, and `get_common_quantity_spec` are exposition-only.
+  `common_type_t<Q1, Q2>` names a quantity type that can hold both operands. See [Common units].
+- The affine-space operators with a point origin operand (`po + q`, `q + po`, `po - q`,
+  `qp - po`, and `po - qp`) are hidden friends of `$point-origin-interface$` instead of
+  `$quantity-interface$`. Only an expression with an origin operand considers them, so the
+  overload set of the arithmetic between two quantities is smaller.
+- A quantity is compared against `zero`, a named constant of a tag type, instead of a literal
+  `0`, as [@P4406R0_PRE] recommends. See [Comparison against zero].
+
 ## Changes since [@P3045R9]
 
 - [Synopsis] chapter added.
@@ -54,13 +100,16 @@ header-includes:
 - `quantity_from()` and `quantity_from_zero()` are renamed to `delta_from()` and
   `delta_from_zero()`, and `quantity_ref_from()` is removed. A point at its
   default origin provides `numerical_value_in(unit)` and `numerical_value_in(unit, policy)`.
+- `numerical_value_in<Rep>(unit)` and `numerical_value_in<Rep>(unit, policy)` return the numerical
+  value in another representation type, with the rules of `in<Rep>(unit)` and
+  `in<Rep>(unit, policy)`.
   See [Quantity Points].
 - Concepts are spelled in `standard_case`. The class template of a quantity specification is renamed
   to `named_quantity_spec`, `delta_quantity` and `point_quantity` replace `Quantity` and
   `QuantityPoint`, and `quantity_of` matches deltas and points. The quantity concepts match only a
   possibly cv-qualified specialization of `quantity`. See [Concepts](#concepts).
-- `QuantityLike` and the predicates `implicitly_convertible`, `explicitly_convertible`, `castable`,
-  `interconvertible`, and `equivalent` are exposition-only. `quantity_like_traits` describes
+- `QuantityLike`, `PointOrigin`, and the predicates `implicitly_convertible`,
+  `explicitly_convertible`, `castable`, `interconvertible`, and `equivalent` are exposition-only. `quantity_like_traits` describes
   points too, so `QuantityPointLike` and `quantity_point_like_traits` are removed, and so is
   `DimensionOf`.
 - A truncating conversion takes a rounding policy (`truncated`, `rounded`, `rounded_down`, or
@@ -113,6 +162,9 @@ header-includes:
 - [Names that need a decision] proposes the nested namespace `std::math` for the customization
   point objects `real`, `imag`, `modulus`, and `magnitude`, and leaves the name of that namespace
   and of `treat_as_floating_point` open for LEWG.
+- `math::real` and `math::imag` return a real value of the argument's tensor order, and
+  `math::modulus` returns a real scalar. A customization that returns anything else leaves the
+  customization point object unsatisfied. See [Customization Point Objects (CPOs)].
 - `is_kind` is renamed to `subkind`. [@MP-UNITS] keeps `is_kind` as a deprecated alias.
 - `scale` is renamed to `scale_by_magnitude`. [@MP-UNITS] keeps `scale` as deprecated.
 - `per` and `power` are exposition-only, so the standard does not reserve their names.
@@ -1180,8 +1232,8 @@ vector/interval quantities of [The affine space].
 # API overview
 
 This chapter presents the library's core abstractions and design choices. The `quantity` class
-template represents both entities of an affine space. With a point reference `point<R, PO>` it
-represents a point, and otherwise a delta, the difference between two points.
+template represents both entities of an affine space. With a point reference `point<QS, PO>[U]`
+it represents a point, and otherwise a delta, the difference between two points.
 
 More details about the design, rationale for it, and alternative syntaxes discussions can be found in
 the [Design details and rationale] chapter.
@@ -1381,55 +1433,109 @@ It is not possible to:
 Both entities are modeled by the same `quantity` class template, and its reference tells them
 apart.
 
-_Note: [@P4185R2_PRE] proposes a third abstraction, the absolute quantity, anchored at the true
-zero of its quantity, and proposes that `quantity<R>` denote it. A delta would then be spelled
-`quantity<delta<R>>`, and `42 * m` would be an absolute. This chapter describes the design without
-that change._
+_Note: [@P4185R3_PRE] proposes a third abstraction, the absolute quantity, anchored at the true
+zero of its quantity. There, a plain `QS` is the quantity specification of an absolute, so
+`QS[U]` and `delta<QS>[U]` name two different quantities, and `42 * m` is an absolute. This
+chapter describes the design without that change._
 
 ### _Delta_ is modeled by `quantity`
 
 A `quantity<R, Rep>` models a delta unless `R` is a point reference. Construction options include:
 
 - Multiply syntax: `42 * m`, `100 * km / h`
-- `delta<quantity_reference>` construction helper: `delta<deg_C>(3)`, `delta<isq::height[m]>(42)`
+- `delta` construction helper: `delta<deg_C>(3)`, `delta<isq::height>[m](42)`
 - Two-parameter constructor: `quantity{42, si::metre}`
 
 The multiply syntax is disabled for units with inherent point origins (temperature units).
 Rationale is in [`delta` and `point` creation helpers].
 
-### _Point_ is modeled by `quantity<point<R, PO>>` and `point_origin`
+### _Point_ is modeled by `quantity<point<QS, PO>[U]>` and a point origin
 
 A point is the `quantity` class template instantiated with a point reference:
 
 ```cpp
-point<R, PO>  // the reference of a point measured from the origin PO
-point<R>      // the same, measured from default_point_origin(R)
-point<QS>     // the quantity specification of a point on the scale of QS
+point<QS>         // the quantity specification of a point measured from the natural origin of QS
+point<QS, PO>     // the quantity specification of a point measured from the origin PO
+point<QS, PO>[U]  // the reference of such a point with the unit U
+point<U>          // shorthand: point<K, default_point_origin(U)>[U], where K is the quantity kind of U
+point<U, PO>      // shorthand: point<K, PO>[U]
+delta<QS>         // the quantity specification of a delta of QS
+delta<QS>[U]      // the reference of such a delta with the unit U, the same as QS[U] for a unit that isn't an offset one
+delta<U>          // shorthand: delta<K>[U]
 ```
 
-The origin `PO` satisfies `point_origin_for<get_quantity_spec(R)>`, and the point is measured from
-it. The stored number is the delta of the point from `PO`, expressed in the unit of
-`R`. A point has the `reference`, `quantity_spec`, `unit`, and `rep` members of every quantity, and
-adds `point_origin`, `absolute_point_origin`, and `quantity_type`, the type of its delta from the
+The abstraction is a property of the quantity specification. Every quantity specification that
+isn't a point, such as `isq::height` or `kind_of<isq::length>`, is the specification of a delta.
+`delta<QS>` is the specification of a delta of `QS` too, and it differs from `QS` only in the
+units it can be bound to. `point<QS, PO>` is the specification of a point of `QS` measured from the
+origin `PO`, and `point<QS>` of a point measured from the natural origin of `QS`. A specification
+is bound to a unit as before: `point<isq::altitude, msl>[m]` is the reference of a point of
+_altitude_ in metres measured from `msl`, a user-defined `absolute_point_origin` for the mean sea
+level. A unit alone is a shorthand: `delta<m>` names the delta of `kind_of<isq::length>` in metres,
+as `delta<kind_of<isq::length>>[m]` does, and `point<m, msl>` is
+`point<kind_of<isq::length>, msl>[m]`.
+
+A unit that names a point origin in its definition, an offset unit (`si::kelvin`,
+`si::degree_Celsius`, and `usc::degree_Fahrenheit`), doesn't say whether a value is a difference
+or a point, so `QS[U]` is ill-formed for it, a kind included, as in
+`kind_of<isq::thermodynamic_temperature>[deg_C]`, and so is the unit alone as a reference. A delta
+in such a unit is spelled `delta<QS>[U]` or `delta<U>`, and a point `point<QS, PO>[U]` or
+`point<U>`: `delta<kind_of<isq::thermodynamic_temperature>>[deg_C]` is `delta<deg_C>`.
+For any other unit, `delta<QS>[U]` is the reference `QS[U]`: `quantity<delta<isq::width>[m]>` and
+`quantity<isq::width[m]>` are the same type. The quantity specification of a delta reference is
+always the plain one, so `get_quantity_spec(delta<isq::width>[m])` and
+`get_quantity_spec(delta<isq::thermodynamic_temperature>[deg_C])` are `isq::width` and
+`isq::thermodynamic_temperature`. Wherever else a quantity specification is expected, as in
+`delta<isq::height>(q)`, `quantity_cast<delta<isq::height>>(q)`, or
+`quantity_of<Q, delta<isq::height>>`, `delta<QS>` behaves as `QS`.
+
+`delta<>` and `point<>` take a plain quantity specification (neither a point nor a `delta<QS>`)
+or a unit, and nothing else. `delta<isq::height[m]>`, `point<isq::height[m]>`,
+`point<isq::altitude[m], msl>`, `delta<delta<m>>`, `delta<delta<isq::height>>`,
+`delta<point<isq::height>>`, `point<delta<isq::height>>`, and `point<point<isq::height>>` are
+ill-formed, and so are `kind_of<delta<isq::length>>` and `kind_of<point<isq::length>>`, as
+`kind_of<>` takes a plain specification too. These templates take values, so the check is on the
+value of the argument, not on its spelling: `kind_of<isq::length>[m]` is the unit `m` (see
+[Quantity references]), so `delta<kind_of<isq::length>[m]>` is `delta<m>` and
+`point<kind_of<isq::length>[m]>` is `point<m>`, while `delta<isq::length[m]>` is ill-formed. A
+point specification is written with one spelling for values and types alike:
+`point<isq::altitude, msl>[m](42)` creates the value whose type is
+`quantity<point<isq::altitude, msl>[m], int>`. Two point types may still share one specification,
+as the origin of a natural point may be the origin of another quantity of the scale:
+`point<isq::height>(point<m>(1))` keeps the origin `natural_point_origin<kind_of<isq::length>>`, so
+its quantity specification is `point<isq::height>` and its type isn't the type of
+`point<isq::height>[m](1)`.
+
+The origin `PO` satisfies `point_origin_for<QS>`, and the point is measured from it. The stored
+number is the delta of the point from `PO`, expressed in the unit of the reference. A point has the
+`reference`, `quantity_spec`, `unit`, and `rep` members of every quantity, and adds
+`point_origin`, `absolute_point_origin`, and `quantity_type`, the type of its delta from the
 origin.
 
-The quantity specification of a point is `point<QS>`, where `QS` is the quantity specification of
-`R`. Because of it, a point and a delta never share a quantity specification.
-`point<isq::altitude>` converts to `point<isq::length>` as _altitude_ converts to _length_, but never
-to `isq::length`, and `isq::length` never converts to it. A point origin denotes a point, so its
-quantity specification is `point<QS>` as well.
+The quantity specification of a point reference is the point specification, origin included:
+`get_quantity_spec(point<isq::altitude, msl>[m])` is `point<isq::altitude, msl>`. Because of it, a
+point and a delta never share a quantity specification. `point<isq::altitude>` converts to
+`point<isq::length>` as _altitude_ converts to _length_, but never to `isq::length`, and
+`isq::length` never converts to it (see [Checks that come first]). A point origin denotes a point,
+so its quantity specification is the point of its scale measured from its absolute point origin:
+`point<isq::altitude, msl>` for `msl`, and `point<kind_of<isq::thermodynamic_temperature>>` for
+`si::ice_point`, which is defined from the natural origin of its scale.
 
-When the origin is omitted, `default_point_origin(R)` provides:
+A unit alone takes its origin from `default_point_origin(U)`, which provides:
 
 - The unit's defined origin (e.g., for °C, °F), or
-- `natural_point_origin<QuantitySpec>` for other quantities.
+- `natural_point_origin<K>` for other units, where `K` is the quantity kind of the unit.
+
+A quantity specification never takes the origin of a unit. `point<QS>[U]` is well-formed only when
+the origin of `U` is the same zero as the natural origin of `QS` (see [Temperature support]).
 
 Construction requires explicit conversion or the `point` helper:
 
 ```cpp
-quantity<point<m>> qp1(42 * m);          // explicit conversion
-quantity qp2 = point<m>(42);             // construction helper
-quantity qp3 = point<deg_C>(21);         // temperature point
+quantity<point<m>> qp1(42 * m);            // explicit conversion
+quantity qp2 = point<m>(42);               // construction helper
+quantity qp3 = point<deg_C>(21);           // temperature point
+quantity qp4 = point<isq::height>[m](42);  // point of a named quantity
 ```
 
 Multiply syntax is disabled to prevent confusion between deltas and points.
@@ -1443,8 +1549,8 @@ unique zeroth point, eliminating boilerplate:
      style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 ```cpp
-quantity<point<isq::distance[si::metre]>> qp1(100 * m);
-quantity<point<isq::distance[si::metre]>> qp2 = point<m>(120);
+quantity<point<isq::distance>[si::metre]> qp1(100 * m);
+quantity<point<isq::distance>[si::metre]> qp2 = point<m>(120);
 
 assert(qp2 - qp1 == 20 * m);
 assert(qp1.delta_from_zero() == 100 * m);
@@ -1462,15 +1568,42 @@ Key design considerations:
   widens sibling types to their nearest common ancestor. Adding `2 * m`
   (a `kind_of<isq::length>`, "any length") to a point of `isq::height` succeeds and stays
   `isq::height`, whereas `isq::width(2 * m)` or `isq::length(2 * m)` are rejected.
-- Safety trade-off: `natural_point_origin` makes two points compatible exactly when their
-  quantity types are _interconvertible_. A quantity _kind_ (`kind_of<isq::length>`, the type of
-  `1 * m` or of a `quantity<point<si::metre>>`) is interconvertible with every length child, so it
-  mixes with all of them (e.g., a `quantity<point<si::metre>>` and a point of `isq::height`). Two
-  types from different branches of the tree, such as `isq::height` and `isq::width`, or the generic
-  `isq::length` against any specific child, get separate natural axes and do **not** mix. This
+- Safety trade-off: `natural_point_origin` makes two points compatible when the quantity type of
+  one converts implicitly to the other. Two natural origins are the same origin under this rule,
+  which covers the ancestors, the descendants, and the kind of a quantity. The relation isn't
+  transitive: _height_ shares its natural origin with _length_, and _length_ with _width_, while
+  _height_ and _width_ don't share theirs. A quantity _kind_ (`kind_of<isq::length>`, the
+  type of `1 * m` or of a `quantity<point<si::metre>>`) mixes with every length (e.g., a
+  `quantity<point<si::metre>>` and a point of `isq::height`), and a point of `isq::height` mixes
+  with a point of `isq::length`. Two siblings, such as `isq::height` and `isq::width`, do **not**
+  mix, and their points don't convert to each other, even with `quantity_cast`. Their natural
+  origins are the zeros of different scales, along axes that may even point in different
+  directions, so a height measured from its natural origin says nothing about a width. This
   mirrors the delta rules only partially: `isq::height(1 * m) + isq::width(1 * m)` widens to
-  `isq::length`, but the corresponding points cannot be subtracted, because a point is bound to its
-  axis while a delta is free (see [GitHub #668](https://github.com/mpusz/mp-units/issues/668)).
+  `isq::length`, because a delta is free while a point is bound to its axis (see
+  [GitHub #668](https://github.com/mpusz/mp-units/issues/668)).
+
+A conversion of a point, written `isq::length(qp)`, `point<isq::length>(qp)`, or
+`quantity_cast<point<isq::length>>(qp)`, is implicit up the tree and explicit down, as for a delta,
+and it stays on one branch of the tree. The result keeps the origin of the point when that origin
+is an origin of the target scale: `point<isq::height>(point<m>(1))` is measured from the natural
+origin of `kind_of<isq::length>`, as its argument is. Otherwise, the result is measured from the
+origin of the target when the two origins are compatible, as
+`isq::length(point<isq::height>[m](1.))` is measured from the natural origin of `isq::length`.
+When they aren't, the conversion is ill-formed, as `isq::length(point<isq::altitude, msl>[m](5.))`
+is. A height point becomes a width only through a delta from its origin:
+
+```cpp
+quantity h = point<isq::height>[m](1);
+quantity w = point<isq::width>[m](1);
+quantity l = point<isq::length>[m](1);
+
+// quantity d1 = h - w;                                        // Compile-time error: siblings don't convert
+quantity d2 = h - l;                                           // quantity<isq::length[m], int>
+quantity l1 = isq::length(h);                                  // quantity<point<isq::length>[m], int>
+// quantity w1 = quantity_cast<point<isq::width>>(h);          // Compile-time error
+quantity w2 = quantity_cast<isq::width>(h.delta_from_zero());  // quantity<isq::width[m], int>
+```
 
 #### Absolute _point_ origin
 
@@ -1582,8 +1715,9 @@ inline constexpr struct fahrenheit_zero :
 ```
 
 `si::absolute_zero` is the natural origin of _thermodynamic temperature_ under a name of its own.
-It derives from `$natural-point-origin-t$`, the exposition-only type of `natural_point_origin`, so
-it compares equal to `natural_point_origin<isq::thermodynamic_temperature>`, and a point measured
+It derives from `$natural-point-origin-t$<kind_of<isq::thermodynamic_temperature>>`, the type of
+`natural_point_origin<kind_of<isq::thermodynamic_temperature>>`, so it compares equal to it and to
+`natural_point_origin<isq::thermodynamic_temperature>`, and a point measured
 from one can be subtracted from a point measured from the other. The name lets users write
 `temp - si::absolute_zero`, and it makes the origin readable where a type names it.
 
@@ -1606,6 +1740,22 @@ quantity<point<deg_C>> q2{delta<deg_C>(20.5)};
 quantity q3 = point<deg_C>(20.5);
 ```
 
+`point<deg_C>` takes the origin of its unit, so its quantity specification is
+`point<kind_of<isq::thermodynamic_temperature>, si::ice_point>`. A quantity specification never
+takes the origin of a unit, and a unit can be bound to `point<QS>`, which names no origin, only when
+the origin of the unit is the same zero as the natural origin of `QS`.
+`point<isq::thermodynamic_temperature>[K]` is well-formed, and
+`point<isq::thermodynamic_temperature>[deg_C]` is ill-formed. A point of a named quantity in degrees
+Celsius names its origin, as in `point<isq::thermodynamic_temperature, si::ice_point>[deg_C](20.)`.
+A specification that names its origin takes any unit of its scale, and the unit gives only the step
+of the value: `point<isq::thermodynamic_temperature, si::ice_point>[K](20.)` is 20 K above the ice
+point. A temperature difference is `delta<isq::thermodynamic_temperature>[deg_C](0.5)`, as
+`isq::thermodynamic_temperature[deg_C]` and `isq::thermodynamic_temperature[K]` are ill-formed.
+
+`quantity_of<Q, point<isq::thermodynamic_temperature>>` matches `point<deg_C>(20.)`, as the origin
+of that point, `si::ice_point`, is defined from `si::absolute_zero`, the natural origin of the
+scale.
+
 Custom temperature references enable domain-specific applications:
 
 <img class="figure" src="img/affine_space_6_delta_from.svg"
@@ -1613,9 +1763,9 @@ Custom temperature references enable domain-specific applications:
 
 ```cpp
 constexpr struct room_reference_temp : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
-using room_temp = quantity<point<isq::thermodynamic_temperature[deg_C], room_reference_temp>>;
+using room_temp = quantity<point<isq::thermodynamic_temperature, room_reference_temp>[deg_C]>;
 
-constexpr auto step_delta = delta<isq::thermodynamic_temperature[deg_C]>(0.5);
+constexpr auto step_delta = delta<isq::thermodynamic_temperature>[deg_C](0.5);
 constexpr int number_of_steps = 6;
 
 room_temp room_ref{};
@@ -2106,6 +2256,11 @@ implementations in the following priority order:
 2. `modulus(c)` free function found via ADL
 3. `c.abs()` member function
 4. `abs(c)` free function found via ADL
+
+`math::real` and `math::imag` return a real value of the argument's tensor order (a real scalar for
+a complex scalar, a real vector for a complex vector), and `math::modulus` returns a real scalar.
+Only the first implementation found in the lists above counts: if it returns anything else, the
+CPO is not satisfied and the next one isn't tried.
 
 **`math::magnitude(v)`** - Returns the magnitude of a vector or tensor as a scalar:
 
@@ -2747,18 +2902,91 @@ point, uses the scaled-bounds representation.
 ## Character-specific operations { #character-specific-operations }
 
 This paper attaches a character to every quantity specification and checks that a representation
-type can fill it (see [Quantity character]). The only character-specific operation on `quantity`
-it proposes is the `magnitude()` member of a vector or tensor quantity.
+type can fill it (see [Quantity character]). `*` and `/` are the operations of scalars. A vector or
+a tensor has no reciprocal, and the product of two of them is one of several products that clause
+18 of [@ISO80000] part 2 defines. A complex quantity has a real part, an imaginary part, and a
+modulus, each a real quantity of its own. This paper proposes the restrictions that keep these
+apart, and `magnitude()`. The operations themselves are proposed in [@P4487R0].
 
-A vector or tensor quantity needs more operations to be as safe as a scalar one. `*` is not
-defined for two vectors, so _work_ is the scalar product of _force_ and _displacement_, and
-_moment of force_ is the vector product of _position vector_ and _force_, in that order. The real
-part, the imaginary part, and the modulus of a _complex power_ are an _active power_,
-a _reactive power_, and an _apparent power_. [@MP-UNITS-SAFETY] describes these operations on
-quantities and on quantity specifications, so that a definition such as
-`named_quantity_spec<scalar_product(force, displacement)>` lets the library check how a quantity
-was computed. [@MP-UNITS] does not implement them yet. They belong in a paper of their own, which
-should go to SG6 first.
+### Arithmetic on vectors and tensors
+
+`operator*` exists when at most one operand is declared a vector or a tensor, and `operator/`
+when the divisor isn't declared one. `inverse()`, `pow<>()`, `sqrt()`, and `cbrt()` exist for a
+scalar only, as the square of a vector is one of its products with itself (`pow<1>(q)`, which is
+`q`, is the exception). The same holds for quantity specifications, for references, and for
+quantities. A quantity kind may be a scalar, so it is accepted, and its representation decides:
+
+```cpp
+using vec = cartesian_vector<double>;
+
+quantity force = isq::force(vec{1., 2., 3.} * N);
+quantity displacement = isq::displacement(vec{3., 2., 1.} * m);
+
+quantity momentum = isq::mass(2. * kg) * isq::velocity(vec{1., 0., 0.} * m / s);  // OK: a scalar times a vector
+// auto q1 = force * displacement;                                                // Compile-time error
+// auto q2 = isq::duration(1. * s) / displacement;                                // Compile-time error
+// auto q3 = (vec{1., 2., 3.} * N) * (vec{3., 2., 1.} * m);                      // Compile-time error
+```
+
+`q3` multiplies two quantities of a kind. The units say nothing about the character, so the
+quantity specifications allow the product, and it fails only because `cartesian_vector` has no
+`operator*` for two vectors.
+
+_Mechanical work_ and _moment of force_ are both a _force_ times a _length_, and only the first
+one is a scalar product. A plain `force * displacement` would give the two equations the same
+expression and make a _moment of force_ convert implicitly to _mechanical work_. [@P4487R0]
+spells them `scalar_product(force, displacement)` and `vector_product(position_vector, force)`.
+Until then, two vector quantities with a typed specification have no product.
+
+### Conversions between characters
+
+A quantity doesn't convert to a quantity of another character, even with `quantity_cast`. This
+covers a vector or a tensor and a scalar, a vector and a tensor, and a complex and a real
+quantity, and two such quantities have no common quantity specification. A quantity kind has no
+character of its own (see [Quantity character]), so this rule doesn't apply to it. The scalar
+that belongs to a vector is its magnitude:
+
+```cpp
+quantity velocity = isq::velocity(vec{3., 4., 0.} * m / s);
+
+// quantity<isq::speed[m / s]> q4 = velocity;               // Compile-time error
+// quantity q5 = isq::speed(velocity);                      // Compile-time error
+// quantity q6 = quantity_cast<isq::speed>(velocity);       // Compile-time error
+quantity<isq::speed[m / s]> speed = velocity.magnitude();   // 5 m/s
+// auto q7 = velocity + speed;                              // Compile-time error
+```
+
+`magnitude()` of a quantity of `V` is a quantity of the specification `magnitude(V)`, a real
+scalar of the dimension of `V`. It converts implicitly to the nearest scalar quantity above `V`
+in its hierarchy, and that quantity converts to it only explicitly, as not every _speed_ is the
+magnitude of a _velocity_. A system of quantities therefore defines a vector below the scalar
+that its magnitude is a special case of. The ISQ definitions used in this paper do so:
+_velocity_ is below _speed_, _displacement_ below _distance_, and _position vector_ below
+_radial distance_:
+
+```cpp
+inline constexpr struct displacement : named_quantity_spec<distance, quantity_tensor_order::vector> {} displacement;
+inline constexpr struct position_vector : named_quantity_spec<radial_distance, quantity_tensor_order::vector> {} position_vector;
+
+quantity<isq::distance[m]> distance = displacement.magnitude();
+```
+
+Two vectors that meet only in a scalar ancestor have no common quantity specification either.
+_Displacement_ and _position vector_ meet in _distance_, so they can't be added or compared,
+and a _position vector_ becomes a _displacement_ with `quantity_cast`.
+
+A quantity equation of a scalar quantity may take the magnitude of a vector it is made of, as in
+`magnitude(force) / area`. It converts to _pressure_ only explicitly, as [@P4487R0] defines
+_pressure_ with the force normal to the surface. The `magnitude` of a quantity specification
+exists only for a specification that may be a vector or a tensor, and a point has none.
+
+_Angular velocity_ is declared a vector over `angular_displacement / duration`, a quotient of
+scalars. Such a declaration takes only the dimension and the kind from the equation, so the
+magnitude of an _angular velocity_ converts to that quotient only explicitly.
+
+A complex quantity converts to none of its real parts, such as _active power_ or _apparent
+power_ for a _complex power_, and none of them converts to it. The functions that take these
+parts belong to [@P4487R0].
 
 ## Logarithmic quantities and units
 
@@ -2767,7 +2995,7 @@ Logarithmic quantities and units, such as the decibel or the neper, are not part
 `log<QS>` wraps the linear one, a level such as `10 dBm` is a point whose origin is its reference
 level, and a gain such as `3 dB` is a delta. The log domain needs no other abstraction. The
 conversions between a level and a linear quantity work with the absolute quantities of
-[@P4185R2_PRE].
+[@P4185R3_PRE].
 
 # Hello units
 
@@ -3075,7 +3303,7 @@ public:
 
   [[nodiscard]] constexpr std::quantity<std::isq::height[m]> fill_level(const std::quantity<std::isq::mass[kg]>& measured_mass) const
   {
-    return height_ * measured_mass * g / filled_weight();
+    return height_ * measured_mass * g / filled_weight().magnitude();
   }
 
   [[nodiscard]] constexpr std::quantity<std::isq::volume[m3]> spare_capacity(
@@ -3167,8 +3395,8 @@ inline constexpr struct amsterdam_sea_level : std::absolute_point_origin<std::is
 inline constexpr struct mediterranean_sea_level : std::relative_point_origin<amsterdam_sea_level - 27 * cm> {
 } mediterranean_sea_level;
 
-using altitude_DE = std::quantity<std::point<std::isq::altitude[m], amsterdam_sea_level>>;
-using altitude_CH = std::quantity<std::point<std::isq::altitude[m], mediterranean_sea_level>>;
+using altitude_DE = std::quantity<std::point<std::isq::altitude, amsterdam_sea_level>[m]>;
+using altitude_CH = std::quantity<std::point<std::isq::altitude, mediterranean_sea_level>[m]>;
 
 template<auto R, typename Rep>
   requires(std::quantity<R, Rep>::point_origin == altitude_DE::point_origin)
@@ -3711,11 +3939,12 @@ and _sink rate_. We do not want to accidentally mix those.
 When we deal with _energy_, we should be able to implicitly construct it from a proper product of
 any _mass_, _length_, and _time_. However, when we want to calculate _gravitational potential energy_,
 we may not want it to be implicitly initialized from any expression of matching dimensions.
-Such an implicit construction should be allowed only if we multiply a _mass_ with
-_acceleration of free fall_ and _height_. All other conversions should have an explicit annotation
-to make it clear that something potentially unsafe is being done in the code. Also, we should not
-be able to assign a _potential energy_ to a quantity of _kinetic energy_. However, both of them
-(possibly accumulated with each other) should be convertible to a _mechanical energy_ quantity.
+Such an implicit construction should be allowed only if we multiply a _mass_ with the magnitude
+of _acceleration of free fall_ and _height_. All other conversions should have an explicit
+annotation to make it clear that something potentially unsafe is being done in the code. Also, we
+should not be able to assign a _gravitational potential energy_ to a quantity of _kinetic energy_.
+However, both of them (possibly accumulated with each other) should be convertible to a
+_mechanical energy_ quantity.
 
 ```cpp
 mass m1 = 1 * kg;
@@ -3725,12 +3954,12 @@ acceleration_of_free_fall g = 9.81 * m / s2;
 height h = 1 * m;
 speed v = 1 * m / s;
 energy e = m1 * pow<2>(l) / pow<2>(t);                    // OK
-potential_energy ep1 = e;                                 // should not compile
-potential_energy ep2 = static_cast<potential_energy>(e);  // OK
-potential_energy ep3 = m1 * g * h;                        // OK
-kinetic_energy ek1 = m1 * pow<2>(v) / 2;                  // OK
-kinetic_energy ek2 = ep3 + ek1;                           // should not compile
-mechanical_energy me = ep3 + ek1;                         // OK
+gravitational_potential_energy ep1 = e;                                               // should not compile
+gravitational_potential_energy ep2 = static_cast<gravitational_potential_energy>(e);  // OK
+gravitational_potential_energy ep3 = m1 * magnitude(g) * h;                           // OK
+kinetic_energy ek1 = m1 * pow<2>(v) / 2;                                              // OK
+kinetic_energy ek2 = ep3 + ek1;                                                       // should not compile
+mechanical_energy me = ep3 + ek1;                                                     // OK
 ```
 
 Yet another example comes from the audio industry. In the audio software, we want to treat specific
@@ -3836,7 +4065,7 @@ a hierarchy of quantities of the same kind.
 
 For example, here are all quantities of the kind _length_ provided in [@ISO80000] (part 1):
 
-![](img/quantities_of_length.svg){.figure}
+![](img/quantities_of_length_r11.svg){.figure}
 
 Each of the above quantities expresses some kind of _length_, and each can be measured with meters,
 which is the unit defined by the [@SI] for quantities of _length_. However, each has different
@@ -3862,8 +4091,8 @@ inline constexpr auto arc_length = path_length;
 inline constexpr struct distance : named_quantity_spec<path_length> {} distance;
 inline constexpr struct radial_distance : named_quantity_spec<distance> {} radial_distance;
 inline constexpr struct wavelength : named_quantity_spec<length> {} wavelength;
-inline constexpr struct displacement : named_quantity_spec<length, quantity_tensor_order::vector> {} displacement;
-inline constexpr struct position_vector : named_quantity_spec<displacement> {} position_vector;
+inline constexpr struct displacement : named_quantity_spec<distance, quantity_tensor_order::vector> {} displacement;
+inline constexpr struct position_vector : named_quantity_spec<radial_distance, quantity_tensor_order::vector> {} position_vector;
 ```
 
 In the above code:
@@ -3880,7 +4109,9 @@ In the above code:
   `depth`.
 
 Please note that some quantities may be specified by [@ISO80000] as vector or tensor quantities
-(e.g., `displacement`).
+(e.g., `displacement`). A vector is defined below the scalar that its magnitude is a special case
+of, so _displacement_ is below _distance_ and _position vector_ below _radial distance_ (see
+[Conversions between characters]).
 
 ### Converting between quantities of the same kind
 
@@ -4112,7 +4343,7 @@ explicitly states:
 
 The below presents some arbitrary hierarchy of derived quantities of kind _energy_:
 
-![](img/quantities_of_energy.svg){.figure}
+![](img/quantities_of_energy_r11.svg){.figure}
 
 Notice, that even though all of those quantities have the same dimension and can be expressed
 in the same units, they have different quantity equations used to create them implicitly:
@@ -4131,8 +4362,8 @@ in the same units, they have different quantity equations used to create them im
 - `mechanical_energy` is a more "specialized" quantity than `energy` (not every `energy` is a
   `mechanical_energy`). It is why an explicit conversion is needed to convert from `energy`.
   However, `mechanical_energy` defines the same quantity equation itself (its parent
-  `mechanical_work` is defined as `force * displacement`), so the result of that equation converts
-  to it implicitly.
+  `mechanical_work` is defined as the scalar product of _force_ and _displacement_), so the result
+  of that equation converts to it implicitly.
 
     ```cpp
     static_assert(!$implicitly-convertible$(isq::energy, isq::mechanical_energy));
@@ -4143,18 +4374,20 @@ in the same units, they have different quantity equations used to create them im
 - `gravitational_potential_energy` is not only even more specialized one but additionally,
   it is special in a way that it provides its own "constrained" quantity equation. Maybe not every
   `mass * pow<2>(length) / pow<2>(time)` is a `gravitational_potential_energy`, but every
-  `mass * acceleration_of_free_fall * height` is.
+  `mass * magnitude(acceleration_of_free_fall) * height` is. _Acceleration of free fall_ is a
+  vector, and the magnitude takes the scalar out of it (see [Conversions between characters]).
 
     ```cpp
     inline constexpr struct gravitational_potential_energy
-        : named_quantity_spec<isq::potential_energy, isq::mass * isq::acceleration_of_free_fall * isq::height> {
+        : named_quantity_spec<isq::potential_energy, isq::mass * magnitude(isq::acceleration_of_free_fall) * isq::height> {
     } gravitational_potential_energy;
 
     static_assert(!$implicitly-convertible$(isq::energy, gravitational_potential_energy));
     static_assert($explicitly-convertible$(isq::energy, gravitational_potential_energy));
     static_assert(!$implicitly-convertible$(isq::mass * pow<2>(isq::length) / pow<2>(isq::time), gravitational_potential_energy));
     static_assert($explicitly-convertible$(isq::mass * pow<2>(isq::length) / pow<2>(isq::time), gravitational_potential_energy));
-    static_assert($implicitly-convertible$(isq::mass * isq::acceleration_of_free_fall * isq::height, gravitational_potential_energy));
+    static_assert($implicitly-convertible$(isq::mass * magnitude(isq::acceleration_of_free_fall) * isq::height,
+                                           gravitational_potential_energy));
     ```
 
 ### Modeling a quantity kind
@@ -4517,8 +4750,8 @@ The above is to not privilege any unit in the library:
 - we shouldn't go looking for specific units (e.g., converting a `1 * m + 1 * cm` computation to
   `m` because `m` is the privileged SI base unit).
 
-`get_common_unit` finds the common unit of its arguments in six steps. The figure follows
-`get_common_unit(km, m, mi)` through them:
+The common unit of a set of units is found in six steps, and `$get-common-reference$` returns it
+when every argument is a unit. The figure follows `$get-common-reference$(km, m, mi)` through them:
 
 ![Finding the common unit of a set of units](img/common_unit.svg){.figure}&nbsp;
 
@@ -4554,10 +4787,10 @@ The above is to not privilege any unit in the library:
    `Hz` and `Bq` are both `1 / s`, but a _frequency_ and an _activity_ are different kinds, so their
    quantities are not compatible, and adding them is ill-formed. An angle unit and a unit of a pure
    number are compatible, and the quantity specification of their common unit is the angle's kind:
-   `get_quantity_spec(get_common_unit(deg, percent))` is `kind_of<isq::angular_measure>`. This is
-   why `percent` and `steradian` have a common unit, `percent`, while
-   `get_common_unit(percent, sr, deg)` is ill-formed: with `deg`, the common unit is an angle, and a
-   steradian is not an angle.
+   `get_quantity_spec($get-common-reference$(deg, percent))` is `kind_of<isq::angular_measure>`.
+   This is why `percent` and `steradian` have a common unit, `percent`, while
+   `$get-common-reference$(percent, sr, deg)` is ill-formed: with `deg`, the common unit is an
+   angle, and a steradian is not an angle.
 
 _Note: [@MP-UNITS] compares two magnitudes through their quotient. The comparison is exact when
 the quotient is a rational number whose numerator and denominator fit in `uintmax_t`, and uses the
@@ -4572,8 +4805,8 @@ divides. For `km` and `mi`, which are
 `40771` (see [Symbols of common units]).
 
 The result does not depend on the order or grouping of the arguments:
-`get_common_unit(km, get_common_unit(mi, nmi))` and `get_common_unit(nmi, mi, km)` are the same
-type.
+`$get-common-reference$(km, $get-common-reference$(mi, nmi))` and
+`$get-common-reference$(nmi, mi, km)` are the same type.
 
 Please note, that a user should never explicitly instantiate a `common_unit` class template.
 The library's framework will do it based on the provided quantity equation.
@@ -5361,11 +5594,11 @@ There are more units with such properties. For example, per mille(`‰`).
 To support the above, the library exposes `space_before_unit_symbol` customization point.
 By default, its value is `true` for all the units. This means that a number and a unit will be
 separated by the space in the output text. To change this behavior, a user should provide
-a explicit specialization for a specific unit:
+an explicit specialization for a specific unit:
 
 ```cpp
 template<>
-constexpr bool space_before_unit_symbol<non_si::degree> = false;
+inline constexpr bool space_before_unit_symbol<non_si::degree> = false;
 ```
 
 The above works only for the default formatting or for the format strings that use `%?` placement
@@ -5890,7 +6123,7 @@ scope of this paper.
 Text output is provided for a point when its point origin equals
 `default_point_origin(R)`, the library-chosen default for the given reference:
 
-- For references without an offset unit (e.g., `quantity<point<isq::length[m]>>`),
+- For references without an offset unit (e.g., `quantity<point<isq::length>[m]>`),
   `default_point_origin` is `natural_point_origin<QuantitySpec>`, the mathematical zero.
   The stored quantity is unambiguous and can be printed directly:
 
@@ -5983,7 +6216,8 @@ We have several significant features to consider here:
  e.g., _frequency_, _activity_, and _modulation_rate_, or _energy_ and _moment_of_force_
 - **Various quantities of the same kind**: support quantities of the same kind that should be distinct,
  e.g., _width_, _height_, _wavelength_ (all of the kind _length_),
-- **The affine space**: points (`quantity<point<R, PO>, Rep>`), point origins, and concepts for them,
+- **The affine space**: points (`quantity<point<QS, PO>[U], Rep>`), point origins, and concepts for
+  them,
 - **Text output**: for `quantity`, units, and dimensions,
 
 Please note that the above only lists the features present in this proposal. Additional features,
@@ -6420,11 +6654,14 @@ Vector and tensor quantities can be implemented in two ways:
     - `a / b` - division where the divisor has to be scalar
     - `a ⋅ b` - dot product of two vectors
     - `a × b` - cross product of two vectors
-    - `|a|` - magnitude (norm) of a vector, i.e., `math::magnitude(a)`
+    - `|a|` - magnitude (norm) of a vector, i.e., `a.magnitude()`
     - `a ⊗ b` - tensor product of two vectors or tensors
     - `a ⋅ b` - inner product of two tensors
     - `a ⋅ b` - inner product of tensor and vector
     - `a : b` - scalar product of two tensors
+
+    This paper proposes the constraints on `*` and `/` and `magnitude()`. The products are proposed
+    in [@P4487R0] (see [Character-specific operations]).
 
 Additionally, the library knows the expected quantity character, which is provided (implicitly
 or explicitly) in the definition of each quantity type. Thanks to that, it prevents the user,
@@ -6437,11 +6674,12 @@ quantity q3 = isq::velocity(60 * km / h);                    // OK
 quantity q4 = isq::velocity(la_vector{0, 0, -60} * km / h);  // OK
 ```
 
-_Note: Under the absolute quantities of [@P4185R2_PRE], a quantity of vector character is never
-an absolute, so `q3` stays a delta, and `quantity<isq::velocity[km / h], int>` names a delta there,
-as it does here. A value times a bare unit is an absolute there, which a vector can't be, so
-`la_vector{0, 0, -60} * km / h` is ill-formed, and `q4` is written
-`isq::velocity(delta<km / h>(la_vector{0, 0, -60}))`._
+_Note: Under the absolute quantities of [@P4185R3_PRE], a quantity of vector character is never
+an absolute, and an absolute never converts to one. A value times a bare unit is an absolute
+there, so `q3` is written `isq::velocity(delta<km / h>(60))`, `q4` is written
+`isq::velocity(delta<km / h>(la_vector{0, 0, -60}))`, and the type of `q3` is
+`quantity<delta<isq::velocity>[km / h], int>`, as `isq::velocity[km / h]` alone is ill-formed
+there._
 
 As we can see above, such features additionally improves the compile-time safety of the library
 by ensuring that quantities are created with proper quantity equations and are using correct
@@ -6453,20 +6691,22 @@ Complex quantities enforce domain-specific construction rules. Example: _complex
 _active power_ and _reactive power_ in correct order:
 
 ```cpp
-quantity<isq::complex_power[V * A], std::complex<double>> complex = get_power();
-quantity<isq::active_power[W]> active = complex.real();
-quantity<isq::reactive_power[var]> reactive = complex.imag();
-quantity<isq::apparent_power[V * A]> apparent = complex.modulus();
+quantity<isq::complex_power[V * A], std::complex<double>> power = get_power();
+quantity<isq::active_power[W]> active = real(power);
+quantity<isq::reactive_power[var]> reactive = imag(power);
+quantity<isq::apparent_power[V * A]> apparent = modulus(power);
 ```
 
-_Note: This proposal does not provide the `real()`, `imag()`, and `modulus()` member functions of
-`quantity` used above. The example is a sketch (see [Character-specific operations])._
+_Note: This proposal does not provide the `real()`, `imag()`, and `modulus()` functions used
+above, and the example is a sketch. This paper proposes only that a complex
+quantity converts to none of its real parts, nor they to it. The operations that take the parts
+are proposed in [@P4487R0] (see [Character-specific operations])._
 
 ## Mathematical space safety
 
 Mathematical space safety distinguishes between **points** (positions relative to an origin) and
 **deltas** (differences between two points). A delta is a `quantity<R, Rep>`, and a point is a
-`quantity<point<R, PO>, Rep>` that carries its point origin `PO` in the reference. This
+`quantity<point<QS, PO>[U], Rep>` that carries its point origin `PO` in the reference. This
 prevents nonsensical operations:
 
 The following operations are forbidden:
@@ -6723,8 +6963,8 @@ constexpr struct amsterdam_sea_level : absolute_point_origin<isq::altitude> {
 constexpr struct mediterranean_sea_level : relative_point_origin<amsterdam_sea_level + isq::altitude(-27 * cm)> {
 } mediterranean_sea_level;
 
-using altitude_DE = quantity<point<isq::altitude[m], amsterdam_sea_level>>;
-using altitude_CH = quantity<point<isq::altitude[m], mediterranean_sea_level>>;
+using altitude_DE = quantity<point<isq::altitude, amsterdam_sea_level>[m]>;
+using altitude_CH = quantity<point<isq::altitude, mediterranean_sea_level>[m]>;
 ```
 
 Unfortunately, current language rules require that all member data of a structural type are public.
@@ -7054,7 +7294,7 @@ static_assert(quantity_spec_of<decltype(isq::speed), quantity_tensor_order::scal
 its representation can fill the slot. Neither half is enough on its own, because a kind admits
 every character and a `double` fills a slot of every order. `quantity_spec_of` asks the specification
 alone, for the places where no quantity exists yet, such as a reference taken as a template
-parameter. A point `point<QS>` has the character of `QS`. `representation_of` takes the same
+parameter. A point `point<QS, PO>` has the character of `QS`. `representation_of` takes the same
 vocabulary (see [Concepts](#concepts)).
 
 When both halves are permissive, every order is admitted. `quantity<si::metre, double>` satisfies
@@ -7063,10 +7303,13 @@ When both halves are permissive, every order is admitted. `quantity<si::metre, d
 are ambiguous for `5. * m`. An `isq::speed` stored in a `double` admits only `scalar`, because
 `isq::speed` is a concrete scalar specification. `magnitude()` exists when the quantity may be a
 vector or a tensor and its representation can produce a norm, so it exists on `5. * m` and never on
-a quantity of `isq::speed`.
+a quantity of `isq::speed`. For a quantity of `QS` it returns a quantity of `magnitude(QS)`.
 
-More information on quantity characters can be found in the [Safe operations of vector and tensor quantities]
-chapter.
+Concrete characters don't mix. A quantity doesn't convert to a quantity of another character, so
+`quantity_of<Q, isq::speed>` doesn't accept a _velocity_, while its magnitude is a _speed_. Two
+vectors or tensors with a typed specification have no plain product, and nothing is divided by
+one. [Character-specific operations] gives the rules, and
+[Safe operations of vector and tensor quantities] the motivation.
 
 ### Quantity specification
 
@@ -7084,21 +7327,21 @@ This is why the library introduces a quantity specification entity that stores:
 
 For example:
 
-| Quantity Specification | Dimension | Quantity Kind          | Character | Equation                                   |
-|------------------------|-----------|------------------------|-----------|--------------------------------------------|
-| `isq::duration`        | T         | `isq::duration`        | scalar    | base quantity                              |
-| `isq::length`          | L         | `isq::length`          | scalar    | base quantity                              |
-| `isq::mass`            | M         | `isq::mass`            | scalar    | base quantity                              |
-| `isq::width`           | L         | `isq::length`          | scalar    | `isq::length`                              |
-| `isq::height`          | L         | `isq::length`          | scalar    | `isq::altitude`                            |
-| `isq::position_vector` | L         | `isq::length`          | vector    | `isq::displacement`                        |
-| `isq::displacement`    | L         | `isq::length`          | vector    | `isq::length`                              |
-| `isq::area`            | L²        | `isq::area`            | scalar    | `isq::length²`                             |
-| `isq::speed`           | LT⁻¹      | `isq::speed`           | scalar    | `isq::length / isq::duration`              |
-| `isq::velocity`        | LT⁻¹      | `isq::speed`           | vector    | `isq::displacement / isq::duration`        |
-| `isq::acceleration`    | LT⁻²      | `isq::acceleration`    | vector    | `isq::velocity / isq::duration`            |
-| `isq::force`           | LMT⁻²     | `isq::force`           | vector    | `isq::mass * isq::length / isq::duration²` |
-| `isq::moment_of_force` | L²MT⁻²    | `isq::moment_of_force` | vector    | `isq::position_vector * isq::force`        |
+| Quantity Specification | Dimension | Quantity Kind          | Character | Equation                                                  |
+|------------------------|-----------|------------------------|-----------|-----------------------------------------------------------|
+| `isq::duration`        | T         | `isq::duration`        | scalar    | base quantity                                             |
+| `isq::length`          | L         | `isq::length`          | scalar    | base quantity                                             |
+| `isq::mass`            | M         | `isq::mass`            | scalar    | base quantity                                             |
+| `isq::width`           | L         | `isq::length`          | scalar    | `isq::length`                                             |
+| `isq::height`          | L         | `isq::length`          | scalar    | `isq::altitude`                                           |
+| `isq::position_vector` | L         | `isq::length`          | vector    | `isq::radial_distance`                                    |
+| `isq::displacement`    | L         | `isq::length`          | vector    | `isq::distance`                                           |
+| `isq::area`            | L²        | `isq::area`            | scalar    | `isq::length²`                                            |
+| `isq::speed`           | LT⁻¹      | `isq::speed`           | scalar    | `isq::length / isq::duration`                             |
+| `isq::velocity`        | LT⁻¹      | `isq::speed`           | vector    | `isq::displacement / isq::duration`                       |
+| `isq::acceleration`    | LT⁻²      | `isq::acceleration`    | vector    | `isq::velocity / isq::duration`                           |
+| `isq::force`           | LMT⁻²     | `isq::force`           | vector    | `isq::mass * isq::acceleration`                           |
+| `isq::moment_of_force` | L²MT⁻²    | `isq::moment_of_force` | vector    | vector product of `isq::position_vector` and `isq::force` |
 
 ### Unit
 
@@ -7141,9 +7384,10 @@ _Note: More information on this subject can be found in [The affine space] chapt
 ### Quantity point
 
 Quantity point implements a point in the affine space theory. It is a `quantity` with a point
-reference, `quantity<point<R, PO>, Rep>`, and its quantity specification is `point<QS>`, where `QS`
-is the quantity specification of `R`. Its value
-can be easily created by adding a delta to a point origin or subtracting one from it.
+reference, `quantity<point<QS, PO>[U], Rep>`, and its quantity specification is `point<QS, PO>`, the
+point of `QS` measured from the origin `PO`, or `point<QS>` when it is measured from the natural
+origin of `QS`. Its value can be easily created by adding a delta to a point origin or subtracting
+one from it.
 
 _Note: More information on this subject can be found in [The affine space] chapter._
 
@@ -7339,9 +7583,10 @@ This chapter enumerates all the user-facing concepts in the library.
 - Quantity kinds describing a family of mutually comparable quantities.
 - Intermediate derived quantity specifications being a result of a quantity equations on other
   specifications.
-- Point quantity specifications, `point<QS>`, describing a _point_ on the scale of any of the
-  above. `QS` may be a kind, but a point is never a kind: `kind_of<point<QS>>` is ill-formed.
-  A point can't be multiplied, divided, or raised to a power.
+- Point quantity specifications, `point<QS>` and `point<QS, PO>`, describing a _point_ on the scale
+  of any of the above, measured from the natural origin of `QS` or from the origin `PO`. `QS` may be
+  a kind, but a point is never a kind: `kind_of<point<QS>>` is ill-formed. A point can't be
+  multiplied, divided, or raised to a power.
 
 #### `quantity_spec_of<T, V>` concept { #quantity_spec_of-concept }
 
@@ -7357,8 +7602,9 @@ A quantity character is a `quantity_tensor_order`, a `quantity_field`, or a `qua
 value. A concrete specification admits one character per axis, while a quantity kind admits every
 character (see [Quantity character]).
 
-Two points convert as the specifications of their scales do, and a point never converts to or from
-a delta, so `quantity_spec_of<decltype(point<isq::height>), point<isq::length>>` is
+Two points convert as the specifications of their scales do, along one branch of the tree and
+from compatible origins (see [Checks that come first]), and a point never converts to or from a
+delta, so `quantity_spec_of<decltype(point<isq::height>), point<isq::length>>` is
 `true` while `quantity_spec_of<decltype(point<isq::height>), isq::length>` is `false`.
 
 ### `unit_magnitude<T>` { #unit_magnitude-concept }
@@ -7391,8 +7637,8 @@ Such units can be passed as an argument to a `prefixed_unit` class template.
 #### `unit_of<T, V>` concept { #unit_of-concept }
 
 `unit_of` concept is satisfied for all units `T` for which an associated quantity spec is implicitly
-convertible to the provided `quantity_spec` value. A unit of a point, `point<QS>`, is a unit of its
-scale `QS`.
+convertible to the provided `quantity_spec` value. A unit of a point, `point<QS>` or
+`point<QS, PO>`, is a unit of its scale `QS`.
 
 ### `quantity_reference<T>` concept { #quantity_reference-concept }
 
@@ -7403,12 +7649,17 @@ the meta-information required to create a [`delta_quantity`](#delta_quantity-con
 A `quantity_reference` can either be:
 
 - A [`unit`](#unit-concept) `U` other than an offset one.
-- A delta reference, the type of `delta<U>` or `delta<QS[U]>`, for any unit `U` and a
-  [`quantity_spec`](#quantity_spec-concept) `QS`.
-- A point reference, the type of `point<U>`, `point<QS[U]>`, `point<U, PO>`, or
-  `point<QS[U], PO>`, for any unit `U`, a `quantity_spec` `QS`, and a
-  [`point_origin`](#point_origin-concept) `PO`. Its quantity specification is the point of the
-  one of its scale: `get_quantity_spec(point<isq::altitude[m], mean_sea_level>) == point<isq::altitude>`.
+- A delta reference, the type of `delta<QS>[U]` or `delta<U>`, for any unit `U` and a plain
+  [`quantity_spec`](#quantity_spec-concept) `QS`, or of `QS[U]` for a unit `U` other than an
+  offset one, which is the same as `delta<QS>[U]`. Its quantity specification is `QS`.
+- A point reference, the type of `point<QS>[U]`, `point<QS, PO>[U]`, `point<U>`, or `point<U, PO>`,
+  for any unit `U`, a `quantity_spec` `QS` that isn't a point, and a point origin `PO`. Its quantity
+  specification is the point specification, origin included, so
+  `get_quantity_spec(point<isq::altitude, mean_sea_level>[m])` is
+  `point<isq::altitude, mean_sea_level>`.
+
+`delta<QS[U]>`, `point<QS[U]>`, and `point<QS[U], PO>` are ill-formed: `delta<>` and `point<>`
+take a plain quantity specification or a unit, and nothing else.
 
 #### `quantity_reference_of<T, V>` concept { #quantity_reference_of-concept }
 
@@ -7467,12 +7718,23 @@ the following value `V`:
 | `V`                | Condition                                                                                                                                                                         |
 |--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `quantity_spec`    | The quantity reference satisfies [`quantity_reference_of<V>`](#quantity_reference_of-concept) concept.                                                                            |
-| `point_origin`     | The quantity is a _point_ and it has the same absolute point origin as `V`.                                                                                                       |
+| A point origin     | The quantity is a _point_ and it has the same absolute point origin as `V`.                                                                                                       |
 | Quantity character | The quantity specification satisfies [`quantity_spec_of<V>`](#quantity_spec_of-concept) and the representation type satisfies [`representation_of<V>`](#representation_of-concept). |
 
 A delta quantity specification matches a delta (`quantity_of<quantity<m>, isq::length>`), and
 `point<QS>` matches a point (`quantity_of<quantity<point<m>>, point<isq::length>>`). Neither
 matches the other form.
+
+The origin is part of a point quantity specification, so it takes part in the match.
+`quantity_of<Q, point<QS>>` matches the points of `QS` measured from an origin compatible with the
+natural origin of `QS`, and `quantity_of<Q, point<QS, PO>>` the points of `QS` measured from an
+origin compatible with `PO`. Two origins are compatible when they share their absolute point
+origin, and two natural origins are the same origin when the quantity of one converts implicitly
+to the other (see [Checks that come first]).
+`quantity_of<Q, point<isq::thermodynamic_temperature>>` matches `point<deg_C>(20.)`, whose origin
+`si::ice_point` is defined from `si::absolute_zero`, while a point of _altitude_ measured from an
+`absolute_point_origin` of its own, such as `mean_sea_level`, is matched only by
+`quantity_of<Q, point<isq::altitude, mean_sea_level>>`, or by `quantity_of<Q, mean_sea_level>`.
 
 For a quantity of a kind stored in a `double`, every order is admitted, so overloads on different
 orders can be ambiguous for it (see [Quantity character]).
@@ -7490,21 +7752,14 @@ void print(const Q& q);                              // any delta or point
 void print(const quantity_of<isq::length> auto& q);  // a length, preferred
 ```
 
-### `point_origin<T>` concept { #point_origin-concept }
+### `point_origin_for<T, V>` concept { #point_origin_for-concept }
 
-`point_origin` concept matches all point origins in the library. It is satisfied by either:
-
-- All types derived from an `absolute_point_origin` class template.
-- All types derived from a `relative_point_origin` class template.
-
-#### `point_origin_for<T, V>` concept { #point_origin_for-concept }
-
-`point_origin_for` concept is satisfied by all [`point_origin`](#point_origin-concept) types that
-are origins for the points of the quantity specification `V`. `V` names either the scale
-(`isq::altitude`, the specification of the deltas measured from the origin) or the point of it
-(`point<isq::altitude>`). An origin denotes a point, so its quantity specification is a point
-quantity specification, and the scale of `V` must be implicitly convertible to the scale of the
-origin.
+`point_origin_for` concept is satisfied by all point origins, the types derived from an
+`absolute_point_origin` or a `relative_point_origin` class template, that are origins for the points
+of the quantity specification `V`. `V` names either the scale (`isq::altitude`, the specification of
+the deltas measured from the origin) or a point of it (`point<isq::altitude>`). An origin denotes a
+point, so its quantity specification is the point of its scale measured from its absolute point
+origin, and the scale of `V` must be implicitly convertible to the scale of the origin.
 
 For example, `si::ice_point` can serve as a point origin for _points_ of
 `isq::thermodynamic_temperature`, and of every quantity type that implicitly converts to it.
@@ -7524,11 +7779,12 @@ them is implicitly convertible to `isq::altitude`:
 ### `point_quantity<T>` concept { #point_quantity-concept }
 
 `point_quantity` concept is satisfied by every possibly cv-qualified specialization of the
-`quantity` class template instantiated with a point reference (`quantity<point<R, PO>, Rep>`). As
-for `delta_quantity`, a reference type doesn't satisfy it.
+`quantity` class template instantiated with a point reference
+(`quantity<point<QS, PO>[U], Rep>`). As for `delta_quantity`, a reference type doesn't satisfy it.
 
 A point is constrained with [`quantity_of`](#quantity_of-concept): by the point of a quantity
-specification (`quantity_of<Q, point<isq::altitude>>`), by a point origin
+specification (`quantity_of<Q, point<isq::altitude>>` or
+`quantity_of<Q, point<isq::altitude, mean_sea_level>>`), by a point origin
 (`quantity_of<Q, mean_sea_level>`), or by a character. The character form is checked against the
 point's own quantity specification and representation (see [Quantity character]).
 
@@ -7672,7 +7928,7 @@ the resulting symbolic expression.
     - it decides the type of an expression, which shows in `decltype`, in diagnostics, and in
       mangled names: `decltype(si::newton * si::metre)` is `derived_unit<si::metre, si::newton>`,
     - it decides the order of factors in text output: `std::format("{}", 1 * N * m)` prints
-      `1 m N`, and `get_common_unit(km, mi)` prints as `[(1/15625 km), (1/25146 mi)]`.
+      `1 m N`, and `$get-common-reference$(km, mi)` prints as `[(1/15625 km), (1/25146 mi)]`.
 
     The algorithms that combine symbolic expressions merge two sorted lists in one pass, so all of
     them have to use the same order.
@@ -8019,17 +8275,23 @@ difference of two _position vectors_ is a _position vector_, and their sum is we
 A later revision of this paper plans to let a quantity specification declare that its quantities are
 points, so that _position vector_ is the point of _displacement_. A delta of a _position vector_
 doesn't make sense, because a change of position is a _displacement_. Once the specification says
-that its quantities are points, the library can refuse `delta<isq::position_vector[m]>` and give the
+that its quantities are points, the library can refuse `delta<isq::position_vector>[m]` and give the
 difference of two _position vectors_ the type of a _displacement_. We will propose such a
 specifier when we have more experience with it.
 
-The operations described in [Character-specific operations] would need the same algebra on
-quantity specifications. They are not proposed in this paper, but with them the
-following would hold:
+`magnitude()` has the same algebra on quantity specifications. The magnitude of a vector converts
+implicitly to the nearest scalar above it (see [Conversions between characters]):
 
 ```cpp
 static_assert($implicitly-convertible$(magnitude(isq::velocity), isq::speed));
-static_assert($implicitly-convertible$(scalar_product(isq::force, isq::displacement), isq::work));
+static_assert(!$castable$(isq::velocity, isq::speed));
+```
+
+The other operations of [Character-specific operations] are proposed in [@P4487R0]. With them,
+the following hold:
+
+```cpp
+static_assert($implicitly-convertible$(scalar_product(isq::force, isq::displacement), isq::mechanical_work));
 static_assert($implicitly-convertible$(vector_product(isq::position_vector, isq::force), isq::moment_of_force));
 static_assert($implicitly-convertible$(real(isq::complex_power), isq::active_power));
 static_assert($implicitly-convertible$(imag(isq::complex_power), isq::reactive_power));
@@ -8041,7 +8303,7 @@ so we do not propose them at this time:
 
 ```cpp
 static_assert(m + cm == cm);
-static_assert(km + mi == get_common_unit(km, mi));
+static_assert(km + mi == $get-common-reference$(km, mi));
 ```
 
 
@@ -8442,7 +8704,7 @@ which checks implicit convertibility for the quantity at hand.
 
 ### Vocabulary
 
-A quantity specification comes in one of three shapes:
+A quantity specification comes in one of four shapes:
 
 - A **named quantity** is defined with `named_quantity_spec`. It has a dimension, an optional parent,
   an optional equation, and may be marked with `subkind`.
@@ -8455,6 +8717,12 @@ A quantity specification comes in one of three shapes:
 - A **kind**, spelled `kind_of<K>`, where `K` is a kind root or a product of kind roots, stands for
   any quantity of the hierarchy below `K`. This is what a bare unit carries: `42 * m` has the
   quantity specification `kind_of<isq::length>`.
+- A **magnitude**, spelled `magnitude(V)` for a vector or a tensor `V`, is a real scalar. It is
+  one factor of an equation, like a named quantity. The magnitudes of the quantities of one tree
+  form a tree of their own, so `magnitude(isq::static_friction_force)` converts implicitly to
+  `magnitude(isq::force)`, and the equation of `magnitude(V)` is the one of `V` with the
+  magnitude taken of its vector factor. `magnitude(V)` converts implicitly to the nearest scalar
+  quantity above `V`, and that quantity converts to it only explicitly.
 
 The rules refer to a few facts about a named quantity:
 
@@ -8486,7 +8754,8 @@ The rules refer to a few facts about a named quantity:
   defined over an angular displacement, carries _angular measure_ once this way. Counts of one kind
   add up and a count of zero is dropped, so _speed_ carries nothing. A derived quantity carries the
   sum over its factors:
-  `isq::angular_velocity * isq::radius / isq::angular_measure / isq::speed` carries nothing,
+  `isq::angular_displacement / isq::duration * isq::radius / isq::angular_measure / isq::speed`
+  carries nothing,
   because its numerator angle and its denominator angle cancel.
 
 For the ISQ definitions below, with the local addition `special_speed` used by the examples:
@@ -8531,7 +8800,7 @@ defines one. _Angular acceleration_ has depth 3 because its equation reaches _an
 whose equation reaches _rotational displacement_, and it carries _angular measure_ through that
 chain.
 
-The character of a quantity plays no part in these rules.
+The character of a quantity is checked before these rules (see [Checks that come first]).
 
 
 ### Outcomes
@@ -8572,16 +8841,52 @@ dimensions never convert, and `quantity_cast` will not force them either:
 static_assert(!$castable$(isq::time, isq::length));
 ```
 
-A point quantity specification `point<QS>` converts to another one with the outcome of their scales,
-and never to a delta or from one:
+A quantity specification also carries the abstraction of a quantity and, for a point, its origin
+(see [The affine space]). The conversion of a quantity follows the conversion of its specification,
+so one set of rules decides both, and the following checks come before the hierarchy:
+
+1. A point never converts to a delta, nor the other way round, even with `quantity_cast`.
+2. `point<QS, A>` converts to `point<QS, B>` only if `A` and `B` share their absolute point origin,
+   the root of their chains of origins. Two natural origins are the same origin when the quantity
+   of one converts implicitly to the other: the natural origin of _length_ is the one of _height_
+   and the one of _width_, while those two differ, as the relation isn't transitive.
+3. A point converts up or down one branch of the tree only. The natural origins of two siblings
+   are the zeros of different scales, along axes that may even point in different directions, so
+   `point<isq::height>` and `point<isq::width>` don't convert to each other, even with
+   `quantity_cast`, while `isq::height` and `isq::width` do, with a cast.
+
+After these checks, a point specification converts to another one with the outcome of their
+scales:
 
 ```cpp
 static_assert($implicitly-convertible$(point<isq::height>, point<isq::length>));
-static_assert($castable$(point<isq::height>, point<isq::width>));
-static_assert(!$castable$(point<isq::height>, isq::width));
+static_assert($explicitly-convertible$(point<isq::length>, point<isq::height>));
+static_assert(!$castable$(point<isq::height>, point<isq::width>));
+static_assert(!$castable$(point<isq::height>, isq::height));
+static_assert($implicitly-convertible$(point<isq::altitude, ground>, point<isq::altitude, mean_sea_level>));
+static_assert(!$castable$(point<isq::altitude, other_zero>, point<isq::altitude, mean_sea_level>));
 ```
 
-Everything below assumes equal dimensions and two deltas.
+Here `mean_sea_level` and `other_zero` are two `absolute_point_origin`s of _altitude_, and `ground`
+is a `relative_point_origin` defined from `mean_sea_level`. A height point `h` becomes a width only
+through a delta from its origin, as in `quantity_cast<isq::width>(h.delta_from_zero())`.
+
+A quantity specification has a character as well (see [Quantity character]), and a quantity
+doesn't convert to a quantity of another character, even with `quantity_cast`. This covers a
+vector or a tensor and a scalar, a vector and a tensor, and a complex and a real quantity. A
+quantity kind has no character of its own and passes this check. The magnitude of a vector is the
+scalar that converts (see [Conversions between characters]):
+
+```cpp
+static_assert(!$castable$(isq::velocity, isq::speed));
+static_assert(!$castable$(isq::speed, isq::velocity));
+static_assert(!$castable$(isq::displacement / isq::duration, isq::speed));
+static_assert($implicitly-convertible$(magnitude(isq::velocity), isq::speed));
+static_assert($explicitly-convertible$(isq::speed, magnitude(isq::velocity)));
+static_assert($implicitly-convertible$(kind_of<isq::length / isq::time>, isq::velocity));
+```
+
+Everything below assumes equal dimensions, two deltas, and characters that pass this check.
 
 
 ### Kinds
@@ -8595,7 +8900,7 @@ ranks `cast`.
 
 When the source is a kind, the target is `implicit` if it lies in the tree below `K`, sub-kinds
 included, unless its equation lacks a declared kind that `K` carries, which makes it `explicit`. A
-child of _angular velocity_ defined as `inverse(duration)` is reached only explicitly. If the
+vector child of _angular velocity_ defined as `inverse(duration)` is reached only explicitly. If the
 target is above `K`, the kind has to leave its declared kind and the rank is `explicit`. Anything
 else is `none`:
 
@@ -8704,7 +9009,7 @@ every rule below where a declared kind is lost or gained.
    other does not, which makes it `explicit`. A kind the source carries may lie on the way up, the
    source included and the target excluded, or come from the source's equation: _phase coefficient_
    is defined as `phase_angle / path_length`, so it carries a phase angle that its parent
-   _propagation coefficient_ does not. The reverse happens too. A child defined as
+   _propagation coefficient_ does not. The reverse happens too. A vector child defined as
    `inverse(duration)` under _angular velocity_ lacks the angle its parent's equation carries, so
    its upcast is `explicit` as well.
 3. The target is a descendant of the source: `explicit`.
@@ -8775,8 +9080,15 @@ one part and gained in the other. A kind as the source (`kind_of<K>`, which has 
 `K` yet) is exempt from the cap on a gained kind, which is what lets an uncommitted kind enter a
 declared kind. For such a source, a kind that the equation of a target numerator factor takes
 away is kept apart from the kinds that the other target factors carry, and counts as a gained kind
-instead of canceling them. The kind of `kg m² rad/s` thus converts implicitly to
-`isq::angular_velocity * isq::moment_of_inertia`, whose second factor is defined over the first.
+instead of canceling them.
+
+::: ednote
+The example of the last rule was the kind of `kg m² rad/s` converting to
+`isq::angular_velocity * isq::moment_of_inertia`. That product is ill-formed now, as both factors
+are vectors or tensors, and _moment of inertia_ is defined with an operation of [@P4487R0]. A new
+example is pending.
+:::
+
 The comparison lowers the final rank, and the result does not depend on which operations are
 taken:
 
@@ -8785,13 +9097,13 @@ static_assert(!$implicitly-convertible$(isq::arc_length / isq::radius, isq::angu
 static_assert($explicitly-convertible$(isq::arc_length / isq::radius, isq::angular_measure));
 static_assert(!$implicitly-convertible$(isq::angular_measure * isq::radius, isq::arc_length));
 static_assert($explicitly-convertible$(isq::angular_measure * isq::radius, isq::arc_length));
-static_assert(!$implicitly-convertible$(isq::angular_velocity / isq::frequency, dimensionless));
-static_assert($implicitly-convertible$(isq::angular_velocity / isq::frequency, isq::angular_measure));
+static_assert(!$implicitly-convertible$(isq::angular_displacement / isq::duration / isq::frequency, dimensionless));
+static_assert($implicitly-convertible$(isq::angular_displacement / isq::duration / isq::frequency, isq::angular_measure));
 static_assert($implicitly-convertible$(kind_of<dimensionless>, isq::angular_measure));
 ```
 
-The last two lines: ω / f is 2π rad, an angle, and a bare `3 * one` may become an angle, as
-[Kinds] explains.
+The last two lines: an angular displacement per duration divided by a frequency is 2π rad, an
+angle, and a bare `3 * one` may become an angle, as [Kinds] explains.
 
 The kind boundary compares the positive part and the negative part of each kind's netted count
 separately. Comparing only the difference of the two sides' counts would describe a lost
@@ -8847,13 +9159,15 @@ The rules say which operation applies when more than one could:
   the most specific common equation.
 
   While siblings wait in a conversion from a kind, the factor of the target with the least depth
-  that has an equation is expanded instead, numerator first. We want the angle of
-  `kg * m² * rad / s` to reach the _angular velocity_ in
-  `angular_velocity * moment_of_inertia * rotation`. The problem is that the deeper _moment of
-  inertia_, defined over _angular velocity_, would expand first and cancel it, so the angle would
-  pair with the _rotation_ and the conversion would end in `none`. Expanding the shallowest factor
-  first lets the factor that brings the tree in meet the waiting siblings before anything cancels
-  it.
+  that has an equation is expanded instead, numerator first. Expanding the shallowest factor first
+  lets the factor that brings the tree in meet the waiting siblings before a deeper factor
+  defined over it cancels it.
+
+  ::: ednote
+  The example of this rule was the angle of `kg * m² * rad / s` reaching the _angular velocity_ in
+  `angular_velocity * moment_of_inertia * rotation`. That product is ill-formed now, as two of its
+  factors are vectors or tensors. A new example is pending.
+  :::
 
 The process stops when both lists are the same: both empty, or the same product right after an
 exact equation. Its rank is the lowest rank of the operations taken, or `implicit` if no operation
@@ -8933,30 +9247,39 @@ static_assert(!$explicitly-convertible$(inverse(isq::repetency), isq::height));
 Flattening both sides to `length` would have ranked this `explicit` and treated a _wavelength_ as a
 _height_.
 
-**`isq::angular_velocity * isq::radius / isq::speed` to `dimensionless`: `explicit`.** In the ISQ
-_angular velocity_ is `angular_displacement / duration`, and `angular_displacement` names
-`rotational_displacement`, which restates the equation `path_length / radius` of _angular
-measure_. Every operation is `implicit`, but the source carries _angular measure_ and the target
-carries nothing, so the kind boundary makes the conversion `explicit`:
+**`isq::angular_displacement / isq::duration * isq::radius / isq::speed` to `dimensionless`:
+`explicit`.** In the ISQ `angular_displacement` names `rotational_displacement`, which restates
+the equation `path_length / radius` of _angular measure_. Every operation is `implicit`, but the
+source carries _angular measure_ and the target carries nothing, so the kind boundary makes the
+conversion `explicit`:
 
 <!-- markdownlint-disable MD013 -->
-![Conversion steps for angular_velocity ⋅ radius / speed → dimensionless](img/qs_conversion_07.svg){.figure}&nbsp;
+![Conversion steps for rotational_displacement ⋅ radius / (duration ⋅ speed) → dimensionless](img/qs_conversion_07_r11.svg){.figure}&nbsp;
 <!-- markdownlint-enable MD013 -->
 
 ```cpp
-static_assert(!$implicitly-convertible$(isq::angular_velocity * isq::radius / isq::speed, dimensionless));
-static_assert($explicitly-convertible$(isq::angular_velocity * isq::radius / isq::speed, dimensionless));
+static_assert(!$implicitly-convertible$(isq::angular_displacement / isq::duration * isq::radius / isq::speed, dimensionless));
+static_assert($explicitly-convertible$(isq::angular_displacement / isq::duration * isq::radius / isq::speed, dimensionless));
+static_assert(!$castable$(isq::angular_velocity * isq::radius / isq::speed, dimensionless));
 ```
 
+The last line is the same quotient with the vector _angular velocity_ in place of the scalar
+`angular_displacement / duration`. Its magnitude converts only explicitly, as
+[Conversions between characters] explains.
+
 **The same divided by `isq::angular_measure`: `implicit`.** The source carries the angle once in
-the numerator and once in the denominator, so the carried kinds balance:
+the numerator and once in the denominator, so the carried kinds balance. Here
+`rotational_displacement` self-cancels against `angular_measure` first, and the numerator and the
+denominator both leave the kind. `speed` is expanded as above, and `radius` self-cancels against
+`length`. Every step is `implicit`, and the kind boundary finds nothing lost:
 
 <!-- markdownlint-disable MD013 -->
-![Conversion steps for angular_velocity ⋅ radius / (angular_measure ⋅ speed) → dimensionless](img/qs_conversion_08.svg){.figure}&nbsp;
+![Conversion steps for rotational_displacement ⋅ radius / (duration ⋅ angular_measure ⋅ speed) → dimensionless](img/qs_conversion_08_r11.svg){.figure}&nbsp;
 <!-- markdownlint-enable MD013 -->
 
 ```cpp
-static_assert($implicitly-convertible$(isq::angular_velocity * isq::radius / isq::angular_measure / isq::speed, dimensionless));
+static_assert($implicitly-convertible$(isq::angular_displacement / isq::duration * isq::radius / isq::angular_measure /
+                                       isq::speed, dimensionless));
 ```
 
 
@@ -9025,8 +9348,8 @@ against `A` or `B` (`isq::height / isq::width * isq::width` is just `isq::height
 comes before the equation, so if `isq::energy` converts to `isq::kinetic_energy` only explicitly,
 so does `isq::energy * isq::time / isq::period_duration` to `isq::kinetic_energy`. With
 `gravitational_potential_energy` as defined in [Hierarchies of derived quantities],
-`isq::mass * isq::acceleration_of_free_fall * isq::width` converts to it only with a cast, since
-_width_ meets _height_ sideways. The same holds for reciprocal ratios of plain quantities:
+`isq::mass * magnitude(isq::acceleration_of_free_fall) * isq::width` converts to it only with a
+cast, since _width_ meets _height_ sideways. The same holds for reciprocal ratios of plain quantities:
 `isq::height / isq::width` to `isq::width / isq::height` is `cast`. Reading `height / width` as a
 plain number first would have made it `explicit`. A declared kind is different:
 `isq::angular_measure` to `inverse(isq::angular_measure)` is `none`, for the reason given in case 8
@@ -9043,21 +9366,17 @@ only explicitly. There are two exceptions: a declared kind is gained implicitly 
 kind, and a source kind `kind_of<K>` converts implicitly to anything below `K` that keeps the kinds
 `K` carries, so `1. / (2 * s)`, a kind of `inverse(isq::time)`, converts to _frequency_ implicitly.
 
-Plain `isq` rotational mechanics needs an explicit conversion. The ISQ defines _torque_ and
-_angular momentum_ without an angle but _angular velocity_ with one, so
-`isq::torque * isq::angular_velocity` to `isq::power` and
-`isq::moment_of_inertia * pow<2>(isq::angular_velocity)` to `isq::kinetic_energy` are explicit:
+Plain `isq` rotational mechanics needs an explicit conversion. The ISQ defines _torque_ without an
+angle but _angular velocity_ with one, so `isq::torque * magnitude(isq::angular_velocity)` to
+`isq::power` is explicit. _Angular velocity_ is a vector, so `isq::torque * isq::angular_velocity`
+is a vector and doesn't convert to _power_ at all:
 
 ```cpp
-quantity power = quantity<isq::power[W]>(torque * omega);
-quantity energy = quantity<isq::kinetic_energy[J]>(inertia * pow<2>(omega));
+quantity power = quantity<isq::power[W]>(torque * omega.magnitude());
 ```
 
 The conversion names a unit as well, because the call operator and `quantity_cast` accept only a
 unit of the target's kind, and `rad / s` carries the angle.
-
-The `isq_angle` system defines _torque_ with the angle, so there the angle cancels and both
-conversions stay implicit, provided the quantities use the `angular` units.
 
 
 ### Special cases
@@ -9161,25 +9480,28 @@ test in [@MP-UNITS] that guards it, where one exists.
     static_assert(convertible(inverse(angular_measure), angular_measure) == none);
     ```
 
-9. **The character of a quantity is not consulted yet.** A conversion from a scalar to a vector,
-   such as `kind_of<isq::length / isq::time>` to `isq::velocity`, is `implicit` today and is
-   expected to become `none` once the character of a quantity takes part in conversions.
-   `isq::acceleration * isq::duration` to `special_speed`, `cast` today, has the same problem. The
-   examples in this paper avoid both. The current verdicts are recorded in
-   `quantity_spec_test.cpp`, with quantities local to that test:
+9. **A kind passes the character check.** A kind admits every character, so
+   `kind_of<isq::length / isq::time>` converts implicitly to the vector `isq::velocity`, and
+   `kind_of<isq::acceleration * isq::time>` to the scalar `special_speed` with a cast. The typed
+   `isq::acceleration * isq::duration` is a vector and doesn't convert to `special_speed` at all,
+   while the magnitude of the _acceleration_ times a _duration_ is a _speed_ and converts to it
+   explicitly. Guarded in `quantity_spec_test.cpp`, with quantities local to that test:
 
     ```cpp
     static_assert(convertible(kind_of<length / time>, velocity) == implicit);
-    static_assert(convertible(acceleration * time, special_speed) == cast);
+    static_assert(convertible(kind_of<acceleration * time>, special_speed) == cast);
+    static_assert(convertible(acceleration * time, special_speed) == none);
+    static_assert(convertible(magnitude(acceleration) * time, special_speed) == explicit_only);
     ```
 
 10. **The kind boundary nets within a side first.** Each kind's numerator count is netted against
     its denominator count on the same side before the two sides are compared, so
-    `isq::angular_velocity * isq::radius / isq::angular_measure / isq::speed` to `dimensionless`
-    loses nothing and is `implicit`. Guarded in `isq_test.cpp`:
+    `isq::angular_displacement / isq::duration * isq::radius / isq::angular_measure / isq::speed`
+    to `dimensionless` loses nothing and is `implicit`. Guarded in `isq_test.cpp`:
 
     ```cpp
-    static_assert($implicitly-convertible$(isq::angular_velocity * isq::radius / isq::angular_measure / isq::speed, dimensionless));
+    static_assert($implicitly-convertible$(isq::angular_displacement / isq::duration * isq::radius / isq::angular_measure /
+                                           isq::speed, dimensionless));
     ```
 
 11. **The kind boundary caps every verdict of the tree rule and of the kind rules.** The tree rule
@@ -9191,12 +9513,15 @@ test in [@MP-UNITS] that guards it, where one exists.
     own kind and lacks the angle, converts to its parent and from it only explicitly, and
     `quantity_cast` between them, in a unit both accept, keeps compiling. The squared pair of such
     a child and its parent still ranks `none`, because the equation rule applies the boundary
-    without this exemption. Guarded in `isq_test.cpp`, with quantities local to that test:
+    without this exemption. Both children are declared vectors, as the scalar equation
+    `inverse(isq::duration)` would make them scalars, which don't convert to the vector _angular
+    velocity_ at all. Guarded in `isq_test.cpp`, with quantities local to that test:
 
     ```cpp
-    inline constexpr struct turn_rate : named_quantity_spec<isq::angular_velocity, inverse(isq::duration)> {} turn_rate;
+    inline constexpr struct turn_rate :
+      named_quantity_spec<isq::angular_velocity, inverse(isq::duration), quantity_tensor_order::vector> {} turn_rate;
     inline constexpr struct turn_rate_kind :
-      named_quantity_spec<isq::angular_velocity, inverse(isq::duration), subkind> {} turn_rate_kind;
+      named_quantity_spec<isq::angular_velocity, inverse(isq::duration), subkind, quantity_tensor_order::vector> {} turn_rate_kind;
     inline constexpr struct angled_ratio :
       named_quantity_spec<dimensionless, isq::angular_measure * isq::length / isq::width> {} angled_ratio;
     inline constexpr struct solid_angled_ratio :
@@ -9218,7 +9543,7 @@ test in [@MP-UNITS] that guards it, where one exists.
 When two quantities meet in one expression, the library has to decide which quantity specification
 the result has. `width + height` needs one that fits both a _width_ and a _height_, the comparison
 `a < b`, `std::common_type`, `fma`, `hypot`, `lerp`, `midpoint`, and the difference of two quantity
-points ask the same question. `get_common_quantity_spec(q1, q2)` answers it with the conversion
+points ask the same question. `$get-common-quantity-spec$(q1, q2)` answers it with the conversion
 rules of this chapter: the result is the most specific quantity specification that both operands
 convert to implicitly, and the call is ill-formed when there is none. Apart from a
 unit's own symbol, which only orders two members of one magnitude inside a `common_unit`, the
@@ -9239,13 +9564,13 @@ candidate both operands reach.
 With three or more operands the call is evaluated from the left, and every operand has to reach the
 result: `isq::frequency` and `inverse(isq::time)` meet at `inverse(isq::time)`, whose common
 specification with `isq::activity` is `isq::activity`, which a frequency never reaches, so
-`get_common_quantity_spec(isq::frequency, inverse(isq::time), isq::activity)` is ill-formed.
+`$get-common-quantity-spec$(isq::frequency, inverse(isq::time), isq::activity)` is ill-formed.
 
 ```cpp
-static_assert(get_common_quantity_spec(isq::width, isq::height) == isq::length);
-static_assert(get_common_quantity_spec(kind_of<isq::length>, isq::width) == isq::width);
-static_assert(get_common_quantity_spec(isq::frequency, inverse(isq::time)) == inverse(isq::time));
-static_assert(get_common_quantity_spec(isq::width / isq::period_duration, isq::height / isq::period_duration) ==
+static_assert($get-common-quantity-spec$(isq::width, isq::height) == isq::length);
+static_assert($get-common-quantity-spec$(kind_of<isq::length>, isq::width) == isq::width);
+static_assert($get-common-quantity-spec$(isq::frequency, inverse(isq::time)) == inverse(isq::time));
+static_assert($get-common-quantity-spec$(isq::width / isq::period_duration, isq::height / isq::period_duration) ==
               isq::length / isq::period_duration);
 ```
 
@@ -9272,9 +9597,14 @@ preference is, in this order:
 
 `isq::angular_measure` and `dimensionless` have no common specification (see [Consequences]). Two
 quantities of different trees have none either, `isq::energy` and `isq::torque`.
-The common specification of two point specifications is the point of the common specification of
-their scales, so `get_common_quantity_spec(point<isq::height>, point<isq::width>)` is
-`point<isq::length>`, and a point and a delta have no common specification.
+Quantities of different characters have none, `isq::velocity` and `isq::speed`, and neither have
+two vectors that meet only in a scalar ancestor, `isq::displacement` and `isq::position_vector`.
+Two point specifications have a common specification only when one of them converts implicitly
+to the other (see [Checks that come first]). It is the point of the common specification of their
+scales, measured from their origin when it is the same, and from the absolute point origin they
+share otherwise. `$get-common-quantity-spec$(point<isq::height>, point<isq::length>)` is
+`point<isq::length>`, while siblings, such as `point<isq::height>` and `point<isq::width>`, two
+points that share no absolute point origin, and a point and a delta have none.
 
 ## Quantity references
 
@@ -9294,9 +9624,11 @@ besides its representation type and its value. A
 [`quantity_reference`](#quantity_reference-concept) concept is satisfied by either of:
 
 - an associated unit (e.g., `si::metre`) other than an offset one,
-- a delta reference, the type of `QS[U]`, explicitly specifying the quantity type and its
-  unit, or of `delta<U>`, the delta of a unit,
-- a point reference, the type of `point<R, PO>` (see [The affine space]).
+- a delta reference, the type of `delta<QS>[U]` or of `QS[U]` (the same reference, when `U`
+  isn't an offset unit), explicitly specifying the quantity type and its unit, or of `delta<U>`,
+  the delta of a unit,
+- a point reference, the type of `point<QS, PO>[U]`, `point<QS>[U]`, `point<U, PO>`, or `point<U>`
+  (see [The affine space]).
 
 A delta reference is implicitly created as a result of the following expression:
 
@@ -9304,7 +9636,9 @@ A delta reference is implicitly created as a result of the following expression:
 constexpr quantity_reference auto distance = isq::distance[m];
 ```
 
-The above example defines a delta reference that binds `isq::distance` with `si::metre`.
+The above example defines a delta reference that binds `isq::distance` with `si::metre`. A
+specification bound to a unit of which it is the associated kind gives the unit itself:
+`kind_of<isq::length>[m]` and `delta<kind_of<isq::length>>[m]` are `si::metre`.
 
 A delta reference also exposes an arithmetic interface similar to the one that we have already
 discussed in case of units and quantity types. It forwards the operation to its quantity type
@@ -9329,9 +9663,12 @@ quantity_of<isq::speed> auto s2 = speed(60);
 A unit that is the scale of a point (`si::kelvin`, `si::degree_Celsius`, `usc::degree_Fahrenheit`,
 and their scaled versions) is not a reference on its own: a value in such a unit does not say
 whether a difference of temperatures or a temperature measured from the origin of its scale is
-meant. `delta<U>` and `point<U>` are its two references, and the same holds for
-`isq::thermodynamic_temperature[deg_C]`, which only `delta` and `point` accept (see
-[`delta` and `point` creation helpers]). A unit derived from such a unit (`pow<2>(deg_C)`,
+meant. `delta<U>` and `point<U>` are its two references (see [`delta` and `point` creation
+helpers]). For the same reason `QS[U]` is ill-formed for such a unit, and the unit is bound to
+`delta<QS>` or to a point specification instead, giving a delta reference,
+`delta<isq::thermodynamic_temperature>[deg_C]`, or a point reference,
+`point<isq::thermodynamic_temperature, si::ice_point>[deg_C]`. The multiply syntax is disabled for
+all of them. A unit derived from such a unit (`pow<2>(deg_C)`,
 `K / s`) is a plain delta reference, as a point has no algebra and every factor of a derived
 unit is a delta. Every reference that an equation produces is a delta reference: where the
 unit algebra yields the scale of a point, the result is the delta of it
@@ -9794,27 +10131,34 @@ if(auto q = q1 / q2; q != q.zero())
 But that is a bit inconvenient, and inexperienced users could be unaware of this technique and its
 rationale.
 
-For the above reasons, the library provides special support for comparisons against zero.
-Only this one value has elevated privileges and does not have to state the
-unit, as the numerical value zero is common to all scaled units of any kind.
-
-Thanks to that, to save typing and not pay for unneeded conversions, our check could be
-implemented as follows:
+For the above reasons, the library provides `zero`, a named constant of an empty tag type.
+Only this one value doesn't have to state the unit, as the numerical value zero is common to all
+scaled units of any kind. Our check becomes:
 
 ```cpp
-if (q1 / q2 != 0)
+if (q1 / q2 != zero)
   // ...
 ```
 
-All six comparison operators support comparison against zero without specifying a unit.
-This works with any representation type `rep` for which `representation_values<rep>::zero()`
-is provided.
+The comparison against `zero` works for any representation type `rep` for which
+`representation_values<rep>::zero()` is provided: `==` and `!=` when `rep` is equality
+comparable, and all six comparison operators when it is also three-way comparable. A vector or
+a tensor representation type has no ordering, and it has a zero only if it specializes
+`representation_values`. `zero` also initializes or assigns a quantity of any unit:
 
-Only a compile-time zero is accepted: a constant expression of an integer or floating-point type
-whose value is zero (e.g., `0`, `0u`, `0.`, `0.f`, `0LL`). A non-zero value or a runtime variable,
-even one whose value happens to be zero, is rejected at compile time. A requires-expression that
-probes such a comparison doesn't see this check, and a literal `0` passed through a function
-isn't a compile-time zero ([@P4406R0_PRE] discusses both, together with alternative designs).
+```cpp
+quantity<si::metre> total = zero;
+```
+
+`zero` doesn't convert to a representation type. It compares against representation types and
+against quantity-like types such as `std::chrono::duration` as well, which lets a generic
+algorithm check the sign of a `double`, a `std::chrono::duration`, and a quantity in the same
+way. The value of `zero` is carried by its type, and it keeps working when it is passed to a
+function, as in `std::ranges::find(v, zero)`. The `std::ranges` algorithms need `zero` to
+convert to the element type, so they accept it for quantities and quantity-like types, but not
+for a `double`. A point can't be compared against `zero`, because
+its numerical value depends on the origin. [@P4406R0_PRE] compares this design with the
+alternatives, among them a comparison against a literal `0`.
 
 
 #### Other maths
@@ -9915,13 +10259,13 @@ being printed.
 We can divide quantities of the same dimension and unit but of different quantity types:
 
 ```cpp
-constexpr quantity_of<dimensionless> auto q = isq::work(200 * J) / isq::heat(50 * J);
+constexpr quantity_of<dimensionless> auto q = isq::mechanical_work(200 * J) / isq::heat(50 * J);
 ```
 
 Again we end up with `dimension_one` and `one`, but this time:
 
 ```cpp
-static_assert(q.quantity_spec == isq::work / isq::heat);
+static_assert(q.quantity_spec == isq::mechanical_work / isq::heat);
 ```
 
 As shown above, the result is not of a `dimensionless` type anymore. Instead, we get a quantity type
@@ -10021,7 +10365,7 @@ ones that are:
 
 - implicitly constructible from the raw value,
 - explicitly convertible to a raw value,
-- comparable to any raw value (every delta compares against a compile-time zero, see
+- comparable to any raw value (every delta compares against `zero`, see
   [Comparison against zero]).
 
 ```cpp
@@ -10126,7 +10470,7 @@ specific quantity kinds only:
 ```cpp
 inline constexpr struct radian : named_unit<"rad", metre / metre, kind_of<isq::angular_measure>> {} radian;
 inline constexpr struct steradian : named_unit<"sr", square(metre) / square(metre), kind_of<isq::solid_angular_measure>> {} steradian;
-inline constexpr struct bit : named_unit<"bit", one, kind_of<storage_capacity>> {} bit;
+inline constexpr struct bit : named_unit<"bit", one, kind_of<isq::storage_capacity>> {} bit;
 ```
 
 This still allows the usage of `one` (possibly scaled) for such quantities which is exactly what
@@ -10396,14 +10740,26 @@ Here are the main points of this new design:
 
     - `delta<m>(42)` results with a `quantity<si::metre, int>`,
     - `delta<deg_C>(5)` results with a `quantity<delta<si::degree_Celsius>, int>`, as a bare
-      `si::degree_Celsius` is not a reference.
+      `si::degree_Celsius` is not a reference,
+    - `delta<isq::height>[m](42)` results with a `quantity<isq::height[m], int>`, as
+      `delta<QS>[U]` is the reference `QS[U]` for a unit that isn't an offset one,
+    - `delta<isq::thermodynamic_temperature>[deg_C](5)` results with a
+      `quantity<delta<isq::thermodynamic_temperature>[si::degree_Celsius], int>`, as
+      `isq::thermodynamic_temperature[deg_C]` is ill-formed.
 
 3. A new `point` construction helper is introduced:
 
     - `point<m>(42)` results with a `quantity<point<si::metre>, int>`, measured from
       `natural_point_origin<kind_of<isq::length>>`,
     - `point<deg_C>(5)` results with a `quantity<point<si::degree_Celsius>, int>`, measured from
-      `si::ice_point`.
+      `si::ice_point`,
+    - `point<isq::height>[m](42)` results with a `quantity<point<isq::height>[m], int>`, measured
+      from `natural_point_origin<isq::height>`,
+    - `point<isq::altitude, msl>[m](42)` results with a
+      `quantity<point<isq::altitude, msl>[m], int>`, measured from the origin `msl`.
+
+    `delta<>` and `point<>` take a unit or a plain quantity specification. They don't take a
+    reference, so `delta<isq::height[m]>` and `point<isq::altitude[m], msl>` are ill-formed.
 
 Please note that `si::kelvin` is also excluded from the multiply syntax to prevent the
 following surprising issues:
@@ -10428,7 +10784,7 @@ static_assert(q.in(deg_C) != qp.in(deg_C).delta_from_zero());
 
 :::
 
-_Note: [@P4185R2_PRE] lifts this exclusion for `si::kelvin`. The origin of the kelvin is a natural
+_Note: [@P4185R3_PRE] lifts this exclusion for `si::kelvin`. The origin of the kelvin is a natural
 origin, so the kelvin is not an offset unit there, and `300 * K` is an absolute temperature rather
 than a delta._
 
@@ -10475,7 +10831,7 @@ chapter:
 
 ```cpp
 constexpr struct room_reference_temp : relative_point_origin<si::ice_point + delta<deg_C>(21)> {} room_reference_temp;
-using room_temp = quantity<point<isq::thermodynamic_temperature[deg_C], room_reference_temp>>;
+using room_temp = quantity<point<isq::thermodynamic_temperature, room_reference_temp>[deg_C]>;
 
 room_temp room_ref{};
 
@@ -10490,7 +10846,7 @@ Now let's compare it to the implementation using the currently proposed design:
 
 ```cpp
 constexpr struct room_reference_temp : relative_point_origin<point<deg_C>(21)> {} room_reference_temp;
-using room_temp = quantity<point<isq::thermodynamic_temperature[deg_C], room_reference_temp>>;
+using room_temp = quantity<point<isq::thermodynamic_temperature, room_reference_temp>[deg_C]>;
 
 room_temp room_ref{};
 
@@ -10554,7 +10910,7 @@ interoperability with a simple home-grown strongly typed wrapper type (e.g., `Me
 specialization of `quantity_like_traits` with:
 
 - a delta reference (e.g., a unit) for an external delta-like type,
-- a point reference `point<R, PO>` for an external point-like type.
+- a point reference, such as `point<QS, PO>[U]` or `point<U, PO>`, for an external point-like type.
 
 The framework names a type adapted this way, other than a `quantity` itself, with the
 exposition-only concept `$QuantityLike$`.
@@ -10733,7 +11089,7 @@ To allow the conversion between our custom `Timestamp` type and a point `quantit
 provide the following in the specialization of the same `quantity_like_traits<T>` type trait, this
 time with a point reference:
 
-- `reference` static data member that provides the point reference `point<R, PO>`, which names
+- `reference` static data member that provides the point reference `point<U, PO>`, which names
   both the unit and the origin of our measurement scale,
 - `rep` type that specifies the underlying storage type,
 - `explicit_import` static data member of type `bool` that specifies that the conversion
@@ -11421,9 +11777,11 @@ its 3.0.0 release. The following adjustments apply:
   appear in italics as exposition-only names, and their definitions are not given. The
   exceptions are the types whose members or base classes are part of the interface:
   `$quantity-spec-interface$` provides the subscript and call operators of every quantity
-  specification, `$delta-t$` is the type of `QS[U]` and of `delta` (the reference of a delta),
-  `$point-t$` is the type of `point` (a quantity specification for `point<QS>` and a reference
-  for `point<R, PO>`), `$reference-interface$` provides the call operator and the observers
+  specification, `$delta-spec-t$` is the type of `delta<QS>`, `$delta-t$` is the type of
+  `delta<QS>[U]`, `QS[U]`, and `delta<U>` (the reference of a delta),
+  `$point-t$` is the type of `point` (a quantity specification for `point<QS>` and
+  `point<QS, PO>`, and a reference for `point<QS, PO>[U]` and `point<U, PO>`),
+  `$reference-interface$` provides the call operator and the observers
   shared by the two references,
   `$quantity-point-members$` provides the members that only a point has, the base classes
   listed below provide the hidden friends, and
@@ -11445,8 +11803,7 @@ its 3.0.0 release. The following adjustments apply:
   `$unit-interface$`, `$reference-interface$`, `$point-origin-interface$`,
   `$symbol-text-interface$`, and `$quantity-interface$`.
 - Inside `quantity` and `$quantity-point-members$`, the concepts `quantity_spec`, `dimension`,
-  `unit`, and `point_origin` are qualified with `std::`, as members of the same names would
-  hide them.
+  and `unit` are qualified with `std::`, as members of the same names would hide them.
 - Facilities marked as `// hosted` (stream insertion operators and `std::formatter`
   specializations) are provided only by hosted implementations.
 
@@ -11672,54 +12029,70 @@ inline constexpr struct subkind {
 
 // quantity specification interface
 struct $quantity-spec-interface$ {  // exposition only
-  // a reference, or for an offset unit the exposition-only $delta-or-point$<Self, U>, which only
-  // delta and point accept
+  // the reference of a delta, or of a point for a point specification; for a QS that isn't a point
+  // specification, QS[U] is ill-formed for an offset unit U, where delta<QS>[U] is the reference of
+  // a delta, and QS[U] is the same reference as delta<QS>[U] for any other unit; point<QS>[U] is
+  // ill-formed when the origin of U is not the natural origin of QS
   template<typename Self, unit_of<Self{}> U>
-  consteval auto operator[](this Self, U);
+  consteval quantity_reference auto operator[](this Self, U);
 
   template<typename Self, typename FwdQ, delta_quantity Q = remove_cvref_t<FwdQ>>
     requires($explicitly-convertible$(Q::quantity_spec, Self{})) &&
             requires { typename quantity<$make-reference$(Self{}, Q::unit), typename Q::rep>; }
   constexpr delta_quantity auto operator()(this Self, FwdQ&& q);
 
+  // $point-target$(QS, PO) is QS for a point specification, and for any other QS it is
+  // point<QS, PO> when PO is an origin for QS, and point<QS> otherwise;
+  // $make-point-reference$(QS, U, PO) is the reference of a point of the point specification QS in
+  // the unit U, measured from PO when PO is an origin for the scale of QS, and from the origin of
+  // QS otherwise; delta<QS>(qp) is ill-formed, and the origin of the result is computed: the origin
+  // of qp is kept, rebased onto the origin of the target, or the call is ill-formed
   template<typename Self, typename FwdQP, point_quantity QP = remove_cvref_t<FwdQP>>
-    requires($explicitly-convertible$(QP::quantity_spec, $as-point$(Self{}))) &&
-            point_origin_for<decltype(QP::point_origin), $remove-point$(Self{})> && requires {
-              typename quantity<$make-point-reference$($remove-point$(Self{}), QP::unit, QP::point_origin), typename QP::rep>;
-            }
+    requires($explicitly-convertible$(QP::quantity_spec, $point-target$(Self{}, QP::point_origin))) && requires {
+      typename quantity<$make-point-reference$($point-target$(Self{}, QP::point_origin), QP::unit, QP::point_origin),
+                        typename QP::rep>;
+    }
   constexpr point_quantity auto operator()(this Self, FwdQP&& qp);
 
   template<typename Self, typename FwdValue, representation_of<Self{}> Value = remove_cvref_t<FwdValue>>
     requires($explicitly-convertible-to-dimensionless$(Self{}))
   constexpr delta_quantity auto operator()(this Self, FwdValue&& val);
 
-  // operations
+  // operations; $ScalarOperand$<Q> holds when Q admits the scalar order (a scalar or a quantity
+  // kind), and $NonScalarOperand$<Q> when Q admits the vector or the tensor order
   template<quantity_spec Lhs, quantity_spec Rhs>
-    requires(!$PointQuantitySpec$<Lhs>) && (!$PointQuantitySpec$<Rhs>)
+    requires(!$PointQuantitySpec$<Lhs>) && (!$PointQuantitySpec$<Rhs>) &&
+            ($ScalarOperand$<Lhs> || $ScalarOperand$<Rhs>)
   friend consteval quantity_spec auto operator*(Lhs lhs, Rhs rhs);
 
   template<quantity_spec Lhs, quantity_spec Rhs>
-    requires(!$PointQuantitySpec$<Lhs>) && (!$PointQuantitySpec$<Rhs>)
+    requires(!$PointQuantitySpec$<Lhs>) && (!$PointQuantitySpec$<Rhs>) && $ScalarOperand$<Rhs>
   friend consteval quantity_spec auto operator/(Lhs lhs, Rhs rhs);
 
   template<quantity_spec Lhs, quantity_spec Rhs>
   friend consteval bool operator==(Lhs, Rhs);
 
   template<quantity_spec Q>
-    requires(!$PointQuantitySpec$<Q>)
+    requires(!$PointQuantitySpec$<Q>) && $ScalarOperand$<Q>
   friend consteval quantity_spec auto inverse(Q q);
 
   template<intmax_t Num, intmax_t Den = 1, quantity_spec Q>
-    requires(Den != 0) && (!$PointQuantitySpec$<Q>)
+    requires(Den != 0) && (!$PointQuantitySpec$<Q>) && ($ScalarOperand$<Q> || Num == Den)
   friend consteval quantity_spec auto pow(Q q);
 
   template<quantity_spec Q>
-    requires(!$PointQuantitySpec$<Q>)
+    requires(!$PointQuantitySpec$<Q>) && $ScalarOperand$<Q>
   friend consteval quantity_spec auto sqrt(Q q);
 
   template<quantity_spec Q>
-    requires(!$PointQuantitySpec$<Q>)
+    requires(!$PointQuantitySpec$<Q>) && $ScalarOperand$<Q>
   friend consteval quantity_spec auto cbrt(Q q);
+
+  // a real scalar of the dimension of Q, $magnitude-t$<Q> for a Q that isn't a quantity kind,
+  // and Q itself for a quantity kind
+  template<quantity_spec Q>
+    requires(!$PointQuantitySpec$<Q>) && $NonScalarOperand$<Q>
+  friend consteval quantity_spec auto magnitude(Q q);
 
   // observers
   template<quantity_spec QS>
@@ -11730,18 +12103,25 @@ struct $quantity-spec-interface$ {  // exposition only
 template<$BaseDimension$ auto Dim, $QSProperty$ auto... Args>
 struct named_quantity_spec<Dim, Args...> : $quantity-spec-interface$ {};
 
-template<$DerivedQuantitySpec$ auto Eq, $QSProperty$ auto... Args>
+// $EquationSpec$<T> holds for a derived quantity specification and for $magnitude-t$<V>
+template<$EquationSpec$ auto Eq, $QSProperty$ auto... Args>
 struct named_quantity_spec<Eq, Args...> : $quantity-spec-interface$ {};
 
 template<$NamedQuantitySpec$ auto QS, $QSProperty$ auto... Args>
 struct named_quantity_spec<QS, Args...> : $quantity-spec-interface$ {};
 
-template<$NamedQuantitySpec$ auto QS, $DerivedQuantitySpec$ auto Eq, $QSProperty$ auto... Args>
-  requires($explicitly-convertible$(Eq, QS))
+// $defining-equation-fits$(Eq, QS) is $explicitly-convertible$(Eq, QS) with the character of the two
+// left out, so that a vector can be defined below a scalar
+template<$NamedQuantitySpec$ auto QS, $EquationSpec$ auto Eq, $QSProperty$ auto... Args>
+  requires($defining-equation-fits$(Eq, QS))
 struct named_quantity_spec<QS, Eq, Args...> : $quantity-spec-interface$ {};
 
 template<$SymbolicTerm$... Expr>
 struct derived_quantity_spec : $quantity-spec-interface$ {};
+
+// the magnitude of a vector or tensor quantity specification V that isn't a quantity kind
+template<quantity_spec V>
+struct $magnitude-t$ : $quantity-spec-interface$ {};  // exposition only
 
 inline constexpr struct dimensionless : named_quantity_spec<derived_quantity_spec<>{}> {
 } dimensionless;
@@ -11750,38 +12130,39 @@ template<typename Q>
 struct $kind-of-t$;
 
 template<quantity_spec Q>
-  requires $SymbolicArg$<Q> && (!$QuantityKindSpec$<Q>) && (!$PointQuantitySpec$<Q>) && ($get-kind-tree-root$(Q{}) == Q{})
+  requires $SymbolicArg$<Q> && (!$QuantityKindSpec$<Q>) && (!$PointQuantitySpec$<Q>) && (!$DeltaQuantitySpec$<Q>) &&
+           ($get-kind-tree-root$(Q{}) == Q{})
 struct $kind-of-t$<Q> : @_see below_@ {};
 
 template<quantity_spec auto Q>
-  requires(!$PointQuantitySpec$<decltype(Q)>) && requires { typename $kind-of-t$<decltype(Q)>; }
+  requires(!$PointQuantitySpec$<decltype(Q)>) && (!$DeltaQuantitySpec$<decltype(Q)>) &&
+           requires { typename $kind-of-t$<decltype(Q)>; }
 constexpr $kind-of-t$<decltype(Q)> kind_of;
+
+// quantity specification of a delta: delta<QS> stands for QS wherever a quantity specification is
+// expected, and its subscript operator also accepts an offset unit
+template<quantity_spec Q>
+  requires $SymbolicArg$<Q> && (!$PointQuantitySpec$<Q>) && (!$DeltaQuantitySpec$<Q>)
+struct $delta-spec-t$ : $quantity-spec-interface$ {};  // exposition only
 
 // quantity specifications of points
 template<typename...>
 struct $point-t$;
 
+// point<QS>, measured from natural_point_origin<QS>
 template<quantity_spec Q>
-  requires $SymbolicArg$<Q> && (!$PointQuantitySpec$<Q>)
+  requires $SymbolicArg$<Q> && (!$PointQuantitySpec$<Q>) && (!$DeltaQuantitySpec$<Q>)
 struct $point-t$<Q> : $quantity-spec-interface$ {};
+
+// point<QS, PO>, measured from PO
+template<quantity_spec Q, $PointOrigin$ PO>
+  requires $SymbolicArg$<Q> && (!$PointQuantitySpec$<Q>) && (!$DeltaQuantitySpec$<Q>) && point_origin_for<PO, Q{}>
+struct $point-t$<Q, PO> : $quantity-spec-interface$ {};
 
 // observers
 
 template<quantity_spec Q>
 consteval quantity_spec auto get_kind(Q);
-
-// common quantity specification
-consteval quantity_spec auto get_common_quantity_spec(quantity_spec auto q);
-
-template<quantity_spec Q1, quantity_spec Q2>
-  requires($have-common-quantity-spec$(Q1{}, Q2{}))
-consteval quantity_spec auto get_common_quantity_spec(Q1, Q2);
-
-consteval quantity_spec auto get_common_quantity_spec(quantity_spec auto q1,
-                                                      quantity_spec auto q2,
-                                                      quantity_spec auto q3,
-                                                      quantity_spec auto... rest)
-  requires requires { get_common_quantity_spec(get_common_quantity_spec(q1, q2), q3, rest...); };
 
 }
 ```
@@ -11926,7 +12307,7 @@ template<symbol_text Symbol, $QuantityKindSpec$ auto QS>
   requires(!Symbol.empty()) && ($BaseDimension$<decltype(get_dimension(QS))> || $remove-kind$(QS) == dimensionless)
 struct named_unit<Symbol, QS> : $unit-interface$ {};
 
-template<symbol_text Symbol, $QuantityKindSpec$ auto QS, point_origin auto PO>
+template<symbol_text Symbol, $QuantityKindSpec$ auto QS, $PointOrigin$ auto PO>
   requires(!Symbol.empty()) && ($BaseDimension$<decltype(get_dimension(QS))> || $remove-kind$(QS) == dimensionless)
 struct named_unit<Symbol, QS, PO> : $unit-interface$ {};
 
@@ -11934,7 +12315,7 @@ template<symbol_text Symbol, unit auto U>
   requires(!Symbol.empty()) && $is-positive-canonical-unit-mag$<U>
 struct named_unit<Symbol, U> : $unit-interface$ {};
 
-template<symbol_text Symbol, unit auto U, point_origin auto PO>
+template<symbol_text Symbol, unit auto U, $PointOrigin$ auto PO>
   requires(!Symbol.empty()) && $is-positive-canonical-unit-mag$<U>
 struct named_unit<Symbol, U, PO> : $unit-interface$ {};
 
@@ -11944,7 +12325,7 @@ template<symbol_text Symbol, unit auto U, $QuantityKindSpec$ auto QS>
           $is-positive-canonical-unit-mag$<U>
 struct named_unit<Symbol, U, QS> : $unit-interface$ {};
 
-template<symbol_text Symbol, unit auto U, $QuantityKindSpec$ auto QS, point_origin auto PO>
+template<symbol_text Symbol, unit auto U, $QuantityKindSpec$ auto QS, $PointOrigin$ auto PO>
   requires(!Symbol.empty()) &&
           (get_dimension(QS) == get_dimension($get-associated-quantity$(U))) &&
           $is-positive-canonical-unit-mag$<U>
@@ -11995,33 +12376,6 @@ inline constexpr struct pi final :
     named_constant<symbol_text{u8"π", "pi"}, mag<$pi-c$> * one> {} pi;
 
 inline constexpr auto π = pi;
-
-}
-```
-
-### Observers
-
-```cpp
-namespace std {
-
-// common unit
-consteval unit auto get_common_unit(unit auto u);
-
-template<unit U1, $UnitConvertibleTo$<U1{}> U2>
-consteval unit auto get_common_unit(U1 u1, U2 u2);
-
-template<unit... Us, $UnitConvertibleTo$<common_unit<Us...>{}> NewUnit>
-consteval unit auto get_common_unit(common_unit<Us...>, NewUnit);
-
-template<unit... Us, $UnitConvertibleTo$<common_unit<Us...>{}> NewUnit>
-consteval unit auto get_common_unit(NewUnit nu, common_unit<Us...> cu);
-
-template<unit Front, unit... Rest, unit... Us>
-  requires($UnitConvertibleTo$<common_unit<Front, Rest...>, common_unit<Us...>{}>)
-consteval unit auto get_common_unit(common_unit<Front, Rest...>, common_unit<Us...>);
-
-consteval unit auto get_common_unit(unit auto u1, unit auto u2, unit auto u3, unit auto... rest)
-  requires requires { get_common_unit(get_common_unit(u1, u2), u3, rest...); };
 
 }
 ```
@@ -12112,7 +12466,8 @@ struct $reference-interface$ {  // exposition only
 template<typename...>
 struct $delta-t$;
 
-// $delta-t$<U> for a unit, $delta-t$<QS, U> for the quantity specification of a delta and a unit
+// $delta-t$<U> for a unit, $delta-t$<QS, U> for a plain quantity specification QS and a unit; the
+// quantity specification of both is a plain one, never $delta-spec-t$
 template<typename... Args>
   requires $delta-arguments$<Args...>
 struct $delta-t$<Args...> : $reference-interface$ {
@@ -12122,7 +12477,10 @@ struct $delta-t$<Args...> : $reference-interface$ {
   template<unit U2>
   friend consteval bool operator==($delta-t$, U2 u2);
 
+  // the operations of references follow those of their quantity specifications (QS is the
+  // quantity specification of this reference, and QS2 the one of $delta-t$<Args2...>)
   template<typename... Args2>
+    requires($ScalarOperand$<QS> || $ScalarOperand$<QS2>)
   friend consteval quantity_reference auto operator*($delta-t$, $delta-t$<Args2...>);
 
   template<unit U2>
@@ -12132,29 +12490,35 @@ struct $delta-t$<Args...> : $reference-interface$ {
   friend consteval quantity_reference auto operator*(U1, $delta-t$);
 
   template<typename... Args2>
+    requires $ScalarOperand$<QS2>
   friend consteval quantity_reference auto operator/($delta-t$, $delta-t$<Args2...>);
 
   template<unit U2>
   friend consteval quantity_reference auto operator/($delta-t$, U2);
 
   template<unit U1>
+    requires $ScalarOperand$<QS>
   friend consteval quantity_reference auto operator/(U1, $delta-t$);
 
-  friend consteval quantity_reference auto inverse($delta-t$);
+  friend consteval quantity_reference auto inverse($delta-t$)
+    requires $ScalarOperand$<QS>;
 
   template<intmax_t Num, intmax_t Den = 1>
-    requires(Den != 0)
+    requires(Den != 0) && ($ScalarOperand$<QS> || Num == Den)
   friend consteval quantity_reference auto pow($delta-t$);
 
-  friend consteval quantity_reference auto sqrt($delta-t$);
-  friend consteval quantity_reference auto cbrt($delta-t$);
+  friend consteval quantity_reference auto sqrt($delta-t$)
+    requires $ScalarOperand$<QS>;
+  friend consteval quantity_reference auto cbrt($delta-t$)
+    requires $ScalarOperand$<QS>;
 };
 
-// delta<U> is the reference $delta-t$<decltype(U)>, delta<R> of a delta reference R is R, and
-// delta<QS[U]> of an offset unit is the $delta-t$ that QS[U] is for any other unit
-template<auto R>
-  requires $DeltaArgument$<decltype(R)>
-constexpr quantity_reference auto delta = @_see below_@;
+// delta<U> of a unit U is the reference $delta-t$<decltype(U)>, and delta<QS> of a plain quantity
+// specification QS is the quantity specification $delta-spec-t$<decltype(QS)>
+template<auto Arg>
+  requires unit<decltype(Arg)> ||
+           (quantity_spec<decltype(Arg)> && !$PointQuantitySpec$<decltype(Arg)> && !$DeltaQuantitySpec$<decltype(Arg)>)
+constexpr auto delta = @_see below_@;
 
 // creating quantities
 template<typename FwdRep, $LinearReference$ R, representation_of<get_quantity_spec(R{})> Rep = remove_cvref_t<FwdRep>>
@@ -12188,20 +12552,6 @@ template<$LinearReference$ R, typename Q>
   requires delta_quantity<remove_cvref_t<Q>>
 constexpr auto operator/(R, Q&& q) = delete;
 
-// common reference
-consteval unit auto get_common_reference(unit auto u1, unit auto u2, unit auto... rest)
-  requires requires {
-    get_common_quantity_spec(get_quantity_spec(u1), get_quantity_spec(u2), get_quantity_spec(rest)...);
-    get_common_unit(u1, u2, rest...);
-  };
-
-template<$LinearReference$ R1, $LinearReference$ R2, $LinearReference$... Rest>
-consteval quantity_reference auto get_common_reference(R1 r1, R2 r2, Rest... rest)
-  requires(!(unit<R1> && unit<R2> && (... && unit<Rest>))) && requires {
-    get_common_quantity_spec(get_quantity_spec(r1), get_quantity_spec(r2), get_quantity_spec(rest)...);
-    get_common_unit(get_unit(r1), get_unit(r2), get_unit(rest)...);
-  };
-
 }
 ```
 
@@ -12214,13 +12564,13 @@ struct $point-origin-interface$;  // exposition only
 
 // concepts
 template<typename T>
-concept point_origin =
+concept $PointOrigin$ =  // exposition only
   derived_from<T, $point-origin-interface$> && $SymbolicConstant$<T> &&
   !$is-specialization-of-absolute-point-origin$<remove_const_t<T>> &&
   !$is-specialization-of-relative-point-origin$<remove_const_t<T>>;
 
 template<typename T, auto QS>
-concept point_origin_for = point_origin<T> && quantity_spec_of<decltype($remove-point$(QS)), $remove-point$(T::$quantity-spec$)>;
+concept point_origin_for = $PointOrigin$<T> && quantity_spec_of<decltype($remove-point$(QS)), $remove-point$(T::$quantity-spec$)>;
 
 // point origins
 template<quantity_spec auto QS>
@@ -12230,17 +12580,38 @@ template<point_quantity auto QP>
 struct relative_point_origin;
 
 struct $point-origin-interface$ {  // exposition only
-  template<point_origin PO>
+  template<$PointOrigin$ PO>
   friend consteval quantity_spec auto get_quantity_spec(PO po);
 
-  template<point_origin PO1, $SameAbsolutePointOriginAs$<PO1{}> PO2>
+  template<$PointOrigin$ PO1, $SameAbsolutePointOriginAs$<PO1{}> PO2>
     requires(point_origin_for<PO2, get_quantity_spec(PO1{})> ||
              point_origin_for<PO1, get_quantity_spec(PO2{})>) &&
             ($is-derived-from-specialization-of$<PO1, relative_point_origin> ||
              $is-derived-from-specialization-of$<PO2, relative_point_origin>)
   friend constexpr delta_quantity auto operator-(PO1, PO2);
 
-  template<point_origin PO1, point_origin PO2>
+  // affine space operators with a point origin operand
+  template<$PointOrigin$ PO, typename FwdQ, delta_quantity Q = remove_cvref_t<FwdQ>>
+    requires point_origin_for<PO, Q::quantity_spec>
+  friend constexpr point_quantity auto operator+(PO po, FwdQ&& q);
+
+  template<typename FwdQ, $PointOrigin$ PO, delta_quantity Q = remove_cvref_t<FwdQ>>
+    requires point_origin_for<PO, Q::quantity_spec>
+  friend constexpr point_quantity auto operator+(FwdQ&& q, PO po);
+
+  template<$PointOrigin$ PO, delta_quantity Q>
+    requires point_origin_for<PO, Q::quantity_spec> && requires(const Q& q) { -q; }
+  friend constexpr point_quantity auto operator-(PO po, const Q& q);
+
+  template<point_quantity QP, $PointOrigin$ PO>
+    requires quantity_of<QP, PO{}> && quantity_reference_of<decltype(QP::reference), get_quantity_spec(PO{})>
+  friend constexpr delta_quantity auto operator-(const QP& qp, PO po);
+
+  template<$PointOrigin$ PO, point_quantity QP>
+    requires quantity_of<QP, PO{}> && quantity_reference_of<decltype(QP::reference), get_quantity_spec(PO{})>
+  friend constexpr delta_quantity auto operator-(PO po, const QP& qp);
+
+  template<$PointOrigin$ PO1, $PointOrigin$ PO2>
   friend consteval bool operator==(PO1 po1, PO2 po2);
 };
 
@@ -12281,13 +12652,17 @@ struct $point-t$<Args...> : $reference-interface$ {
 
 // the origin of the unit of R (si::ice_point for si::degree_Celsius), or the natural point
 // origin of its quantity specification
-template<$DeltaArgument$ R>
+template<typename R>
+  requires unit<R> || $LinearReference$<R>
 consteval point_origin_for<get_quantity_spec(R{})> auto default_point_origin(R);
 
-// point<QS> is the quantity specification $point-t$<decltype(QS)>
-// point<R> and point<R, PO> are the reference of a point measured from PO or from
-// default_point_origin(R), spelled with the unit of R, preceded by the quantity specification of R
-// when it is not the kind associated with the unit, and followed by PO when it is not the default
+// for a quantity specification QS that is not a point, point<QS> and point<QS, PO> are the quantity
+// specifications $point-t$<decltype(QS)> and $point-t$<decltype(QS), decltype(PO)>, and their
+// subscript operator gives the reference of a point; for a unit U, point<U> and point<U, PO> are the
+// references point<K, default_point_origin(U)>[U] and point<K, PO>[U], where K is the quantity kind
+// of U; a point reference is the type $point-t$ spelled with its unit, preceded by its quantity
+// specification when it is not the kind associated with the unit, and followed by its origin when
+// it is not the default one of the unit
 template<auto Arg, auto... Rest>
   requires $PointArguments$<Arg, Rest...>
 constexpr auto point = @_see below_@;
@@ -12564,8 +12939,8 @@ struct $quantity-point-members$ {};  // exposition only
 template<auto R, typename Rep>
   requires $PointRef$<R>
 struct $quantity-point-members$<R, Rep> {  // exposition only
-  static constexpr std::point_origin auto point_origin = $point-origin-of$<R>;
-  static constexpr std::point_origin auto absolute_point_origin = $absolute-point-origin-of$<R>;
+  static constexpr $PointOrigin$ auto point_origin = $point-origin-of$<R>;
+  static constexpr $PointOrigin$ auto absolute_point_origin = $absolute-point-origin-of$<R>;
   using quantity_type = $quantity-type-t$<R, Rep>;
 };
 
@@ -12682,14 +13057,6 @@ struct $quantity-interface$ {  // exposition only
             }
   friend constexpr point_quantity auto operator+(const quantity<R1, Rep1>& q, const quantity<R2, Rep2>& qp);
 
-  template<std::point_origin PO, typename FwdQ, delta_quantity Q = remove_cvref_t<FwdQ>>
-    requires point_origin_for<PO, Q::quantity_spec>
-  friend constexpr point_quantity auto operator+(PO po, FwdQ&& q);
-
-  template<typename FwdQ, std::point_origin PO, delta_quantity Q = remove_cvref_t<FwdQ>>
-    requires point_origin_for<PO, Q::quantity_spec>
-  friend constexpr point_quantity auto operator+(FwdQ&& q, PO po);
-
   template<auto R1, typename Rep1, auto R2, typename Rep2>
     requires $PointRef$<R1> && (!$PointRef$<R2>) && point_origin_for<decltype($point-origin-of$<R1>), get_quantity_spec(R2)> &&
              requires(const quantity<R1, Rep1>& qp, const quantity<R2, Rep2>& q) {
@@ -12697,27 +13064,12 @@ struct $quantity-interface$ {  // exposition only
              }
   friend constexpr point_quantity auto operator-(const quantity<R1, Rep1>& qp, const quantity<R2, Rep2>& q);
 
-  template<std::point_origin PO, auto R2, typename Rep2>
-    requires(!$PointRef$<R2>) && point_origin_for<PO, get_quantity_spec(R2)> &&
-            requires(const quantity<R2, Rep2>& q) { -q; }
-  friend constexpr point_quantity auto operator-(PO po, const quantity<R2, Rep2>& q);
-
   template<auto R1, typename Rep1, quantity_of<quantity<R1, Rep1>::absolute_point_origin> QP2>
     requires $PointRef$<R1>
   friend constexpr delta_quantity auto operator-(const quantity<R1, Rep1>& lhs, const QP2& rhs)
     requires requires {
       lhs.delta_from(lhs.point_origin) - rhs.delta_from(QP2::point_origin);
     };
-
-  template<auto R1, typename Rep1, std::point_origin PO2>
-    requires $PointRef$<R1> && quantity_of<quantity<R1, Rep1>, PO2{}> &&
-             quantity_reference_of<decltype(R1), get_quantity_spec(PO2{})>
-  friend constexpr delta_quantity auto operator-(const quantity<R1, Rep1>& qp, PO2 po);
-
-  template<std::point_origin PO1, auto R2, typename Rep2>
-    requires $PointRef$<R2> && quantity_of<quantity<R2, Rep2>, PO1{}> &&
-             quantity_reference_of<decltype(R2), get_quantity_spec(PO1{})>
-  friend constexpr delta_quantity auto operator-(PO1 po, const quantity<R2, Rep2>& qp);
 
   template<auto R1, typename Rep1, quantity_of<quantity<R1, Rep1>::absolute_point_origin> QP2>
     requires $PointRef$<R1> &&
@@ -12822,7 +13174,7 @@ public:
     requires $DefaultOriginPointRef$<R> && constructible_from<$quantity-type-t$<R, Rep>, FwdQ>
   constexpr explicit quantity(FwdQ&& q);
 
-  template<typename FwdQ, std::point_origin PO2, delta_quantity Q = remove_cvref_t<FwdQ>>
+  template<typename FwdQ, $PointOrigin$ PO2, delta_quantity Q = remove_cvref_t<FwdQ>>
     requires $PointRef$<R> && point_origin_for<PO2, Q::quantity_spec> &&
              constructible_from<$quantity-type-t$<R, Rep>, FwdQ> &&
              $SameAbsolutePointOriginAs$<PO2, $point-origin-of$<R>>
@@ -12865,6 +13217,7 @@ public:
              $ValidRoundingPolicyFor$<Policy, rep, ToRep>
   constexpr quantity_of<quantity_spec> auto in(ToU, Policy policy) const;
 
+  // a quantity of magnitude(quantity_spec) in the unit of this quantity
   constexpr delta_quantity auto magnitude() const
     requires(!$PointRef$<R>) &&
             (quantity_of<quantity, quantity_tensor_order::vector> ||
@@ -12895,12 +13248,22 @@ public:
   constexpr representation_of<quantity_spec> auto numerical_value_in(U, Policy policy) const
     noexcept;
 
+  template<representation_of<quantity_spec> ToRep, unit_of<quantity_spec> U>
+    requires((!$PointRef$<R>) || $DefaultOriginPointRef$<R>) &&
+            requires(const quantity q) { q.template in<ToRep>(U{}); }
+  constexpr representation_of<quantity_spec> auto numerical_value_in(U) const;
+
+  template<representation_of<quantity_spec> ToRep, unit_of<quantity_spec> U, $RoundingPolicy$ Policy>
+    requires((!$PointRef$<R>) || $DefaultOriginPointRef$<R>) &&
+            requires(const quantity q, Policy p) { q.template in<ToRep>(U{}, p); }
+  constexpr representation_of<quantity_spec> auto numerical_value_in(U, Policy policy) const;
+
   // point data access
-  template<std::point_origin PO2>
+  template<$PointOrigin$ PO2>
     requires $PointRef$<R> && requires(const quantity qp) { qp - PO2{}; }
   constexpr delta_quantity auto delta_from(PO2) const&;
 
-  template<std::point_origin PO2>
+  template<$PointOrigin$ PO2>
     requires $PointRef$<R> && requires(const quantity qp) { qp - PO2{}; }
   constexpr delta_quantity auto delta_from(PO2) &&;
 
@@ -12912,7 +13275,7 @@ public:
     requires $DefaultOriginPointRef$<R>;
 
   // origin change
-  template<std::point_origin NewPO>
+  template<$PointOrigin$ NewPO>
     requires $PointRef$<R> && $SameAbsolutePointOriginAs$<NewPO, $absolute-point-origin-of$<R>>
   constexpr quantity_of<(NewPO{})> auto point_for(NewPO new_origin) const;
 
@@ -13023,7 +13386,7 @@ template<$QuantityLike$ Q>
 quantity(Q) -> quantity<quantity_like_traits<Q>::reference, typename quantity_like_traits<Q>::rep>;
 
 template<delta_quantity Q, point_origin_for<Q::quantity_spec> PO>
-quantity(Q q, PO) -> quantity<point<Q::reference, PO{}>, typename Q::rep>;
+quantity(Q q, PO) -> quantity<point<Q::quantity_spec, PO{}>[Q::unit], typename Q::rep>;
 
 }
 ```
@@ -13041,7 +13404,7 @@ constexpr delta_quantity auto quantity_cast(FwdQ&& q);
 
 template<quantity_spec auto ToQS, typename FwdQP, point_quantity QP = remove_cvref_t<FwdQP>>
   requires($castable$(QP::quantity_spec, ToQS)) && requires {
-    typename quantity<$make-point-reference$($remove-point$(ToQS), QP::unit, QP::point_origin), typename QP::rep>;
+    typename quantity<$make-point-reference$(ToQS, QP::unit, QP::point_origin), typename QP::rep>;
   }
 constexpr point_quantity auto quantity_cast(FwdQP&& qp);
 
@@ -13141,13 +13504,13 @@ namespace std {
 
 template<auto R1, typename Rep1, auto R2, typename Rep2>
   requires requires {
-    { get_common_reference(R1, R2) } -> quantity_reference;
+    { $get-common-reference$(R1, R2) } -> quantity_reference;
     typename common_type_t<Rep1, Rep2>;
     requires(!$overflows-non-zero-common-values$<common_type_t<Rep1, Rep2>>(get_unit(R1), get_unit(R2)));
-    requires representation_of<common_type_t<Rep1, Rep2>, get_common_quantity_spec(get_quantity_spec(R1), get_quantity_spec(R2))>;
+    requires representation_of<common_type_t<Rep1, Rep2>, $get-common-quantity-spec$(get_quantity_spec(R1), get_quantity_spec(R2))>;
   }
 struct common_type<quantity<R1, Rep1>, quantity<R2, Rep2>> {
-  using type = quantity<get_common_reference(R1, R2), common_type_t<Rep1, Rep2>>;
+  using type = quantity<$get-common-reference$(R1, R2), common_type_t<Rep1, Rep2>>;
 };
 
 template<auto R, typename Rep, representation_of<get_quantity_spec(R)> Value>
@@ -13484,13 +13847,20 @@ references:
       given: Mateusz
   title: "Comparing Quantities Against Zero"
   URL: <https://wg21.link/p4406r0>
-- id: P4185R2_PRE
-  citation-label: P4185R2
+- id: P4487R0
+  citation-label: P4487R0
+  author:
+    - family: Pusz
+      given: Mateusz
+  title: "Vector, Tensor, and Complex Operations for Quantities"
+  URL: <https://wg21.link/p4487r0>
+- id: P4185R3_PRE
+  citation-label: P4185R3
   author:
     - family: Pusz
       given: Mateusz
   title: "Absolute Quantities"
-  URL: <https://wg21.link/p4185r2>
+  URL: <https://wg21.link/p4185r3>
 - id: SI
   citation-label: SI
   title: "SI Brochure: The International System of Units (SI)"
