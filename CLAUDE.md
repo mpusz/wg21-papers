@@ -39,6 +39,21 @@ cd wg21 && make update
 
 The first build will automatically download Pandoc and set up a Python virtualenv under `wg21/deps/`.
 
+## Creating a New Revision of a Paper
+
+A revision that appeared in a mailing (published at `https://isocpp.org/files/papers/`) is
+frozen: never edit its source again. Changes go into a new revision, created in this order:
+
+1. Copy the source file to the new revision's file name (e.g. `3045R10_...md` →
+   `3045R11_...md`) and change nothing but the revision in the header (`document:`).
+2. Commit that copy on its own (e.g. `feat(qty-lib): R11 initial version`). The commit
+   is a snapshot of the previous revision.
+3. Only then edit the new file, and commit the changes on top of the snapshot.
+
+This way, diffing against the initial-version commit always shows exactly what the new
+revision introduces. If the previous revision's source was never committed, commit it as
+mailed first.
+
 ## Paper Format
 
 ### mpark/wg21 Markdown papers (`.md`)
@@ -82,7 +97,7 @@ Begin with a `<pre class='metadata'>` block instead of YAML frontmatter.
 The repository uses markdownlint for `.md` files. Configuration:
 
 - Root: `.markdownlint.json` — max line length 90, max 2 blank lines
-- `src/.markdownlint.json` — extends root; line length 100 (code blocks: 118), 4-space list indent
+- `src/.markdownlint.json` — extends root; line length 100 (code blocks: 133), 4-space list indent
 
 VS Code markdownlint extension is supported and recommended.
 
