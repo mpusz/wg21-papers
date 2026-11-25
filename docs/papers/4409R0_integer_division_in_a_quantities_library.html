@@ -1,0 +1,2452 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2026-11-20" />
+  <title>Integer Division in a Quantities Library</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ background-color: #f6f8fa; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { } 
+code span.al { color: #ff0000; } 
+code span.an { } 
+code span.at { } 
+code span.bn { color: #9f6807; } 
+code span.bu { color: #9f6807; } 
+code span.cf { color: #00607c; } 
+code span.ch { color: #9f6807; } 
+code span.cn { } 
+code span.co { color: #6a737d; font-style: italic; } 
+code span.cv { color: #6a737d; font-style: italic; } 
+code span.do { color: #6a737d; } 
+code span.dt { color: #00607c; } 
+code span.dv { color: #9f6807; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #9f6807; } 
+code span.fu { } 
+code span.im { } 
+code span.in { color: #6a737d; } 
+code span.kw { color: #00607c; } 
+code span.op { color: #7b3e91; } 
+code span.ot { } 
+code span.pp { color: #6f4e37; } 
+code span.re { } 
+code span.sc { color: #9f6807; } 
+code span.ss { color: #9f6807; } 
+code span.st { color: #9f6807; } 
+code span.va { } 
+code span.vs { color: #9f6807; } 
+code span.wa { color: #6a737d; font-weight: bold; } 
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+} </style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+text-align: justify;
+}
+@media screen and (max-width: 30em) {
+body {
+margin: 1.5em;
+}
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: yellow; }
+:target .codeblock { background-color: yellow; }
+:target .sourceCode { background-color: yellow; }
+:target ul { background-color: yellow; }
+p:has(> span.marginalizedparent > a.marginalized:target),
+li:has(> span.marginalizedparent > a.marginalized:target) {
+background-color: yellow;
+}
+a.marginalized:target { background-color: transparent; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+</style>
+  <style type="text/css">:root {
+color-scheme: light;
+--unchanged-color: #898887;
+--add-color: #006e28;
+--rm-color: #bf0303;
+--note-color: #0000ff;
+--not-proposed-color: #7151a8;
+--not-proposed-bg-color: rgba(113, 81, 168, 0.06);
+}
+.document-info {
+display: inline-flex;
+align-items: center;
+gap: 0.3rem;
+}
+.document-link {
+display: inline-block;
+padding: 0 0.4em;
+border: 1px solid var(--toc-border, #d9e1e7);
+border-radius: 0.4rem;
+color: var(--toc-muted, #66727d);
+font: 600 0.8em/1 sans-serif;
+text-decoration: none;
+vertical-align: text-bottom;
+}
+.document-link:hover {
+border-color: var(--toc-hover-border, #bdc9d2);
+background: var(--toc-hover-bg, #f2f6f8);
+color: var(--toc-hover-text, #244d6b);
+}
+.document-link:focus-visible {
+outline: 2px solid var(--toc-accent, #2878b5);
+outline-offset: 1px;
+}
+table thead tr {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+table tbody tr {
+border-bottom: 1px solid black;
+}
+.cmptable {
+width: 100%;
+}
+
+ins, del {
+text-decoration-thickness: 1px;
+}
+
+ins {
+text-underline-offset: 3.5px;
+}
+.add {
+color: var(--add-color);
+}
+.rm {
+color: var(--rm-color);
+}
+code.diff {
+color: var(--unchanged-color);
+}
+code.diff span.va {
+color: var(--add-color);
+}
+code.diff span.st {
+color: var(--rm-color);
+}
+.ednote,
+.draftnote {
+color: var(--note-color);
+}
+
+div.sourceCode {
+padding: 0.5em;
+}
+div.sourceCode:has(> pre.not_proposed) {
+padding: 0.65em 0.8em 0.65em 1.1em;
+border-left: 0.25em solid var(--not-proposed-color);
+background-color: var(--not-proposed-bg-color);
+}
+div.sourceCode:has(> pre.not_proposed)::before {
+content: "\2298\2002 Not proposed";
+display: block;
+margin-bottom: 0.8em;
+color: var(--not-proposed-color);
+font: 600 0.95rem/1.2 sans-serif;
+}
+</style>
+  <style type="text/css">
+#title-block-header > table {
+border: none;
+float: right;
+}
+#title-block-header > table tbody tr {
+border-bottom: none;
+}
+details.collapsed > summary {
+list-style: none;
+cursor: pointer;
+}
+details.collapsed > summary::-webkit-details-marker {
+display: none;
+}
+details.collapsed > summary .collapse-marker {
+--collapse-marker-offset: 0.15em;
+display: inline-block;
+width: 0;
+margin-right: 0.5em;
+height: 0;
+border-top: 0.3em solid transparent;
+border-bottom: 0.3em solid transparent;
+border-left: 0.45em solid currentColor;
+transform: translateX(var(--collapse-marker-offset));
+transform-origin: 0.15em center;
+vertical-align: 0.1em;
+}
+details.collapsed > summary .collapse-marker:first-child {
+--collapse-marker-offset: 0.075em;
+width: calc(35pt - 0.45em);
+margin-right: 0.25em;
+}
+details.collapsed[open] > summary .collapse-marker {
+transform: translateX(var(--collapse-marker-offset)) rotate(90deg);
+}
+details.collapsed > summary > :is(h1, h2, h3, h4, h5, h6) {
+margin-bottom: 0;
+}
+body[data-syntax-highlighting="off"] code.sourceCode:not(.diff) span:not(.add, .rm, .co, .cv, .do, .in) {
+color: inherit !important;
+font-style: inherit !important;
+font-weight: inherit !important;
+text-decoration: inherit !important;
+}
+body[data-deleted-text="hide"] .rm del {
+display: none !important;
+}
+</style>
+  <style type="text/css">
+:root {
+--toc-width: 19rem;
+--toc-right: clamp(1rem, 2vw, 2.5rem);
+--toc-top: 9.5rem;
+--toc-accent: #2878b5;
+--toc-active-bg: #eaf4fb;
+--toc-active-text: #175f91;
+--toc-border: #d9e1e7;
+--toc-heading: #4d5c68;
+--toc-hover-bg: #f2f6f8;
+--toc-hover-border: #bdc9d2;
+--toc-hover-text: #244d6b;
+--toc-muted: #66727d;
+--toc-rail: #dfe6eb;
+--toc-section-number: #89949d;
+--toc-scrollbar: #b8c3cc;
+--toc-surface: rgba(255, 255, 255, 0.96);
+--toc-panel-shadow:
+0 0.75rem 2.25rem rgba(30, 55, 75, 0.08),
+0 0.125rem 0.4rem rgba(30, 55, 75, 0.05);
+--view-controls-bg: rgba(255, 255, 255, 0.96);
+--view-controls-border: #b7c0c8;
+--view-controls-color: #22303c;
+--view-controls-hover: #f3f6f8;
+--view-controls-shadow: 0 0.2rem 0.8rem rgba(34, 48, 60, 0.12);
+}
+
+.view-controls {
+position: sticky;
+top: 0.75rem;
+z-index: 1000;
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+gap: 0.35rem;
+width: fit-content;
+margin-left: auto;
+margin-bottom: 1rem;
+padding: 0.45rem 0.8rem;
+border: 1px solid var(--view-controls-border);
+border-radius: 999px;
+background: var(--view-controls-bg);
+color: var(--view-controls-color);
+font: 600 0.9rem/1.1 sans-serif;
+box-shadow: var(--view-controls-shadow);
+}
+.view-controls:hover {
+background: var(--view-controls-hover);
+}
+.view-controls label {
+display: flex;
+align-items: center;
+gap: 0.45rem;
+}
+.view-controls input {
+margin: 0;
+}
+.view-controls span {
+white-space: nowrap;
+}
+.theme-switcher {
+display: flex;
+align-self: stretch;
+min-width: 0;
+margin: 0 0 0.15rem;
+padding: 0.15rem;
+border: 1px solid var(--toc-border);
+border-radius: 0.5rem;
+}
+.theme-switcher legend {
+position: absolute;
+width: 1px;
+height: 1px;
+padding: 0;
+overflow: hidden;
+clip: rect(0, 0, 0, 0);
+white-space: nowrap;
+border: 0;
+}
+.theme-switcher button {
+display: inline-flex;
+min-width: 0;
+align-items: center;
+justify-content: center;
+gap: 0.3rem;
+flex: 1;
+padding: 0.3rem 0.4rem;
+border: 0;
+border-radius: 0.35rem;
+background: transparent;
+color: var(--toc-muted);
+font: inherit;
+cursor: pointer;
+}
+.theme-switcher button:hover {
+background: var(--toc-hover-bg);
+color: var(--toc-hover-text);
+}
+.theme-switcher button:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 1px;
+}
+.theme-switcher button[aria-pressed="true"] {
+background: var(--toc-active-bg);
+color: var(--toc-active-text);
+font-weight: 600;
+}
+.theme-icon {
+font-size: 0.9rem;
+line-height: 1;
+}
+.table-of-contents .toc-progress {
+display: none;
+}
+.toc-mobile-bar,
+.toc-dialog,
+.toc-mobile-title,
+.toc-mobile-trigger,
+.toc-expand-toggle {
+display: none;
+}
+
+@media screen and (max-width: 89.999em) {
+html,
+body {
+max-width: 100%;
+}
+html {
+overflow-x: hidden;
+overflow-x: clip;
+}
+.wrapper {
+max-width: 100%;
+}
+.wrapper div.sourceCode {
+max-width: 100%;
+box-sizing: border-box;
+}
+
+.wrapper .table-wrapper {
+max-width: 100%;
+overflow-x: auto;
+overscroll-behavior-inline: contain;
+}
+body.toc-ready .table-of-contents {
+display: none;
+}
+body.toc-ready :is(h1, h2, h3, h4, h5, h6)[id] {
+scroll-margin-top: 4.5rem;
+}
+body.toc-menu-open {
+overflow: hidden;
+}
+body.toc-ready .toc-mobile-bar {
+position: fixed;
+inset: 0 0 auto;
+z-index: 1100;
+display: flex;
+align-items: center;
+gap: 1rem;
+height: 3.5rem;
+box-sizing: border-box;
+padding:
+0.5rem max(1rem, env(safe-area-inset-right))
+0.5rem max(1rem, env(safe-area-inset-left));
+border-bottom: 1px solid var(--toc-border);
+background: var(--toc-surface);
+box-shadow: 0 0.25rem 1rem rgba(30, 55, 75, 0.08);
+backdrop-filter: blur(0.85rem);
+font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+sans-serif;
+}
+.toc-mobile-bar .view-controls {
+position: static;
+z-index: auto;
+flex-direction: row;
+align-items: center;
+gap: 0.35rem;
+width: auto;
+margin: 0;
+padding: 0;
+border: 0;
+border-radius: 0;
+background: transparent;
+color: var(--toc-muted);
+box-shadow: none;
+font: 600 0.72rem/1 ui-sans-serif, -apple-system, BlinkMacSystemFont,
+"Segoe UI", sans-serif;
+}
+.toc-mobile-bar .view-controls:hover {
+background: transparent;
+}
+.toc-mobile-bar .view-controls label {
+gap: 0.35rem;
+padding: 0.45rem 0.55rem;
+border: 1px solid var(--toc-border);
+border-radius: 0.6rem;
+background: transparent;
+cursor: pointer;
+}
+.toc-mobile-bar .view-controls label:hover {
+border-color: var(--toc-hover-border);
+background: var(--toc-hover-bg);
+color: var(--toc-hover-text);
+}
+.toc-mobile-bar .view-controls input {
+accent-color: var(--toc-accent);
+}
+.toc-mobile-bar .view-controls input:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 2px;
+}
+.toc-mobile-bar .theme-switcher {
+align-self: center;
+margin: 0;
+}
+body[data-syntax-highlighting="off"]
+.toc-mobile-bar label[for="no-syntax-highlighting-toggle"],
+body[data-deleted-text="hide"]
+.toc-mobile-bar label[for="hide-deleted-text-toggle"] {
+border-color: color-mix(in srgb,
+var(--toc-accent) 35%, var(--toc-border));
+background: var(--toc-active-bg);
+color: var(--toc-active-text);
+}
+body.toc-ready .toc-mobile-title {
+display: block;
+min-width: 0;
+flex: 1;
+overflow: hidden;
+color: var(--toc-heading);
+font-size: 0.9rem;
+font-weight: 600;
+line-height: 1.2;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+body.toc-ready .toc-mobile-trigger {
+display: inline-flex;
+align-items: center;
+gap: 0.5rem;
+flex: 0 0 auto;
+padding: 0.45rem 0.65rem;
+border: 1px solid var(--toc-border);
+border-radius: 0.6rem;
+background: transparent;
+color: var(--toc-heading);
+font: 600 0.78rem/1 ui-sans-serif, -apple-system, BlinkMacSystemFont,
+"Segoe UI", sans-serif;
+cursor: pointer;
+}
+.toc-mobile-trigger:hover {
+border-color: var(--toc-hover-border);
+background: var(--toc-hover-bg);
+}
+.toc-mobile-trigger:focus-visible,
+.toc-dialog-close:focus-visible,
+.toc-dialog a:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 2px;
+}
+.toc-menu-icon {
+position: relative;
+width: 1rem;
+height: 0.7rem;
+flex: 0 0 auto;
+border-top: 2px solid currentColor;
+border-bottom: 2px solid currentColor;
+box-sizing: border-box;
+}
+.toc-menu-icon::after {
+content: "";
+position: absolute;
+top: 50%;
+left: 0;
+width: 100%;
+border-top: 2px solid currentColor;
+transform: translateY(-50%);
+}
+.toc-dialog[open] {
+position: fixed;
+inset: 0;
+z-index: 1200;
+display: flex;
+flex-direction: column;
+width: min(32rem, calc(100vw - 2rem));
+max-width: none;
+max-height: min(46rem, calc(100dvh - 2rem));
+box-sizing: border-box;
+margin: auto;
+padding: 0;
+overflow: hidden;
+border: 1px solid var(--toc-border);
+border-radius: 1rem;
+background: var(--toc-surface);
+color: var(--toc-muted);
+box-shadow: 0 1.5rem 5rem rgba(20, 35, 45, 0.28);
+font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+sans-serif;
+text-align: left;
+hyphens: none;
+}
+.toc-dialog::backdrop {
+background: rgba(20, 30, 38, 0.45);
+backdrop-filter: blur(0.15rem);
+}
+.toc-dialog-header {
+display: flex;
+flex: 0 0 auto;
+align-items: flex-start;
+gap: 1rem;
+padding: 1rem 1rem 0.9rem 1.15rem;
+border-bottom: 1px solid var(--toc-border);
+}
+.toc-dialog-heading {
+min-width: 0;
+flex: 1;
+}
+.toc-dialog-eyebrow {
+margin: 0 0 0.3rem;
+color: var(--toc-accent);
+font-size: 0.68rem;
+font-weight: 700;
+letter-spacing: 0.11em;
+line-height: 1;
+text-transform: uppercase;
+}
+.toc-dialog-title {
+margin: 0;
+overflow: hidden;
+color: var(--toc-heading);
+font-size: 1rem;
+font-weight: 650;
+line-height: 1.25;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.toc-dialog-close {
+display: grid;
+width: 2rem;
+height: 2rem;
+flex: 0 0 auto;
+place-items: center;
+padding: 0;
+border: 0;
+border-radius: 50%;
+background: transparent;
+color: var(--toc-muted);
+font: 400 1.5rem/1 sans-serif;
+cursor: pointer;
+}
+.toc-dialog-close:hover {
+background: var(--toc-hover-bg);
+color: var(--toc-heading);
+}
+.toc-dialog-nav {
+min-height: 0;
+
+flex: 1 1 auto;
+overflow-y: auto;
+overscroll-behavior: contain;
+padding: 0.75rem 0.8rem 1rem;
+scrollbar-width: thin;
+scrollbar-color: var(--toc-scrollbar) transparent;
+}
+.toc-dialog ul {
+padding-left: 0;
+margin: 0;
+list-style: none;
+}
+.toc-dialog ul ul {
+position: relative;
+padding-left: 0.9rem;
+margin: 0.15rem 0 0.25rem 0.65rem;
+}
+.toc-dialog ul ul::before {
+content: "";
+position: absolute;
+top: 0.2rem;
+bottom: 0.2rem;
+left: 0;
+width: 1px;
+background: var(--toc-rail);
+}
+.toc-dialog li,
+.toc-dialog li > ul {
+display: block;
+margin-top: 0;
+margin-bottom: 0;
+}
+.toc-dialog li::before {
+display: none;
+}
+.toc-dialog a {
+display: block;
+margin: 0.0625rem 0;
+padding: 0.38rem 0.55rem 0.38rem 0.65rem;
+border-left: 2px solid transparent;
+border-radius: 0 0.45rem 0.45rem 0;
+color: var(--toc-muted);
+font-size: 0.875rem;
+line-height: 1.35;
+text-decoration: none;
+overflow-wrap: anywhere;
+}
+.toc-dialog a:hover {
+color: var(--toc-hover-text);
+background: var(--toc-hover-bg);
+}
+.toc-dialog a.active {
+border-left-color: var(--toc-accent);
+background: var(--toc-active-bg);
+color: var(--toc-active-text);
+font-weight: 600;
+}
+.toc-dialog .toc-section-number {
+color: var(--toc-section-number);
+font-variant-numeric: tabular-nums;
+}
+.toc-dialog code,
+.toc-dialog code span {
+color: inherit !important;
+background: transparent !important;
+font-size: 0.96em;
+font-weight: inherit;
+}
+}
+@media screen and (max-width: 30em) {
+a.self-link {
+left: -1.5rem;
+width: 1.5rem;
+}
+body.toc-ready {
+padding-top: 3.25rem;
+}
+.toc-mobile-trigger-label {
+position: absolute;
+width: 1px;
+height: 1px;
+padding: 0;
+overflow: hidden;
+clip: rect(0, 0, 0, 0);
+white-space: nowrap;
+border: 0;
+}
+.toc-mobile-trigger {
+padding-inline: 0.6rem;
+}
+.toc-dialog[open] {
+width: calc(100vw - 1rem);
+max-height: calc(100dvh - 1rem);
+border-radius: 0.875rem;
+}
+}
+@media screen and (max-width: 47.999em) {
+body.toc-ready .toc-mobile-title {
+display: none;
+}
+.toc-mobile-bar .view-controls {
+min-width: 0;
+flex: 1;
+}
+.toc-mobile-bar .view-controls label {
+justify-content: center;
+min-width: 0;
+flex: 1;
+}
+.toc-mobile-bar .theme-label {
+display: none;
+}
+.toc-mobile-bar .theme-switcher button {
+flex: 0 0 auto;
+padding-inline: 0.35rem;
+}
+}
+@media screen and (max-width: 35.999em) {
+.toc-mobile-bar .view-controls > label > span {
+font-size: 0;
+}
+.toc-mobile-bar label[for="no-syntax-highlighting-toggle"] span::after {
+content: "No highlight";
+font-size: 0.72rem;
+}
+.toc-mobile-bar label[for="hide-deleted-text-toggle"] span::after {
+content: "Hide deleted";
+font-size: 0.72rem;
+}
+}
+@media screen and (min-width: 90em) {
+.toc-mobile-bar {
+display: block;
+}
+
+body.has-toc {
+margin-right: calc(
+var(--toc-right) + var(--toc-width) + 2rem
+);
+}
+
+body.has-toc .view-controls {
+position: fixed;
+top: 1rem;
+right: var(--toc-right);
+width: var(--toc-width);
+box-sizing: border-box;
+margin: 0;
+padding: 0.6rem 0.75rem;
+border-color: var(--toc-border);
+border-radius: 0.875rem;
+background: var(--toc-surface);
+color: var(--toc-muted);
+box-shadow: var(--toc-panel-shadow);
+backdrop-filter: blur(0.75rem);
+font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+sans-serif;
+font-size: 0.825rem;
+font-weight: 400;
+line-height: 1.38;
+}
+body.has-toc .view-controls:hover {
+background: var(--toc-surface);
+}
+body.has-toc .view-controls label {
+align-self: stretch;
+padding: 0.3rem 0.55rem 0.3rem 0.6rem;
+border-left: 2px solid transparent;
+border-radius: 0 0.4rem 0.4rem 0;
+cursor: pointer;
+transition:
+background-color 120ms ease,
+color 120ms ease;
+}
+body.has-toc .view-controls label:hover {
+background: var(--toc-hover-bg);
+color: var(--toc-hover-text);
+}
+body.has-toc .view-controls input {
+accent-color: var(--toc-accent);
+}
+body.has-toc .view-controls input:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 2px;
+}
+.table-of-contents {
+position: fixed;
+top: var(--toc-top);
+right: var(--toc-right);
+width: var(--toc-width);
+max-height: calc(100vh - var(--toc-top) - 1.5rem);
+box-sizing: border-box;
+overflow-y: auto;
+overscroll-behavior: contain;
+border: 1px solid var(--toc-border);
+border-radius: 0.875rem;
+background: var(--toc-surface);
+box-shadow: var(--toc-panel-shadow);
+scrollbar-width: thin;
+scrollbar-color: var(--toc-scrollbar) transparent;
+font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+sans-serif;
+font-size: 0.825rem;
+line-height: 1.38;
+text-align: left;
+hyphens: none;
+color: var(--toc-muted);
+}
+.table-of-contents .toc-chrome {
+position: sticky;
+top: 0;
+z-index: 2;
+padding: 0.9rem 0.95rem 0.7rem;
+border-bottom: 1px solid var(--toc-border);
+background: var(--toc-surface);
+backdrop-filter: blur(0.75rem);
+}
+.table-of-contents .toc-title-row {
+display: flex;
+align-items: center;
+gap: 0.75rem;
+}
+.table-of-contents .table-of-contents-title {
+display: flex;
+align-items: center;
+gap: 0.55rem;
+min-width: 0;
+flex: 1;
+font-size: 0.72rem;
+font-weight: 700;
+line-height: 1;
+letter-spacing: 0.11em;
+text-transform: uppercase;
+color: #4d5c68;
+border-bottom: none !important;
+margin: 0;
+}
+.table-of-contents .toc-expand-toggle {
+display: inline-flex;
+min-width: 4.7rem;
+align-items: center;
+justify-content: center;
+flex: 0 0 auto;
+padding: 0.3rem 0.45rem;
+border: 1px solid var(--toc-border);
+border-radius: 0.45rem;
+background: transparent;
+color: var(--toc-muted);
+font: 600 0.68rem/1 ui-sans-serif, -apple-system, BlinkMacSystemFont,
+"Segoe UI", sans-serif;
+cursor: pointer;
+transition:
+background-color 120ms ease,
+border-color 120ms ease,
+color 120ms ease;
+}
+.table-of-contents .toc-expand-toggle[hidden] {
+display: none;
+}
+.table-of-contents .toc-expand-toggle:hover {
+border-color: var(--toc-hover-border);
+background: var(--toc-hover-bg);
+color: var(--toc-hover-text);
+}
+.table-of-contents .toc-expand-toggle:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 2px;
+}
+.table-of-contents .table-of-contents-title::before {
+content: "";
+width: 0.45rem;
+height: 0.45rem;
+flex: 0 0 auto;
+border-radius: 50%;
+background: var(--toc-accent);
+box-shadow: 0 0 0 0.2rem color-mix(in srgb,
+var(--toc-accent) 14%, transparent);
+}
+.table-of-contents .toc-progress {
+display: block;
+height: 0.1875rem;
+margin-top: 0.75rem;
+overflow: hidden;
+border-radius: 999px;
+background: var(--toc-rail);
+}
+.table-of-contents .toc-progress-bar {
+display: block;
+width: 100%;
+height: 100%;
+border-radius: inherit;
+background: var(--toc-accent);
+transform: scaleX(0);
+transform-origin: left center;
+}
+.table-of-contents > ul {
+padding: 0.65rem 0.75rem 0.8rem;
+margin: 0;
+}
+.table-of-contents ul ul {
+position: relative;
+padding-left: 0.85rem;
+margin: 0.15rem 0 0.25rem 0.55rem;
+}
+.table-of-contents ul ul::before {
+content: "";
+position: absolute;
+top: 0.15rem;
+bottom: 0.2rem;
+left: 0;
+width: 1px;
+background: var(--toc-rail);
+}
+
+body.toc-ready .table-of-contents li > ul {
+display: none;
+}
+body.toc-ready .table-of-contents li.active-path > ul {
+display: block;
+}
+body.toc-ready .table-of-contents.toc-expanded li > ul {
+display: block;
+}
+.table-of-contents li {
+margin: 0;
+}
+.table-of-contents li::before {
+display: none;
+}
+.table-of-contents a {
+display: block;
+margin: 0.0625rem 0;
+padding: 0.3rem 0.55rem 0.3rem 0.6rem;
+border-left: 2px solid transparent;
+border-radius: 0 0.4rem 0.4rem 0;
+color: var(--toc-muted);
+text-decoration: none;
+overflow-wrap: anywhere;
+transition:
+background-color 120ms ease,
+border-color 120ms ease,
+color 120ms ease;
+}
+.table-of-contents a:hover {
+color: var(--toc-hover-text);
+background: var(--toc-hover-bg);
+}
+.table-of-contents a:focus-visible {
+outline: 2px solid var(--toc-accent);
+outline-offset: 1px;
+}
+.table-of-contents a.active {
+color: var(--toc-active-text);
+border-left-color: var(--toc-accent);
+background: var(--toc-active-bg);
+font-weight: 600;
+}
+.table-of-contents .toc-section-number {
+color: var(--toc-section-number);
+font-weight: 400;
+font-variant-numeric: tabular-nums;
+margin-right: 0.2em;
+}
+.table-of-contents a.active .toc-section-number {
+color: inherit;
+opacity: 0.78;
+}
+
+.table-of-contents code,
+.table-of-contents code span {
+color: inherit !important;
+background: transparent !important;
+font-size: 0.96em;
+font-weight: inherit;
+}
+}
+@media screen and (min-width: 90em) and (prefers-reduced-motion: reduce) {
+.table-of-contents a {
+transition: none;
+}
+.table-of-contents .toc-expand-toggle {
+transition: none;
+}
+}
+@media print {
+.view-controls,
+.toc-mobile-bar,
+.toc-dialog {
+display: none;
+}
+}
+</style>
+  <style id="dark-theme-styles" media="screen and (prefers-color-scheme: dark)">
+
+body {
+background-color: #171717;
+color: #e0e0e0;
+}
+span.mjx-mstyle { color: #e0e0e0 !important }
+a:link { color: #74bdff; }
+a:visited { color: #c38aff; }
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+span.phantom { color: #171717; }
+a.index:before { color: #e0e0e0; background-color: #4b6353; }
+.comment { color: #40f040; }
+.footnote .comment { color: #60ff60; }
+.example .comment { color: #60ff60; }
+.note .comment { color: #60ff60; }
+span.keyword { color: #32eade; }
+span.parenthesis { color: #ff7070; }
+span.curlybracket { color: #ff7070; }
+span.squarebracket { color: #ff7070; }
+span.literal { color: #ffd867; }
+span.literalterminal { color: #ffd867; }
+span.operator { color: #dac6d9; }
+span.anglebracket { color: #dac6d9; }
+span.preprocessordirective { color: #c28c68; }
+table { border-color: #e0e0e0; }
+td.border { border-color: #e0e0e0; }
+td.border { border-left-color: #e0e0e0; }
+tr.rowsep, td.cline { border-top-color: #e0e0e0; }
+tr.capsep { border-top-color: #e0e0e0; }
+th { border-bottom-color: #e0e0e0; }
+.footnoteSeparator { background-color: #e0e0e0; }
+text { fill: #e0e0e0; }
+path { stroke: #e0e0e0; }
+polygon { stroke: #e0e0e0; fill: #e0e0e0; }
+ellipse { stroke: #e0e0e0; }
+:target { background-color: #4b6345; color: #ffffff; }
+:target .codeblock { background-color: #4b6345; }
+:target ul { background-color: #4b6345; }
+:target a:link { color: #9fcdff; }
+:target a:visited { color: #d39aff; }
+:target a.hidden_link { text-decoration: none; color: inherit; }
+:target span.keyword { color: #52faee; }
+:target span.parenthesis { color: #ff4060; font-weight: bold; }
+:target span.curlybracket { color: #ff4060; font-weight: bold; }
+:target span.squarebracket { color: #ff4060; font-weight: bold; }
+:target span.literal { color: #ffe070; }
+:target span.literalterminal { color: #ffe070; }
+:target span.operator { color: #ffffff; }
+:target span.anglebracket { color: #ffffff; }
+:target span.preprocessordirective { color: #e0968f; }
+:target .comment { color: #75ff20; }
+:target .footnote .comment { color: #75ff20; }
+:target .example .comment { color: #75ff20; }
+:target .note .comment { color: #75ff20; }
+
+:root {
+color-scheme: dark;
+--unchanged-color: #e0e0e0;
+--add-color: #d0fddd;
+--rm-color: #ff9b98;
+--note-color: #6699ff;
+--not-proposed-color: #c2a4f5;
+--not-proposed-bg-color: rgba(194, 164, 245, 0.07);
+}
+table thead tr {
+border-bottom-color: #e0e0e0;
+}
+table tbody tr {
+border-bottom-color: #e0e0e0;
+}
+div.sourceCode {
+background-color: rgba(255, 255, 255, 0.03);
+}
+mark {
+background-color: #665c00;
+color: #ffffff;
+}
+code span.al,
+code span.er {
+color: #ff7070;
+}
+code span.cf,
+code span.dt,
+code span.kw {
+color: #32eade;
+}
+code span.bn,
+code span.bu,
+code span.ch,
+code span.dv,
+code span.fl,
+code span.sc,
+code span.ss,
+code span.st,
+code span.vs {
+color: #ffd867;
+}
+code span.co,
+code span.cv,
+code span.do,
+code span.in,
+code span.wa {
+color: #60ff60;
+}
+code span.op {
+color: #dac6d9;
+}
+code span.pp {
+color: #c28c68;
+}
+:target .sourceCode,
+p:has(> span.marginalizedparent > a.marginalized:target),
+li:has(> span.marginalizedparent > a.marginalized:target) {
+background-color: #4b6345;
+}
+
+:root {
+--toc-accent: #62b0eb;
+--toc-active-bg: rgba(70, 145, 200, 0.16);
+--toc-active-text: #84c7f5;
+--toc-border: #3b454e;
+--toc-heading: #d2d9de;
+--toc-hover-bg: rgba(255, 255, 255, 0.055);
+--toc-hover-border: #59636c;
+--toc-hover-text: #dceaf4;
+--toc-muted: #abb5bd;
+--toc-panel-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.28);
+--toc-rail: #414b54;
+--toc-section-number: #7f8a93;
+--toc-scrollbar: #59636c;
+--toc-surface: rgba(28, 28, 28, 0.96);
+--view-controls-bg: rgba(37, 37, 37, 0.96);
+--view-controls-border: #59636c;
+--view-controls-color: #e0e0e0;
+--view-controls-hover: #303030;
+--view-controls-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.4);
+} </style>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const darkStyles = document.getElementById('dark-theme-styles');
+      const storageKey = 'mpark-wg21-theme';
+      const themes = new Set(['system', 'light', 'dark']);
+
+      let theme = 'system';
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (themes.has(stored)) theme = stored;
+      } catch (_) {
+        // Local storage may be unavailable for local files or restricted contexts.
+      }
+
+      function applyTheme(value, persist) {
+        theme = value;
+        root.dataset.theme = value;
+        darkStyles.media = value === 'dark'
+          ? 'screen'
+          : value === 'light' ? 'not all' : 'screen and (prefers-color-scheme: dark)';
+
+        for (const button of document.querySelectorAll('button[data-theme-value]')) {
+          button.setAttribute('aria-pressed', String(button.dataset.themeValue === value));
+        }
+
+        if (!persist) return;
+        try {
+          if (value === 'system') {
+            localStorage.removeItem(storageKey);
+          } else {
+            localStorage.setItem(storageKey, value);
+          }
+        } catch (_) {
+          // The selected theme still applies for this page.
+        }
+      }
+
+      applyTheme(theme, false);
+      document.addEventListener('DOMContentLoaded', () => {
+        applyTheme(theme, false);
+        for (const button of document.querySelectorAll('button[data-theme-value]')) {
+          button.addEventListener('click', () => applyTheme(button.dataset.themeValue, true));
+        }
+      });
+    })();  </script>
+  <link href="data:image/vnd.microsoft.icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  
+</head>
+<body class="has-toc" data-syntax-highlighting="on" data-deleted-text="show">
+<header class="toc-mobile-bar">
+<div class="toc-mobile-title">Integer Division in a Quantities
+Library</div>
+<form class="view-controls">
+<fieldset class="theme-switcher">
+<legend>Theme</legend>
+<button type="button" data-theme-value="system" aria-label="Use system theme" aria-pressed="true" title="Use system theme">
+<span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">System</span>
+</button>
+<button type="button" data-theme-value="light" aria-label="Use light theme" aria-pressed="false" title="Use light theme">
+<span class="theme-icon" aria-hidden="true">☀</span><span class="theme-label">Light</span>
+</button>
+<button type="button" data-theme-value="dark" aria-label="Use dark theme" aria-pressed="false" title="Use dark theme">
+<span class="theme-icon" aria-hidden="true">☾</span><span class="theme-label">Dark</span>
+</button>
+</fieldset>
+<label for="no-syntax-highlighting-toggle">
+<input id="no-syntax-highlighting-toggle" type="checkbox"></input>
+<span>No syntax highlighting</span>
+</label>
+<label for="hide-deleted-text-toggle">
+<input id="hide-deleted-text-toggle" type="checkbox"></input>
+<span>Hide deleted text</span>
+</label>
+</form>
+<button class="toc-mobile-trigger" type="button" aria-label="Open table of contents" aria-expanded="false" aria-controls="toc-dialog">
+<span class="toc-menu-icon" aria-hidden="true"></span>
+<span class="toc-mobile-trigger-label">Contents</span>
+</button>
+</header>
+<dialog id="toc-dialog" class="toc-dialog" aria-modal="true" aria-labelledby="toc-dialog-title">
+<header class="toc-dialog-header">
+<div class="toc-dialog-heading">
+<div class="toc-dialog-eyebrow">Contents</div>
+<h2 id="toc-dialog-title" class="toc-dialog-title">Integer Division in a
+Quantities Library</h2>
+</div>
+<button class="toc-dialog-close" type="button" aria-label="Close table of contents">×</button>
+</header>
+<nav class="toc-dialog-nav" aria-label="Table of contents">
+</nav>
+</dialog>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Integer Division in a
+Quantities Library</h1>
+<table>
+  <tr>
+    <td>Document #:</td>
+    <td>
+      <span class="document-info">
+        <span>P4409R0</span>
+      <a class="document-link" href="https://wg21.link/P4409">Latest</a>
+      <a class="document-link" href="https://wg21.link/P4409/status">Status</a>
+      </span>
+    </td>
+  </tr>
+  <tr>
+    <td>Date:</td>
+    <td>2026-11-20</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project:</td>
+    <td>Programming Language C++</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Audience:</td>
+    <td>
+      SG6 Numerics<br>
+      LEWG Library Evolution Working Group<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to:</td>
+    <td>
+      Mateusz Pusz<br>&lt;<a href="mailto:mateusz.pusz@gmail.com" class="email">mateusz.pusz@gmail.com</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+</header>
+<div style="clear:both">
+<nav id="TOC" class="table-of-contents" role="doc-toc" aria-label="Table of contents">
+<div class="toc-chrome">
+<div class="toc-title-row">
+<h1 id="toctitle" class="table-of-contents-title">Contents</h1>
+<button class="toc-expand-toggle" type="button" hidden aria-expanded="false">Expand</button>
+</div>
+<div class="toc-progress" aria-hidden="true"><span class="toc-progress-bar"></span></div>
+</div>
+<ul>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision history</a>
+<ul>
+<li><a href="#r0" id="toc-r0"><span class="toc-section-number">1.1</span> R0</a></li>
+</ul></li>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">2</span> Introduction</a></li>
+<li><a href="#feedback" id="toc-feedback"><span class="toc-section-number">3</span> Feedback from earlier
+reviews</a></li>
+<li><a href="#current-design" id="toc-current-design"><span class="toc-section-number">4</span> Current design</a></li>
+<li><a href="#existing-practice" id="toc-existing-practice"><span class="toc-section-number">5</span> Existing practice</a>
+<ul>
+<li><a href="#chrono" id="toc-chrono"><span class="toc-section-number">5.1</span>
+<code class="sourceCode cpp">std<span class="op">::</span>chrono</code></a></li>
+<li><a href="#au" id="toc-au"><span class="toc-section-number">5.2</span> Au</a></li>
+<li><a href="#mp-units" id="toc-mp-units"><span class="toc-section-number">5.3</span> mp-units</a></li>
+</ul></li>
+<li><a href="#rationale" id="toc-rationale"><span class="toc-section-number">6</span> Why
+<code class="sourceCode cpp"><span class="op">/</span></code> stays the
+same for every pair</a></li>
+<li><a href="#alternatives" id="toc-alternatives"><span class="toc-section-number">7</span> Alternatives</a>
+<ul>
+<li><a href="#alt-au" id="toc-alt-au"><span class="toc-section-number">7.1</span> Reject the division unless the
+units are equivalent</a></li>
+<li><a href="#reject-only-the-division-of-the-same-kind-in-different-units" id="toc-reject-only-the-division-of-the-same-kind-in-different-units"><span class="toc-section-number">7.2</span> Reject only the division of the
+same kind in different units</a></li>
+<li><a href="#alt-integral-factor" id="toc-alt-integral-factor"><span class="toc-section-number">7.3</span> Reject the division when the unit
+of the result has an integral factor</a></li>
+<li><a href="#alt-common-unit" id="toc-alt-common-unit"><span class="toc-section-number">7.4</span> Divide in the common unit for
+operands of the same kind</a></li>
+<li><a href="#alt-remove" id="toc-alt-remove"><span class="toc-section-number">7.5</span> Remove integer division, or return
+a rational number</a></li>
+</ul></li>
+<li><a href="#proposal" id="toc-proposal"><span class="toc-section-number">8</span> Proposal</a></li>
+<li><a href="#best-practice" id="toc-best-practice"><span class="toc-section-number">9</span> Best practice for integer
+representation types</a></li>
+<li><a href="#straw-polls" id="toc-straw-polls"><span class="toc-section-number">10</span> Straw polls</a></li>
+<li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">11</span> Acknowledgments</a></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">12</span> References</a></li>
+</ul>
+</nav>
+<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
+<h2 data-number="1.1" id="r0"><span class="header-section-number">1.1</span> R0<a href="#r0" class="self-link"></a></h2>
+<p>Initial revision. It replaces the chapter “Integer division safety”
+and the section “Integer division hazard” of <span class="citation" data-cites="P4185R1"><a href="https://wg21.link/p4185r1">[P4185R1]</a></span>, so that the
+question can be decided separately.</p>
+<ul>
+<li>Description of <span class="citation" data-cites="AU"><a href="https://aurora-opensource.github.io/au">[Au]</a></span> corrected
+(see <a href="#au">Au</a>).</li>
+<li>Feedback from Croydon 2026 and earlier meetings answered (see <a href="#feedback">Feedback from earlier reviews</a>).</li>
+<li><a href="#best-practice">Best practice</a> chapter added.</li>
+<li><code class="sourceCode cpp">divide_in_common_unit</code> specified
+(see <a href="#proposal">Proposal</a>).</li>
+<li>The single straw poll replaced with two (see <a href="#straw-polls">Straw polls</a>).</li>
+</ul>
+<h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
+<p>Consider a function that counts how many 40-minute slots fit in a
+shift:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>quantity_of<span class="op">&lt;</span>dimensionless<span class="op">&gt;</span> <span class="kw">auto</span> <span class="ex">slots</span><span class="op">(</span>quantity_of<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> shift<span class="op">,</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                                      quantity_of<span class="op">&lt;</span>isq<span class="op">::</span>time<span class="op">&gt;</span> <span class="kw">auto</span> slot<span class="op">)</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> shift <span class="op">/</span> slot<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code class="sourceCode cpp"><span class="ex">slots</span><span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">,</span> <span class="dv">40</span> <span class="op">*</span> min<span class="op">)</span></code>
+returns <code class="sourceCode cpp"><span class="dv">0</span></code>,
+while we may expect
+<code class="sourceCode cpp"><span class="dv">12</span></code>. The
+division returns
+<code class="sourceCode cpp">quantity<span class="op">&lt;</span>h <span class="op">/</span> min<span class="op">,</span> <span class="dt">int</span><span class="op">&gt;</span></code>
+with the value
+<code class="sourceCode cpp"><span class="dv">8</span> <span class="op">/</span> <span class="dv">40</span> <span class="op">==</span> <span class="dv">0</span></code>.
+Its quantity is dimensionless, so the constraint on the return type
+accepts it. With
+<code class="sourceCode cpp"><span class="dv">480</span> <span class="op">*</span> min</code>
+as the first argument, the same function returns
+<code class="sourceCode cpp"><span class="dv">12</span></code>. With
+floating-point values, it returns
+<code class="sourceCode cpp"><span class="fl">0.2</span> h<span class="op">/</span>min</code>,
+which equals
+<code class="sourceCode cpp"><span class="dv">12</span></code>.</p>
+<p>The result is correct in its unit: 8 h / 40 min is 0.2 h/min, and
+integer division truncates it to 0. However, if we expect the operands
+to be converted to a common unit first, this is a surprise.</p>
+<p><span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> keeps this
+behavior. This paper explains why, describes what other libraries do,
+gives guidance for users of integer representation types, and proposes
+<code class="sourceCode cpp">divide_in_common_unit<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span></code>
+as an explicit way to divide in the common unit.</p>
+<h1 data-number="3" id="feedback"><span class="header-section-number">3</span> Feedback from earlier reviews<a href="#feedback" class="self-link"></a></h1>
+<p>Integer division was discussed at four meetings, and none of them
+took a poll on it.</p>
+<ol type="1">
+<li>At St. Louis 2024 (LEWGI), one participant asked for a diagnostic
+for this pitfall. Another considered it acceptable, as fixed-point
+arithmetic can’t sensibly divide in any other way, and others agreed. <a href="#alternatives">Alternatives</a> describes the diagnostics that
+were considered.</li>
+<li>At Hagenberg 2025 (SG6), participants asked why the library doesn’t
+calculate in a common unit (<a href="#alt-common-unit">Divide in the
+common unit</a>), suggested blocking the division when it introduces an
+integer ratio greater than one into the type (<a href="#alt-integral-factor">Integral factor in the unit</a>), and
+suggested disallowing integer division (<a href="#alt-remove">Remove
+it</a>). The participant who suggested the block preferred to keep
+integer division. One participant noted that
+<code class="sourceCode cpp">std<span class="op">::</span>chrono</code>
+allows dividing durations (<a href="#chrono"><code class="sourceCode cpp">std<span class="op">::</span>chrono</code></a>).</li>
+<li>At Sofia 2025 (joint SG6 and LEWGI), the chair suggested deleting
+integer division until there are rational or fixed-point types, and said
+later that the room favored this (<a href="#alt-remove">Remove it</a>).
+Another participant asked for a way to opt in to integer division. The
+session ended with an action item to do more work on integer
+division.</li>
+<li>At Croydon 2026 (LEWGI with SG6), participants:
+<ul>
+<li>asked for a best practice in the paper, and noted that the problem
+is harder to spot when the operands’ types are deduced (<a href="#best-practice">Best practice</a>),</li>
+<li>asked for a function that pairs with the remainder
+(<code class="sourceCode cpp">divide_in_common_unit</code>, see <a href="#current-design">Current design</a>), and for the paper not to
+describe the library as breaking mathematical rules,</li>
+<li>asked whether LEWG should be able to reject all integer division (<a href="#alt-remove">Remove it</a>); <a href="#straw-polls">straw poll
+1</a> asks whether the division should be ill-formed when the units are
+not equivalent,</li>
+<li>proposed to reject the division, or to require an opt-in, only when
+the units differ, which is the rule of <span class="citation" data-cites="AU"><a href="https://aurora-opensource.github.io/au">[Au]</a></span> (<a href="#alt-au">Reject the division</a>), and mentioned temperature as a
+case where this approach doesn’t work (<a href="#current-design">Current
+design</a>),</li>
+<li>noted that a solution is still needed for integer representation
+types.</li>
+</ul></li>
+</ol>
+<h1 data-number="4" id="current-design"><span class="header-section-number">4</span> Current design<a href="#current-design" class="self-link"></a></h1>
+<p>In <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span>,
+<code class="sourceCode cpp">a <span class="op">/</span> b</code>
+divides the numerical values of the operands and divides their units,
+without converting either value first, and it does so for every pair of
+quantities:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>quantity q1 <span class="op">=</span> <span class="op">(</span><span class="dv">8</span> <span class="op">*</span> km<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">40</span> <span class="op">*</span> min<span class="op">);</span>  <span class="co">// quantity&lt;km / min, int&gt;, value 8 / 40 == 0</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>quantity q2 <span class="op">=</span> <span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">40</span> <span class="op">*</span> h<span class="op">);</span>     <span class="co">// quantity&lt;one, int&gt;,      value 8 / 40 == 0</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>quantity q3 <span class="op">=</span> <span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">40</span> <span class="op">*</span> min<span class="op">);</span>   <span class="co">// quantity&lt;h / min, int&gt;,  value 8 / 40 == 0</span></span></code></pre></div>
+<p>For <code class="sourceCode cpp">q1</code>, the operands have
+different dimensions, so there is no common unit to convert to. For
+<code class="sourceCode cpp">q2</code>, the truncation is what C++
+programmers expect from
+<code class="sourceCode cpp"><span class="dt">int</span></code>.
+<code class="sourceCode cpp">q3</code> is the surprising case: the
+operands are of the same kind, but they are divided as in
+<code class="sourceCode cpp">q1</code>.</p>
+<p>Quantity points, such as a temperature in
+<code class="sourceCode cpp">deg_C</code>, can’t be multiplied or
+divided in <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span>, so this paper
+only concerns quantities that are not points.</p>
+<p><code class="sourceCode cpp">a <span class="op">+</span> b</code>,
+<code class="sourceCode cpp">a <span class="op">-</span> b</code> and
+<code class="sourceCode cpp">a <span class="op">%</span> b</code> work
+differently. They require operands of a common quantity type, and
+convert both to their common unit first:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h <span class="op">%</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">==</span> <span class="dv">60</span> <span class="op">*</span> min<span class="op">);</span>  <span class="co">// 300 min % 120 min</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">61</span> <span class="op">*</span> min <span class="op">%</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">*</span> min<span class="op">);</span>    <span class="co">// 61 min % 60 min</span></span></code></pre></div>
+<p><span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> quotes Richard
+Smith’s reasoning for this choice in its chapter on modulo.</p>
+<p>For integers, if
+<code class="sourceCode cpp">a <span class="op">/</span> b</code> is
+representable, <span>7.6.5 Multiplicative operators <a href="https://eel.is/c++draft/expr.mul" title="7.6.5 Multiplicative operators">[expr.mul]</a></span> guarantees
+that
+<code class="sourceCode cpp"><span class="op">(</span>a <span class="op">/</span> b<span class="op">)</span> <span class="op">*</span> b <span class="op">+</span> a <span class="op">%</span> b <span class="op">==</span> a</code>.
+For quantities, the same holds when both operands have equivalent units.
+When the units are not equivalent,
+<code class="sourceCode cpp">a <span class="op">/</span> b</code> and
+<code class="sourceCode cpp">a <span class="op">%</span> b</code> are
+computed in different units. The quotient that matches
+<code class="sourceCode cpp">a <span class="op">%</span> b</code> is the
+division in the common unit, which this paper proposes as
+<code class="sourceCode cpp">divide_in_common_unit<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span></code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">+</span> <span class="dv">5</span> <span class="op">*</span> h <span class="op">%</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">==</span> <span class="dv">5</span> <span class="op">*</span> h<span class="op">);</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>divide_in_common_unit<span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h<span class="op">,</span> <span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">+</span> <span class="dv">5</span> <span class="op">*</span> h <span class="op">%</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">==</span> <span class="dv">5</span> <span class="op">*</span> h<span class="op">);</span></span></code></pre></div>
+<p>Floating-point representation types don’t truncate.
+<code class="sourceCode cpp"><span class="fl">5.</span> <span class="op">*</span> h <span class="op">/</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span></code>
+is about
+<code class="sourceCode cpp"><span class="fl">0.0417</span> h<span class="op">/</span>min</code>,
+which equals
+<code class="sourceCode cpp"><span class="fl">2.5</span> <span class="op">*</span> one</code>.
+This is why <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> recommends
+floating-point representation types by default.</p>
+<h1 data-number="5" id="existing-practice"><span class="header-section-number">5</span> Existing practice<a href="#existing-practice" class="self-link"></a></h1>
+<h2 data-number="5.1" id="chrono"><span class="header-section-number">5.1</span>
+<code class="sourceCode cpp">std<span class="op">::</span>chrono</code><a href="#chrono" class="self-link"></a></h2>
+<p><code class="sourceCode cpp">std<span class="op">::</span>chrono<span class="op">::</span>duration</code>
+divides in the common type, so
+<code class="sourceCode cpp">hours<span class="op">(</span><span class="dv">8</span><span class="op">)</span> <span class="op">/</span> minutes<span class="op">(</span><span class="dv">40</span><span class="op">)</span> <span class="op">==</span> <span class="dv">12</span></code>,
+and <code class="sourceCode cpp"><span class="op">/</span></code> and
+<code class="sourceCode cpp"><span class="op">%</span></code> satisfy
+the identity above. Durations have a single dimension, so every pair of
+durations has a common type. A quantities library also divides
+quantities of different dimensions, which have no common unit, so it
+can’t apply this rule to every pair.</p>
+<p>The difference matters for code that moves from
+<code class="sourceCode cpp">std<span class="op">::</span>chrono</code>
+to quantities. The same values give different results with
+<code class="sourceCode cpp"><span class="op">/</span></code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>chrono<span class="op">::</span>hours<span class="op">(</span><span class="dv">8</span><span class="op">)</span> <span class="op">/</span> std<span class="op">::</span>chrono<span class="op">::</span>minutes<span class="op">(</span><span class="dv">40</span><span class="op">)</span> <span class="op">==</span> <span class="dv">12</span><span class="op">);</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity work <span class="op">=</span> std<span class="op">::</span>chrono<span class="op">::</span>hours<span class="op">(</span><span class="dv">8</span><span class="op">);</span>    <span class="co">// a quantity in h</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> quantity slot <span class="op">=</span> std<span class="op">::</span>chrono<span class="op">::</span>minutes<span class="op">(</span><span class="dv">40</span><span class="op">);</span> <span class="co">// a quantity in min</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>work <span class="op">/</span> slot <span class="op">==</span> <span class="dv">0</span> <span class="op">*</span> one<span class="op">);</span></span></code></pre></div>
+<p><code class="sourceCode cpp">divide_in_common_unit<span class="op">(</span>work<span class="op">,</span> slot<span class="op">)</span></code>
+gives <code class="sourceCode cpp"><span class="dv">12</span></code>,
+like
+<code class="sourceCode cpp">std<span class="op">::</span>chrono</code>.</p>
+<h2 data-number="5.2" id="au"><span class="header-section-number">5.2</span> Au<a href="#au" class="self-link"></a></h2>
+<p><span class="citation" data-cites="AU"><a href="https://aurora-opensource.github.io/au">[Au]</a></span> makes
+<code class="sourceCode cpp">a <span class="op">/</span> b</code>
+ill-formed when both representation types are integral and the units of
+<code class="sourceCode cpp">a</code> and
+<code class="sourceCode cpp">b</code> are not equivalent. The dimensions
+don’t matter. In Au 0.6.1, each of these is rejected at compile
+time:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> t <span class="op">=</span> meters<span class="op">(</span><span class="dv">60</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span>miles <span class="op">/</span> hour<span class="op">)(</span><span class="dv">65</span><span class="op">);</span>  <span class="co">// error: different dimensions</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> v <span class="op">=</span> kilo<span class="op">(</span>meters<span class="op">)(</span><span class="dv">100</span><span class="op">)</span> <span class="op">/</span> hours<span class="op">(</span><span class="dv">2</span><span class="op">);</span>     <span class="co">// error: different dimensions</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> n <span class="op">=</span> hours<span class="op">(</span><span class="dv">8</span><span class="op">)</span> <span class="op">/</span> minutes<span class="op">(</span><span class="dv">40</span><span class="op">);</span>           <span class="co">// error: same dimension, different units</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> f <span class="op">=</span> <span class="dv">10</span> <span class="op">/</span> seconds<span class="op">(</span><span class="dv">3</span><span class="op">);</span>                  <span class="co">// error: a number divided by a quantity</span></span></code></pre></div>
+<p>Division by a number, and division by a quantity in an equivalent
+unit, compile. There are two ways out of the error:</p>
+<ul>
+<li><code class="sourceCode cpp">divide_using_common_unit<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span></code>
+converts both operands to their common unit, and requires operands of
+the same dimension.
+<code class="sourceCode cpp">divide_using_common_unit<span class="op">(</span>hours<span class="op">(</span><span class="dv">8</span><span class="op">),</span> minutes<span class="op">(</span><span class="dv">40</span><span class="op">))</span></code>
+is <code class="sourceCode cpp"><span class="dv">12</span></code>.</li>
+<li><code class="sourceCode cpp">a <span class="op">/</span> unblock_int_div<span class="op">(</span>b<span class="op">)</span></code>
+divides the stored values, as <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> does. It is a
+no-op when the division would compile anyway, so a function template can
+use it for any representation type.</li>
+</ul>
+<p>Since Au’s first release, the rule has changed once and the way out
+has changed twice:</p>
+<div class="table-wrapper">
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 16%" />
+<col style="width: 36%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Au version</strong>
+</div></th>
+<th style="text-align: center;"><div style="text-align:center">
+<strong>Released</strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Integer
+<code class="sourceCode cpp">Quantity <span class="op">/</span> Quantity</code></strong>
+</div></th>
+<th><div style="text-align:center">
+<strong>Way out</strong>
+</div></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">0.1.0 to 0.3.5</td>
+<td style="text-align: center;">2022-12 to 2024-07</td>
+<td>always ill-formed</td>
+<td><code class="sourceCode cpp">integer_quotient<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span></code></td>
+</tr>
+<tr>
+<td style="text-align: center;">0.4.0</td>
+<td style="text-align: center;">2024-12</td>
+<td>ill-formed unless the units are equivalent</td>
+<td><code class="sourceCode cpp">a <span class="op">/</span> unblock_int_div<span class="op">(</span>b<span class="op">)</span></code></td>
+</tr>
+<tr>
+<td style="text-align: center;">0.6.0</td>
+<td style="text-align: center;">2026-08</td>
+<td>unchanged</td>
+<td>adds
+<code class="sourceCode cpp">divide_using_common_unit<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span></code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Version 0.4.0 deprecated
+<code class="sourceCode cpp">integer_quotient</code> in favor of
+<code class="sourceCode cpp">unblock_int_div</code> because the former
+was hard to use in generic code (<a href="https://github.com/aurora-opensource/au/issues/253">Au#253</a>).
+Later, Au’s maintainer found that a remainder of zero doesn’t make
+<code class="sourceCode cpp">a <span class="op">/</span> unblock_int_div<span class="op">(</span>b<span class="op">)</span></code>
+safe, and concluded that every use of it deserves extra scrutiny (<a href="https://github.com/aurora-opensource/au/issues/555">Au#555</a>).
+<code class="sourceCode cpp">divide_using_common_unit</code> was added
+in response (<a href="https://github.com/aurora-opensource/au/pull/558">Au#558</a>) and
+first released in 0.6.0. Au’s maintainer also tried a
+<code class="sourceCode cpp">quotient_and_remainder</code> helper after
+that change, and didn’t add it because its results were too
+confusing.</p>
+<h2 data-number="5.3" id="mp-units"><span class="header-section-number">5.3</span> mp-units<a href="#mp-units" class="self-link"></a></h2>
+<p><span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units">[mp-units]</a></span> divides
+the numerical values, as <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> does, both in
+its current release line and in the version 3 branch that <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> is based on.
+Neither provides
+<code class="sourceCode cpp">divide_in_common_unit</code> yet. The
+surprise was reported in 2021 (<a href="https://github.com/mpusz/mp-units/issues/231">mp-units#231</a>):
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">500</span> <span class="op">*</span> m<span class="op">)</span></code>
+returned <code class="sourceCode cpp"><span class="dv">0</span></code>
+in a dimensionless unit scaled by 1000. The issue was closed by changing
+<code class="sourceCode cpp"><span class="op">%</span></code> to work on
+the stored values in the unit of the left operand, as
+<code class="sourceCode cpp"><span class="op">/</span></code> does, so
+that
+<code class="sourceCode cpp"><span class="op">(</span>a <span class="op">/</span> b<span class="op">)</span> <span class="op">*</span> b <span class="op">+</span> a <span class="op">%</span> b <span class="op">==</span> a</code>
+held. Later,
+<code class="sourceCode cpp"><span class="op">%</span></code> was
+changed to use the common unit, which Richard Smith also recommended,
+and which <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span> specifies.</p>
+<h1 data-number="6" id="rationale"><span class="header-section-number">6</span> Why
+<code class="sourceCode cpp"><span class="op">/</span></code> stays the
+same for every pair<a href="#rationale" class="self-link"></a></h1>
+<p>This rule doesn’t remove the surprise shown in the <a href="#introduction">Introduction</a>. We keep one rule for every pair
+because:</p>
+<ul>
+<li>the unit of
+<code class="sourceCode cpp">a <span class="op">/</span> b</code> is
+always the unit of <code class="sourceCode cpp">a</code> divided by the
+unit of <code class="sourceCode cpp">b</code>. A rule that converts some
+pairs makes the type of a division in a function template depend on
+whether its arguments are of the same kind,</li>
+<li>when <code class="sourceCode cpp"><span class="op">/</span></code>
+does it implicitly, converting to the common unit multiplies the
+numerical values by factors the user doesn’t see. The common unit of
+<code class="sourceCode cpp">km</code> and
+<code class="sourceCode cpp">mi</code> is 0.064 m, so
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">1</span> <span class="op">*</span> mi<span class="op">)</span></code>
+would compute
+<code class="sourceCode cpp"><span class="dv">15625</span> <span class="op">/</span> <span class="dv">25146</span></code>,
+and a larger numerator overflows a 32-bit
+<code class="sourceCode cpp"><span class="dt">int</span></code>
+sooner,</li>
+<li>the result depends less on how an expression is grouped. Today, both
+<code class="sourceCode cpp"><span class="dv">2</span> <span class="op">*</span> m <span class="op">*</span> <span class="op">(</span><span class="dv">5</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">)</span></code>
+and
+<code class="sourceCode cpp"><span class="dv">2</span> <span class="op">*</span> m <span class="op">*</span> <span class="op">((</span><span class="dv">5</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">120</span> <span class="op">*</span> min<span class="op">))</span></code>
+give <code class="sourceCode cpp"><span class="dv">0</span></code>. If
+<code class="sourceCode cpp"><span class="op">/</span></code> converted
+operands of the same kind, the second would give
+<code class="sourceCode cpp"><span class="dv">4</span> m</code>, while
+the first would still give
+<code class="sourceCode cpp"><span class="dv">0</span></code>.</li>
+</ul>
+<h1 data-number="7" id="alternatives"><span class="header-section-number">7</span> Alternatives<a href="#alternatives" class="self-link"></a></h1>
+<h2 data-number="7.1" id="alt-au"><span class="header-section-number">7.1</span> Reject the division unless the
+units are equivalent<a href="#alt-au" class="self-link"></a></h2>
+<p>This is the rule of <span class="citation" data-cites="AU"><a href="https://aurora-opensource.github.io/au">[Au]</a></span>, with
+<code class="sourceCode cpp">unblock_int_div</code> and a common-unit
+division as the ways out. Au has rejected such divisions since its first
+release in 2022. The rule also catches the surprise when the dimensions
+differ, as in
+<code class="sourceCode cpp">meters<span class="op">(</span><span class="dv">60</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span>miles <span class="op">/</span> hour<span class="op">)(</span><span class="dv">65</span><span class="op">)</span></code>,
+which no common unit can fix.</p>
+<p>However, it rejects common integer divisions that give the expected
+result, such as
+<code class="sourceCode cpp"><span class="dv">100</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span></code>,
+which is
+<code class="sourceCode cpp"><span class="dv">50</span> km<span class="op">/</span>h</code>.
+A function template that may be instantiated with integers has to wrap
+every denominator in
+<code class="sourceCode cpp">unblock_int_div</code>, while
+<code class="sourceCode cpp"><span class="dt">int</span> <span class="op">/</span> <span class="dt">int</span></code>
+needs no such wrapper, and the wrapper silences the check without making
+the division safe (<a href="https://github.com/aurora-opensource/au/issues/555">Au#555</a>).</p>
+<h2 data-number="7.2" id="reject-only-the-division-of-the-same-kind-in-different-units"><span class="header-section-number">7.2</span> Reject only the division of the
+same kind in different units<a href="#reject-only-the-division-of-the-same-kind-in-different-units" class="self-link"></a></h2>
+<p><span class="citation" data-cites="P4185R1"><a href="https://wg21.link/p4185r1">[P4185R1]</a></span> sketched a
+narrower guard: reject
+<code class="sourceCode cpp">a <span class="op">/</span> b</code> only
+when the operands are of the same kind, as in
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">40</span> <span class="op">*</span> min<span class="op">)</span></code>,
+and keep
+<code class="sourceCode cpp"><span class="dv">100</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span></code>
+well-formed. Neither Au nor mp-units implements it. It doesn’t catch
+<code class="sourceCode cpp"><span class="dv">60</span> <span class="op">*</span> m <span class="op">/</span> <span class="op">(</span><span class="dv">65</span> <span class="op">*</span> mi <span class="op">/</span> h<span class="op">)</span></code>,
+which also returns
+<code class="sourceCode cpp"><span class="dv">0</span></code>, and it
+makes the validity of a division in a function template depend on
+whether the kinds of its arguments match.</p>
+<h2 data-number="7.3" id="alt-integral-factor"><span class="header-section-number">7.3</span> Reject the division when the
+unit of the result has an integral factor<a href="#alt-integral-factor" class="self-link"></a></h2>
+<p>This rule was suggested in SG6. It would reject
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">40</span> <span class="op">*</span> min<span class="op">)</span></code>,
+whose unit
+<code class="sourceCode cpp">h <span class="op">/</span> min</code> is
+60 times <code class="sourceCode cpp">one</code>, and
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">500</span> <span class="op">*</span> m<span class="op">)</span></code>,
+whose unit
+<code class="sourceCode cpp">km <span class="op">/</span> m</code> is
+1000 times <code class="sourceCode cpp">one</code>. It would accept
+<code class="sourceCode cpp"><span class="dv">100</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span></code>,
+whose unit
+<code class="sourceCode cpp">km <span class="op">/</span> h</code> is
+5/18 of
+<code class="sourceCode cpp">m <span class="op">/</span> s</code>, but
+also
+<code class="sourceCode cpp"><span class="dv">60</span> <span class="op">*</span> m <span class="op">/</span> <span class="op">(</span><span class="dv">65</span> <span class="op">*</span> mi <span class="op">/</span> h<span class="op">)</span></code>,
+which returns
+<code class="sourceCode cpp"><span class="dv">0</span></code>. It would
+also reject divisions with exact results, such as
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> min<span class="op">)</span></code>,
+which is
+<code class="sourceCode cpp"><span class="dv">4</span> h<span class="op">/</span>min</code>,
+or 240.</p>
+<h2 data-number="7.4" id="alt-common-unit"><span class="header-section-number">7.4</span> Divide in the common unit for
+operands of the same kind<a href="#alt-common-unit" class="self-link"></a></h2>
+<p><code class="sourceCode cpp"><span class="op">/</span></code> could
+convert operands of the same kind to their common unit, as
+<code class="sourceCode cpp">std<span class="op">::</span>chrono</code>
+does. This changes the unit of the result only for some pairs, with the
+consequences described in <a href="#rationale">Why
+<code class="sourceCode cpp"><span class="op">/</span></code> stays the
+same for every pair</a>.</p>
+<p>The conversion could be limited to operands with integral
+representation types, where the surprise happens. This makes generic
+code harder to write and to reason about because the unit of
+<code class="sourceCode cpp">a <span class="op">/</span> b</code> in a
+function template would then depend on the representation type it is
+instantiated with. The same quantities in the same units would give
+results in different units for integral and floating-point
+representation types:
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">40</span> <span class="op">*</span> min<span class="op">)</span></code>
+would print
+<code class="sourceCode cpp"><span class="dv">12</span></code>, while
+<code class="sourceCode cpp"><span class="op">(</span><span class="fl">8.</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">40.</span> <span class="op">*</span> min<span class="op">)</span></code>
+prints
+<code class="sourceCode cpp"><span class="fl">0.2</span> h<span class="op">/</span>min</code>.
+The two values are equal, but this is confusing to users.</p>
+<h2 data-number="7.5" id="alt-remove"><span class="header-section-number">7.5</span> Remove integer division, or
+return a rational number<a href="#alt-remove" class="self-link"></a></h2>
+<p>Deleting
+<code class="sourceCode cpp"><span class="op">/</span></code> for
+integer representation types would also reject
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span></code>
+and
+<code class="sourceCode cpp"><span class="dv">100</span> <span class="op">*</span> km <span class="op">/</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> h<span class="op">)</span></code>,
+which give the expected result. Returning a rational or fixed-point
+number needs a type that the standard library doesn’t have.</p>
+<h1 data-number="8" id="proposal"><span class="header-section-number">8</span> Proposal<a href="#proposal" class="self-link"></a></h1>
+<p>Keep <code class="sourceCode cpp"><span class="op">/</span></code> as
+specified in <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span>, and add the
+following non-member function template:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">auto</span> R1<span class="op">,</span> <span class="kw">typename</span> Rep1<span class="op">,</span> <span class="kw">auto</span> R2<span class="op">,</span> <span class="kw">typename</span> Rep2<span class="op">&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> <em>CommonlyInvocableQuantities</em><span class="op">&lt;</span>divides<span class="op">&lt;&gt;,</span> quantity<span class="op">&lt;</span>R1<span class="op">,</span> Rep1<span class="op">&gt;,</span> quantity<span class="op">&lt;</span>R2<span class="op">,</span> Rep2<span class="op">&gt;&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>           <em>InvocableQuantities</em><span class="op">&lt;</span>divides<span class="op">&lt;&gt;,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                                 <em>common-quantity-for</em><span class="op">&lt;</span>divides<span class="op">&lt;&gt;,</span> quantity<span class="op">&lt;</span>R1<span class="op">,</span> Rep1<span class="op">&gt;,</span> quantity<span class="op">&lt;</span>R2<span class="op">,</span> Rep2<span class="op">&gt;&gt;,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                                 <em>common-quantity-for</em><span class="op">&lt;</span>divides<span class="op">&lt;&gt;,</span> quantity<span class="op">&lt;</span>R1<span class="op">,</span> Rep1<span class="op">&gt;,</span> quantity<span class="op">&lt;</span>R2<span class="op">,</span> Rep2<span class="op">&gt;&gt;&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> delta_quantity <span class="kw">auto</span> divide_in_common_unit<span class="op">(</span><span class="kw">const</span> quantity<span class="op">&lt;</span>R1<span class="op">,</span> Rep1<span class="op">&gt;&amp;</span> lhs<span class="op">,</span> <span class="kw">const</span> quantity<span class="op">&lt;</span>R2<span class="op">,</span> Rep2<span class="op">&gt;&amp;</span> rhs<span class="op">);</span></span></code></pre></div>
+<p><em>Effects</em>: Equivalent to:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> ret <span class="op">=</span> <em>common-quantity-for</em><span class="op">&lt;</span>divides<span class="op">&lt;&gt;,</span> quantity<span class="op">&lt;</span>R1<span class="op">,</span> Rep1<span class="op">&gt;,</span> quantity<span class="op">&lt;</span>R2<span class="op">,</span> Rep2<span class="op">&gt;&gt;;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> ret<span class="op">(</span>lhs<span class="op">)</span> <span class="op">/</span> ret<span class="op">(</span>rhs<span class="op">);</span></span></code></pre></div>
+<p>The constraint and the conversion are those of
+<code class="sourceCode cpp"><span class="kw">operator</span><span class="op">%</span></code>
+with
+<code class="sourceCode cpp">divides<span class="op">&lt;&gt;</span></code>
+in place of
+<code class="sourceCode cpp">modulus<span class="op">&lt;&gt;</span></code>,
+and the constraint of
+<code class="sourceCode cpp"><span class="kw">operator</span><span class="op">/</span></code>
+is checked on the converted operands. So the function accepts the pairs
+that <code class="sourceCode cpp">a <span class="op">%</span> b</code>
+accepts and whose converted operands can be divided, plus floating-point
+representation types, and computes in the same representation type as
+<code class="sourceCode cpp">a <span class="op">%</span> b</code>, which
+is <code class="sourceCode cpp"><span class="dt">int</span></code> for
+two <code class="sourceCode cpp"><span class="dt">short</span></code>
+operands. Converting only the units, as in
+<code class="sourceCode cpp">lhs<span class="op">.</span>in<span class="op">(</span>u<span class="op">)</span> <span class="op">/</span> rhs<span class="op">.</span>in<span class="op">(</span>u<span class="op">)</span></code>
+for the common unit <code class="sourceCode cpp">u</code>, would keep
+the representation type of <code class="sourceCode cpp">lhs</code>: for
+<code class="sourceCode cpp"><span class="dt">short</span><span class="op">(</span><span class="dv">600</span><span class="op">)</span> <span class="op">*</span> h</code>
+divided by
+<code class="sourceCode cpp"><span class="dt">short</span><span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">*</span> min</code>,
+the converted numerator, 36000, doesn’t fit in
+<code class="sourceCode cpp"><span class="dt">short</span></code>.</p>
+<p>The unit of the result is
+<code class="sourceCode cpp">one</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>divide_in_common_unit<span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">,</span> <span class="dv">40</span> <span class="op">*</span> min<span class="op">)</span> <span class="op">==</span> <span class="dv">12</span> <span class="op">*</span> one<span class="op">);</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>divide_in_common_unit<span class="op">(</span>isq<span class="op">::</span>height<span class="op">(</span><span class="dv">8</span> <span class="op">*</span> m<span class="op">),</span> isq<span class="op">::</span>width<span class="op">(</span><span class="dv">40</span> <span class="op">*</span> cm<span class="op">))</span> <span class="op">==</span> <span class="dv">20</span> <span class="op">*</span> one<span class="op">);</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>divide_in_common_unit<span class="op">(</span><span class="dv">1</span> <span class="op">*</span> km<span class="op">,</span> <span class="dv">1</span> <span class="op">*</span> mi<span class="op">)</span> <span class="op">==</span> <span class="dv">0</span> <span class="op">*</span> one<span class="op">);</span>  <span class="co">// still integer division</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">// divide_in_common_unit(60 * m, 2 * s);                           // ill-formed</span></span></code></pre></div>
+<p><span class="citation" data-cites="AU"><a href="https://aurora-opensource.github.io/au">[Au]</a></span> names this
+function <code class="sourceCode cpp">divide_using_common_unit</code>.
+This paper uses <code class="sourceCode cpp">in</code>, as in the member
+function
+<code class="sourceCode cpp">in<span class="op">(</span>U<span class="op">)</span></code>
+of <code class="sourceCode cpp">quantity</code>, which converts to
+another unit.</p>
+<p><code class="sourceCode cpp">unblock_int_div</code> isn’t proposed
+because this paper keeps
+<code class="sourceCode cpp"><span class="op">/</span></code>
+well-formed for every pair of integer quantities, and there is nothing
+for it to unblock.</p>
+<p>The mp-units examples in this paper compile with this function added
+on top of mp-units, both on its current release line and on its version
+3 branch, with GCC 15 and Clang 23.</p>
+<h1 data-number="9" id="best-practice"><span class="header-section-number">9</span> Best practice for integer
+representation types<a href="#best-practice" class="self-link"></a></h1>
+<ol type="1">
+<li>Prefer floating-point representation types when the result of a
+division is a ratio. They don’t truncate, and
+<code class="sourceCode cpp">quantity<span class="op">&lt;</span>si<span class="op">::</span>metre<span class="op">&gt;</span></code>
+uses <code class="sourceCode cpp"><span class="dt">double</span></code>
+unless another type is given.</li>
+<li>To find how many times one quantity fits in another of the same
+kind, use
+<code class="sourceCode cpp">divide_in_common_unit<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span></code>.
+With <code class="sourceCode cpp">a <span class="op">%</span> b</code>,
+it gives the quotient and the remainder of the same division.</li>
+<li>Where <code class="sourceCode cpp">divide_in_common_unit</code>
+isn’t available yet, as in <span class="citation" data-cites="MP-UNITS"><a href="https://mpusz.github.io/mp-units">[mp-units]</a></span>, convert
+the numerator to the finer unit before dividing with
+<code class="sourceCode cpp"><span class="op">/</span></code>:
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">8</span> <span class="op">*</span> h<span class="op">).</span>in<span class="op">(</span>min<span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="dv">40</span> <span class="op">*</span> min<span class="op">)</span></code>
+is
+<code class="sourceCode cpp"><span class="dv">12</span> <span class="op">*</span> one</code>.
+The conversion in the other direction,
+<code class="sourceCode cpp"><span class="op">(</span><span class="dv">40</span> <span class="op">*</span> min<span class="op">).</span>in<span class="op">(</span>h<span class="op">)</span></code>,
+doesn’t compile because it could truncate.</li>
+<li>Check the type of the division itself, not only a constraint it
+satisfies or a type it is converted to. A division of quantities in
+different units returns a unit such as
+<code class="sourceCode cpp">h <span class="op">/</span> min</code>. A
+constraint such as
+<code class="sourceCode cpp">quantity_of<span class="op">&lt;</span>dimensionless<span class="op">&gt;</span></code>,
+as in the <a href="#introduction">Introduction</a>, accepts it.
+Converting the result to <code class="sourceCode cpp">one</code>
+multiplies the truncated value, so the truncation stays hidden. This is
+easy to miss when the operands are deduced with
+<code class="sourceCode cpp"><span class="kw">auto</span></code>.</li>
+</ol>
+<h1 data-number="10" id="straw-polls"><span class="header-section-number">10</span> Straw polls<a href="#straw-polls" class="self-link"></a></h1>
+<ol type="1">
+<li><em>Division of two quantities with integral representation types
+whose units are not equivalent should divide their numerical values and
+their units, as in <span class="citation" data-cites="P3045R10_PRE"><a href="https://wg21.link/p3045r10">[P3045R10]</a></span>, rather than be
+ill-formed or convert the operands to a common unit.</em></li>
+<li><em>P3045 should provide
+<code class="sourceCode cpp">divide_in_common_unit<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span></code>,
+as proposed in this paper.</em></li>
+</ol>
+<h1 data-number="11" id="acknowledgments"><span class="header-section-number">11</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
+<p>Special thanks and recognition goes to <a href="https://cppalliance.org">The C++ Alliance</a> for supporting
+Mateusz’s membership in the ISO C++ Committee and the production of this
+proposal.</p>
+<p>The author also thanks the participants of the SG6 and LEWGI sessions
+for the questions and alternatives they raised, <strong>Chip
+Hogg</strong> for the integer division experience of <span class="citation" data-cites="AU"><a href="https://aurora-opensource.github.io/au">[Au]</a></span>, and
+<strong>Richard Smith</strong> for the reasoning behind the modulo
+operator.</p>
+<h1 data-number="12" id="bibliography"><span class="header-section-number">12</span> References<a href="#bibliography" class="self-link"></a></h1>
+<div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
+<div id="ref-AU" class="csl-entry" role="listitem">
+[Au] The Au Units library. <a href="https://aurora-opensource.github.io/au"><div class="csl-indent">https://aurora-opensource.github.io/au</div></a>
+</div>
+<div id="ref-MP-UNITS" class="csl-entry" role="listitem">
+[mp-units] mp-units - A Physical Quantities and Units library for C++.
+<a href="https://mpusz.github.io/mp-units"><div class="csl-indent">https://mpusz.github.io/mp-units</div></a>
+</div>
+<div id="ref-P3045R10_PRE" class="csl-entry" role="listitem">
+[P3045R10] Mateusz Pusz. Quantities and units library. <a href="https://wg21.link/p3045r10"><div class="csl-indent">https://wg21.link/p3045r10</div></a>
+</div>
+<div id="ref-P4185R1" class="csl-entry" role="listitem">
+[P4185R1] Mateusz Pusz. 2026-06-12. Completing the Mathematical Model
+for C++ Quantities and Units. <a href="https://wg21.link/p4185r1"><div class="csl-indent">https://wg21.link/p4185r1</div></a>
+</div>
+</div>
+</div>
+</div>
+<script>
+const body = document.body;
+const noSyntaxHighlightingCheckbox = document.getElementById('no-syntax-highlighting-toggle');
+noSyntaxHighlightingCheckbox.checked = false;
+noSyntaxHighlightingCheckbox.addEventListener('change', () => {
+  body.dataset.syntaxHighlighting = noSyntaxHighlightingCheckbox.checked ? 'off' : 'on';
+});
+
+const hideDeletedTextCheckbox = document.getElementById('hide-deleted-text-toggle');
+hideDeletedTextCheckbox.checked = false;
+hideDeletedTextCheckbox.addEventListener('change', () => {
+  body.dataset.deletedText = hideDeletedTextCheckbox.checked ? 'hide' : 'show';
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const toc = document.querySelector('[role="doc-toc"]');
+  if (!toc) return;
+
+  const sourceList = toc.querySelector(':scope > ul');
+  const chrome = toc.querySelector(':scope > .toc-chrome');
+  if (!sourceList || !chrome) return;
+
+  if (!sourceList.id) {
+    sourceList.id = (toc.id || 'toc') + '-outline';
+  }
+
+  const expandToggle = chrome.querySelector('.toc-expand-toggle');
+  const progressBar = chrome.querySelector('.toc-progress-bar');
+  if (!expandToggle || !progressBar) return;
+
+  expandToggle.setAttribute('aria-label', 'Expand table of contents');
+  expandToggle.setAttribute('aria-controls', sourceList.id);
+
+  const entries = Array.from(toc.querySelectorAll('a[href^="#"]'))
+    .map(link => ({
+      link,
+      target: document.getElementById(
+        decodeURIComponent(link.getAttribute('href')).slice(1))
+    }))
+    .filter(e => e.target);
+  if (entries.length === 0) return;
+
+  let active = null;
+  let sidebar = false;
+  let readingLine = 1;
+  const mobileBar = document.querySelector('.toc-mobile-bar');
+  const mobileDialog = document.querySelector('.toc-dialog');
+  const mobileTrigger = document.querySelector('.toc-mobile-trigger');
+  const closeButton = document.querySelector('.toc-dialog-close');
+  const dialogNav = document.querySelector('.toc-dialog-nav');
+  let mobileLinks = [];
+  let expansionPreference = null;
+
+  const hasNestedSections = Boolean(sourceList.querySelector('li > ul'));
+  expandToggle.hidden = !hasNestedSections;
+
+  function measureLayout() {
+    sidebar = getComputedStyle(toc).position === 'fixed';
+    readingLine =
+      (parseFloat(getComputedStyle(entries[0].target).scrollMarginTop) || 0) + 1;
+  }
+
+  function setExpanded(expanded) {
+    toc.classList.toggle('toc-expanded', expanded);
+    expandToggle.textContent = expanded ? 'Collapse' : 'Expand';
+    expandToggle.setAttribute('aria-expanded', String(expanded));
+    expandToggle.setAttribute(
+      'aria-label',
+      expanded
+        ? 'Collapse table of contents'
+        : 'Expand table of contents'
+    );
+    if (active) {
+      requestAnimationFrame(() => keepActiveEntryVisible(active.link));
+    }
+  }
+
+  // Prefer the complete outline whenever it fits without adding an inner
+  // scrollbar. This naturally accounts for viewport height and wrapping.
+  function updateDefaultExpansion() {
+    if (expansionPreference !== null || !sidebar || !hasNestedSections) {
+      return;
+    }
+
+    toc.classList.add('toc-expanded');
+    const expandedFits = toc.scrollHeight <= toc.clientHeight + 2;
+    setExpanded(expandedFits);
+  }
+
+  expandToggle.addEventListener('click', () => {
+    expansionPreference = !toc.classList.contains('toc-expanded');
+    setExpanded(expansionPreference);
+  });
+
+  function syncMobileActive(scrollToActive = false) {
+    const activeHref = active?.link.getAttribute('href');
+    let mobileActive = null;
+
+    for (const link of mobileLinks) {
+      const isActive = link.getAttribute('href') === activeHref;
+      link.classList.toggle('active', isActive);
+      if (isActive) {
+        link.setAttribute('aria-current', 'location');
+        mobileActive = link;
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    }
+
+    if (scrollToActive && mobileActive) {
+      requestAnimationFrame(() => {
+        mobileActive.scrollIntoView({ block: 'center', behavior: 'auto' });
+      });
+    }
+  }
+
+  function markMobileDialogClosed() {
+    document.body.classList.remove('toc-menu-open');
+    if (mobileTrigger) mobileTrigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function closeMobileDialog() {
+    if (!mobileDialog?.open) return;
+    if (typeof mobileDialog.close === 'function') {
+      mobileDialog.close();
+    } else {
+      mobileDialog.removeAttribute('open');
+      markMobileDialogClosed();
+    }
+  }
+
+  if (mobileBar && mobileDialog && mobileTrigger && closeButton && dialogNav) {
+    const mobileList = sourceList.cloneNode(true);
+    mobileList.removeAttribute('id');
+    for (const element of mobileList.querySelectorAll('[id]')) {
+      element.removeAttribute('id');
+    }
+    dialogNav.appendChild(mobileList);
+    mobileLinks = Array.from(dialogNav.querySelectorAll('a[href^="#"]'));
+
+    document.body.classList.add('toc-ready');
+
+    mobileTrigger.addEventListener('click', () => {
+      syncMobileActive();
+      document.body.classList.add('toc-menu-open');
+      mobileTrigger.setAttribute('aria-expanded', 'true');
+      if (typeof mobileDialog.showModal === 'function') {
+        mobileDialog.showModal();
+      } else {
+        mobileDialog.setAttribute('open', '');
+      }
+      syncMobileActive(true);
+    });
+    closeButton.addEventListener('click', closeMobileDialog);
+    mobileDialog.addEventListener('close', markMobileDialogClosed);
+    mobileDialog.addEventListener('click', event => {
+      if (event.target === mobileDialog) closeMobileDialog();
+    });
+    dialogNav.addEventListener('click', event => {
+      const link = event.target.closest('a[href^="#"]');
+      if (!link) return;
+
+      const target = document.getElementById(
+        decodeURIComponent(link.getAttribute('href')).slice(1));
+      if (!target) return;
+
+      event.preventDefault();
+      closeMobileDialog();
+      const href = link.getAttribute('href');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        history.pushState(null, '', href);
+        target.scrollIntoView();
+      }));
+    });
+  }
+
+  function keepActiveEntryVisible(link) {
+    if (!sidebar) return;
+
+    const tocRect = toc.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    const top = tocRect.top + chrome.offsetHeight + 8;
+    const bottom = tocRect.bottom - 8;
+
+    if (linkRect.top < top) {
+      toc.scrollBy({
+        top: linkRect.top - top
+      });
+    } else if (linkRect.bottom > bottom) {
+      toc.scrollBy({
+        top: linkRect.bottom - bottom
+      });
+    }
+  }
+
+  function update() {
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const fraction = scrollable > 0
+      ? Math.max(0, Math.min(1, window.scrollY / scrollable))
+      : 0;
+    progressBar.style.transform = 'scaleX(' + fraction + ')';
+
+    let current = entries[0];
+    for (const e of entries) {
+      // TOC entries are in document order, so stop at the first
+      // heading below the reading line.
+      if (e.target.getBoundingClientRect().top > readingLine) break;
+      current = e;
+    }
+    if (current === active) {
+      if (active) keepActiveEntryVisible(active.link);
+      return;
+    }
+
+    if (active) {
+      active.link.classList.remove('active');
+      active.link.removeAttribute('aria-current');
+    }
+    active = current;
+    if (active) {
+      active.link.classList.add('active');
+      active.link.setAttribute('aria-current', 'location');
+
+      const stalePath = new Set(toc.querySelectorAll('li.active-path'));
+      for (let n = active.link.parentElement; n && n !== toc; n = n.parentElement) {
+        if (n.tagName === 'LI') {
+          n.classList.add('active-path');
+          stalePath.delete(n);
+        }
+      }
+      for (const li of stalePath) li.classList.remove('active-path');
+      keepActiveEntryVisible(active.link);
+      syncMobileActive();
+    }
+  }
+
+  let queued = false;
+  function onScroll() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; update(); });
+  }
+
+  let expansionQueued = false;
+  function onResize() {
+    measureLayout();
+    if (sidebar) closeMobileDialog();
+    onScroll();
+    if (expansionPreference !== null || expansionQueued) return;
+    expansionQueued = true;
+    requestAnimationFrame(() => {
+      expansionQueued = false;
+      updateDefaultExpansion();
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onResize, { passive: true });
+  // Late layout shifts (images, MathJax, mermaid) move the headings.
+  window.addEventListener('load', () => {
+    measureLayout();
+    update();
+    updateDefaultExpansion();
+  });
+  measureLayout();
+  update();
+  updateDefaultExpansion();
+});</script>
+</body>
+</html>
