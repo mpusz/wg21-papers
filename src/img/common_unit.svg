@@ -12,8 +12,8 @@
 <text x="185.0" y="18" class="hdr" text-anchor="middle">Steps</text>
 <text x="540" y="18" class="hdr">Example</text>
 <rect x="20" y="40" width="330" height="44" rx="22" class="box"/>
-<text x="185.0" y="62.0" class="mono" text-anchor="middle" dominant-baseline="central">get_common_reference(u₁, u₂, …)</text>
-<text x="540" y="62.0" class="mono" text-anchor="start" dominant-baseline="central">get_common_reference(km, m, mi)</text>
+<text x="185.0" y="62.0" class="mono" text-anchor="middle" dominant-baseline="central">get-common-unit(u₁, u₂, …)</text>
+<text x="540" y="62.0" class="mono" text-anchor="start" dominant-baseline="central">get-common-unit(km, m, mi)</text>
 <line x1="185.0" y1="84" x2="185.0" y2="106" class="arr"/>
 <rect x="20" y="108" width="330" height="44" rx="4" class="box"/>
 <text x="185.0" y="122.0" class="t" text-anchor="middle" dominant-baseline="central">1. Replace each common_unit argument</text>
